@@ -14,4 +14,4 @@ jobs:
       - uses: actions/setup-java@v4
         with: { java-version: '21', distribution: 'temurin' }
       - name: Unit Tests (shared)
-        run: ./gradlew :shared:testDebugUnitTest
+        run: ./gradlew :shared:testAndroidHostTest :shared:desktopTest

@@ -30,7 +30,9 @@ class AddPodcastFromUrlUseCaseTest {
             categories = emptyList(),
             feedUrl = "test-url",
             siteUrl = null,
-            lastUpdated = 0
+            lastUpdated = 0,
+            isSubscribed = true,
+            episodeCount = 0
         )
 
         coEvery { podcastRepo.getPodcastById("test-url") } returns existingPodcast

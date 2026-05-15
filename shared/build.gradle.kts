@@ -149,16 +149,19 @@ kotlin {
             implementation(libs.turbine)
         }
 
-        val androidHostTest by getting {
+        val jvmCommonTest by creating {
+            dependsOn(commonTest.get())
             dependencies {
                 implementation(libs.mockk)
             }
         }
 
+        val androidHostTest by getting {
+            dependsOn(jvmCommonTest)
+        }
+
         val desktopTest by getting {
-            dependencies {
-                implementation(libs.mockk)
-            }
+            dependsOn(jvmCommonTest)
         }
     }
 }
