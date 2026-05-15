@@ -71,6 +71,12 @@ class PodcastRepositoryImpl(
         }
     }
 
+    override fun getUnplayedEpisodes(): Flow<List<Episode>> {
+        return episodeDao.getUnplayed().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
     override suspend fun updateEpisodeProgress(id: String, progress: Long) {
         episodeDao.updatePlayback(id, false, progress)
     }

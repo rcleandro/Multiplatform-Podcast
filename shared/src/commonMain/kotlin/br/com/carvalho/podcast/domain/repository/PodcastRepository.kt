@@ -12,6 +12,7 @@ interface PodcastRepository {
     fun getEpisodes(podcastId: String): Flow<List<Episode>>
     fun getEpisodesPaged(podcastId: String): Flow<PagingData<Episode>>
     fun getDownloadedEpisodes(): Flow<List<Episode>>
+    fun getUnplayedEpisodes(): Flow<List<Episode>>
     suspend fun getEpisodeById(id: String): Episode?
     fun searchEpisodes(query: String): Flow<List<Episode>>
     fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>>
