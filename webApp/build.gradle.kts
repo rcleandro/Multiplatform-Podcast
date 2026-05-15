@@ -46,6 +46,10 @@ tasks.named("wasmJsDevelopmentExecutableCompileSync") {
     dependsOn("copySqliteWorker")
 }
 
+tasks.named("wasmJsProductionExecutableCompileSync") {
+    dependsOn("copySqliteWorker")
+}
+
 tasks.named("wasmJsBrowserDevelopmentRun") {
     dependsOn("copySqliteWorker")
 }
