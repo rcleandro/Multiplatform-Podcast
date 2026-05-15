@@ -49,6 +49,7 @@ coil = "3.4.0"
 turbine = "1.2.1"
 mockk = "1.14.9"
 uiTest = "1.11.0"
+kover = "0.9.8"
 
 # Media
 media3 = "1.10.1"
@@ -150,3 +151,4 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room3", version.ref = "room3" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

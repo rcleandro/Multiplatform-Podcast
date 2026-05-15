@@ -8,6 +8,17 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+    alias(libs.plugins.kover)
+}
+
+kover {
+    reports {
+        total {
+            log {
+                onCheck = true
+            }
+        }
+    }
 }
 
 kotlin {
