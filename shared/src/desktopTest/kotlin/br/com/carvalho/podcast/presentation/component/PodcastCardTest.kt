@@ -3,7 +3,7 @@ package br.com.carvalho.podcast.presentation.component
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.domain.model.Podcast
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,7 +39,7 @@ class PodcastCardTest {
 
         // Check if title is displayed
         onNodeWithText("Teste Podcast").assertExists()
-        
+
         // Check if author is displayed
         onNodeWithText("Teste Author").assertExists()
 
