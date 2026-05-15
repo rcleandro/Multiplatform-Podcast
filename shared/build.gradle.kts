@@ -1,0 +1,177 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+    android {
+        namespace = "br.com.carvalho.podcast.shared"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+
+        withHostTest {}
+    }
+
+    jvm("desktop")
+
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "Shared"
+            isStatic = true
+        }
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            // Compose
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material3)
+            implementation(libs.components.resources)
+            implementation(libs.composeIconsExtended)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.uiToolingPreview)
+
+            // Adaptive
+            implementation(libs.material3.adaptive)
+            implementation(libs.material3.adaptive.layout)
+            implementation(libs.material3.adaptive.navigation)
+            implementation(libs.material3.adaptive.navigation.suite)
+
+            // Room 3
+            implementation(libs.room3.runtime)
+            api(libs.room3.paging)
+
+
+            // Paging
+            implementation(libs.paging.common)
+            implementation(libs.paging.compose)
+
+            // Ktor 3
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.content.negotiation)
+            implementation(libs.ktor.serialization.json)
+            implementation(libs.ktor.logging)
+
+            // Koin 4
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+
+            // Kotlinx
+            implementation(libs.kotlinx.serialization)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.datetime)
+
+            // Okio
+            implementation(libs.okio)
+            implementation(libs.okio.fakefilesystem)
+
+            // Decompose
+            implementation(libs.decompose)
+            implementation(libs.decompose.compose)
+
+            // Lifecycle
+            implementation(libs.androidx.lifecycle.viewmodel)
+
+            // Imagem
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
+        }
+
+        androidMain.dependencies {
+            implementation(libs.ktor.client.android)
+            implementation(libs.koin.android)
+            implementation(libs.sqlite.bundled)
+            implementation(libs.media3.exoplayer)
+            implementation(libs.media3.session)
+            implementation(libs.kotlinx.coroutines.guava)
+        }
+
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+            implementation(libs.sqlite.bundled)
+        }
+
+        val desktopMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.cio)
+                implementation(libs.kotlinx.coroutines.swing)
+                implementation(compose.desktop.currentOs)
+                implementation(libs.sqlite.bundled)
+
+                val javafxVersion = libs.versions.javafx.get()
+                val osName = System.getProperty("os.name").lowercase()
+                val osArch = System.getProperty("os.arch").lowercase()
+
+                val classifier = when {
+                    osName.contains("mac") -> {
+                        if (osArch.contains("aarch64") || osArch.contains("arm64")) "mac-aarch64" else "mac"
+                    }
+                    osName.contains("win") -> "win"
+                    osName.contains("linux") -> "linux"
+                    else -> "mac"
+                }
+
+                implementation("org.openjfx:javafx-media:$javafxVersion:$classifier")
+                implementation("org.openjfx:javafx-graphics:$javafxVersion:$classifier")
+                implementation("org.openjfx:javafx-base:$javafxVersion:$classifier")
+            }
+        }
+
+
+        wasmJsMain.dependencies {
+            implementation(libs.ktor.client.js)
+            implementation(libs.sqlite.web)
+        }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.turbine)
+        }
+
+        val androidHostTest by getting {
+            dependencies {
+                implementation(libs.mockk)
+            }
+        }
+
+        val desktopTest by getting {
+            dependencies {
+                implementation(libs.mockk)
+            }
+        }
+    }
+}
+
+room3 {
+    schemaDirectory("$projectDir/schemas")
+}
+
+dependencies {
+    add("kspCommonMainMetadata", libs.room3.compiler)
+    add("kspAndroid", libs.room3.compiler)
+    add("kspIosArm64", libs.room3.compiler)
+    add("kspIosSimulatorArm64", libs.room3.compiler)
+    add("kspDesktop", libs.room3.compiler)
+    add("kspWasmJs", libs.room3.compiler)
+}

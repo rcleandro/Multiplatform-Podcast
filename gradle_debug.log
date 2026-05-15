@@ -1,0 +1,45 @@
+Type-safe project accessors is an incubating feature.
+
+> Configure project :shared
+w: [33m[1m⚠️ Default Kotlin Hierarchy Template Not Applied Correctly[0m[0m
+The Default Kotlin Hierarchy Template was not applied to 'project ':shared'':
+Explicit .dependsOn() edges were configured for the following source sets:
+[androidUnitTest]
+
+Consider removing dependsOn-calls or disabling the default template by adding
+    'kotlin.mpp.applyDefaultHierarchyTemplate=false'
+to your gradle.properties
+[32m[1mSolution:[0m[0m
+[32m[3mPlease remove the dependsOn-calls or disable the default template.[0m[0m
+[36mLearn more about hierarchy templates: [0m[34mhttps://kotl.in/hierarchy-template[0m[36m[0m
+
+w: [33m[1m⚠️ Unused Kotlin Source Sets[0m[0m
+The following Kotlin source sets were configured but not added to any Kotlin compilation:
+ * androidUnitTest
+ * iosMain
+ * jvmCommonTest
+[32m[1mSolution:[0m[0m
+[32m[3mYou can add a source set to a target's compilation by connecting it with the compilation's default source set using 'dependsOn'.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/connecting-source-sets[0m[36m[0m
+
+
+> Task :help
+
+Welcome to Gradle 9.4.1.
+
+To run a build, run gradlew <task> ...
+
+To see a list of available tasks, run gradlew tasks
+
+To see more detail about a task, run gradlew help --task <task>
+
+To see a list of command-line options, run gradlew --help
+
+For more detail on using Gradle, see https://docs.gradle.org/9.4.1/userguide/command_line_interface.html
+
+For troubleshooting, visit https://help.gradle.org
+
+[Incubating] Problems report is available at: file:///Users/leandro/StudioProjects/Podcast/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 984ms
+1 actionable task: 1 executed
