@@ -24,6 +24,8 @@ private const val TAG = "KtorEpisodeDownloader"
 open class KtorEpisodeDownloader(
     private val httpClient: HttpClient,
     private val episodeDao: EpisodeDao,
+    private val fileSystem: okio.FileSystem = FileUtils.fileSystem,
+    private val baseDir: okio.Path = FileUtils.baseDir,
     ioDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : EpisodeDownloader {
 
@@ -59,14 +61,14 @@ open class KtorEpisodeDownloader(
                 }
 
                 val fileName = "${episode.id}.mp3"
-                val destPath = FileUtils.baseDir / "downloads" / fileName
+                val destPath = baseDir / "downloads" / fileName
 
-                if (!FileUtils.fileSystem.exists(FileUtils.baseDir / "downloads")) {
-                    FileUtils.fileSystem.createDirectories(FileUtils.baseDir / "downloads")
+                if (!fileSystem.exists(baseDir / "downloads")) {
+                    fileSystem.createDirectories(baseDir / "downloads")
                 }
 
                 val channel = response.bodyAsChannel()
-                val sink = FileUtils.fileSystem.sink(destPath).buffer()
+                val sink = fileSystem.sink(destPath).buffer()
                 try {
                     val buffer = ByteArray(8192)
                     while (!channel.isClosedForRead) {
@@ -111,9 +113,9 @@ open class KtorEpisodeDownloader(
         downloadJobs.remove(episodeId)
 
         val fileName = "${episodeId}.mp3"
-        val destPath = FileUtils.baseDir / "downloads" / fileName
-        if (FileUtils.fileSystem.exists(destPath)) {
-            FileUtils.fileSystem.delete(destPath)
+        val destPath = baseDir / "downloads" / fileName
+        if (fileSystem.exists(destPath)) {
+            fileSystem.delete(destPath)
         }
 
         episodeDao.updateDownloadStatus(episodeId, false)
@@ -122,12 +124,12 @@ open class KtorEpisodeDownloader(
 
     override suspend fun delete(episodeId: String) {
         val fileName = "${episodeId}.mp3"
-        val destPath = FileUtils.baseDir / "downloads" / fileName
-        
+        val destPath = baseDir / "downloads" / fileName
+
         withContext(Dispatchers.Default) {
             try {
-                if (FileUtils.fileSystem.exists(destPath)) {
-                    FileUtils.fileSystem.delete(destPath)
+                if (fileSystem.exists(destPath)) {
+                    fileSystem.delete(destPath)
                 }
                 episodeDao.updateDownloadStatus(episodeId, false)
                 updateStatus(episodeId, DownloadStatus.Idle)
@@ -145,8 +147,8 @@ open class KtorEpisodeDownloader(
 
     override fun getLocalPath(episodeId: String): String? {
         val fileName = "${episodeId}.mp3"
-        val destPath = FileUtils.baseDir / "downloads" / fileName
-        return if (FileUtils.fileSystem.exists(destPath)) destPath.toString() else null
+        val destPath = baseDir / "downloads" / fileName
+        return if (fileSystem.exists(destPath)) destPath.toString() else null
     }
 
     private fun updateStatus(episodeId: String, status: DownloadStatus) {
