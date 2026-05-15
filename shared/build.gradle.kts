@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
@@ -25,6 +23,7 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
+
     android {
         namespace = "br.com.carvalho.podcast.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -50,6 +49,8 @@ kotlin {
         }
     }
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         commonMain.dependencies {
             // Compose
@@ -70,7 +71,6 @@ kotlin {
             // Room 3
             implementation(libs.room3.runtime)
             api(libs.room3.paging)
-
 
             // Paging
             implementation(libs.paging.common)
@@ -94,7 +94,6 @@ kotlin {
 
             // Okio
             implementation(libs.okio)
-            implementation(libs.okio.fakefilesystem)
 
             // Decompose
             implementation(libs.decompose)
@@ -117,9 +116,11 @@ kotlin {
             implementation(libs.kotlinx.coroutines.guava)
         }
 
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
-            implementation(libs.sqlite.bundled)
+        val iosMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+                implementation(libs.sqlite.bundled)
+            }
         }
 
         val desktopMain by getting {
@@ -130,15 +131,13 @@ kotlin {
                 implementation(libs.sqlite.bundled)
 
                 val javafxVersion = libs.versions.javafx.get()
-                val osName = System.getProperty("os.name").lowercase()
-                val osArch = System.getProperty("os.arch").lowercase()
 
+                val os = org.gradle.internal.os.OperatingSystem.current()
+                val arch = System.getProperty("os.arch").lowercase()
                 val classifier = when {
-                    osName.contains("mac") -> {
-                        if (osArch.contains("aarch64") || osArch.contains("arm64")) "mac-aarch64" else "mac"
-                    }
-                    osName.contains("win") -> "win"
-                    osName.contains("linux") -> "linux"
+                    os.isMacOsX -> if (arch.contains("aarch64") || arch.contains("arm64")) "mac-aarch64" else "mac"
+                    os.isWindows -> "win"
+                    os.isLinux -> "linux"
                     else -> "mac"
                 }
 
@@ -147,7 +146,6 @@ kotlin {
                 implementation("org.openjfx:javafx-base:$javafxVersion:$classifier")
             }
         }
-
 
         wasmJsMain.dependencies {
             implementation(libs.ktor.client.js)
@@ -160,6 +158,7 @@ kotlin {
             implementation(libs.turbine)
             implementation(libs.ktor.client.mock)
             implementation(libs.ui.test)
+            implementation(libs.okio.fakefilesystem)
         }
 
         val jvmCommonTest by creating {
