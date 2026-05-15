@@ -1,69 +1,62 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
+# 🎙️ Podcast KMP
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [desktopMain](./shared/src/desktopMain/kotlin)
-    folder is the appropriate location.
+A modern, cross-platform podcast player application built with **Kotlin Multiplatform (KMP)**. This project demonstrates the power of a single codebase targeting **Android**, **iOS**, **Desktop (JVM)**, and **Web (Wasm)**.
 
-* [/androidApp](./androidApp) contains the Android application.
-* [/desktopApp](./desktopApp) contains the Desktop (JVM) application.
-* [/webApp](./webApp) contains the Web application.
-* [/iosApp](./iosApp) contains the iOS application.
+## 🚀 Key Features
 
-### Build and Run Android Application
+- **Multi-Platform Support**: Native feel on Android, iOS, Desktop (macOS/Windows/Linux), and Web.
+- **RSS Feed Integration**: Add any podcast via its RSS URL.
+- **Offline Downloads**: Download episodes for offline listening.
+- **Persistent Playback**: Resume from where you left off.
+- **Adaptive UI**: Responsive design using **Compose Multiplatform**.
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :androidApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :androidApp:assembleDebug
-  ```
+## 🛠️ Technology Stack
 
-### Build and Run Desktop (JVM) Application
+- **[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform)**: Shared UI components across all platforms.
+- **[Room 3 (KMP)](https://developer.android.com/kotlin/multiplatform/room)**: Local database for cross-platform data persistence.
+- **[Ktor 3](https://ktor.io/)**: Asynchronous HTTP client for fetching RSS feeds and downloading audio.
+- **[Koin 4](https://insert-koin.io/)**: Dependency injection for a modular and testable architecture.
+- **[Decompose](https://github.com/arkivanov/Decompose)**: Life-cycle aware navigation and component decomposition.
+- **[Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)**: For handling XML (RSS) and JSON.
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :desktopApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :desktopApp:run
-  ```
+## 📐 Architecture
 
-### Build and Run Web Application
+The project follows **Clean Architecture** principles combined with **MVVM**:
 
-To build and run the development version of the web app, use the run configuration from the run widget
-in your IDE's toolbar or run it directly from the terminal:
-- for the Wasm target (faster, modern browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :webApp:wasmJsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :webApp:wasmJsBrowserDevelopmentRun
-    ```
+```
+:shared
+ ├── commonMain/         # Core logic, domain models, and shared UI
+ ├── androidMain/        # Android-specific implementations (Media3 Player)
+ ├── iosMain/            # iOS-specific implementations (AVFoundation Player)
+ ├── desktopMain/        # Desktop-specific implementations (JavaFX Media Player)
+ └── wasmJsMain/         # Web-specific implementations (HTML5 Audio)
 
-### Build and Run iOS Application
+:androidApp              # Android target wrapper
+:iosApp                  # iOS target (Xcode project)
+:desktopApp              # Desktop target wrapper
+:webApp                  # Web target (Wasm)
+```
 
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+## 🏗️ Getting Started
+
+### Prerequisites
+
+- **JDK 17 or 21**
+- **Android Studio** (Koala or newer) or **IntelliJ IDEA**
+- **Xcode** (for iOS development)
+- **KMP Support Plugin** installed in your IDE
+
+### Build and Run
+
+- **Android**: `./gradlew :androidApp:installDebug`
+- **Desktop**: `./gradlew :desktopApp:run`
+- **Web (Wasm)**: `./gradlew :webApp:wasmJsBrowserDevelopmentRun`
+- **iOS**: Open the `iosApp` folder in Xcode and run the project.
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
-
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+*Developed as a showcase of modern Kotlin Multiplatform capabilities.*
