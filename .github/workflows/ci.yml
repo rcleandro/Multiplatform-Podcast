@@ -1,119 +1,136 @@
 name: CI
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    push:
+        branches: [ main, develop ]
+    pull_request:
+        branches: [ main ]
+    workflow_dispatch:
 
 env:
-  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096M -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+    GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096M -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true"
 
 jobs:
-  test-jvm:
-    name: Run JVM Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    test-jvm:
+        name: Run JVM Tests
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Gradle setup
-        uses: ./.github/actions/gradle-setup
+            - name: Gradle setup
+              uses: ./.github/actions/gradle-setup
 
-      - name: Run tests
-        run: ./gradlew :shared:testAndroidHostTest :shared:desktopTest
+            - name: Run tests
+              run: ./gradlew :shared:testAndroidHostTest :shared:desktopTest
 
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports-jvm
-          path: "**/build/reports/tests/"
+            - name: Upload test reports
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-reports-jvm
+                  path: "**/build/reports/tests/"
 
-  test-ios:
-    name: Run iOS Tests
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    test-ios:
+        name: Run iOS Tests
+        runs-on: macos-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Gradle setup
-        uses: ./.github/actions/gradle-setup
+            - name: Gradle setup
+              uses: ./.github/actions/gradle-setup
 
-      - name: Run tests
-        run: ./gradlew :shared:iosSimulatorArm64Test
+            - name: Run tests
+              run: ./gradlew :shared:iosSimulatorArm64Test
 
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports-ios
-          path: "**/build/reports/tests/"
+            - name: Upload test reports
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-reports-ios
+                  path: "**/build/reports/tests/"
 
-  build-android:
-    name: Build Android
-    runs-on: ubuntu-latest
-    needs: test-jvm
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    build-android:
+        name: Build Android
+        runs-on: ubuntu-latest
+        needs: [ test-jvm, test-ios ]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Gradle setup
-        uses: ./.github/actions/gradle-setup
+            - name: Gradle setup
+              uses: ./.github/actions/gradle-setup
 
-      - name: Build Android debug APK
-        run: ./gradlew :androidApp:assembleDebug
+            - name: Build Android debug APK
+              run: ./gradlew :androidApp:assembleDebug
 
-      - name: Upload Android debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: androidApp/build/outputs/apk/debug/*.apk
+            - name: Upload Android debug APK
+              uses: actions/upload-artifact@v4
+              with:
+                  name: android-apk
+                  path: androidApp/build/outputs/apk/debug/*.apk
 
-  build-ios:
-    name: Build iOS
-    runs-on: macos-latest
-    needs: test-ios
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+            - name: Upload Android build reports
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: android-build-reports
+                  path: "**/build/reports/"
 
-      - name: Gradle setup
-        uses: ./.github/actions/gradle-setup
+    build-ios:
+        name: Build iOS
+        runs-on: macos-latest
+        needs: [ test-jvm, test-ios ]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Build iOS simulator app
-        run: |
-          xcodebuild build \
-            -project iosApp/iosApp.xcodeproj \
-            -configuration Debug \
-            -scheme iosApp \
-            -sdk iphonesimulator \
-            -derivedDataPath ./build \
-            -verbose
+            - name: Gradle setup
+              uses: ./.github/actions/gradle-setup
 
-      - name: Upload app folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: iphonesimulator-app
-          path: build/Build/Products/Debug-iphonesimulator/*.app
+            - name: Verify Xcode project exists
+              run: test -d iosApp/iosApp.xcodeproj
 
-  build-web:
-    name: Build Web
-    runs-on: ubuntu-latest
-    needs: test-jvm
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+            - name: Build iOS simulator app
+              run: |
+                  xcodebuild build \
+                    -project iosApp/iosApp.xcodeproj \
+                    -configuration Debug \
+                    -scheme iosApp \
+                    -sdk iphonesimulator \
+                    -derivedDataPath ./build \
+                    -verbose
 
-      - name: Gradle setup
-        uses: ./.github/actions/gradle-setup
+            - name: Upload app folder
+              uses: actions/upload-artifact@v4
+              with:
+                  name: iphonesimulator-app
+                  path: build/Build/Products/Debug-iphonesimulator/*.app
 
-      - name: Build Web
-        run: ./gradlew :webApp:wasmJsBrowserDistribution
+    build-web:
+        name: Build Web
+        runs-on: ubuntu-latest
+        needs: [ test-jvm, test-ios ]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Upload Web artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-dist
-          path: webApp/build/dist/wasmJs/productionExecutable/
+            - name: Gradle setup
+              uses: ./.github/actions/gradle-setup
+
+            - name: Build Web
+              run: ./gradlew :webApp:wasmJsBrowserDistribution
+
+            - name: Upload Web artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: web-dist
+                  path: webApp/build/dist/wasmJs/productionExecutable/
+
+            - name: Upload Web build reports
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: web-build-reports
+                  path: "**/build/reports/"
