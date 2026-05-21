@@ -30,6 +30,16 @@ class DownloadedEpisodesViewModel(
 
     fun playEpisode(episode: Episode) {
         viewModelScope.launch {
+            val currentPlayerState = audioPlayer.playerState.value
+            if (currentPlayerState.currentEpisode?.id == episode.id) {
+                if (currentPlayerState.isPlaying) {
+                    audioPlayer.pause()
+                } else {
+                    audioPlayer.resume()
+                }
+                return@launch
+            }
+
             val resolvedEpisode = episode.copy(localPath = episodeDownloader.getLocalPath(episode.id))
             audioPlayer.setQueue(episodes.value)
             audioPlayer.play(resolvedEpisode)

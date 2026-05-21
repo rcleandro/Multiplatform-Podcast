@@ -6,9 +6,9 @@ import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
-import br.com.carvalho.podcast.domain.download.DownloadStatus
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import br.com.carvalho.podcast.domain.player.AudioPlayer
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -19,7 +19,8 @@ private const val TAG = "SearchViewModel"
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class SearchViewModel(
     private val repository: PodcastRepository,
-    private val episodeDownloader: EpisodeDownloader
+    private val episodeDownloader: EpisodeDownloader,
+    val audioPlayer: AudioPlayer
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -42,6 +43,23 @@ class SearchViewModel(
 
     fun onQueryChange(query: String) {
         _searchQuery.value = query
+    }
+
+    fun playEpisode(episode: Episode) {
+        viewModelScope.launch {
+            val currentPlayerState = audioPlayer.playerState.value
+            if (currentPlayerState.currentEpisode?.id == episode.id) {
+                if (currentPlayerState.isPlaying) {
+                    audioPlayer.pause()
+                } else {
+                    audioPlayer.resume()
+                }
+                return@launch
+            }
+
+            audioPlayer.setQueue(listOf(episode))
+            audioPlayer.play(episode)
+        }
     }
 
     fun refresh() {

@@ -34,6 +34,7 @@ fun SearchScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val error by viewModel.error.collectAsState()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
+    val playerState by viewModel.audioPlayer.playerState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -118,9 +119,10 @@ fun SearchScreen(
                         EpisodeListItem(
                             episode = episode,
                             podcastTitle = episode.podcastTitle,
+                            isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
                             downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
                             onClick = { onEpisodeClick(episode.id, episode.podcastId) },
-                            onPlayClick = { onPlayEpisode(episode) },
+                            onPlayClick = { viewModel.playEpisode(episode) },
                             onDownloadClick = { viewModel.downloadEpisode(episode) },
                             onDeleteClick = { viewModel.deleteDownload(episode.id) }
                         )

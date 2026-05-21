@@ -52,8 +52,18 @@ class EpisodeDetailViewModel(
 
     fun play() {
         uiState.value.episode?.let { episode ->
-            AppLogger.i(TAG, "Playing episode: ${episode.title}")
             viewModelScope.launch {
+                val currentPlayerState = audioPlayer.playerState.value
+                if (currentPlayerState.currentEpisode?.id == episode.id) {
+                    if (currentPlayerState.isPlaying) {
+                        audioPlayer.pause()
+                    } else {
+                        audioPlayer.resume()
+                    }
+                    return@launch
+                }
+
+                AppLogger.i(TAG, "Playing episode: ${episode.title}")
                 audioPlayer.play(episode)
             }
         }

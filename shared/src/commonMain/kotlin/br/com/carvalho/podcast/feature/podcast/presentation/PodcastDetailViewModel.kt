@@ -86,6 +86,16 @@ class PodcastDetailViewModel(
 
     fun playEpisode(episodeId: String) {
         viewModelScope.launch {
+            val currentPlayerState = audioPlayer.playerState.value
+            if (currentPlayerState.currentEpisode?.id == episodeId) {
+                if (currentPlayerState.isPlaying) {
+                    audioPlayer.pause()
+                } else {
+                    audioPlayer.resume()
+                }
+                return@launch
+            }
+
             val allEpisodes = uiState.value.episodes
             val selectedIndex = allEpisodes.indexOfFirst { it.id == episodeId }
             if (selectedIndex == -1) {

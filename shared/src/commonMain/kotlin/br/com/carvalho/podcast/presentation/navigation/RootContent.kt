@@ -127,8 +127,7 @@ fun RootContent(component: RootComponentImpl) {
                                         component.onEpisodeSelected(id, podcastId)
                                     },
                                     onPlayEpisode = { episode ->
-                                        playerViewModel.play(episode)
-                                        component.onPlayerTabClicked()
+                                        viewModel.playEpisode(episode)
                                     }
                                 )
                             }
@@ -160,7 +159,6 @@ fun RootContent(component: RootComponentImpl) {
                             onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcastChild.podcastId) },
                             onPlayEpisode = { id ->
                                 viewModel.playEpisode(id)
-                                component.onPlayerTabClicked()
                             }
                         )
                     } else {
@@ -179,7 +177,6 @@ fun RootContent(component: RootComponentImpl) {
                             onBackClick = { component.onBackClicked() },
                             onPlayClick = {
                                 viewModel.play()
-                                component.onPlayerTabClicked()
                             }
                         )
                     }
