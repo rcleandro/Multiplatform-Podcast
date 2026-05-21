@@ -17,16 +17,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.animation.core.animateDpAsState
 import br.com.carvalho.podcast.presentation.component.PodcastCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel,
+    isPlayerVisible: Boolean = false,
     onPodcastClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -36,6 +40,7 @@ fun LibraryScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
@@ -44,12 +49,17 @@ fun LibraryScreen(
                     IconButton(onClick = { viewModel.onRefreshAll() }) {
                         Icon(Icons.Rounded.Refresh, contentDescription = "Atualizar Tudo")
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         contentWindowInsets = WindowInsets(),
         floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.onAddClicked() }) {
+            val fabPadding by animateDpAsState(if (isPlayerVisible) 64.dp else 0.dp)
+            FloatingActionButton(
+                onClick = { viewModel.onAddClicked() },
+                modifier = Modifier.padding(bottom = fabPadding)
+            ) {
                 Icon(Icons.Rounded.Add, contentDescription = "Adicionar Podcast")
             }
         }
@@ -85,7 +95,7 @@ fun LibraryScreen(
 
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(columns),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 80.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier.fillMaxSize()
