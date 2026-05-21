@@ -11,11 +11,12 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadedEpisodesScreen(
-    viewModel: DownloadedEpisodesViewModel,
+    viewModel: DownloadedEpisodesViewModel = koinViewModel(),
     onEpisodeClick: (String, String) -> Unit
 ) {
     val episodes by viewModel.episodes.collectAsState()
@@ -55,23 +56,25 @@ fun DownloadedEpisodesScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(episodes, key = { it.id }) { episode ->
-                    EpisodeListItem(
-                        episode = episode,
-                        podcastTitle = episode.podcastTitle,
-                        isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
-                        downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Completed(""),
-                        onClick = { onEpisodeClick(episode.id, episode.podcastId) },
-                        onPlayClick = { viewModel.playEpisode(episode) },
-                        onDeleteClick = { viewModel.deleteDownload(episode.id) }
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                }
+            return@Scaffold
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
+            items(episodes, key = { it.id }) { episode ->
+                EpisodeListItem(
+                    episode = episode,
+                    podcastTitle = episode.podcastTitle,
+                    isBuffering = playerState.currentEpisode?.id == episode.id && playerState.isBuffering,
+                    isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
+                    downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Completed(""),
+                    onClick = { onEpisodeClick(episode.id, episode.podcastId) },
+                    onPlayClick = { viewModel.playEpisode(episode) },
+                    onDeleteClick = { viewModel.deleteDownload(episode.id) }
+                )
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             }
         }
     }

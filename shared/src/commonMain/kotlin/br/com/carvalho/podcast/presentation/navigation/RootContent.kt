@@ -13,18 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
-import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewModel
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
-import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
 import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesScreen
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 import androidx.compose.runtime.collectAsState
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
-import br.com.carvalho.podcast.feature.search.presentation.SearchViewModel
 import br.com.carvalho.podcast.presentation.component.MiniPlayer
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
@@ -59,7 +55,9 @@ fun RootContent(component: RootComponentImpl) {
 
     val allChildren = stack.backStack.map { it.instance } + activeChild
     val lastListChild = allChildren.lastOrNull {
-        it is RootComponent.Child.Library || it is RootComponent.Child.Search || it is RootComponent.Child.DownloadedEpisodes
+        it is RootComponent.Child.Library
+            || it is RootComponent.Child.Search
+            || it is RootComponent.Child.DownloadedEpisodes
     }
 
     var isMiniPlayerVisible by remember { mutableStateOf(true) }
@@ -162,20 +160,14 @@ fun RootContent(component: RootComponentImpl) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             when (lastListChild) {
                                 is RootComponent.Child.Search -> {
-                                    val viewModel: SearchViewModel = koinViewModel()
                                     SearchScreen(
-                                        viewModel = viewModel,
                                         onEpisodeClick = { id, podcastId ->
                                             component.onEpisodeSelected(id, podcastId)
-                                        },
-                                        onPlayEpisode = { episode ->
-                                            viewModel.playEpisode(episode)
                                         }
                                     )
                                 }
                                 is RootComponent.Child.DownloadedEpisodes -> {
                                     DownloadedEpisodesScreen(
-                                        viewModel = koinViewModel(),
                                         onEpisodeClick = { id, podcastId ->
                                             component.onEpisodeSelected(id, podcastId)
                                         }
@@ -183,7 +175,6 @@ fun RootContent(component: RootComponentImpl) {
                                 }
                                 else -> {
                                     LibraryScreen(
-                                        viewModel = koinViewModel(),
                                         isPlayerVisible = showMiniPlayer && isMiniPlayerVisible,
                                         onPodcastClick = { id -> component.onPodcastSelected(id) }
                                     )
@@ -195,14 +186,10 @@ fun RootContent(component: RootComponentImpl) {
                         val podcastChild = allChildren.filterIsInstance<RootComponent.Child.PodcastDetail>().lastOrNull()
 
                         if (podcastChild != null && activeChild !is RootComponent.Child.Library && activeChild !is RootComponent.Child.Search && activeChild !is RootComponent.Child.DownloadedEpisodes) {
-                            val viewModel: PodcastDetailViewModel = koinViewModel(key = podcastChild.podcastId) { parametersOf(podcastChild.podcastId) }
                             PodcastDetailScreen(
-                                viewModel = viewModel,
+                                podcastId = podcastChild.podcastId,
                                 onBackClick = { component.onBackClicked() },
-                                onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcastChild.podcastId) },
-                                onPlayEpisode = { id ->
-                                    viewModel.playEpisode(id)
-                                }
+                                onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcastChild.podcastId) }
                             )
                         } else {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -214,13 +201,9 @@ fun RootContent(component: RootComponentImpl) {
                         val episodeChild = allChildren.filterIsInstance<RootComponent.Child.EpisodeDetail>().lastOrNull()
 
                         if (episodeChild != null && activeChild !is RootComponent.Child.Library && activeChild !is RootComponent.Child.Search && activeChild !is RootComponent.Child.DownloadedEpisodes) {
-                            val viewModel: EpisodeDetailViewModel = koinViewModel(key = episodeChild.episodeId) { parametersOf(episodeChild.episodeId) }
                             EpisodeDetailScreen(
-                                viewModel = viewModel,
-                                onBackClick = { component.onBackClicked() },
-                                onPlayClick = {
-                                    viewModel.play()
-                                }
+                                episodeId = episodeChild.episodeId,
+                                onBackClick = { component.onBackClicked() }
                             )
                         }
                     }
@@ -249,7 +232,6 @@ fun RootContent(component: RootComponentImpl) {
 
             if (activeChild is RootComponent.Child.Player) {
                 PlayerScreen(
-                    viewModel = koinViewModel(),
                     onBackClick = { component.onBackClicked() }
                 )
             }

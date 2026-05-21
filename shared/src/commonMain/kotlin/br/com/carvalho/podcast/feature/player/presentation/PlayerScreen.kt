@@ -25,11 +25,12 @@ import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import coil3.compose.AsyncImage
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
-    viewModel: PlayerViewModel,
+    viewModel: PlayerViewModel = koinViewModel(),
     onBackClick: () -> Unit
 ) {
     val playerState by viewModel.playerState.collectAsState()

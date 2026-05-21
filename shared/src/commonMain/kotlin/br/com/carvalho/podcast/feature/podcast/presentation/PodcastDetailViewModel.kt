@@ -11,6 +11,8 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.core.util.AppLogger
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -32,8 +34,20 @@ class PodcastDetailViewModel(
 
     private val _error = MutableStateFlow<String?>(null)
 
-    val pagedEpisodes: Flow<PagingData<Episode>> = repository.getEpisodesPaged(podcastId)
-        .cachedIn(viewModelScope)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pagedEpisodes: Flow<PagingData<Episode>> = _filter
+        .flatMapLatest { filter ->
+            repository.getEpisodesPaged(podcastId)
+                .map { pagingData ->
+                    pagingData.filter { episode ->
+                        when (filter) {
+                            EpisodeFilter.ALL -> true
+                            EpisodeFilter.UNPLAYED -> !episode.isPlayed
+                            EpisodeFilter.DOWNLOADED -> episode.isDownloaded
+                        }
+                    }
+                }
+        }.cachedIn(viewModelScope)
 
     val uiState: StateFlow<PodcastDetailUiState> = combine(
         repository.getPodcastByIdFlow(podcastId),

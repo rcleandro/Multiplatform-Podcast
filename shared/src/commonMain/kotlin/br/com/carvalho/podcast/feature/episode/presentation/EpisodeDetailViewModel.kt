@@ -50,7 +50,7 @@ class EpisodeDetailViewModel(
         }
     }
 
-    fun play() {
+    fun playEpisode() {
         uiState.value.episode?.let { episode ->
             viewModelScope.launch {
                 val currentPlayerState = audioPlayer.playerState.value

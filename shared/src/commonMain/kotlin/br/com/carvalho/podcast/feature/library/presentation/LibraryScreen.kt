@@ -20,11 +20,12 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.animation.core.animateDpAsState
 import br.com.carvalho.podcast.presentation.component.PodcastCard
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
-    viewModel: LibraryViewModel,
+    viewModel: LibraryViewModel = koinViewModel(),
     isPlayerVisible: Boolean = false,
     onPodcastClick: (String) -> Unit
 ) {

@@ -3,7 +3,6 @@ package br.com.carvalho.podcast.feature.podcast.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -30,14 +29,16 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.presentation.component.HtmlText
 import coil3.compose.AsyncImage
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PodcastDetailScreen(
-    viewModel: PodcastDetailViewModel,
+    podcastId: String,
+    viewModel: PodcastDetailViewModel = koinViewModel(key = podcastId) { parametersOf(podcastId) },
     onBackClick: () -> Unit,
-    onEpisodeClick: (String, String) -> Unit,
-    onPlayEpisode: (String) -> Unit
+    onEpisodeClick: (String, String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagedEpisodes = viewModel.pagedEpisodes.collectAsLazyPagingItems()
@@ -89,47 +90,33 @@ fun PodcastDetailScreen(
                 ) {
                     CircularProgressIndicator()
                 }
-            } else {
+                return@PullToRefreshBox
+            }
+
+            Column(modifier = Modifier.fillMaxSize()) {
+                PodcastHeader(uiState)
+
+                FilterSection(uiState.filter) { viewModel.setFilter(it) }
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    item {
-                        PodcastHeader(uiState)
-                    }
-
-                    item {
-                        FilterSection(uiState.filter) { viewModel.setFilter(it) }
-                    }
-
-                    if (uiState.filter == EpisodeFilter.ALL) {
-                        items(
-                            count = pagedEpisodes.itemCount,
-                            key = pagedEpisodes.itemKey { it.id },
-                            contentType = pagedEpisodes.itemContentType { "episode" }
-                        ) { index ->
-                            val episode = pagedEpisodes[index]
-                            if (episode != null) {
-                                EpisodeListItem(
-                                    episode = episode,
-                                    isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
-                                    downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
-                                    onClick = { onEpisodeClick(episode.id, episode.podcastId) },
-                                    onPlayClick = { onPlayEpisode(episode.id) },
-                                    onDownloadClick = { viewModel.downloadEpisode(episode.id) },
-                                    onDeleteClick = { viewModel.deleteDownload(episode.id) }
-                                )
-                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                            }
-                        }
-                    } else {
-                        items(uiState.episodes, key = { it.id }) { episode ->
+                    items(
+                        count = pagedEpisodes.itemCount,
+                        key = pagedEpisodes.itemKey { it.id },
+                        contentType = pagedEpisodes.itemContentType { "episode" }
+                    ) { index ->
+                        val episode = pagedEpisodes[index]
+                        if (episode != null) {
                             EpisodeListItem(
                                 episode = episode,
+                                isBuffering = playerState.currentEpisode?.id == episode.id && playerState.isBuffering,
                                 isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
-                                downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
+                                downloadStatus = activeDownloads[episode.id]
+                                    ?: DownloadStatus.Idle,
                                 onClick = { onEpisodeClick(episode.id, episode.podcastId) },
-                                onPlayClick = { onPlayEpisode(episode.id) },
+                                onPlayClick = { viewModel.playEpisode(episode.id) },
                                 onDownloadClick = { viewModel.downloadEpisode(episode.id) },
                                 onDeleteClick = { viewModel.deleteDownload(episode.id) }
                             )

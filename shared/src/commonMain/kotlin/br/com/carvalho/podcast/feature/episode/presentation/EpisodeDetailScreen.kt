@@ -23,13 +23,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.presentation.component.HtmlText
 import coil3.compose.AsyncImage
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EpisodeDetailScreen(
-    viewModel: EpisodeDetailViewModel,
-    onBackClick: () -> Unit,
-    onPlayClick: () -> Unit
+    episodeId: String,
+    viewModel: EpisodeDetailViewModel = koinViewModel(key = episodeId) { parametersOf(episodeId) },
+    onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -104,7 +106,7 @@ fun EpisodeDetailScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
-                        onClick = { onPlayClick() },
+                        onClick = { viewModel.playEpisode() },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(Icons.Rounded.PlayArrow, contentDescription = null)

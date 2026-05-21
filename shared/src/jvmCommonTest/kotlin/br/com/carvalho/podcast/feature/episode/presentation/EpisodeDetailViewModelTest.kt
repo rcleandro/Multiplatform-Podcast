@@ -59,10 +59,10 @@ class EpisodeDetailViewModelTest {
         coEvery { audioPlayer.play(any()) } returns Unit
 
         val viewModel = EpisodeDetailViewModel(episodeId, repository, audioPlayer)
-        
+
         viewModel.uiState.test {
             awaitItem() // skip load
-            viewModel.play()
+            viewModel.playEpisode()
             coVerify { audioPlayer.play(any()) }
         }
     }

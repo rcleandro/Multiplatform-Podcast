@@ -34,8 +34,6 @@ fun EpisodeListItem(
     podcastTitle: String? = null,
     isBuffering: Boolean = false,
     isPlaying: Boolean = false,
-    isPlayed: Boolean = false,
-    inProgress: Boolean = false,
     downloadStatus: DownloadStatus = DownloadStatus.Idle,
     onDownloadClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {}
