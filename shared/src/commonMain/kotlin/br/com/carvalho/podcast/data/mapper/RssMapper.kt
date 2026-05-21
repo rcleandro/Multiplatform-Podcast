@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.data.mapper
 
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
 import br.com.carvalho.podcast.domain.model.Episode
@@ -8,7 +9,6 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import kotlin.time.Clock
 
 private const val TAG = "RssMapper"
 
@@ -22,10 +22,11 @@ fun RssFeed.toPodcast(feedUrl: String): Podcast = Podcast(
     categories = categories,
     feedUrl = feedUrl,
     siteUrl = link,
-    lastUpdated = Clock.System.now().toEpochMilliseconds(),
+    lastUpdated = getCurrentTimestamp(),
     isSubscribed = true,
     episodeCount = episodes.size
 )
+
 
 fun RssEpisode.toEpisode(podcastId: String, podcastTitle: String? = null): Episode = Episode(
     id = guid,
@@ -48,7 +49,8 @@ private fun parsePubDate(pubDate: String): Long {
         val parts = pubDate.split(" ").filter { it.isNotEmpty() }
         if (parts.size < 4) return 0L
 
-        val dayIdx = if (parts[0].contains(",")) 1 else 0
+        val dayIdx = if (parts[0].toIntOrNull() != null) 0 else 1
+        if (parts.size <= dayIdx + 3) return 0L
 
         val day = parts[dayIdx].toInt()
         val monthStr = parts[dayIdx + 1]

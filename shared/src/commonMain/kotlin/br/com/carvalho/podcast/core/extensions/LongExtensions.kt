@@ -1,10 +1,10 @@
 package br.com.carvalho.podcast.core.extensions
 
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 import kotlin.time.Instant
 
 private const val TAG = "LongExtensions"
@@ -13,7 +13,7 @@ fun Long.toDate(): String {
     if (this <= 0) return "Há alguns dias"
 
     return try {
-        val now = Clock.System.now().toEpochMilliseconds()
+        val now = getCurrentTimestamp()
         val diffSeconds = (now - this) / 1000
         val diffMinutes = diffSeconds / 60
         val diffHours = diffMinutes / 60
