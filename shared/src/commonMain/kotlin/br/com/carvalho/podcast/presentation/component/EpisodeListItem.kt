@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -33,16 +34,33 @@ fun EpisodeListItem(
     podcastTitle: String? = null,
     isBuffering: Boolean = false,
     isPlaying: Boolean = false,
+    isPlayed: Boolean = false,
+    inProgress: Boolean = false,
     downloadStatus: DownloadStatus = DownloadStatus.Idle,
     onDownloadClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {}
 ) {
-    val subtitle = remember(podcastTitle, episode.duration, episode.publishDate) {
-        listOfNotNull(
-            podcastTitle,
-            episode.duration.toDuration(),
-            episode.publishDate.toDate()
-        ).joinToString(" • ")
+    val titleColor = if (episode.isPlayed) {
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+
+    val subtitle = remember(podcastTitle, episode.duration, episode.publishDate, episode.isPlayed, episode.playbackPosition) {
+        val parts = mutableListOf<String>()
+        podcastTitle?.let { parts.add(it) }
+        parts.add(episode.duration.toDuration())
+        parts.add(episode.publishDate.toDate())
+
+        if (episode.isPlayed) {
+            parts.add("Finalizado")
+        } else if (episode.playbackPosition > 0 && episode.duration > 0) {
+            val remainingMs = (episode.duration * 1000) - episode.playbackPosition
+            val remainingMin = (remainingMs / (1000 * 60)).coerceAtLeast(1)
+            parts.add("$remainingMin min restante")
+        }
+
+        parts.joinToString(" • ")
     }
 
     Row(
@@ -63,7 +81,34 @@ fun EpisodeListItem(
                     model = url,
                     contentDescription = "podcast image",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    alpha = if (episode.isPlayed) 0.5f else 1f
+                )
+            }
+            if (episode.isPlayed) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.CheckCircle,
+                        contentDescription = "Finalizado",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            } else if (episode.playbackPosition > 0 && episode.duration > 0) {
+                val progress = episode.playbackPosition.toFloat() / (episode.duration * 1000).toFloat()
+                LinearProgressIndicator(
+                    progress = { progress.coerceIn(0f, 1f) },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(4.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
                 )
             }
         }
@@ -75,16 +120,21 @@ fun EpisodeListItem(
                 text = episode.title,
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = titleColor
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = if (episode.isPlayed) 0.6f else 1f
+                    )
+                )
+            }
         }
 
         // Status de Download
