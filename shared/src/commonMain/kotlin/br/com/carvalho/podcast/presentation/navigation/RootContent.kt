@@ -32,6 +32,20 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.window.core.layout.WindowSizeClass
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -48,7 +62,32 @@ fun RootContent(component: RootComponentImpl) {
         it is RootComponent.Child.Library || it is RootComponent.Child.Search || it is RootComponent.Child.DownloadedEpisodes
     }
 
+    var isMiniPlayerVisible by remember { mutableStateOf(true) }
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < -1) {
+                    isMiniPlayerVisible = false
+                } else if (available.y > 1) {
+                    isMiniPlayerVisible = true
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
+    val adaptiveInfo = currentWindowAdaptiveInfoV2()
+    val isMediumScreenWidth = adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(
+        widthDpBreakpoint = WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND
+    )
+    val navSuiteType = if (isMediumScreenWidth) {
+        NavigationSuiteType.NavigationRail
+    } else {
+        NavigationSuiteType.NavigationBar
+    }
+
     LaunchedEffect(activeChild) {
+        isMiniPlayerVisible = true
         when (activeChild) {
             is RootComponent.Child.Library, is RootComponent.Child.Search, is RootComponent.Child.DownloadedEpisodes -> {
                 navigator.navigateTo(ListDetailPaneScaffoldRole.List)
@@ -63,22 +102,39 @@ fun RootContent(component: RootComponentImpl) {
         }
     }
 
+    fun isTabSelected(tabClass: kotlin.reflect.KClass<out RootComponent.Child>): Boolean {
+        val isCurrent = activeChild::class == tabClass
+        val isLastList = lastListChild != null && lastListChild::class == tabClass
+        val isOnStack = activeChild !is RootComponent.Child.Library &&
+                       activeChild !is RootComponent.Child.Search &&
+                       activeChild !is RootComponent.Child.DownloadedEpisodes &&
+                       activeChild !is RootComponent.Child.Player
+
+        return isCurrent || (isOnStack && isLastList)
+    }
+
     NavigationSuiteScaffold(
+        layoutType = navSuiteType,
+        containerColor = MaterialTheme.colorScheme.surface,
+        navigationSuiteColors = NavigationSuiteDefaults.colors(
+            navigationBarContainerColor = MaterialTheme.colorScheme.surface,
+            navigationRailContainerColor = MaterialTheme.colorScheme.surface
+        ),
         navigationSuiteItems = {
             item(
-                selected = activeChild is RootComponent.Child.Library || (activeChild !is RootComponent.Child.Search && activeChild !is RootComponent.Child.DownloadedEpisodes && activeChild !is RootComponent.Child.Player && lastListChild is RootComponent.Child.Library),
+                selected = isTabSelected(RootComponent.Child.Library::class),
                 onClick = component::onLibraryTabClicked,
                 icon = { Icon(Icons.Rounded.Home, contentDescription = "Biblioteca") },
                 label = { Text("Biblioteca") }
             )
             item(
-                selected = activeChild is RootComponent.Child.Search || (activeChild !is RootComponent.Child.Library && activeChild !is RootComponent.Child.DownloadedEpisodes && activeChild !is RootComponent.Child.Player && lastListChild is RootComponent.Child.Search),
+                selected = isTabSelected(RootComponent.Child.Search::class),
                 onClick = component::onSearchTabClicked,
                 icon = { Icon(Icons.Rounded.Search, contentDescription = "Busca") },
                 label = { Text("Busca") }
             )
             item(
-                selected = activeChild is RootComponent.Child.DownloadedEpisodes || (activeChild !is RootComponent.Child.Library && activeChild !is RootComponent.Child.Search && activeChild !is RootComponent.Child.Player && lastListChild is RootComponent.Child.DownloadedEpisodes),
+                selected = isTabSelected(RootComponent.Child.DownloadedEpisodes::class),
                 onClick = component::onDownloadsTabClicked,
                 icon = { Icon(Icons.Rounded.DownloadDone, contentDescription = "Downloads") },
                 label = { Text("Downloads") }
@@ -95,8 +151,87 @@ fun RootContent(component: RootComponentImpl) {
                 && activeChild !is RootComponent.Child.Player
 
         Scaffold(
-            bottomBar = {
-                if (showMiniPlayer) {
+            contentWindowInsets = WindowInsets(),
+            modifier = Modifier.nestedScroll(nestedScrollConnection)
+        ) { padding ->
+            Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                ListDetailPaneScaffold(
+                    directive = navigator.scaffoldDirective,
+                    value = navigator.scaffoldValue,
+                    listPane = {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            when (lastListChild) {
+                                is RootComponent.Child.Search -> {
+                                    val viewModel: SearchViewModel = koinViewModel()
+                                    SearchScreen(
+                                        viewModel = viewModel,
+                                        onEpisodeClick = { id, podcastId ->
+                                            component.onEpisodeSelected(id, podcastId)
+                                        },
+                                        onPlayEpisode = { episode ->
+                                            viewModel.playEpisode(episode)
+                                        }
+                                    )
+                                }
+                                is RootComponent.Child.DownloadedEpisodes -> {
+                                    DownloadedEpisodesScreen(
+                                        viewModel = koinViewModel(),
+                                        onEpisodeClick = { id, podcastId ->
+                                            component.onEpisodeSelected(id, podcastId)
+                                        }
+                                    )
+                                }
+                                else -> {
+                                    LibraryScreen(
+                                        viewModel = koinViewModel(),
+                                        isPlayerVisible = showMiniPlayer && isMiniPlayerVisible,
+                                        onPodcastClick = { id -> component.onPodcastSelected(id) }
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    detailPane = {
+                        val podcastChild = allChildren.filterIsInstance<RootComponent.Child.PodcastDetail>().lastOrNull()
+
+                        if (podcastChild != null && activeChild !is RootComponent.Child.Library && activeChild !is RootComponent.Child.Search && activeChild !is RootComponent.Child.DownloadedEpisodes) {
+                            val viewModel: PodcastDetailViewModel = koinViewModel(key = podcastChild.podcastId) { parametersOf(podcastChild.podcastId) }
+                            PodcastDetailScreen(
+                                viewModel = viewModel,
+                                onBackClick = { component.onBackClicked() },
+                                onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcastChild.podcastId) },
+                                onPlayEpisode = { id ->
+                                    viewModel.playEpisode(id)
+                                }
+                            )
+                        } else {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("Selecione um podcast", style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                    },
+                    extraPane = {
+                        val episodeChild = allChildren.filterIsInstance<RootComponent.Child.EpisodeDetail>().lastOrNull()
+
+                        if (episodeChild != null && activeChild !is RootComponent.Child.Library && activeChild !is RootComponent.Child.Search && activeChild !is RootComponent.Child.DownloadedEpisodes) {
+                            val viewModel: EpisodeDetailViewModel = koinViewModel(key = episodeChild.episodeId) { parametersOf(episodeChild.episodeId) }
+                            EpisodeDetailScreen(
+                                viewModel = viewModel,
+                                onBackClick = { component.onBackClicked() },
+                                onPlayClick = {
+                                    viewModel.play()
+                                }
+                            )
+                        }
+                    }
+                )
+
+                AnimatedVisibility(
+                    visible = showMiniPlayer && isMiniPlayerVisible,
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(targetOffsetY = { it }),
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                ) {
                     playerState.currentEpisode?.let { episode ->
                         MiniPlayer(
                             episode = episode,
@@ -110,79 +245,7 @@ fun RootContent(component: RootComponentImpl) {
                         )
                     }
                 }
-            },
-            contentWindowInsets = WindowInsets()
-        ) { padding ->
-            ListDetailPaneScaffold(
-                directive = navigator.scaffoldDirective,
-                value = navigator.scaffoldValue,
-                listPane = {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        when (lastListChild) {
-                            is RootComponent.Child.Search -> {
-                                val viewModel: SearchViewModel = koinViewModel()
-                                SearchScreen(
-                                    viewModel = viewModel,
-                                    onEpisodeClick = { id, podcastId ->
-                                        component.onEpisodeSelected(id, podcastId)
-                                    },
-                                    onPlayEpisode = { episode ->
-                                        viewModel.playEpisode(episode)
-                                    }
-                                )
-                            }
-                            is RootComponent.Child.DownloadedEpisodes -> {
-                                DownloadedEpisodesScreen(
-                                    viewModel = koinViewModel(),
-                                    onEpisodeClick = { id, podcastId ->
-                                        component.onEpisodeSelected(id, podcastId)
-                                    }
-                                )
-                            }
-                            else -> {
-                                LibraryScreen(
-                                    viewModel = koinViewModel(),
-                                    onPodcastClick = { id -> component.onPodcastSelected(id) }
-                                )
-                            }
-                        }
-                    }
-                },
-                detailPane = {
-                    val podcastChild = allChildren.filterIsInstance<RootComponent.Child.PodcastDetail>().lastOrNull()
-
-                    if (podcastChild != null && activeChild !is RootComponent.Child.Library && activeChild !is RootComponent.Child.Search && activeChild !is RootComponent.Child.DownloadedEpisodes) {
-                        val viewModel: PodcastDetailViewModel = koinViewModel(key = podcastChild.podcastId) { parametersOf(podcastChild.podcastId) }
-                        PodcastDetailScreen(
-                            viewModel = viewModel,
-                            onBackClick = { component.onBackClicked() },
-                            onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcastChild.podcastId) },
-                            onPlayEpisode = { id ->
-                                viewModel.playEpisode(id)
-                            }
-                        )
-                    } else {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Selecione um podcast", style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
-                },
-                extraPane = {
-                    val episodeChild = allChildren.filterIsInstance<RootComponent.Child.EpisodeDetail>().lastOrNull()
-
-                    if (episodeChild != null && activeChild !is RootComponent.Child.Library && activeChild !is RootComponent.Child.Search && activeChild !is RootComponent.Child.DownloadedEpisodes) {
-                        val viewModel: EpisodeDetailViewModel = koinViewModel(key = episodeChild.episodeId) { parametersOf(episodeChild.episodeId) }
-                        EpisodeDetailScreen(
-                            viewModel = viewModel,
-                            onBackClick = { component.onBackClicked() },
-                            onPlayClick = {
-                                viewModel.play()
-                            }
-                        )
-                    }
-                },
-                modifier = Modifier.padding(padding)
-            )
+            }
 
             if (activeChild is RootComponent.Child.Player) {
                 PlayerScreen(
