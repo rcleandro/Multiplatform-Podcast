@@ -26,6 +26,7 @@ class PlayerViewModelTest {
         every { audioPlayer.isReady } returns MutableStateFlow(false)
         every { audioPlayer.release() } just Runs
         coEvery { playerRepository.getSavedPlaybackState() } returns null
+        coEvery { playerRepository.savePlaybackState(any(), any(), any(), any()) } returns Unit
         coEvery { episodeDownloader.getLocalPath(any()) } returns null
     }
 

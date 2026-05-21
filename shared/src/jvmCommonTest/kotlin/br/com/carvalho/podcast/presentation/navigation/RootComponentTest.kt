@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import javax.swing.SwingUtilities
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -26,9 +27,6 @@ class RootComponentTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         lifecycle = LifecycleRegistry()
-        rootComponent = RootComponentImpl(
-            componentContext = DefaultComponentContext(lifecycle = lifecycle)
-        )
         lifecycle.resume()
     }
 
@@ -37,69 +35,104 @@ class RootComponentTest {
         Dispatchers.resetMain()
     }
 
+    private fun createRootComponent() {
+        rootComponent = RootComponentImpl(
+            componentContext = DefaultComponentContext(lifecycle = lifecycle)
+        )
+    }
+
+    private fun runOnMain(block: () -> Unit) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            block()
+        } else {
+            java.awt.EventQueue.invokeAndWait(block)
+        }
+    }
+
     @Test
     fun initial_state_should_be_Library() = runTest(testDispatcher) {
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.Library)
+        runOnMain {
+            createRootComponent()
+            val child = rootComponent.stack.value.active.instance
+            assertTrue(child is RootComponent.Child.Library)
+        }
     }
 
     @Test
     fun onSearchTabClicked_should_navigate_to_Search() = runTest(testDispatcher) {
-        rootComponent.onSearchTabClicked()
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.Search)
+        runOnMain {
+            createRootComponent()
+            rootComponent.onSearchTabClicked()
+            val child = rootComponent.stack.value.active.instance
+            assertTrue(child is RootComponent.Child.Search)
+        }
     }
 
     @Test
     fun onDownloadsTabClicked_should_navigate_to_DownloadedEpisodes() = runTest(testDispatcher) {
-        rootComponent.onDownloadsTabClicked()
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.DownloadedEpisodes)
+        runOnMain {
+            createRootComponent()
+            rootComponent.onDownloadsTabClicked()
+            val child = rootComponent.stack.value.active.instance
+            assertTrue(child is RootComponent.Child.DownloadedEpisodes)
+        }
     }
 
     @Test
     fun onPlayerTabClicked_should_navigate_to_Player() = runTest(testDispatcher) {
-        rootComponent.onPlayerTabClicked()
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.Player)
+        runOnMain {
+            createRootComponent()
+            rootComponent.onPlayerTabClicked()
+            val child = rootComponent.stack.value.active.instance
+            assertTrue(child is RootComponent.Child.Player)
+        }
     }
 
     @Test
     fun onPodcastSelected_should_navigate_to_PodcastDetail() = runTest(testDispatcher) {
-        val podcastId = "test-podcast-id"
-        rootComponent.onPodcastSelected(podcastId)
+        runOnMain {
+            createRootComponent()
+            val podcastId = "test-podcast-id"
+            rootComponent.onPodcastSelected(podcastId)
 
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.PodcastDetail)
-        assertEquals(podcastId, child.podcastId)
+            val child = rootComponent.stack.value.active.instance
+            assertTrue(child is RootComponent.Child.PodcastDetail)
+            assertEquals(podcastId, child.podcastId)
+        }
     }
 
     @Test
     fun onEpisodeSelected_should_navigate_to_EpisodeDetail_and_keep_PodcastDetail_in_stack() = runTest(testDispatcher) {
-        val podcastId = "test-podcast-id"
-        val episodeId = "test-episode-id"
+        runOnMain {
+            createRootComponent()
+            val podcastId = "test-podcast-id"
+            val episodeId = "test-episode-id"
 
-        rootComponent.onEpisodeSelected(episodeId, podcastId)
+            rootComponent.onEpisodeSelected(episodeId, podcastId)
 
-        val stack = rootComponent.stack.value.items
-        assertEquals(3, stack.size) // Library + PodcastDetail + EpisodeDetail
+            val stack = rootComponent.stack.value.items
+            assertEquals(3, stack.size) // Library + PodcastDetail + EpisodeDetail
 
-        val activeChild = rootComponent.stack.value.active.instance
-        assertTrue(activeChild is RootComponent.Child.EpisodeDetail)
-        assertEquals(episodeId, activeChild.episodeId)
-        assertEquals(podcastId, activeChild.podcastId)
+            val activeChild = rootComponent.stack.value.active.instance
+            assertTrue(activeChild is RootComponent.Child.EpisodeDetail)
+            assertEquals(episodeId, (activeChild as RootComponent.Child.EpisodeDetail).episodeId)
+            assertEquals(podcastId, activeChild.podcastId)
 
-        val podcastChild = stack[1].instance
-        assertTrue(podcastChild is RootComponent.Child.PodcastDetail)
-        assertEquals(podcastId, podcastChild.podcastId)
+            val podcastChild = stack[1].instance
+            assertTrue(podcastChild is RootComponent.Child.PodcastDetail)
+            assertEquals(podcastId, podcastChild.podcastId)
+        }
     }
 
     @Test
     fun onBackClicked_should_pop_the_stack() = runTest(testDispatcher) {
-        rootComponent.onSearchTabClicked()
-        assertTrue(rootComponent.stack.value.active.instance is RootComponent.Child.Search)
+        runOnMain {
+            createRootComponent()
+            rootComponent.onSearchTabClicked()
+            assertTrue(rootComponent.stack.value.active.instance is RootComponent.Child.Search)
 
-        rootComponent.onBackClicked()
-        assertTrue(rootComponent.stack.value.active.instance is RootComponent.Child.Library)
+            rootComponent.onBackClicked()
+            assertTrue(rootComponent.stack.value.active.instance is RootComponent.Child.Library)
+        }
     }
 }
