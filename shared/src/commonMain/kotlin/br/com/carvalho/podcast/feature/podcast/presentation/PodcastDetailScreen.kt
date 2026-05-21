@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
@@ -43,6 +44,7 @@ fun PodcastDetailScreen(
     val playerState by viewModel.playerState.collectAsState()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -52,6 +54,7 @@ fun PodcastDetailScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
@@ -68,7 +71,8 @@ fun PodcastDetailScreen(
                     IconButton(onClick = { viewModel.refresh() }) {
                         Icon(Icons.Rounded.Refresh, contentDescription = "Atualizar")
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         contentWindowInsets = WindowInsets()
@@ -88,7 +92,7 @@ fun PodcastDetailScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp)
+                    contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
                     item {
                         PodcastHeader(uiState)

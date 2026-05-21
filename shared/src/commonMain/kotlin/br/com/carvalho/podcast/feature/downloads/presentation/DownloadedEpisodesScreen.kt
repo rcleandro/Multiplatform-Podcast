@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
@@ -21,6 +22,7 @@ fun DownloadedEpisodesScreen(
     val playerState by viewModel.playerState.collectAsState()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -32,9 +34,11 @@ fun DownloadedEpisodesScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text("Downloads") }
+                title = { Text("Downloads") },
+                scrollBehavior = scrollBehavior
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -54,7 +58,7 @@ fun DownloadedEpisodesScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(bottom = 16.dp)
+                contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(episodes, key = { it.id }) { episode ->
                     EpisodeListItem(

@@ -14,6 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -36,6 +38,7 @@ fun SearchScreen(
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val playerState by viewModel.audioPlayer.playerState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     LaunchedEffect(Unit) {
         viewModel.refresh()
@@ -56,6 +59,7 @@ fun SearchScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
@@ -67,7 +71,13 @@ fun SearchScreen(
                         TextField(
                             value = searchQuery,
                             onValueChange = { viewModel.onQueryChange(it) },
-                            placeholder = { Text("Buscar episódios...") },
+                            placeholder = {
+                                Text(
+                                    text = "Buscar episódios...",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
                             modifier = Modifier.weight(1f),
                             leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "Search") },
                             colors = TextFieldDefaults.colors(
@@ -89,7 +99,8 @@ fun SearchScreen(
                             Icon(Icons.Rounded.Refresh, contentDescription = "Atualizar")
                         }
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         contentWindowInsets = WindowInsets()
@@ -107,7 +118,7 @@ fun SearchScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(bottom = 16.dp)
+                contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(
                     count = pagedResults.itemCount,
