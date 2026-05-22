@@ -8,12 +8,11 @@ import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.core.util.AppLogger
+import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val TAG = "LibraryViewModel"
@@ -25,115 +24,83 @@ class LibraryViewModel(
     private val deletePodcastUseCase: DeletePodcastUseCase
 ) : ViewModel() {
 
-    private val _isAddDialogOpen = MutableStateFlow(false)
-    private val _addUrl = MutableStateFlow("")
-    private val _isRefreshing = MutableStateFlow(false)
-    private val _podcastToDelete = MutableStateFlow<Podcast?>(null)
+    private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true))
+    val uiState: StateFlow<LibraryUiState> = _uiState
 
-    private val _error = MutableStateFlow<String?>(null)
-
-    val uiState: StateFlow<LibraryUiState> = combine(
-        repository.getPodcasts().onStart { emit(emptyList()) },
-        _isAddDialogOpen,
-        _addUrl,
-        _isRefreshing,
-        _podcastToDelete,
-        _error
-    ) { args: Array<Any?> ->
-        @Suppress("UNCHECKED_CAST")
-        val podcasts = args[0] as List<Podcast>
-        val isAddDialogOpen = args[1] as Boolean
-        val addUrl = args[2] as String
-        val isRefreshing = args[3] as Boolean
-        @Suppress("UNCHECKED_CAST")
-        val podcastToDelete = args[4] as Podcast?
-        val error = args[5] as String?
-
-        LibraryUiState(
-            podcasts = podcasts,
-            isLoading = false,
-            isAddDialogOpen = isAddDialogOpen,
-            addUrl = addUrl,
-            isRefreshing = isRefreshing,
-            podcastToDelete = podcastToDelete,
-            error = error
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = LibraryUiState(isLoading = true)
-    )
+    init {
+        viewModelScope.launch(ioDispatcher()) {
+            repository.getPodcasts().onStart { emit(emptyList()) }.collect { podcasts ->
+                _uiState.update { it.copy(podcasts = podcasts, isLoading = false) }
+            }
+        }
+    }
 
     fun clearError() {
-        _error.value = null
+        _uiState.update { it.copy(error = null) }
     }
 
     fun onDeleteClicked(podcast: Podcast) {
-        _podcastToDelete.value = podcast
+        _uiState.update { it.copy(podcastToDelete = podcast) }
     }
 
     fun onDismissDeleteDialog() {
-        _podcastToDelete.value = null
+        _uiState.update { it.copy(podcastToDelete = null) }
     }
 
     fun confirmDelete() {
-        val podcast = _podcastToDelete.value ?: return
-        viewModelScope.launch {
+        val podcast = _uiState.value.podcastToDelete ?: return
+        viewModelScope.launch(ioDispatcher()) {
             deletePodcastUseCase(podcast.id)
-            _podcastToDelete.value = null
+            _uiState.update { it.copy(podcastToDelete = null) }
         }
     }
 
     fun onRefreshAll() {
-        viewModelScope.launch {
-            _isRefreshing.value = true
+        viewModelScope.launch(ioDispatcher()) {
+            _uiState.update { it.copy(isRefreshing = true) }
             AppLogger.i(TAG, "Refreshing all podcasts")
             try {
                 refreshPodcastUseCase.refreshAll()
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error refreshing all podcasts", e)
-                _error.value = "Erro ao atualizar podcasts."
+                _uiState.update { it.copy(error = "Erro ao atualizar podcasts.") }
             } finally {
-                _isRefreshing.value = false
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }
 
     fun onAddClicked() {
-        _isAddDialogOpen.value = true
+        _uiState.update { it.copy(isAddDialogOpen = true) }
     }
 
     fun onDismissAddDialog() {
-        _isAddDialogOpen.value = false
-        _addUrl.value = ""
+        _uiState.update { it.copy(isAddDialogOpen = false, addUrl = "") }
     }
 
     fun onUrlChanged(url: String) {
-        _addUrl.value = url
+        _uiState.update { it.copy(addUrl = url) }
     }
 
     fun addPodcast() {
-        val url = _addUrl.value.trim()
+        val url = _uiState.value.addUrl.trim()
         if (url.isBlank()) return
 
         val finalUrl = if (!url.startsWith("http")) "https://$url" else url
 
-        viewModelScope.launch {
-            _isRefreshing.value = true
-            _isAddDialogOpen.value = false
-            _error.value = null
+        viewModelScope.launch(ioDispatcher()) {
+            _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false, error = null) }
             AppLogger.i(TAG, "Adding podcast from URL: $finalUrl")
             try {
                 addPodcastUseCase(finalUrl).onFailure { e ->
                     AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
-                    _error.value = "Erro ao adicionar podcast. Verifique a URL e a conexão (CORS pode bloquear no Wasm)."
+                    _uiState.update { it.copy(error = "Erro ao adicionar podcast. Verifique a URL e a conexão (CORS pode bloquear no Wasm).") }
                 }
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Unexpected error adding podcast", e)
-                _error.value = "Ocorreu um erro inesperado: ${e.message}"
+                _uiState.update { it.copy(error = "Ocorreu um erro inesperado: ${e.message}") }
             } finally {
-                _addUrl.value = ""
-                _isRefreshing.value = false
+                _uiState.update { it.copy(isRefreshing = false, addUrl = "") }
             }
         }
     }

@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.player.SKIP_BACKWARD_SECONDS
 import br.com.carvalho.podcast.domain.player.SKIP_FORWARD_SECONDS
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -34,7 +35,7 @@ class PlayerViewModel(
     private var restored = false
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher()) {
             audioPlayer.isReady
                 .filter { it }
                 .collect {
@@ -89,9 +90,9 @@ class PlayerViewModel(
         }
     }
 
-    fun play(episode: Episode) = viewModelScope.launch { 
+    fun play(episode: Episode) = viewModelScope.launch(ioDispatcher()) {
         val resolvedEpisode = episode.copy(localPath = episodeDownloader.getLocalPath(episode.id))
-        audioPlayer.play(resolvedEpisode) 
+        audioPlayer.play(resolvedEpisode)
     }
 
     fun pause() = audioPlayer.pause()
@@ -123,7 +124,7 @@ class PlayerViewModel(
         val timeSource = TimeSource.Monotonic
         val mark = timeSource.markNow()
 
-        sleepTimerJob = viewModelScope.launch {
+        sleepTimerJob = viewModelScope.launch(ioDispatcher()) {
             var remaining = totalDuration
             while (remaining.isPositive()) {
                 audioPlayer.setSleepTimer(remaining.inWholeMilliseconds, minutes)

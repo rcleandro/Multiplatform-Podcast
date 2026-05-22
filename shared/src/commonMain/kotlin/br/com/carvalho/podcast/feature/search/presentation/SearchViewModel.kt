@@ -9,6 +9,7 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import br.com.carvalho.podcast.domain.player.AudioPlayer
+import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -46,7 +47,7 @@ class SearchViewModel(
     }
 
     fun playEpisode(episode: Episode) {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher()) {
             val currentPlayerState = audioPlayer.playerState.value
             if (currentPlayerState.currentEpisode?.id == episode.id) {
                 if (currentPlayerState.isPlaying) {
@@ -75,14 +76,14 @@ class SearchViewModel(
     }
 
     fun downloadEpisode(episode: Episode) {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher()) {
             AppLogger.i(TAG, "Starting download for episode from search: ${episode.title}")
             episodeDownloader.download(episode)
         }
     }
 
     fun deleteDownload(episodeId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher()) {
             episodeDownloader.delete(episodeId)
         }
     }

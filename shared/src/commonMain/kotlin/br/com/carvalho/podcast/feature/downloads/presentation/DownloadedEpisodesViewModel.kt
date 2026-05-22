@@ -6,11 +6,12 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class DownloadedEpisodesViewModel(
-    private val repository: PodcastRepository,
+    repository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
     private val audioPlayer: AudioPlayer
 ) : ViewModel() {
@@ -29,7 +30,7 @@ class DownloadedEpisodesViewModel(
         )
 
     fun playEpisode(episode: Episode) {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher()) {
             val currentPlayerState = audioPlayer.playerState.value
             if (currentPlayerState.currentEpisode?.id == episode.id) {
                 if (currentPlayerState.isPlaying) {
@@ -47,7 +48,7 @@ class DownloadedEpisodesViewModel(
     }
 
     fun deleteDownload(episodeId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher()) {
             episodeDownloader.delete(episodeId)
             _snackbarMessage.value = "Download excluído"
         }
