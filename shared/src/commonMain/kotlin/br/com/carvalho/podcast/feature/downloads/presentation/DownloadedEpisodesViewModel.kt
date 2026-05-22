@@ -19,18 +19,16 @@ class DownloadedEpisodesViewModel(
     val playerState = audioPlayer.playerState
     val activeDownloads = episodeDownloader.activeDownloads
 
-    private val _snackbarMessage = MutableStateFlow<String?>(null)
-    val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
+    private val _uiState = MutableStateFlow(DownloadedEpisodesUiState())
+    val uiState: StateFlow<DownloadedEpisodesUiState> = _uiState.asStateFlow()
 
-    private val _deleteEpisodeConfirmation = MutableStateFlow<Episode?>(null)
-    val deleteEpisodeConfirmation: StateFlow<Episode?> = _deleteEpisodeConfirmation.asStateFlow()
-
-    val episodes: StateFlow<List<Episode>> = repository.getDownloadedEpisodes()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    init {
+        repository.getDownloadedEpisodes()
+            .onEach { episodes ->
+                _uiState.update { it.copy(episodes = episodes) }
+            }
+            .launchIn(viewModelScope)
+    }
 
     fun playEpisode(episode: Episode) {
         viewModelScope.launch(ioDispatcher()) {
@@ -45,28 +43,34 @@ class DownloadedEpisodesViewModel(
             }
 
             val resolvedEpisode = episode.copy(localPath = episodeDownloader.getLocalPath(episode.id))
-            audioPlayer.setQueue(episodes.value)
+            audioPlayer.setQueue(uiState.value.episodes)
             audioPlayer.play(resolvedEpisode)
         }
     }
 
     fun deleteDownload(episodeId: String) {
-        _deleteEpisodeConfirmation.value = null
+        _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(ioDispatcher()) {
             episodeDownloader.delete(episodeId)
-            _snackbarMessage.value = "Download excluído"
+            _uiState.update { it.copy(snackbarMessage = "Download excluído") }
         }
     }
 
     fun showDeleteConfirmation(episode: Episode) {
-        _deleteEpisodeConfirmation.value = episode
+        _uiState.update { it.copy(deleteEpisodeConfirmation = episode) }
     }
 
     fun hideDeleteConfirmation() {
-        _deleteEpisodeConfirmation.value = null
+        _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
     }
 
     fun clearSnackbarMessage() {
-        _snackbarMessage.value = null
+        _uiState.update { it.copy(snackbarMessage = null) }
     }
 }
+
+data class DownloadedEpisodesUiState(
+    val episodes: List<Episode> = emptyList(),
+    val deleteEpisodeConfirmation: Episode? = null,
+    val snackbarMessage: String? = null
+)

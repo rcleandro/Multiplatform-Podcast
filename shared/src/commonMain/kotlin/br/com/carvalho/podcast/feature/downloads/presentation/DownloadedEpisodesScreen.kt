@@ -19,17 +19,15 @@ fun DownloadedEpisodesScreen(
     viewModel: DownloadedEpisodesViewModel = koinViewModel(),
     onEpisodeClick: (String, String) -> Unit
 ) {
-    val episodes by viewModel.episodes.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
-    val snackbarMessage by viewModel.snackbarMessage.collectAsState()
-    val deleteEpisodeConfirmation by viewModel.deleteEpisodeConfirmation.collectAsState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(snackbarMessage) {
-        snackbarMessage?.let {
+    LaunchedEffect(uiState.snackbarMessage) {
+        uiState.snackbarMessage?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearSnackbarMessage()
         }
@@ -46,7 +44,7 @@ fun DownloadedEpisodesScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets()
     ) { padding ->
-        if (episodes.isEmpty()) {
+        if (uiState.episodes.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
@@ -64,7 +62,7 @@ fun DownloadedEpisodesScreen(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(bottom = 80.dp)
         ) {
-            items(episodes, key = { it.id }) { episode ->
+            items(uiState.episodes, key = { it.id }) { episode ->
                 EpisodeListItem(
                     episode = episode,
                     podcastTitle = episode.podcastTitle,
@@ -79,15 +77,15 @@ fun DownloadedEpisodesScreen(
             }
         }
 
-        if (deleteEpisodeConfirmation != null) {
+        if (uiState.deleteEpisodeConfirmation != null) {
             AlertDialog(
                 onDismissRequest = viewModel::hideDeleteConfirmation,
                 title = { Text("Excluir download") },
-                text = { Text("Deseja realmente excluir o download do episódio \"${deleteEpisodeConfirmation?.title}\"?") },
+                text = { Text("Deseja realmente excluir o download do episódio \"${uiState.deleteEpisodeConfirmation?.title}\"?") },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            deleteEpisodeConfirmation?.let { viewModel.deleteDownload(it.id) }
+                            uiState.deleteEpisodeConfirmation?.let { viewModel.deleteDownload(it.id) }
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {

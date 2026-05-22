@@ -27,10 +27,8 @@ fun SearchScreen(
     viewModel: SearchViewModel = koinViewModel(),
     onEpisodeClick: (String, String) -> Unit
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     val pagedResults = viewModel.pagedResults.collectAsLazyPagingItems()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val deleteEpisodeConfirmation by viewModel.deleteEpisodeConfirmation.collectAsState()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val playerState by viewModel.audioPlayer.playerState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -40,8 +38,8 @@ fun SearchScreen(
         viewModel.refresh()
     }
 
-    LaunchedEffect(error) {
-        error?.let {
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearError()
         }
@@ -65,7 +63,7 @@ fun SearchScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextField(
-                            value = searchQuery,
+                            value = uiState.searchQuery,
                             onValueChange = { viewModel.onQueryChange(it) },
                             placeholder = {
                                 Text(
@@ -83,7 +81,7 @@ fun SearchScreen(
                                 unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
                             ),
                             trailingIcon = {
-                                if (searchQuery.isNotEmpty()) {
+                                if (uiState.searchQuery.isNotEmpty()) {
                                     IconButton(onClick = { viewModel.onQueryChange("") }) {
                                         Icon(Icons.Rounded.Clear, contentDescription = "Clear")
                                     }
@@ -139,15 +137,15 @@ fun SearchScreen(
             }
         }
 
-        if (deleteEpisodeConfirmation != null) {
+        if (uiState.deleteEpisodeConfirmation != null) {
             AlertDialog(
                 onDismissRequest = viewModel::hideDeleteConfirmation,
                 title = { Text("Excluir download") },
-                text = { Text("Deseja realmente excluir o download do episódio \"${deleteEpisodeConfirmation?.title}\"?") },
+                text = { Text("Deseja realmente excluir o download do episódio \"${uiState.deleteEpisodeConfirmation?.title}\"?") },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            deleteEpisodeConfirmation?.let { viewModel.deleteDownload(it.id) }
+                            uiState.deleteEpisodeConfirmation?.let { viewModel.deleteDownload(it.id) }
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {

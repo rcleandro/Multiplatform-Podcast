@@ -24,20 +24,16 @@ class SearchViewModel(
     val audioPlayer: AudioPlayer
 ) : ViewModel() {
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    private val _uiState = MutableStateFlow(SearchUiState())
+    val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private val _refreshTrigger = MutableStateFlow(0)
 
-    private val _deleteEpisodeConfirmation = MutableStateFlow<Episode?>(null)
-    val deleteEpisodeConfirmation: StateFlow<Episode?> = _deleteEpisodeConfirmation.asStateFlow()
-
     val activeDownloads = episodeDownloader.activeDownloads
 
-    val pagedResults: Flow<PagingData<Episode>> = combine(_searchQuery, _refreshTrigger) { query, _ -> query }
+    val pagedResults: Flow<PagingData<Episode>> = _uiState.map { it.searchQuery }
+        .distinctUntilChanged()
+        .combine(_refreshTrigger) { query, _ -> query }
         .debounce(300)
         .flatMapLatest { query ->
             AppLogger.d(TAG, "Search query changed or refreshed: $query")
@@ -46,7 +42,7 @@ class SearchViewModel(
         .cachedIn(viewModelScope)
 
     fun onQueryChange(query: String) {
-        _searchQuery.value = query
+        _uiState.update { it.copy(searchQuery = query) }
     }
 
     fun playEpisode(episode: Episode) {
@@ -71,11 +67,11 @@ class SearchViewModel(
     }
 
     fun clearError() {
-        _error.value = null
+        _uiState.update { it.copy(error = null) }
     }
 
     fun setError(message: String) {
-        _error.value = message
+        _uiState.update { it.copy(error = message) }
     }
 
     fun downloadEpisode(episode: Episode) {
@@ -86,17 +82,23 @@ class SearchViewModel(
     }
 
     fun deleteDownload(episodeId: String) {
-        _deleteEpisodeConfirmation.value = null
+        _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(ioDispatcher()) {
             episodeDownloader.delete(episodeId)
         }
     }
 
     fun showDeleteConfirmation(episode: Episode) {
-        _deleteEpisodeConfirmation.value = episode
+        _uiState.update { it.copy(deleteEpisodeConfirmation = episode) }
     }
 
     fun hideDeleteConfirmation() {
-        _deleteEpisodeConfirmation.value = null
+        _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
     }
 }
+
+data class SearchUiState(
+    val searchQuery: String = "",
+    val error: String? = null,
+    val deleteEpisodeConfirmation: Episode? = null
+)
