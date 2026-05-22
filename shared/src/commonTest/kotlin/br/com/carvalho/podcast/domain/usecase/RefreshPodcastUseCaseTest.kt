@@ -1,21 +1,18 @@
 package br.com.carvalho.podcast.domain.usecase
 
-import br.com.carvalho.podcast.data.remote.RssFeedDataSource
+import br.com.carvalho.podcast.data.remote.FakeRssFeedDataSource
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
 import br.com.carvalho.podcast.domain.model.Podcast
-import br.com.carvalho.podcast.domain.repository.PodcastRepository
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
-import kotlinx.coroutines.flow.flowOf
+import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RefreshPodcastUseCaseTest {
-    private val rssDataSource = mockk<RssFeedDataSource>()
-    private val podcastRepo = mockk<PodcastRepository>(relaxed = true)
+    private val rssDataSource = FakeRssFeedDataSource()
+    private val podcastRepo = FakePodcastRepository()
     private val useCase = RefreshPodcastUseCase(rssDataSource, podcastRepo)
 
     private val samplePodcast = Podcast(
@@ -60,25 +57,24 @@ class RefreshPodcastUseCaseTest {
 
     @Test
     fun `invoking refresh updates podcast and episodes`() = runTest {
-        coEvery { podcastRepo.getPodcastById("url") } returns samplePodcast
-        coEvery { rssDataSource.fetchFeed("url") } returns Result.success(sampleFeed)
+        podcastRepo.podcasts.value = listOf(samplePodcast)
+        rssDataSource.feedResult = Result.success(sampleFeed)
 
         val result = useCase("url")
 
         assertTrue(result.isSuccess)
-        coVerify { podcastRepo.savePodcast(any()) }
-        coVerify { podcastRepo.saveEpisodes(any()) }
+        assertEquals(1, podcastRepo.savePodcastCalledCount)
+        assertEquals(1, podcastRepo.saveEpisodesCalledCount)
     }
 
     @Test
     fun `refreshAll updates all subscribed podcasts`() = runTest {
-        coEvery { podcastRepo.getPodcasts() } returns flowOf(listOf(samplePodcast))
-        coEvery { podcastRepo.getPodcastById("url") } returns samplePodcast
-        coEvery { rssDataSource.fetchFeed("url") } returns Result.success(sampleFeed)
+        podcastRepo.podcasts.value = listOf(samplePodcast)
+        rssDataSource.feedResult = Result.success(sampleFeed)
 
         val result = useCase.refreshAll()
 
         assertTrue(result.isSuccess)
-        coVerify(exactly = 1) { rssDataSource.fetchFeed("url") }
+        assertEquals("url", rssDataSource.fetchFeedCalledWith)
     }
 }
