@@ -94,7 +94,7 @@ class LibraryViewModel(
             try {
                 addPodcastUseCase(finalUrl).onFailure { e ->
                     AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
-                    _uiState.update { it.copy(error = "Erro ao adicionar podcast. Verifique a URL e a conexão (CORS pode bloquear no Wasm).") }
+                    _uiState.update { it.copy(error = "Erro ao adicionar podcast. Verifique a URL e a conexão.") }
                 }
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Unexpected error adding podcast", e)
