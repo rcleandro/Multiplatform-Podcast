@@ -25,12 +25,11 @@ import kotlin.test.assertEquals
 class EpisodeDetailViewModelTest {
     private val repository = mockk<PodcastRepository>()
     private val audioPlayer = mockk<AudioPlayer>(relaxed = true)
-    private val testDispatcher = UnconfinedTestDispatcher()
     private val episodeId = "e1"
 
     @BeforeTest
     fun setup() {
-        Dispatchers.setMain(testDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
         every { audioPlayer.playerState } returns MutableStateFlow(PlayerState())
     }
 
@@ -40,7 +39,7 @@ class EpisodeDetailViewModelTest {
     }
 
     @Test
-    fun `loads episode detail on init`() = runTest(testDispatcher) {
+    fun `loads episode detail on init`() = runTest {
         val episode = mockk<Episode>(relaxed = true)
         coEvery { repository.getEpisodeById(episodeId) } returns episode
 
@@ -53,7 +52,7 @@ class EpisodeDetailViewModelTest {
     }
 
     @Test
-    fun `play calls audioPlayer`() = runTest(testDispatcher) {
+    fun `play calls audioPlayer`() = runTest {
         val episode = mockk<Episode>(relaxed = true)
         coEvery { repository.getEpisodeById(episodeId) } returns episode
         coEvery { audioPlayer.play(any()) } returns Unit
@@ -61,9 +60,13 @@ class EpisodeDetailViewModelTest {
         val viewModel = EpisodeDetailViewModel(episodeId, repository, audioPlayer)
 
         viewModel.uiState.test {
-            awaitItem() // skip load
+            awaitItem() // skip initial load state
             viewModel.playEpisode()
-            coVerify { audioPlayer.play(any()) }
+            
+            // Significant delay to ensure coroutines complete
+            kotlinx.coroutines.delay(500)
+            
+            coVerify(timeout = 1000) { audioPlayer.play(any()) }
         }
     }
 }

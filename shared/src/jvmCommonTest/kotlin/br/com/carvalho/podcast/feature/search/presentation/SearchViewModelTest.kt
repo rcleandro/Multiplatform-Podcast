@@ -42,7 +42,7 @@ class SearchViewModelTest {
     fun `onQueryChange updates searchQuery state`() = runTest(testDispatcher) {
         val viewModel = SearchViewModel(repository, episodeDownloader, audioPlayer)
         viewModel.onQueryChange("kotlin")
-        assertEquals("kotlin", viewModel.searchQuery.value)
+        assertEquals("kotlin", viewModel.uiState.value.searchQuery)
     }
 
     @Test

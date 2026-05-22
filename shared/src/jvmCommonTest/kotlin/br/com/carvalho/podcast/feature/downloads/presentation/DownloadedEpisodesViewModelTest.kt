@@ -48,8 +48,8 @@ class DownloadedEpisodesViewModelTest {
     @Test
     fun `loads downloaded episodes initially`() = runTest(testDispatcher) {
         val viewModel = DownloadedEpisodesViewModel(repository, episodeDownloader, audioPlayer)
-        viewModel.episodes.test {
-            assertEquals(listOf(sampleEpisode), awaitItem())
+        viewModel.uiState.test {
+            assertEquals(listOf(sampleEpisode), awaitItem().episodes)
         }
     }
 
@@ -61,7 +61,7 @@ class DownloadedEpisodesViewModelTest {
         viewModel.deleteDownload("e1")
 
         coVerify { episodeDownloader.delete("e1") }
-        assertEquals("Download excluído", viewModel.snackbarMessage.value)
+        assertEquals("Download excluído", viewModel.uiState.value.snackbarMessage)
     }
 
     @Test

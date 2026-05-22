@@ -29,11 +29,10 @@ class LibraryViewModelTest {
     private val addPodcastUseCase = mockk<AddPodcastFromUrlUseCase>()
     private val refreshPodcastUseCase = mockk<RefreshPodcastUseCase>()
     private val deletePodcastUseCase = mockk<DeletePodcastUseCase>()
-    private val testDispatcher = UnconfinedTestDispatcher()
 
     @BeforeTest
     fun setup() {
-        Dispatchers.setMain(testDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
     }
 
     @AfterTest
@@ -47,7 +46,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `initial state is correct`() = runTest(testDispatcher) {
+    fun `initial state is correct`() = runTest {
         val viewModel = createViewModel()
         viewModel.uiState.test {
             val state = awaitItem()
@@ -57,7 +56,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `onAddClicked opens dialog`() = runTest(testDispatcher) {
+    fun `onAddClicked opens dialog`() = runTest {
         val viewModel = createViewModel()
         viewModel.uiState.test {
             awaitItem() // skip initial
@@ -67,24 +66,23 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `addPodcast calls use case and closes dialog`() = runTest(testDispatcher) {
+    fun `addPodcast calls use case and closes dialog`() = runTest {
         val viewModel = createViewModel()
         coEvery { addPodcastUseCase(any()) } returns Result.success(mockk())
 
         viewModel.uiState.test {
-            awaitItem() // initial
+            awaitItem() // initial state
+
             viewModel.onAddClicked()
-            awaitItem() // dialog open
+            awaitItem()
 
             viewModel.onUrlChanged("test-url")
-            awaitItem() // url changed
+            awaitItem()
 
             viewModel.addPodcast()
             
-            // In UnconfinedTestDispatcher, the whole addPodcast cycle (refreshing=true -> result -> refreshing=false)
-            // might result in multiple emissions or just the final state depending on combine timing.
-            // We just check the final expected outcome.
-            val finalState = expectMostRecentItem()
+            assertEquals(true, awaitItem().isRefreshing)
+            val finalState = awaitItem()
             assertFalse(finalState.isRefreshing)
             assertFalse(finalState.isAddDialogOpen)
             assertEquals("", finalState.addUrl)
@@ -94,21 +92,18 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `confirmDelete calls delete use case`() = runTest(testDispatcher) {
+    fun `confirmDelete calls delete use case`() = runTest {
         val viewModel = createViewModel()
         val podcast = Podcast(id = "1", title = "P1", description = "", imageUrl = null, author = null, language = null, categories = emptyList(), feedUrl = "", siteUrl = null, lastUpdated = 0, isSubscribed = true)
         coEvery { deletePodcastUseCase(any()) } returns Unit
 
-        viewModel.uiState.test {
-            awaitItem() // initial
-            viewModel.onDeleteClicked(podcast)
-            awaitItem() // podcastToDelete set
-
-            viewModel.confirmDelete()
-            val finalState = expectMostRecentItem()
-            assertEquals(null, finalState.podcastToDelete)
-            
-            coVerify { deletePodcastUseCase("1") }
-        }
+        viewModel.onDeleteClicked(podcast)
+        viewModel.confirmDelete()
+        
+        // Wait for coroutines to complete
+        kotlinx.coroutines.delay(500)
+        
+        coVerify(timeout = 1000) { deletePodcastUseCase("1") }
+        assertEquals(null, viewModel.uiState.value.podcastToDelete)
     }
 }

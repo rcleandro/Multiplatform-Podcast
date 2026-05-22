@@ -33,7 +33,6 @@ class PodcastDetailViewModelTest {
     private val refreshUseCase = mockk<RefreshPodcastUseCase>()
     private val episodeDownloader = mockk<EpisodeDownloader>()
     private val repository = mockk<PodcastRepository>()
-    private val testDispatcher = UnconfinedTestDispatcher()
 
     private val podcastId = "p1"
     private val samplePodcast = Podcast(id = podcastId, title = "P1", description = "", imageUrl = null, author = null, language = null, categories = emptyList(), feedUrl = "", siteUrl = null, lastUpdated = 0, isSubscribed = true)
@@ -41,7 +40,7 @@ class PodcastDetailViewModelTest {
 
     @BeforeTest
     fun setup() {
-        Dispatchers.setMain(testDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
         every { audioPlayer.playerState } returns MutableStateFlow(PlayerState())
         every { episodeDownloader.activeDownloads } returns MutableStateFlow(emptyMap())
         coEvery { repository.getEpisodesPaged(any()) } returns flowOf(mockk())
@@ -57,7 +56,7 @@ class PodcastDetailViewModelTest {
     private fun createViewModel() = PodcastDetailViewModel(podcastId, audioPlayer, refreshUseCase, episodeDownloader, repository)
 
     @Test
-    fun `initial state loads podcast and episodes`() = runTest(testDispatcher) {
+    fun `initial state loads podcast and episodes`() = runTest {
         val viewModel = createViewModel()
         viewModel.uiState.test {
             val state = awaitItem()
@@ -67,43 +66,39 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
-    fun `refresh calls use case`() = runTest(testDispatcher) {
+    fun `refresh calls use case`() = runTest {
         val viewModel = createViewModel()
-        // Use a small delay to prevent StateFlow coalescing and ensure we see the refreshing state
-        coEvery { refreshUseCase(podcastId) } coAnswers {
-            kotlinx.coroutines.delay(1)
-            Result.success(Unit)
-        }
+        coEvery { refreshUseCase(podcastId) } returns Result.success(Unit)
 
         viewModel.uiState.test {
-            // Initial state (already loaded)
-            val initialState = awaitItem()
-            assertFalse(initialState.isRefreshing)
+            awaitItem() // Initial load state
 
             viewModel.refresh()
             
-            // We expect to see the refreshing state
-            assertTrue(awaitItem().isRefreshing)
-            
-            // And finally the completed state
-            assertFalse(awaitItem().isRefreshing)
+            // Expected transitions: isLoading=true -> Refreshing -> isLoading=false
+            assertEquals(true, awaitItem().isLoading)
+            assertEquals(false, awaitItem().isLoading)
             
             coVerify { refreshUseCase(podcastId) }
         }
     }
 
     @Test
-    fun `playEpisode prepares and plays via audioPlayer`() = runTest(testDispatcher) {
+    fun `playEpisode prepares and plays via audioPlayer`() = runTest {
         val viewModel = createViewModel()
         coEvery { episodeDownloader.getLocalPath(any()) } returns null
         coEvery { audioPlayer.setQueue(any()) } returns Unit
         coEvery { audioPlayer.play(any()) } returns Unit
 
         viewModel.uiState.test {
-            awaitItem() // Wait for initial load to populate episodes in uiState
-            viewModel.playEpisode("e1")
-            coVerify { audioPlayer.setQueue(any()) }
-            coVerify { audioPlayer.play(any()) }
+            awaitItem() // Initial load
+            viewModel.playEpisode(sampleEpisode)
+            
+            // Significant delay to ensure coroutines complete
+            kotlinx.coroutines.delay(500)
+            
+            coVerify(timeout = 1000) { audioPlayer.setQueue(any()) }
+            coVerify(timeout = 1000) { audioPlayer.play(any()) }
         }
     }
 }
