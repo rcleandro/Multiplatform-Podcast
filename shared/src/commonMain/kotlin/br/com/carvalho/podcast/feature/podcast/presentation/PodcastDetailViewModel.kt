@@ -12,6 +12,7 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
+import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -23,24 +24,22 @@ class PodcastDetailViewModel(
     private val audioPlayer: AudioPlayer,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
     private val episodeDownloader: EpisodeDownloader,
-    repository: PodcastRepository
+    private val repository: PodcastRepository
 ) : ViewModel() {
 
     val playerState = audioPlayer.playerState
     val activeDownloads = episodeDownloader.activeDownloads
 
-    private val _filter = MutableStateFlow(EpisodeFilter.ALL)
-    private val _isRefreshing = MutableStateFlow(false)
-
-    private val _error = MutableStateFlow<String?>(null)
+    private val _uiState = MutableStateFlow(PodcastDetailUiState(isLoading = true))
+    val uiState: StateFlow<PodcastDetailUiState> = _uiState
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagedEpisodes: Flow<PagingData<Episode>> = _filter
-        .flatMapLatest { filter ->
+    val pagedEpisodes: Flow<PagingData<Episode>> = _uiState
+        .flatMapLatest { state ->
             repository.getEpisodesPaged(podcastId)
                 .map { pagingData ->
                     pagingData.filter { episode ->
-                        when (filter) {
+                        when (state.filter) {
                             EpisodeFilter.ALL -> true
                             EpisodeFilter.UNPLAYED -> !episode.isPlayed
                             EpisodeFilter.DOWNLOADED -> episode.isDownloaded
@@ -49,59 +48,44 @@ class PodcastDetailViewModel(
                 }
         }.cachedIn(viewModelScope)
 
-    val uiState: StateFlow<PodcastDetailUiState> = combine(
-        repository.getPodcastByIdFlow(podcastId),
-        repository.getEpisodes(podcastId),
-        _filter,
-        _isRefreshing,
-        _error
-    ) { podcast, episodes, filter, isRefreshing, error ->
-        val filteredEpisodes = when (filter) {
-            EpisodeFilter.ALL -> episodes
-            EpisodeFilter.UNPLAYED -> episodes.filter { !it.isPlayed }
-            EpisodeFilter.DOWNLOADED -> episodes.filter { it.isDownloaded }
-        }
-        PodcastDetailUiState(
-            podcast = podcast,
-            episodes = filteredEpisodes,
-            filter = filter,
-            isLoading = false,
-            isRefreshing = isRefreshing,
-            error = error
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = PodcastDetailUiState(isLoading = true)
-    )
+    init {
+        combine(
+            repository.getPodcastByIdFlow(podcastId),
+            repository.getEpisodes(podcastId)
+        ) { podcast, episodes ->
+            PodcastDetailUiState(podcast = podcast, episodes = episodes, isLoading = false)
+        }.onEach { newState ->
+            _uiState.update { newState }
+        }.launchIn(viewModelScope)
+    }
 
     fun clearError() {
-        _error.value = null
+        _uiState.update { it.copy(error = null) }
     }
 
     fun refresh() {
-        viewModelScope.launch {
-            _isRefreshing.value = true
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch(ioDispatcher()) {
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
             try {
                 refreshPodcastUseCase(podcastId)
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
-                _error.value = "Erro ao atualizar episódios"
+                _uiState.update { it.copy(error = "Erro ao atualizar episódios") }
             } finally {
-                _isRefreshing.value = false
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
 
     fun setFilter(filter: EpisodeFilter) {
-        _filter.value = filter
+        _uiState.update { it.copy(filter = filter) }
     }
 
-    fun playEpisode(episodeId: String) {
-        viewModelScope.launch {
+    fun playEpisode(episode: Episode) {
+        viewModelScope.launch(ioDispatcher()) {
             val currentPlayerState = audioPlayer.playerState.value
-            if (currentPlayerState.currentEpisode?.id == episodeId) {
+            if (currentPlayerState.currentEpisode?.id == episode.id) {
                 if (currentPlayerState.isPlaying) {
                     audioPlayer.pause()
                 } else {
@@ -111,9 +95,9 @@ class PodcastDetailViewModel(
             }
 
             val allEpisodes = uiState.value.episodes
-            val selectedIndex = allEpisodes.indexOfFirst { it.id == episodeId }
+            val selectedIndex = allEpisodes.indexOfFirst { it.id == episode.id }
             if (selectedIndex == -1) {
-                AppLogger.e(TAG, "Episode $episodeId not found in current list")
+                AppLogger.e(TAG, "Episode ${episode.id} not found in current list")
                 return@launch
             }
 
@@ -128,17 +112,18 @@ class PodcastDetailViewModel(
         }
     }
 
-    fun downloadEpisode(episodeId: String) {
-        viewModelScope.launch {
-            val episode = uiState.value.episodes.find { it.id == episodeId } ?: return@launch
+    fun downloadEpisode(episode: Episode) {
+        viewModelScope.launch(ioDispatcher()) {
             AppLogger.i(TAG, "Starting download for episode: ${episode.title}")
             episodeDownloader.download(episode)
         }
     }
 
     fun deleteDownload(episodeId: String) {
-        viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch(ioDispatcher()) {
             episodeDownloader.delete(episodeId)
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 }
@@ -148,6 +133,7 @@ data class PodcastDetailUiState(
     val podcast: Podcast? = null,
     val episodes: List<Episode> = emptyList(),
     val filter: EpisodeFilter = EpisodeFilter.ALL,
+    val selectedEpisode: Episode? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null
