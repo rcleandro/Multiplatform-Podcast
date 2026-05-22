@@ -22,6 +22,9 @@ class DownloadedEpisodesViewModel(
     private val _snackbarMessage = MutableStateFlow<String?>(null)
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
 
+    private val _deleteEpisodeConfirmation = MutableStateFlow<Episode?>(null)
+    val deleteEpisodeConfirmation: StateFlow<Episode?> = _deleteEpisodeConfirmation.asStateFlow()
+
     val episodes: StateFlow<List<Episode>> = repository.getDownloadedEpisodes()
         .stateIn(
             scope = viewModelScope,
@@ -48,10 +51,19 @@ class DownloadedEpisodesViewModel(
     }
 
     fun deleteDownload(episodeId: String) {
+        _deleteEpisodeConfirmation.value = null
         viewModelScope.launch(ioDispatcher()) {
             episodeDownloader.delete(episodeId)
             _snackbarMessage.value = "Download excluído"
         }
+    }
+
+    fun showDeleteConfirmation(episode: Episode) {
+        _deleteEpisodeConfirmation.value = episode
+    }
+
+    fun hideDeleteConfirmation() {
+        _deleteEpisodeConfirmation.value = null
     }
 
     fun clearSnackbarMessage() {

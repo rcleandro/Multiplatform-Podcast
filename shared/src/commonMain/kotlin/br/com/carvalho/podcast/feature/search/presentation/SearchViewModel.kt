@@ -32,6 +32,9 @@ class SearchViewModel(
 
     private val _refreshTrigger = MutableStateFlow(0)
 
+    private val _deleteEpisodeConfirmation = MutableStateFlow<Episode?>(null)
+    val deleteEpisodeConfirmation: StateFlow<Episode?> = _deleteEpisodeConfirmation.asStateFlow()
+
     val activeDownloads = episodeDownloader.activeDownloads
 
     val pagedResults: Flow<PagingData<Episode>> = combine(_searchQuery, _refreshTrigger) { query, _ -> query }
@@ -83,8 +86,17 @@ class SearchViewModel(
     }
 
     fun deleteDownload(episodeId: String) {
+        _deleteEpisodeConfirmation.value = null
         viewModelScope.launch(ioDispatcher()) {
             episodeDownloader.delete(episodeId)
         }
+    }
+
+    fun showDeleteConfirmation(episode: Episode) {
+        _deleteEpisodeConfirmation.value = episode
+    }
+
+    fun hideDeleteConfirmation() {
+        _deleteEpisodeConfirmation.value = null
     }
 }

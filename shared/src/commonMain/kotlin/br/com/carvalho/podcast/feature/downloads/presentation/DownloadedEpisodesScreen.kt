@@ -23,6 +23,7 @@ fun DownloadedEpisodesScreen(
     val playerState by viewModel.playerState.collectAsState()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val deleteEpisodeConfirmation by viewModel.deleteEpisodeConfirmation.collectAsState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -72,10 +73,33 @@ fun DownloadedEpisodesScreen(
                     downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Completed(""),
                     onClick = { onEpisodeClick(episode.id, episode.podcastId) },
                     onPlayClick = { viewModel.playEpisode(episode) },
-                    onDeleteClick = { viewModel.deleteDownload(episode.id) }
+                    onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             }
+        }
+
+        if (deleteEpisodeConfirmation != null) {
+            AlertDialog(
+                onDismissRequest = viewModel::hideDeleteConfirmation,
+                title = { Text("Excluir download") },
+                text = { Text("Deseja realmente excluir o download do episódio \"${deleteEpisodeConfirmation?.title}\"?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            deleteEpisodeConfirmation?.let { viewModel.deleteDownload(it.id) }
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Excluir")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = viewModel::hideDeleteConfirmation) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }

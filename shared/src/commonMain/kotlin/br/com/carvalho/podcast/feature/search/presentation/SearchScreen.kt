@@ -4,14 +4,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -34,6 +30,7 @@ fun SearchScreen(
     val pagedResults = viewModel.pagedResults.collectAsLazyPagingItems()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val error by viewModel.error.collectAsState()
+    val deleteEpisodeConfirmation by viewModel.deleteEpisodeConfirmation.collectAsState()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val playerState by viewModel.audioPlayer.playerState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -80,8 +77,8 @@ fun SearchScreen(
                             modifier = Modifier.weight(1f),
                             leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "Search") },
                             colors = TextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                                unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                                 focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
                                 unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
                             ),
@@ -104,20 +101,6 @@ fun SearchScreen(
         },
         contentWindowInsets = WindowInsets()
     ) { padding ->
-        if (pagedResults.loadState.refresh is LoadState.Loading) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            return@Scaffold
-        }
-
-        if (pagedResults.itemCount == 0 && searchQuery.isNotEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("Nenhum resultado para \"$searchQuery\"")
-            }
-            return@Scaffold
-        }
-
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(bottom = 80.dp)
@@ -138,7 +121,7 @@ fun SearchScreen(
                         onClick = { onEpisodeClick(episode.id, episode.podcastId) },
                         onPlayClick = { viewModel.playEpisode(episode) },
                         onDownloadClick = { viewModel.downloadEpisode(episode) },
-                        onDeleteClick = { viewModel.deleteDownload(episode.id) }
+                        onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 }
@@ -150,10 +133,33 @@ fun SearchScreen(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                        CircularProgressIndicator()
                     }
                 }
             }
+        }
+
+        if (deleteEpisodeConfirmation != null) {
+            AlertDialog(
+                onDismissRequest = viewModel::hideDeleteConfirmation,
+                title = { Text("Excluir download") },
+                text = { Text("Deseja realmente excluir o download do episódio \"${deleteEpisodeConfirmation?.title}\"?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            deleteEpisodeConfirmation?.let { viewModel.deleteDownload(it.id) }
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Excluir")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = viewModel::hideDeleteConfirmation) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }
