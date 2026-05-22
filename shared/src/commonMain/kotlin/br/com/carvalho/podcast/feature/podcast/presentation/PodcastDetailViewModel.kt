@@ -120,11 +120,19 @@ class PodcastDetailViewModel(
     }
 
     fun deleteDownload(episodeId: String) {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true, deleteEpisodeConfirmation = null) }
         viewModelScope.launch(ioDispatcher()) {
             episodeDownloader.delete(episodeId)
             _uiState.update { it.copy(isLoading = false) }
         }
+    }
+
+    fun showDeleteConfirmation(episode: Episode) {
+        _uiState.update { it.copy(deleteEpisodeConfirmation = episode) }
+    }
+
+    fun hideDeleteConfirmation() {
+        _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
     }
 
     fun markAsPlayed(episodeId: String) {
@@ -154,6 +162,7 @@ data class PodcastDetailUiState(
     val episodes: List<Episode> = emptyList(),
     val filter: EpisodeFilter = EpisodeFilter.ALL,
     val selectedEpisode: Episode? = null,
+    val deleteEpisodeConfirmation: Episode? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null

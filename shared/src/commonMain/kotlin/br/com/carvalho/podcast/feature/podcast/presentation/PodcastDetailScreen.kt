@@ -90,14 +90,14 @@ fun PodcastDetailScreen(
             }
 
             Column(modifier = Modifier.fillMaxSize()) {
-                PodcastHeader(uiState)
-
-                FilterSection(uiState.filter) { viewModel.setFilter(it) }
-
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
+                    item { PodcastHeader(uiState) }
+
+                    item { FilterSection(uiState.filter) { viewModel.setFilter(it) } }
+
                     items(
                         count = pagedEpisodes.itemCount,
                         key = pagedEpisodes.itemKey { it.id },
@@ -114,7 +114,7 @@ fun PodcastDetailScreen(
                                 onLongClick = { viewModel.onSelectEpisode(episode) },
                                 onPlayClick = { viewModel.playEpisode(episode) },
                                 onDownloadClick = { viewModel.downloadEpisode(episode) },
-                                onDeleteClick = { viewModel.deleteDownload(episode.id) }
+                                onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                         }
@@ -139,6 +139,29 @@ fun PodcastDetailScreen(
                             uiState.selectedEpisode?.let { viewModel.markOlderAsPlayed(it.publishDate) }
                         }) {
                             Text("Este e todos abaixo")
+                        }
+                    }
+                )
+            }
+
+            if (uiState.deleteEpisodeConfirmation != null) {
+                AlertDialog(
+                    onDismissRequest = viewModel::hideDeleteConfirmation,
+                    title = { Text("Excluir download") },
+                    text = { Text("Deseja realmente excluir o download do episódio \"${uiState.deleteEpisodeConfirmation?.title}\"?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                uiState.deleteEpisodeConfirmation?.let { viewModel.deleteDownload(it.id) }
+                            },
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Excluir")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = viewModel::hideDeleteConfirmation) {
+                            Text("Cancelar")
                         }
                     }
                 )
