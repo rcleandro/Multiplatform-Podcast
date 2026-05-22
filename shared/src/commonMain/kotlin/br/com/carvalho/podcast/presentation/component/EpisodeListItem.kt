@@ -24,11 +24,10 @@ import br.com.carvalho.podcast.core.extensions.toDate
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.shared.app_icon
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
-import podcast.shared.generated.resources.Res
-import podcast.shared.generated.resources.app_icon
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EpisodeListItem(

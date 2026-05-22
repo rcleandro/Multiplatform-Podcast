@@ -24,12 +24,12 @@ import androidx.paging.compose.itemKey
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.presentation.component.HtmlText
+import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.shared.app_icon
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
-import podcast.shared.generated.resources.Res
-import podcast.shared.generated.resources.app_icon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

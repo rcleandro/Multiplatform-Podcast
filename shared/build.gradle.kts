@@ -19,6 +19,11 @@ kover {
     }
 }
 
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "br.com.carvalho.podcast.shared"
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -173,10 +178,6 @@ kotlin {
             }
         }
 
-        val androidHostTest by getting {
-            dependsOn(jvmCommonTest)
-        }
-
         val desktopTest by getting {
             dependsOn(jvmCommonTest)
         }
@@ -195,3 +196,19 @@ dependencies {
     add("kspDesktop", libs.room3.compiler)
     add("kspWasmJs", libs.room3.compiler)
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+}
+
+// Custom task to sync Compose resources for Android assets (AGP 9.x compatibility)
+val syncComposeResourcesForAndroid = tasks.register<Copy>("syncComposeResourcesForAndroid") {
+    from("src/commonMain/composeResources")
+    into(layout.buildDirectory.dir("generated/compose/androidAssets/composeResources/br.com.carvalho.podcast.shared"))
+}
+
+kotlin.sourceSets.getByName("androidMain").resources.srcDirs(
+    syncComposeResourcesForAndroid.map { it.destinationDir.parentFile }
+)

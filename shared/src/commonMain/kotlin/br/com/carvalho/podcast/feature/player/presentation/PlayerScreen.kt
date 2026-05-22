@@ -24,11 +24,11 @@ import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.shared.app_icon
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
-import podcast.shared.generated.resources.Res
-import podcast.shared.generated.resources.app_icon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

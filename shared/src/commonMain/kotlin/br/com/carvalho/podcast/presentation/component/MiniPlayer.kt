@@ -17,10 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.shared.app_icon
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
-import podcast.shared.generated.resources.Res
-import podcast.shared.generated.resources.app_icon
 
 @Composable
 fun MiniPlayer(

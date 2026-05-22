@@ -17,9 +17,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.shared.app_icon
 import org.jetbrains.compose.resources.painterResource
-import podcast.shared.generated.resources.Res
-import podcast.shared.generated.resources.app_icon
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

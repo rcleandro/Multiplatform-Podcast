@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+evaluationDependsOn(":shared")
+
 android {
     namespace = "br.com.carvalho.podcast"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -23,6 +25,9 @@ android {
     sourceSets["main"].manifest.srcFile("src/main/AndroidManifest.xml")
     sourceSets["main"].res.directories.add("src/main/res")
     sourceSets["main"].java.directories.add("src/main/java")
+    sourceSets["main"].assets.directories.add(
+        project(":shared").layout.buildDirectory.dir("generated/compose/androidAssets").get().asFile.absolutePath
+    )
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -37,4 +42,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.decompose)
     implementation(libs.koin.android)
+}
+
+tasks.named("preBuild") {
+    dependsOn(project(":shared").tasks.named("syncComposeResourcesForAndroid"))
 }
