@@ -25,8 +25,11 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.presentation.component.HtmlText
 import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import podcast.shared.generated.resources.Res
+import podcast.shared.generated.resources.app_icon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -177,13 +180,19 @@ private fun PodcastHeader(uiState: PodcastDetailUiState) {
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AsyncImage(
-            model = podcast.imageUrl,
-            contentDescription = podcast.title,
+        Box(
             modifier = Modifier.size(100.dp).clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentScale = ContentScale.Crop
-        )
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            AsyncImage(
+                model = podcast.imageUrl,
+                contentDescription = podcast.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(Res.drawable.app_icon),
+                error = painterResource(Res.drawable.app_icon)
+            )
+        }
         Spacer(modifier = Modifier.width(16.dp))
         Column {
             Text(

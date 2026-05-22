@@ -25,6 +25,9 @@ import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.painterResource
+import podcast.shared.generated.resources.Res
+import podcast.shared.generated.resources.app_icon
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -80,15 +83,15 @@ fun EpisodeListItem(
                 .clip(RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            episode.imageUrl?.let { url ->
-                AsyncImage(
-                    model = url,
-                    contentDescription = "podcast image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                    alpha = if (episode.isPlayed) 0.5f else 1f
-                )
-            }
+            AsyncImage(
+                model = episode.imageUrl,
+                contentDescription = "podcast image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                alpha = if (episode.isPlayed) 0.5f else 1f,
+                placeholder = painterResource(Res.drawable.app_icon),
+                error = painterResource(Res.drawable.app_icon)
+            )
             if (episode.isPlayed) {
                 Box(
                     modifier = Modifier

@@ -17,6 +17,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import br.com.carvalho.podcast.domain.model.Podcast
+import org.jetbrains.compose.resources.painterResource
+import podcast.shared.generated.resources.Res
+import podcast.shared.generated.resources.app_icon
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -46,14 +49,14 @@ fun PodcastCard(
                     shape = RoundedCornerShape(8.dp)
                 )
         ) {
-            podcast.imageUrl?.let { url ->
-                AsyncImage(
-                    model = url,
-                    contentDescription = "podcast image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+            AsyncImage(
+                model = podcast.imageUrl,
+                contentDescription = "podcast image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                placeholder = painterResource(Res.drawable.app_icon),
+                error = painterResource(Res.drawable.app_icon)
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))

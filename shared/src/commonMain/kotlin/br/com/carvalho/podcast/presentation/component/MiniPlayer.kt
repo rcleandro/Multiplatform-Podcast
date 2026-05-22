@@ -18,6 +18,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.domain.model.Episode
 import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.painterResource
+import podcast.shared.generated.resources.Res
+import podcast.shared.generated.resources.app_icon
 
 @Composable
 fun MiniPlayer(
@@ -45,15 +48,21 @@ fun MiniPlayer(
                     .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = episode.imageUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                Box(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.surface)
-                )
+                ) {
+                    AsyncImage(
+                        model = episode.imageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        placeholder = painterResource(Res.drawable.app_icon),
+                        error = painterResource(Res.drawable.app_icon)
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(12.dp))
 

@@ -25,7 +25,10 @@ import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
+import podcast.shared.generated.resources.Res
+import podcast.shared.generated.resources.app_icon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,14 +107,14 @@ fun PlayerScreen(
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                episode?.imageUrl?.let { url ->
-                    AsyncImage(
-                        model = url,
-                        contentDescription = "podcast image",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                AsyncImage(
+                    model = episode?.imageUrl,
+                    contentDescription = "podcast image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                    placeholder = painterResource(Res.drawable.app_icon),
+                    error = painterResource(Res.drawable.app_icon)
+                )
             }
 
             Text(

@@ -23,8 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.presentation.component.HtmlText
 import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import podcast.shared.generated.resources.Res
+import podcast.shared.generated.resources.app_icon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,14 +87,14 @@ fun EpisodeDetailScreen(
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
-                            episode.imageUrl?.let { url ->
-                                AsyncImage(
-                                    model = url,
-                                    contentDescription = "episode image",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
+                            AsyncImage(
+                                model = episode.imageUrl,
+                                contentDescription = "episode image",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
+                                placeholder = painterResource(Res.drawable.app_icon),
+                                error = painterResource(Res.drawable.app_icon)
+                            )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
