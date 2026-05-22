@@ -1,7 +1,8 @@
 package br.com.carvalho.podcast.presentation.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,7 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import coil3.compose.AsyncImage
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EpisodeListItem(
     episode: Episode,
@@ -35,6 +37,7 @@ fun EpisodeListItem(
     isBuffering: Boolean = false,
     isPlaying: Boolean = false,
     downloadStatus: DownloadStatus = DownloadStatus.Idle,
+    onLongClick: () -> Unit = {},
     onDownloadClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {}
 ) {
@@ -64,7 +67,10 @@ fun EpisodeListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

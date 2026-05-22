@@ -65,4 +65,11 @@ interface EpisodeDao {
 
     @Query("UPDATE episodes SET isDownloaded = :downloaded WHERE id = :id")
     suspend fun updateDownloadStatus(id: String, downloaded: Boolean)
+
+    @Query("""
+        UPDATE episodes
+        SET isPlayed = 1, playbackPosition = 0
+        WHERE podcastId = :podcastId AND publishDate <= :publishDate
+    """)
+    suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long)
 }

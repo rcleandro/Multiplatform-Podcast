@@ -21,4 +21,5 @@ interface PodcastRepository {
     suspend fun savePodcast(podcast: Podcast)
     suspend fun saveEpisodes(episodes: List<Episode>)
     suspend fun deletePodcast(id: String)
+    suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long)
 }

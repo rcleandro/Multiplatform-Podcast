@@ -8,11 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -113,17 +109,39 @@ fun PodcastDetailScreen(
                                 episode = episode,
                                 isBuffering = playerState.currentEpisode?.id == episode.id && playerState.isBuffering,
                                 isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
-                                downloadStatus = activeDownloads[episode.id]
-                                    ?: DownloadStatus.Idle,
+                                downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
                                 onClick = { onEpisodeClick(episode.id, episode.podcastId) },
-                                onPlayClick = { viewModel.playEpisode(episode.id) },
-                                onDownloadClick = { viewModel.downloadEpisode(episode.id) },
+                                onLongClick = { viewModel.onSelectEpisode(episode) },
+                                onPlayClick = { viewModel.playEpisode(episode) },
+                                onDownloadClick = { viewModel.downloadEpisode(episode) },
                                 onDeleteClick = { viewModel.deleteDownload(episode.id) }
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                         }
                     }
                 }
+            }
+
+            if (uiState.selectedEpisode != null) {
+                AlertDialog(
+                    onDismissRequest = viewModel::onSelectEpisode,
+                    title = { Text("Marcar como ouvido") },
+                    text = { Text("Escolha uma opção para o episódio \"${uiState.selectedEpisode?.title}\"") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            uiState.selectedEpisode?.let { viewModel.markAsPlayed(it.id) }
+                        }) {
+                            Text("Apenas este")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            uiState.selectedEpisode?.let { viewModel.markOlderAsPlayed(it.publishDate) }
+                        }) {
+                            Text("Este e todos abaixo")
+                        }
+                    }
+                )
             }
         }
     }
@@ -139,7 +157,8 @@ private fun PodcastHeader(uiState: PodcastDetailUiState) {
         AsyncImage(
             model = podcast.imageUrl,
             contentDescription = podcast.title,
-            modifier = Modifier.size(100.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+            modifier = Modifier.size(100.dp).clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.width(16.dp))

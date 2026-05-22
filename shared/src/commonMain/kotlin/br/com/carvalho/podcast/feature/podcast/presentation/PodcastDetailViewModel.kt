@@ -126,6 +126,26 @@ class PodcastDetailViewModel(
             _uiState.update { it.copy(isLoading = false) }
         }
     }
+
+    fun markAsPlayed(episodeId: String) {
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch(ioDispatcher()) {
+            repository.markEpisodeAsPlayed(episodeId)
+            _uiState.update { it.copy(isLoading = false, selectedEpisode = null) }
+        }
+    }
+
+    fun markOlderAsPlayed(publishDate: Long) {
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch(ioDispatcher()) {
+            repository.markOlderEpisodesAsPlayed(podcastId, publishDate)
+            _uiState.update { it.copy(isLoading = false, selectedEpisode = null) }
+        }
+    }
+
+    fun onSelectEpisode(episode: Episode? = null) {
+        _uiState.update { it.copy(selectedEpisode = episode) }
+    }
 }
 
 

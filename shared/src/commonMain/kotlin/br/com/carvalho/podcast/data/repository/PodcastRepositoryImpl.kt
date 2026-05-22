@@ -100,4 +100,8 @@ class PodcastRepositoryImpl(
         episodeDao.deleteByPodcast(id)
         podcastDao.deleteById(id)
     }
+
+    override suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long) {
+        episodeDao.markOlderAsPlayed(podcastId, publishDate)
+    }
 }
