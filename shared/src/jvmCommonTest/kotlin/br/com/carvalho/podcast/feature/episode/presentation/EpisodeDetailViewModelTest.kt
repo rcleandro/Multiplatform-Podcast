@@ -5,6 +5,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -25,11 +26,13 @@ import kotlin.test.assertEquals
 class EpisodeDetailViewModelTest {
     private val repository = mockk<PodcastRepository>()
     private val audioPlayer = mockk<AudioPlayer>(relaxed = true)
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)
     private val episodeId = "e1"
 
     @BeforeTest
     fun setup() {
-        Dispatchers.setMain(Dispatchers.Unconfined)
+        Dispatchers.setMain(testDispatcher)
         every { audioPlayer.playerState } returns MutableStateFlow(PlayerState())
     }
 
@@ -39,34 +42,37 @@ class EpisodeDetailViewModelTest {
     }
 
     @Test
-    fun `loads episode detail on init`() = runTest {
+    fun `loads episode detail on init`() = runTest(testDispatcher) {
         val episode = mockk<Episode>(relaxed = true)
         coEvery { repository.getEpisodeById(episodeId) } returns episode
 
-        val viewModel = EpisodeDetailViewModel(episodeId, repository, audioPlayer)
+        val viewModel = EpisodeDetailViewModel(episodeId, repository, audioPlayer, dispatchers)
 
         viewModel.uiState.test {
+            // UnconfinedDispatcher might cause multiple items or just the latest depending on timing
             val state = awaitItem()
-            assertEquals(episode, state.episode)
+            if (state.isLoading) {
+                assertEquals(episode, awaitItem().episode)
+            } else {
+                assertEquals(episode, state.episode)
+            }
         }
     }
 
     @Test
-    fun `play calls audioPlayer`() = runTest {
+    fun `play calls audioPlayer`() = runTest(testDispatcher) {
         val episode = mockk<Episode>(relaxed = true)
         coEvery { repository.getEpisodeById(episodeId) } returns episode
         coEvery { audioPlayer.play(any()) } returns Unit
 
-        val viewModel = EpisodeDetailViewModel(episodeId, repository, audioPlayer)
+        val viewModel = EpisodeDetailViewModel(episodeId, repository, audioPlayer, dispatchers)
 
         viewModel.uiState.test {
             awaitItem() // skip initial load state
             viewModel.playEpisode()
-            
-            // Significant delay to ensure coroutines complete
-            kotlinx.coroutines.delay(500)
-            
-            coVerify(timeout = 1000) { audioPlayer.play(any()) }
+
+            coVerify { audioPlayer.play(any()) }
         }
     }
 }
+

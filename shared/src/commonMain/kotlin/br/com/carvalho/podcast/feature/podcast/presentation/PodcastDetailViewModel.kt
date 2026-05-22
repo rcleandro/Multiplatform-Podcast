@@ -9,10 +9,10 @@ import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
-import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -24,7 +24,8 @@ class PodcastDetailViewModel(
     private val audioPlayer: AudioPlayer,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
     private val episodeDownloader: EpisodeDownloader,
-    private val repository: PodcastRepository
+    private val repository: PodcastRepository,
+    private val dispatchers: CoroutineDispatchers
 ) : ViewModel() {
 
     val playerState = audioPlayer.playerState
@@ -65,7 +66,7 @@ class PodcastDetailViewModel(
 
     fun refresh() {
         _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
             try {
                 refreshPodcastUseCase(podcastId)
@@ -83,7 +84,7 @@ class PodcastDetailViewModel(
     }
 
     fun playEpisode(episode: Episode) {
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             val currentPlayerState = audioPlayer.playerState.value
             if (currentPlayerState.currentEpisode?.id == episode.id) {
                 if (currentPlayerState.isPlaying) {
@@ -113,7 +114,7 @@ class PodcastDetailViewModel(
     }
 
     fun downloadEpisode(episode: Episode) {
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             AppLogger.i(TAG, "Starting download for episode: ${episode.title}")
             episodeDownloader.download(episode)
         }
@@ -121,7 +122,7 @@ class PodcastDetailViewModel(
 
     fun deleteDownload(episodeId: String) {
         _uiState.update { it.copy(isLoading = true, deleteEpisodeConfirmation = null) }
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
             _uiState.update { it.copy(isLoading = false) }
         }
@@ -137,7 +138,7 @@ class PodcastDetailViewModel(
 
     fun markAsPlayed(episodeId: String) {
         _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             repository.markEpisodeAsPlayed(episodeId)
             _uiState.update { it.copy(isLoading = false, selectedEpisode = null) }
         }
@@ -145,7 +146,7 @@ class PodcastDetailViewModel(
 
     fun markOlderAsPlayed(publishDate: Long) {
         _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             repository.markOlderEpisodesAsPlayed(podcastId, publishDate)
             _uiState.update { it.copy(isLoading = false, selectedEpisode = null) }
         }

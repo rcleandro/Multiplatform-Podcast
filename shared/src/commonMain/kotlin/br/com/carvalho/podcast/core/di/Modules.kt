@@ -21,9 +21,16 @@ import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewMod
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import io.ktor.utils.io.ioDispatcher
+import kotlinx.coroutines.Dispatchers
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+
+val dispatcherModule = module {
+    single { CoroutineDispatchers(main = Dispatchers.Main, io = ioDispatcher()) }
+}
 
 val networkModule = module {
     single { createHttpClient() }
@@ -63,6 +70,7 @@ val viewModelModule = module {
 }
 
 val commonModules = listOf(
+    dispatcherModule,
     networkModule,
     playerModule,
     databaseModule,

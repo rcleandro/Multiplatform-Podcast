@@ -11,12 +11,13 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.player.SKIP_BACKWARD_SECONDS
 import br.com.carvalho.podcast.domain.player.SKIP_FORWARD_SECONDS
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
-import io.ktor.utils.io.ioDispatcher
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeSource
 
@@ -26,7 +27,8 @@ class PlayerViewModel(
     private val audioPlayer: AudioPlayer,
     private val playerRepository: PlayerRepository,
     private val podcastRepository: PodcastRepository,
-    private val episodeDownloader: EpisodeDownloader
+    private val episodeDownloader: EpisodeDownloader,
+    private val dispatchers: CoroutineDispatchers
 ) : ViewModel() {
 
     val playerState: StateFlow<PlayerState> = audioPlayer.playerState
@@ -35,7 +37,7 @@ class PlayerViewModel(
     private var restored = false
 
     init {
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             audioPlayer.isReady
                 .filter { it }
                 .collect {
@@ -74,8 +76,8 @@ class PlayerViewModel(
             .launchIn(viewModelScope)
     }
 
-    private suspend fun saveState(state: PlayerState) {
-        val episode = state.currentEpisode ?: return
+    private suspend fun saveState(state: PlayerState) = withContext(dispatchers.io) {
+        val episode = state.currentEpisode ?: return@withContext
         playerRepository.savePlaybackState(
             episodeId = episode.id,
             position = state.position,
@@ -90,7 +92,7 @@ class PlayerViewModel(
         }
     }
 
-    fun play(episode: Episode) = viewModelScope.launch(ioDispatcher()) {
+    fun play(episode: Episode) = viewModelScope.launch(dispatchers.io) {
         val resolvedEpisode = episode.copy(localPath = episodeDownloader.getLocalPath(episode.id))
         audioPlayer.play(resolvedEpisode)
     }
@@ -124,7 +126,7 @@ class PlayerViewModel(
         val timeSource = TimeSource.Monotonic
         val mark = timeSource.markNow()
 
-        sleepTimerJob = viewModelScope.launch(ioDispatcher()) {
+        sleepTimerJob = viewModelScope.launch(dispatchers.io) {
             var remaining = totalDuration
             while (remaining.isPositive()) {
                 audioPlayer.setSleepTimer(remaining.inWholeMilliseconds, minutes)

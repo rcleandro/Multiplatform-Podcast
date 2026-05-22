@@ -8,7 +8,7 @@ import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.core.util.AppLogger
-import io.ktor.utils.io.ioDispatcher
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
@@ -18,17 +18,19 @@ import kotlinx.coroutines.launch
 private const val TAG = "LibraryViewModel"
 
 class LibraryViewModel(
-    repository: PodcastRepository,
+    private val repository: PodcastRepository,
     private val addPodcastUseCase: AddPodcastFromUrlUseCase,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
-    private val deletePodcastUseCase: DeletePodcastUseCase
+    private val deletePodcastUseCase: DeletePodcastUseCase,
+    private val dispatchers: CoroutineDispatchers
 ) : ViewModel() {
+
 
     private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true))
     val uiState: StateFlow<LibraryUiState> = _uiState
 
     init {
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             repository.getPodcasts().onStart { emit(emptyList()) }.collect { podcasts ->
                 _uiState.update { it.copy(podcasts = podcasts, isLoading = false) }
             }
@@ -49,14 +51,14 @@ class LibraryViewModel(
 
     fun confirmDelete() {
         val podcast = _uiState.value.podcastToDelete ?: return
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             deletePodcastUseCase(podcast.id)
             _uiState.update { it.copy(podcastToDelete = null) }
         }
     }
 
     fun onRefreshAll() {
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             _uiState.update { it.copy(isRefreshing = true) }
             AppLogger.i(TAG, "Refreshing all podcasts")
             try {
@@ -88,7 +90,7 @@ class LibraryViewModel(
 
         val finalUrl = if (!url.startsWith("http")) "https://$url" else url
 
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false, error = null) }
             AppLogger.i(TAG, "Adding podcast from URL: $finalUrl")
             try {

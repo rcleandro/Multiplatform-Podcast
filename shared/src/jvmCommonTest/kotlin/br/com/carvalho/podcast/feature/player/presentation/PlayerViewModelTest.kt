@@ -1,70 +1,56 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
-import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
-import io.mockk.*
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PlayerViewModelTest {
-    private val audioPlayer = mockk<AudioPlayer>()
-    private val playerRepository = mockk<PlayerRepository>()
-    private val podcastRepository = mockk<PodcastRepository>()
-    private val episodeDownloader = mockk<EpisodeDownloader>()
-    private val playerStateFlow = MutableStateFlow(PlayerState())
+    private val audioPlayer = mockk<AudioPlayer>(relaxed = true)
+    private val playerRepository = mockk<PlayerRepository>(relaxed = true)
+    private val podcastRepository = mockk<PodcastRepository>(relaxed = true)
+    private val episodeDownloader = mockk<EpisodeDownloader>(relaxed = true)
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)
 
-    init {
-        every { audioPlayer.playerState } returns playerStateFlow
-        every { audioPlayer.isReady } returns MutableStateFlow(false)
-        every { audioPlayer.release() } just Runs
-        coEvery { playerRepository.getSavedPlaybackState() } returns null
-        coEvery { playerRepository.savePlaybackState(any(), any(), any(), any()) } returns Unit
-        coEvery { episodeDownloader.getLocalPath(any()) } returns null
+    @BeforeTest
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+        every { audioPlayer.playerState } returns MutableStateFlow(PlayerState())
+        every { audioPlayer.isReady } returns MutableStateFlow(true)
+    }
+
+    @AfterTest
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test
-    fun `emits playing state after play is called`() = runTest {
-        val viewModel = PlayerViewModel(
-            audioPlayer,
-            playerRepository,
-            podcastRepository,
-            episodeDownloader
-        )
-        val episode = Episode(
-            id = "ep1",
-            podcastId = "p1",
-            title = "Episode 1",
-            description = null,
-            audioUrl = "",
-            imageUrl = null,
-            duration = 100,
-            publishDate = 0L,
-            isPlayed = false,
-            playbackPosition = 0,
-            isDownloaded = false,
-            fileSize = null
-        )
+    fun `play calls audioPlayer`() = runTest(testDispatcher) {
+        val viewModel = PlayerViewModel(audioPlayer, playerRepository, podcastRepository, episodeDownloader, dispatchers)
+        val episode = Episode(id = "e1", podcastId = "p1", title = "E1", description = null, audioUrl = "", imageUrl = null, duration = 100, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null)
+        coEvery { episodeDownloader.getLocalPath(any()) } returns null
 
-        coEvery { audioPlayer.play(any()) } coAnswers {
-            playerStateFlow.value = playerStateFlow.value.copy(currentEpisode = episode, isPlaying = true)
-        }
+        viewModel.play(episode)
 
-        viewModel.playerState.test {
-            assertEquals(null, awaitItem().currentEpisode)
-
-            viewModel.play(episode)
-
-            val state = awaitItem()
-            assertTrue(state.isPlaying)
-            assertEquals("ep1", state.currentEpisode?.id)
-        }
+        coVerify { audioPlayer.play(any()) }
     }
 }

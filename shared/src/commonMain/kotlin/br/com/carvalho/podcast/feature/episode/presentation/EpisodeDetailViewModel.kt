@@ -6,7 +6,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.util.AppLogger
-import io.ktor.utils.io.ioDispatcher
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +18,8 @@ private const val TAG = "EpisodeDetailViewModel"
 class EpisodeDetailViewModel(
     private val episodeId: String,
     private val repository: PodcastRepository,
-    private val audioPlayer: AudioPlayer
+    private val audioPlayer: AudioPlayer,
+    private val dispatchers: CoroutineDispatchers
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EpisodeDetailUiState(isLoading = true))
@@ -33,7 +34,7 @@ class EpisodeDetailViewModel(
     }
 
     private fun loadEpisode() {
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             AppLogger.d(TAG, "Loading episode detail for id: $episodeId")
             try {
                 val episode = repository.getEpisodeById(episodeId)
@@ -53,7 +54,7 @@ class EpisodeDetailViewModel(
 
     fun playEpisode() {
         uiState.value.episode?.let { episode ->
-            viewModelScope.launch(ioDispatcher()) {
+            viewModelScope.launch(dispatchers.io) {
                 val currentPlayerState = audioPlayer.playerState.value
                 if (currentPlayerState.currentEpisode?.id == episode.id) {
                     if (currentPlayerState.isPlaying) {

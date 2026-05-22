@@ -9,7 +9,7 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import br.com.carvalho.podcast.domain.player.AudioPlayer
-import io.ktor.utils.io.ioDispatcher
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -21,7 +21,8 @@ private const val TAG = "SearchViewModel"
 class SearchViewModel(
     private val repository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
-    val audioPlayer: AudioPlayer
+    val audioPlayer: AudioPlayer,
+    private val dispatchers: CoroutineDispatchers
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -46,7 +47,7 @@ class SearchViewModel(
     }
 
     fun playEpisode(episode: Episode) {
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             val currentPlayerState = audioPlayer.playerState.value
             if (currentPlayerState.currentEpisode?.id == episode.id) {
                 if (currentPlayerState.isPlaying) {
@@ -75,7 +76,7 @@ class SearchViewModel(
     }
 
     fun downloadEpisode(episode: Episode) {
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             AppLogger.i(TAG, "Starting download for episode from search: ${episode.title}")
             episodeDownloader.download(episode)
         }
@@ -83,7 +84,7 @@ class SearchViewModel(
 
     fun deleteDownload(episodeId: String) {
         _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
-        viewModelScope.launch(ioDispatcher()) {
+        viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
         }
     }

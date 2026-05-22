@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -29,6 +30,7 @@ class DownloadedEpisodesViewModelTest {
     private val episodeDownloader = mockk<EpisodeDownloader>()
     private val audioPlayer = mockk<AudioPlayer>()
     private val testDispatcher = UnconfinedTestDispatcher()
+    private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)
 
     private val sampleEpisode = Episode(id = "e1", podcastId = "p1", title = "E1", description = null, audioUrl = "", imageUrl = null, duration = 100, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = true, fileSize = null)
 
@@ -47,7 +49,7 @@ class DownloadedEpisodesViewModelTest {
 
     @Test
     fun `loads downloaded episodes initially`() = runTest(testDispatcher) {
-        val viewModel = DownloadedEpisodesViewModel(repository, episodeDownloader, audioPlayer)
+        val viewModel = DownloadedEpisodesViewModel(repository, episodeDownloader, audioPlayer, dispatchers)
         viewModel.uiState.test {
             assertEquals(listOf(sampleEpisode), awaitItem().episodes)
         }
@@ -55,18 +57,22 @@ class DownloadedEpisodesViewModelTest {
 
     @Test
     fun `deleteDownload calls downloader and shows snackbar`() = runTest(testDispatcher) {
-        val viewModel = DownloadedEpisodesViewModel(repository, episodeDownloader, audioPlayer)
+        val viewModel = DownloadedEpisodesViewModel(repository, episodeDownloader, audioPlayer, dispatchers)
         coEvery { episodeDownloader.delete(any()) } returns Unit
 
-        viewModel.deleteDownload("e1")
-
-        coVerify { episodeDownloader.delete("e1") }
-        assertEquals("Download excluído", viewModel.uiState.value.snackbarMessage)
+        viewModel.uiState.test {
+            awaitItem() // initial state
+            viewModel.deleteDownload("e1")
+            
+            val state = awaitItem()
+            assertEquals("Download excluído", state.snackbarMessage)
+            coVerify { episodeDownloader.delete("e1") }
+        }
     }
 
     @Test
     fun `playEpisode prepares player with queue`() = runTest(testDispatcher) {
-        val viewModel = DownloadedEpisodesViewModel(repository, episodeDownloader, audioPlayer)
+        val viewModel = DownloadedEpisodesViewModel(repository, episodeDownloader, audioPlayer, dispatchers)
         coEvery { episodeDownloader.getLocalPath(any()) } returns "/path"
         coEvery { audioPlayer.setQueue(any()) } returns Unit
         coEvery { audioPlayer.play(any()) } returns Unit

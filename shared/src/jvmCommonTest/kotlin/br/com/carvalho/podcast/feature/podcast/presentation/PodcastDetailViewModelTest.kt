@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -33,6 +34,8 @@ class PodcastDetailViewModelTest {
     private val refreshUseCase = mockk<RefreshPodcastUseCase>()
     private val episodeDownloader = mockk<EpisodeDownloader>()
     private val repository = mockk<PodcastRepository>()
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)
 
     private val podcastId = "p1"
     private val samplePodcast = Podcast(id = podcastId, title = "P1", description = "", imageUrl = null, author = null, language = null, categories = emptyList(), feedUrl = "", siteUrl = null, lastUpdated = 0, isSubscribed = true)
@@ -40,7 +43,7 @@ class PodcastDetailViewModelTest {
 
     @BeforeTest
     fun setup() {
-        Dispatchers.setMain(Dispatchers.Unconfined)
+        Dispatchers.setMain(testDispatcher)
         every { audioPlayer.playerState } returns MutableStateFlow(PlayerState())
         every { episodeDownloader.activeDownloads } returns MutableStateFlow(emptyMap())
         coEvery { repository.getEpisodesPaged(any()) } returns flowOf(mockk())
@@ -53,10 +56,10 @@ class PodcastDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = PodcastDetailViewModel(podcastId, audioPlayer, refreshUseCase, episodeDownloader, repository)
+    private fun createViewModel() = PodcastDetailViewModel(podcastId, audioPlayer, refreshUseCase, episodeDownloader, repository, dispatchers)
 
     @Test
-    fun `initial state loads podcast and episodes`() = runTest {
+    fun `initial state loads podcast and episodes`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         viewModel.uiState.test {
             val state = awaitItem()
@@ -66,7 +69,7 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
-    fun `refresh calls use case`() = runTest {
+    fun `refresh calls use case`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         coEvery { refreshUseCase(podcastId) } returns Result.success(Unit)
 
@@ -75,16 +78,16 @@ class PodcastDetailViewModelTest {
 
             viewModel.refresh()
             
-            // Expected transitions: isLoading=true -> Refreshing -> isLoading=false
-            assertEquals(true, awaitItem().isLoading)
-            assertEquals(false, awaitItem().isLoading)
+            // Expected transitions: isLoading=true -> isLoading=false
+            assertTrue(awaitItem().isLoading)
+            assertFalse(awaitItem().isLoading)
             
             coVerify { refreshUseCase(podcastId) }
         }
     }
 
     @Test
-    fun `playEpisode prepares and plays via audioPlayer`() = runTest {
+    fun `playEpisode prepares and plays via audioPlayer`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         coEvery { episodeDownloader.getLocalPath(any()) } returns null
         coEvery { audioPlayer.setQueue(any()) } returns Unit
@@ -94,11 +97,8 @@ class PodcastDetailViewModelTest {
             awaitItem() // Initial load
             viewModel.playEpisode(sampleEpisode)
             
-            // Significant delay to ensure coroutines complete
-            kotlinx.coroutines.delay(500)
-            
-            coVerify(timeout = 1000) { audioPlayer.setQueue(any()) }
-            coVerify(timeout = 1000) { audioPlayer.play(any()) }
+            coVerify { audioPlayer.setQueue(any()) }
+            coVerify { audioPlayer.play(any()) }
         }
     }
 }

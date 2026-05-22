@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -29,10 +30,12 @@ class LibraryViewModelTest {
     private val addPodcastUseCase = mockk<AddPodcastFromUrlUseCase>()
     private val refreshPodcastUseCase = mockk<RefreshPodcastUseCase>()
     private val deletePodcastUseCase = mockk<DeletePodcastUseCase>()
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)
 
     @BeforeTest
     fun setup() {
-        Dispatchers.setMain(Dispatchers.Unconfined)
+        Dispatchers.setMain(testDispatcher)
     }
 
     @AfterTest
@@ -42,11 +45,11 @@ class LibraryViewModelTest {
 
     private fun createViewModel(): LibraryViewModel {
         coEvery { repository.getPodcasts() } returns flowOf(emptyList())
-        return LibraryViewModel(repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase)
+        return LibraryViewModel(repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, dispatchers)
     }
 
     @Test
-    fun `initial state is correct`() = runTest {
+    fun `initial state is correct`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         viewModel.uiState.test {
             val state = awaitItem()
@@ -56,7 +59,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `onAddClicked opens dialog`() = runTest {
+    fun `onAddClicked opens dialog`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         viewModel.uiState.test {
             awaitItem() // skip initial
@@ -66,9 +69,12 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `addPodcast calls use case and closes dialog`() = runTest {
+    fun `addPodcast calls use case and closes dialog`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
-        coEvery { addPodcastUseCase(any()) } returns Result.success(mockk())
+        coEvery { addPodcastUseCase(any()) } coAnswers { 
+            kotlinx.coroutines.delay(10)
+            Result.success(mockk()) 
+        }
 
         viewModel.uiState.test {
             awaitItem() // initial state
@@ -81,10 +87,13 @@ class LibraryViewModelTest {
 
             viewModel.addPodcast()
             
-            assertEquals(true, awaitItem().isRefreshing)
+            // Now we should definitely see the refreshing state
+            val refreshingState = awaitItem()
+            assertEquals(true, refreshingState.isRefreshing)
+            assertEquals(false, refreshingState.isAddDialogOpen)
+
             val finalState = awaitItem()
             assertFalse(finalState.isRefreshing)
-            assertFalse(finalState.isAddDialogOpen)
             assertEquals("", finalState.addUrl)
             
             coVerify { addPodcastUseCase("https://test-url") }
@@ -92,18 +101,23 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `confirmDelete calls delete use case`() = runTest {
+    fun `confirmDelete calls delete use case`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         val podcast = Podcast(id = "1", title = "P1", description = "", imageUrl = null, author = null, language = null, categories = emptyList(), feedUrl = "", siteUrl = null, lastUpdated = 0, isSubscribed = true)
         coEvery { deletePodcastUseCase(any()) } returns Unit
 
-        viewModel.onDeleteClicked(podcast)
-        viewModel.confirmDelete()
-        
-        // Wait for coroutines to complete
-        kotlinx.coroutines.delay(500)
-        
-        coVerify(timeout = 1000) { deletePodcastUseCase("1") }
-        assertEquals(null, viewModel.uiState.value.podcastToDelete)
+        viewModel.uiState.test {
+            awaitItem() // initial
+            
+            viewModel.onDeleteClicked(podcast)
+            awaitItem()
+
+            viewModel.confirmDelete()
+            
+            val state = awaitItem()
+            assertEquals(null, state.podcastToDelete)
+            
+            coVerify { deletePodcastUseCase("1") }
+        }
     }
 }

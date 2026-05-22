@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -26,6 +27,7 @@ class SearchViewModelTest {
     private val episodeDownloader = mockk<EpisodeDownloader>()
     private val audioPlayer = mockk<AudioPlayer>(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
+    private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)
 
     @BeforeTest
     fun setup() {
@@ -40,14 +42,14 @@ class SearchViewModelTest {
 
     @Test
     fun `onQueryChange updates searchQuery state`() = runTest(testDispatcher) {
-        val viewModel = SearchViewModel(repository, episodeDownloader, audioPlayer)
+        val viewModel = SearchViewModel(repository, episodeDownloader, audioPlayer, dispatchers)
         viewModel.onQueryChange("kotlin")
         assertEquals("kotlin", viewModel.uiState.value.searchQuery)
     }
 
     @Test
     fun `downloadEpisode calls downloader`() = runTest(testDispatcher) {
-        val viewModel = SearchViewModel(repository, episodeDownloader, audioPlayer)
+        val viewModel = SearchViewModel(repository, episodeDownloader, audioPlayer, dispatchers)
         val episode = mockk<Episode>(relaxed = true)
         coEvery { episodeDownloader.download(any()) } returns Unit
 
@@ -58,7 +60,7 @@ class SearchViewModelTest {
 
     @Test
     fun `deleteDownload calls downloader`() = runTest(testDispatcher) {
-        val viewModel = SearchViewModel(repository, episodeDownloader, audioPlayer)
+        val viewModel = SearchViewModel(repository, episodeDownloader, audioPlayer, dispatchers)
         coEvery { episodeDownloader.delete(any()) } returns Unit
 
         viewModel.deleteDownload("e1")
