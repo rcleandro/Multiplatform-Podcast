@@ -52,10 +52,6 @@ kotlin {
             baseName = "Shared"
             isStatic = true
         }
-
-        iosTarget.binaries.all {
-            linkerOpts("-ios_deployment_target", "15.0")
-        }
     }
 
     applyDefaultHierarchyTemplate()
