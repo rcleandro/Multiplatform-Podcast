@@ -154,6 +154,7 @@ kotlin {
         wasmJsMain.dependencies {
             implementation(libs.ktor.client.js)
             implementation(libs.sqlite.web)
+            implementation(libs.okio.fakefilesystem)
         }
 
         commonTest.dependencies {

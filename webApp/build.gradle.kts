@@ -37,7 +37,7 @@ tasks.register<Copy>("copySqliteWorker") {
         .filter { it.name.contains("sqlite-web-wasm-js") || it.name.contains("sqlite-web") }
         .map { zipTree(it.file) }
     )
-    include("**/sqlite-worker.js", "**/sqlite-worker.wasm")
+    include("**/sqlite3.wasm", "**/sqlite3.js", "**/sqlite3-opfs-async-proxy.js", "**/sqlite3-worker1.js")
     into(layout.buildDirectory.dir("processedResources/wasmJs/main"))
     includeEmptyDirs = false
 }

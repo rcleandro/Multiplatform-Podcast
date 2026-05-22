@@ -37,7 +37,19 @@ function handleMessage(event) {
 
         switch (data.cmd) {
             case "open": {
-                const db = new sqlite3.oo1.DB(data.fileName, "ct");
+                let db;
+                if (data.fileName === ":memory:") {
+                    db = new sqlite3.oo1.DB(data.fileName, "ct");
+                    console.log("Opened in-memory database");
+                } else {
+                    if (sqlite3.opfs) {
+                        db = new sqlite3.oo1.OpfsDb(data.fileName, "ct");
+                        console.log("Opened OPFS database:", data.fileName);
+                    } else {
+                        console.warn("OPFS not available, falling back to in-memory database. Data will NOT persist.");
+                        db = new sqlite3.oo1.DB(data.fileName, "ct");
+                    }
+                }
                 const dbId = nextDbId++;
                 databases.set(dbId, db);
                 result = { databaseId: dbId };
@@ -55,7 +67,7 @@ function handleMessage(event) {
                         sqlite3.capi.sqlite3_column_name(stmt.pointer, i)
                     );
                 }
-                statements.set(stmtId, { stmt, db });
+                statements.set(stmtId, { stmt, db, lastSql: data.sql });
                 result = {
                     statementId: stmtId,
                     parameterCount: stmt.parameterCount,
@@ -65,12 +77,17 @@ function handleMessage(event) {
             }
 
             case "step": {
-                const { stmt } = statements.get(data.statementId);
+                const entry = statements.get(data.statementId);
+                const stmt = entry.stmt;
+                
+                if (data.bindings) {
                     stmt.reset();
                     const bindings = data.bindings;
                     for (let i = 0; i < bindings.length; i++) {
                         stmt.bind(i + 1, bindings[i] ?? null);
                     }
+                }
+                
                 const rows = [];
                 const columnTypes = [];
                 while (stmt.step()) {
