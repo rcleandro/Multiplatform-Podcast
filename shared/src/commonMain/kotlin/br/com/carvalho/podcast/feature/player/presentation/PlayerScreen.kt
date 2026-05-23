@@ -10,7 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.*
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,11 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
@@ -53,8 +51,12 @@ fun PlayerScreen(
             contentWindowInsets = WindowInsets(),
             topBar = {
                 CenterAlignedTopAppBar(
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Unspecified,
+                        navigationIconContentColor = Color.Unspecified,
+                        titleContentColor = Color.Unspecified,
+                        actionIconContentColor = Color.Unspecified
                     ),
                     title = {
                         Text(
@@ -121,7 +123,7 @@ fun PlayerScreen(
 
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .widthIn(max = 200.dp)
                         .aspectRatio(1f)
                         .clip(MaterialTheme.shapes.extraLarge)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -198,7 +200,7 @@ fun PlayerScreen(
 
                     IconButton(onClick = { showQueueDialog = true }) {
                         Icon(
-                            Icons.AutoMirrored.Rounded.List, 
+                            Icons.AutoMirrored.Rounded.List,
                             contentDescription = "Fila",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
