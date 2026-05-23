@@ -54,4 +54,14 @@
     <string name="no_podcasts_found">Nenhum podcast encontrado</string>
     <string name="delete_download_cd">Excluir download</string>
     <string name="download_cd">Baixar</string>
+    <string name="player">Player</string>
+    <string name="select_podcast">Selecione um podcast</string>
+    <string name="date_just_now">Agora</string>
+    <string name="date_yesterday">Ontem</string>
+    <string name="date_minutes_ago">Há %d min</string>
+    <string name="date_hours_ago">Há %d h</string>
+    <string name="date_days_ago">Há %d d</string>
+    <string name="date_some_days_ago">Há alguns dias</string>
+    <string name="duration_h_m">%dh %dm</string>
+    <string name="duration_m">%dmin</string>
 </resources>

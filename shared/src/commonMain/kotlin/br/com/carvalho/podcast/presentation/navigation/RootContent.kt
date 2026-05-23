@@ -42,6 +42,13 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.window.core.layout.WindowSizeClass
+import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.shared.downloads
+import br.com.carvalho.podcast.shared.library_title
+import br.com.carvalho.podcast.shared.player
+import br.com.carvalho.podcast.shared.search
+import br.com.carvalho.podcast.shared.select_podcast
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -122,26 +129,26 @@ fun RootContent(component: RootComponentImpl) {
             item(
                 selected = isTabSelected(RootComponent.Child.Library::class),
                 onClick = component::onLibraryTabClicked,
-                icon = { Icon(Icons.Rounded.Home, contentDescription = "Biblioteca") },
-                label = { Text("Biblioteca") }
+                icon = { Icon(Icons.Rounded.Home, contentDescription = stringResource(Res.string.library_title)) },
+                label = { Text(stringResource(Res.string.library_title)) }
             )
             item(
                 selected = isTabSelected(RootComponent.Child.Search::class),
                 onClick = component::onSearchTabClicked,
-                icon = { Icon(Icons.Rounded.Search, contentDescription = "Busca") },
-                label = { Text("Busca") }
+                icon = { Icon(Icons.Rounded.Search, contentDescription = stringResource(Res.string.search)) },
+                label = { Text(stringResource(Res.string.search)) }
             )
             item(
                 selected = isTabSelected(RootComponent.Child.DownloadedEpisodes::class),
                 onClick = component::onDownloadsTabClicked,
-                icon = { Icon(Icons.Rounded.DownloadDone, contentDescription = "Downloads") },
-                label = { Text("Downloads") }
+                icon = { Icon(Icons.Rounded.DownloadDone, contentDescription = stringResource(Res.string.downloads)) },
+                label = { Text(stringResource(Res.string.downloads)) }
             )
             item(
                 selected = activeChild is RootComponent.Child.Player,
                 onClick = component::onPlayerTabClicked,
-                icon = { Icon(Icons.Rounded.PlayArrow, contentDescription = "Player") },
-                label = { Text("Player") }
+                icon = { Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(Res.string.player)) },
+                label = { Text(stringResource(Res.string.player)) }
             )
         }
     ) {
@@ -193,7 +200,7 @@ fun RootContent(component: RootComponentImpl) {
                             )
                         } else {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("Selecione um podcast", style = MaterialTheme.typography.bodyLarge)
+                                Text(stringResource(Res.string.select_podcast), style = MaterialTheme.typography.bodyLarge)
                             }
                         }
                     },
