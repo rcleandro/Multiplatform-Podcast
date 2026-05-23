@@ -43,6 +43,9 @@ paging = "3.5.0"
 # Imagem assíncrona
 coil = "3.4.0"
 
+# Logging
+kermit = "2.1.0"
+
 # Testes
 turbine = "1.2.1"
 mockk = "1.14.9"
@@ -118,6 +121,9 @@ decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", ver
 # Imagem
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+
+# Logging
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 
 # Lifecycle
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }

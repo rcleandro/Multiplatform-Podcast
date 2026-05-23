@@ -94,7 +94,15 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 *   [x] **Constantes de Negócio:** Centralizar valores numéricos (timeouts, intervalos de skip, limites de cache) em arquivos de configuração apropriados.
 *   [x] **Formatadores Localizados:** Garantir que datas e durações usem o locale do sistema para exibição (via `Formatters.kt`).
 
-### Fase 7 — Expansão da Base de Testes e Qualidade
+### Fase 7 — Telemetria, Monitoramento e Observabilidade (PRÓXIMOS PASSOS 🚀)
+*   [x] **Logging Multiplataforma (Kermit):** Substituir logs manuais/println pelo **Kermit (Touchlab)** no código compartilhado para melhor depuração em produção e integração com logs nativos.
+*   [ ] **Firebase Analytics:** Implementar rastreamento de eventos de engajamento (play, pause, busca, assinaturas) no Android e iOS via wrapper KMP.
+*   [ ] **Firebase Crashlytics:** Configurar a captura de crashes nativos (C/C++, Swift) e exceções Kotlin não tratadas para garantir estabilidade em todas as plataformas.
+*   [ ] **Firebase Performance Monitoring:** Monitorar tempos de resposta de rede (Ktor), carregamento de imagens e o tempo de inicialização "Time to First Render".
+*   [ ] **Firebase Remote Config:** Implementar controle remoto de flags de funcionalidades e constantes de negócio (ex: intervalos de skip) sem necessidade de novo deploy.
+*   [ ] **Análise Estática (Detekt):** Configurar o **Detekt** para garantir a qualidade do código Kotlin e manter padrões arquiteturais consistentes em todos os módulos.
+
+### Fase 8 — Expansão da Base de Testes e Qualidade
 *   [ ] **Testes de UI (Compose Test):** Implementar testes de interação para as principais telas em `commonTest`.
 *   [ ] **Cobertura de Casos de Borda:** Expandir testes de domínio para lidar com feeds RSS malformados e interrupções de rede.
 *   [ ] **Benchmarks de Performance:** Medir tempos de carregamento do banco de dados e parsing de XML.

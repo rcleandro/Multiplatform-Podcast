@@ -111,6 +111,9 @@ kotlin {
             // Imagem
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
+
+            // Logging
+            implementation(libs.kermit)
         }
 
         androidMain.dependencies {
