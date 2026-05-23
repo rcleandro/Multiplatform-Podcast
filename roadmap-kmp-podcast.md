@@ -82,7 +82,7 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 *   [x] **Android:** Android Auto (metadados e controles personalizados).
 *   [x] **Desktop:** System Tray, atalhos globais de teclado, integração com Menu Bar.
 *   [x] **Web:** Media Session API.
-*   [ ] **Acessibilidade:** Suporte a Screen Readers em todas as plataformas.
+*   [x] **Acessibilidade:** Suporte a Screen Readers e Touch Targets (min 48dp) em componentes core.
 
 ### Fase 6 — Expansão da Base de Testes e Qualidade (NOVO 🚀)
 *   [ ] **Testes de UI (Compose Test):** Implementar testes de interação para as principais telas em `commonTest`.

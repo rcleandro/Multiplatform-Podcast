@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
@@ -19,6 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +33,7 @@ import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EpisodeListItem(
@@ -75,6 +79,12 @@ fun EpisodeListItem(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
+            .semantics(mergeDescendants = true) {
+                onLongClick("Opções do episódio") {
+                    onLongClick()
+                    true
+                }
+            }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -86,7 +96,7 @@ fun EpisodeListItem(
         ) {
             AsyncImage(
                 model = episode.imageUrl,
-                contentDescription = episode.title,
+                contentDescription = null, // MergeDescendants na Row
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
                 alpha = if (episode.isPlayed) 0.5f else 1f,
@@ -109,12 +119,16 @@ fun EpisodeListItem(
                 }
             } else if (episode.playbackPosition > 0 && episode.duration > 0) {
                 val progress = episode.playbackPosition.toFloat() / (episode.duration * 1000).toFloat()
+                val progressValue = progress.coerceIn(0f, 1f)
                 LinearProgressIndicator(
-                    progress = { progress.coerceIn(0f, 1f) },
+                    progress = { progressValue },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .height(3.dp),
+                        .height(3.dp)
+                        .semantics {
+                            progressBarRangeInfo = ProgressBarRangeInfo(progressValue, 0f..1f)
+                        },
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = Color.Transparent
                 )
@@ -162,7 +176,10 @@ fun EpisodeListItem(
                     )
                 }
                 is DownloadStatus.Completed -> {
-                    IconButton(onClick = onDeleteClick) {
+                    IconButton(
+                        onClick = onDeleteClick,
+                        modifier = Modifier.minimumInteractiveComponentSize()
+                    ) {
                         Icon(
                             imageVector = Icons.Rounded.Delete,
                             contentDescription = "Excluir download",
@@ -179,7 +196,10 @@ fun EpisodeListItem(
                 }
                 else -> {
                     if (!episode.isDownloaded) {
-                        IconButton(onClick = onDownloadClick) {
+                        IconButton(
+                            onClick = onDownloadClick,
+                            modifier = Modifier.minimumInteractiveComponentSize()
+                        ) {
                             Icon(
                                 imageVector = Icons.Rounded.Download,
                                 contentDescription = "Baixar",
@@ -188,7 +208,10 @@ fun EpisodeListItem(
                             )
                         }
                     } else {
-                        IconButton(onClick = onDeleteClick) {
+                        IconButton(
+                            onClick = onDeleteClick,
+                            modifier = Modifier.minimumInteractiveComponentSize()
+                        ) {
                             Icon(
                                 imageVector = Icons.Rounded.Delete,
                                 contentDescription = "Excluir download",

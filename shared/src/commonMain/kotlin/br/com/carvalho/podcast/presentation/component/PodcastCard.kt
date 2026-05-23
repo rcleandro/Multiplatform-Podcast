@@ -2,10 +2,8 @@ package br.com.carvalho.podcast.presentation.component
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -14,7 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +38,13 @@ fun PodcastCard(
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick
-            ),
+            )
+            .semantics(mergeDescendants = true) {
+                onLongClick("Opções do podcast") {
+                    onLongClick()
+                    true
+                }
+            },
         color = Color.Transparent
     ) {
         Column(
@@ -54,7 +59,7 @@ fun PodcastCard(
             ) {
                 AsyncImage(
                     model = podcast.imageUrl,
-                    contentDescription = podcast.title,
+                    contentDescription = null, // Redundante pois mergeDescendants=true na Surface
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                     placeholder = painterResource(Res.drawable.app_icon),

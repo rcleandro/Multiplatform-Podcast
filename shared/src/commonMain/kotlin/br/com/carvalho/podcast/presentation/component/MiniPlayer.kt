@@ -3,7 +3,6 @@ package br.com.carvalho.podcast.presentation.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -13,8 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.shared.Res
@@ -38,7 +39,8 @@ fun MiniPlayer(
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .clip(MaterialTheme.shapes.medium)
             .height(64.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) {},
         color = MaterialTheme.colorScheme.primaryContainer,
         tonalElevation = 4.dp
     ) {
@@ -57,7 +59,7 @@ fun MiniPlayer(
                 ) {
                     AsyncImage(
                         model = episode.imageUrl,
-                        contentDescription = null,
+                        contentDescription = null, // Redundante
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
                         placeholder = painterResource(Res.drawable.app_icon),
@@ -109,13 +111,17 @@ fun MiniPlayer(
                     }
                 }
             }
-            
+
             // Sutil progress bar at the bottom
+            val progressValue = progress.coerceIn(0f, 1f)
             LinearProgressIndicator(
-                progress = { progress.coerceIn(0f, 1f) },
+                progress = { progressValue },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(2.dp),
+                    .height(2.dp)
+                    .semantics {
+                        progressBarRangeInfo = ProgressBarRangeInfo(progressValue, 0f..1f)
+                    },
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
             )
