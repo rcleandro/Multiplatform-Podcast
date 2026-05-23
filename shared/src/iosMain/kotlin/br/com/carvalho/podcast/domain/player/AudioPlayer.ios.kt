@@ -45,8 +45,9 @@ class IosAudioPlayer : AudioPlayer {
                 playNext()
             }
         )
-    }
 
+        _isReady.value = true
+    }
     private fun setupAudioSession() {
         val audioSession = AVAudioSession.sharedInstance()
         try {
