@@ -210,7 +210,7 @@ fun RootContent(component: RootComponentImpl) {
                 )
 
                 AnimatedVisibility(
-                    visible = showMiniPlayer && isMiniPlayerVisible,
+                    visible = showMiniPlayer && isMiniPlayerVisible && activeChild !is RootComponent.Child.Player,
                     enter = slideInVertically(initialOffsetY = { it }),
                     exit = slideOutVertically(targetOffsetY = { it }),
                     modifier = Modifier.align(Alignment.BottomCenter)
@@ -235,12 +235,17 @@ fun RootContent(component: RootComponentImpl) {
                     }
                 }
             }
+        }
 
-            if (activeChild is RootComponent.Child.Player) {
-                PlayerScreen(
-                    onBackClick = { component.onBackClicked() }
-                )
-            }
+        // Full screen Player as an overlay
+        AnimatedVisibility(
+            visible = activeChild is RootComponent.Child.Player,
+            enter = slideInVertically(initialOffsetY = { it }),
+            exit = slideOutVertically(targetOffsetY = { it })
+        ) {
+            PlayerScreen(
+                onBackClick = { component.onBackClicked() }
+            )
         }
     }
 }
