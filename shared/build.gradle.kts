@@ -77,6 +77,7 @@ kotlin {
             implementation(libs.room3.runtime)
             api(libs.room3.paging)
 
+
             // Paging
             implementation(libs.paging.common)
             implementation(libs.paging.compose)
@@ -116,6 +117,7 @@ kotlin {
             implementation(libs.ktor.client.android)
             implementation(libs.koin.android)
             implementation(libs.sqlite.bundled)
+
             implementation(libs.media3.exoplayer)
             implementation(libs.media3.session)
             implementation(libs.kotlinx.coroutines.guava)
@@ -171,6 +173,7 @@ kotlin {
             dependsOn(commonTest.get())
             dependencies {
                 implementation(libs.mockk)
+                implementation("androidx.sqlite:sqlite-bundled-jvm:2.7.0-alpha04")
             }
         }
 

@@ -12,7 +12,7 @@ import org.w3c.dom.HTMLAudioElement
 
 private const val TAG = "AudioPlayer"
 
-actual class AudioPlayer actual constructor() {
+class WasmAudioPlayer : AudioPlayer {
     private val audio = (window.document.createElement("audio") as HTMLAudioElement).apply {
         onplay = {
             playbackRate = _playerState.value.speed.toDouble()
@@ -31,16 +31,16 @@ actual class AudioPlayer actual constructor() {
     }
 
     private val _playerState = MutableStateFlow(PlayerState())
-    actual val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
+    override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
     private val _isReady = MutableStateFlow(false)
-    actual val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+    override val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var progressJob: Job? = null
 
     @OptIn(ExperimentalCoroutinesApi::class, ExperimentalWasmJsInterop::class)
-    actual suspend fun play(episode: Episode) {
+    override suspend fun play(episode: Episode) {
         val playbackUri = episode.localPath ?: episode.audioUrl
         AppLogger.i(TAG, "Playing episode in Wasm: ${episode.title} ($playbackUri)")
         audio.src = playbackUri
@@ -53,7 +53,7 @@ actual class AudioPlayer actual constructor() {
         startProgressUpdate()
     }
 
-    actual fun prepare(episode: Episode, positionMs: Long) {
+    override fun prepare(episode: Episode, positionMs: Long) {
         val playbackUri = episode.localPath ?: episode.audioUrl
         audio.src = playbackUri
         audio.currentTime = positionMs / 1000.0
@@ -64,54 +64,54 @@ actual class AudioPlayer actual constructor() {
         )
     }
 
-    actual fun pause() {
+    override fun pause() {
         setSpeed(1.0f)
         audio.pause()
         stopProgressUpdate()
     }
 
     @OptIn(ExperimentalWasmJsInterop::class)
-    actual fun resume() {
+    override fun resume() {
         audio.play()
         startProgressUpdate()
     }
 
-    actual fun stop() {
+    override fun stop() {
         audio.pause()
         audio.currentTime = 0.0
         stopProgressUpdate()
     }
 
-    actual fun seekTo(positionMs: Long) {
+    override fun seekTo(positionMs: Long) {
         audio.currentTime = positionMs / 1000.0
     }
 
-    actual fun setSpeed(speed: Float) {
+    override fun setSpeed(speed: Float) {
         if (audio.paused) return
         _playerState.value = _playerState.value.copy(speed = speed)
         audio.playbackRate = speed.toDouble()
     }
 
-    actual fun skipForward(seconds: Int) {
+    override fun skipForward(seconds: Int) {
         audio.currentTime += seconds.toDouble()
     }
 
-    actual fun skipBackward(seconds: Int) {
+    override fun skipBackward(seconds: Int) {
         audio.currentTime -= seconds.toDouble()
     }
 
-    actual fun setSleepTimer(millis: Long?, selectedMinutes: Int?) {
+    override fun setSleepTimer(millis: Long?, selectedMinutes: Int?) {
         _playerState.value = _playerState.value.copy(
             sleepTimerMillis = millis,
             selectedSleepTimerMinutes = selectedMinutes
         )
     }
 
-    actual fun setQueue(episodes: List<Episode>) {
+    override fun setQueue(episodes: List<Episode>) {
         _playerState.value = _playerState.value.copy(queue = episodes)
     }
 
-    actual fun playNext() {
+    override fun playNext() {
         val state = _playerState.value
         val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
         if (currentIndex != -1 && currentIndex < state.queue.size - 1) {
@@ -122,7 +122,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun playPrevious() {
+    override fun playPrevious() {
         val state = _playerState.value
         val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
         if (currentIndex > 0) {
@@ -133,7 +133,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun release() {
+    override fun release() {
         stopProgressUpdate()
         audio.pause()
         scope.cancel()
@@ -173,3 +173,5 @@ actual class AudioPlayer actual constructor() {
         progressJob = null
     }
 }
+
+actual fun createAudioPlayer(): AudioPlayer = WasmAudioPlayer()

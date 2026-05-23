@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.data.remote.RssFeedDataSourceImpl
 import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
 import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.domain.player.createAudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
@@ -38,7 +39,7 @@ val networkModule = module {
 }
 
 val playerModule = module {
-    single { AudioPlayer() }
+    single { createAudioPlayer() }
 }
 
 val databaseModule = module {

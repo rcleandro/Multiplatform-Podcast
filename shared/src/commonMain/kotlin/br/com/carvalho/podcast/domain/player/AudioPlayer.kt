@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 const val SKIP_FORWARD_SECONDS = 30
 const val SKIP_BACKWARD_SECONDS = 10
 
-expect class AudioPlayer() {
+interface AudioPlayer {
     val playerState: StateFlow<PlayerState>
     val isReady: StateFlow<Boolean>
     suspend fun play(episode: Episode)
@@ -25,3 +25,5 @@ expect class AudioPlayer() {
     fun playPrevious()
     fun release()
 }
+
+expect fun createAudioPlayer(): AudioPlayer

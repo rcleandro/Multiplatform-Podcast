@@ -14,13 +14,13 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = "AudioPlayer"
 
-actual class AudioPlayer actual constructor() {
+class DesktopAudioPlayer : AudioPlayer {
     private var mediaPlayer: MediaPlayer? = null
     private val _playerState = MutableStateFlow(PlayerState())
-    actual val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
+    override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
     private val _isReady = MutableStateFlow(false)
-    actual val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+    override val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var progressJob: Job? = null
@@ -112,20 +112,20 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual suspend fun play(episode: Episode) {
+    override suspend fun play(episode: Episode) {
         internalPrepare(episode, 0, true)
     }
 
-    actual fun prepare(episode: Episode, positionMs: Long) {
+    override fun prepare(episode: Episode, positionMs: Long) {
         internalPrepare(episode, positionMs, false)
     }
 
-    actual fun pause() {
+    override fun pause() {
         setSpeed(1f)
         mediaPlayer?.pause()
     }
 
-    actual fun resume() {
+    override fun resume() {
         val player = mediaPlayer
         if (player == null) {
             val currentEpisode = _playerState.value.currentEpisode
@@ -139,7 +139,7 @@ actual class AudioPlayer actual constructor() {
         player.play()
     }
 
-    actual fun stop() {
+    override fun stop() {
         mediaPlayer?.stop()
         mediaPlayer?.dispose()
         mediaPlayer = null
@@ -147,42 +147,42 @@ actual class AudioPlayer actual constructor() {
         updateState(playing = false, buffering = false)
     }
 
-    actual fun seekTo(positionMs: Long) {
+    override fun seekTo(positionMs: Long) {
         mediaPlayer?.seek(Duration.millis(positionMs.toDouble()))
     }
 
-    actual fun setSpeed(speed: Float) {
+    override fun setSpeed(speed: Float) {
         if (!_playerState.value.isPlaying) return
         _playerState.value = _playerState.value.copy(speed = speed)
         mediaPlayer?.rate = speed.toDouble()
     }
 
-    actual fun skipForward(seconds: Int) {
+    override fun skipForward(seconds: Int) {
         mediaPlayer?.let {
             val newTime = it.currentTime.add(Duration.seconds(seconds.toDouble()))
             it.seek(newTime)
         }
     }
 
-    actual fun skipBackward(seconds: Int) {
+    override fun skipBackward(seconds: Int) {
         mediaPlayer?.let {
             val newTime = it.currentTime.subtract(Duration.seconds(seconds.toDouble()))
             it.seek(newTime)
         }
     }
 
-    actual fun setSleepTimer(millis: Long?, selectedMinutes: Int?) {
+    override fun setSleepTimer(millis: Long?, selectedMinutes: Int?) {
         _playerState.value = _playerState.value.copy(
             sleepTimerMillis = millis,
             selectedSleepTimerMinutes = selectedMinutes
         )
     }
 
-    actual fun setQueue(episodes: List<Episode>) {
+    override fun setQueue(episodes: List<Episode>) {
         _playerState.value = _playerState.value.copy(queue = episodes)
     }
 
-    actual fun playNext() {
+    override fun playNext() {
         val state = _playerState.value
         val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
         if (currentIndex != -1 && currentIndex < state.queue.size - 1) {
@@ -193,7 +193,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun playPrevious() {
+    override fun playPrevious() {
         val state = _playerState.value
         val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
         if (currentIndex > 0) {
@@ -204,7 +204,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun release() {
+    override fun release() {
         stop()
         scope.cancel()
     }
@@ -245,3 +245,5 @@ actual class AudioPlayer actual constructor() {
         progressJob = null
     }
 }
+
+actual fun createAudioPlayer(): AudioPlayer = DesktopAudioPlayer()

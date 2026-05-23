@@ -21,7 +21,6 @@ material3-adaptive-navigation-suite = "1.11.0-alpha07"
 
 # Room 3 — novo grupo androidx.room3 (suporte Web/Wasm)
 room3 = "3.0.0-alpha04"
-
 runtime = "1.11.0"
 sqlite = "2.7.0-alpha04"
 
@@ -75,7 +74,6 @@ room3-paging = { module = "androidx.room3:room3-paging", version.ref = "room3" }
 # Paging
 paging-common = { module = "androidx.paging:paging-common", version.ref = "paging" }
 paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
-
 
 # SQLite drivers
 runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "runtime" }

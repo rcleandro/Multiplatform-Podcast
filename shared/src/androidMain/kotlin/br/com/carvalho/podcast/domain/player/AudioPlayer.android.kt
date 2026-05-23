@@ -21,7 +21,7 @@ import br.com.carvalho.podcast.core.util.AppLogger
 
 private const val TAG = "AudioPlayer"
 
-actual class AudioPlayer actual constructor() {
+class AndroidAudioPlayer : AudioPlayer {
     private val context = AppContext.context as Context
     private val sessionToken = SessionToken(
         context,
@@ -33,10 +33,10 @@ actual class AudioPlayer actual constructor() {
     private var controller: MediaController? = null
 
     private val _playerState = MutableStateFlow(PlayerState())
-    actual val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
+    override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
     private val _isReady = MutableStateFlow(false)
-    actual val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+    override val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var progressJob: Job? = null
@@ -136,7 +136,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual suspend fun play(episode: Episode) {
+    override suspend fun play(episode: Episode) {
         val player = getController() ?: return
         withContext(Dispatchers.Main) {
             val playbackUri = if (episode.localPath != null) {
@@ -161,7 +161,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun prepare(episode: Episode, positionMs: Long) {
+    override fun prepare(episode: Episode, positionMs: Long) {
         _playerState.value = _playerState.value.copy(
             currentEpisode = episode,
             position = positionMs,
@@ -202,14 +202,14 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun pause() {
+    override fun pause() {
         _playerState.value = _playerState.value.copy(isPlaying = false)
         scope.launch {
             getController()?.pause()
         }
     }
 
-    actual fun resume() {
+    override fun resume() {
         val currentEpisode = _playerState.value.currentEpisode ?: return
 
         scope.launch {
@@ -221,21 +221,21 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun stop() {
+    override fun stop() {
         _playerState.value = _playerState.value.copy(isPlaying = false, currentEpisode = null)
         scope.launch {
             getController()?.stop()
         }
     }
 
-    actual fun seekTo(positionMs: Long) {
+    override fun seekTo(positionMs: Long) {
         _playerState.value = _playerState.value.copy(position = positionMs)
         scope.launch {
             getController()?.seekTo(positionMs)
         }
     }
 
-    actual fun setSpeed(speed: Float) {
+    override fun setSpeed(speed: Float) {
         _playerState.value = _playerState.value.copy(speed = speed)
         scope.launch {
             getController()?.let {
@@ -244,7 +244,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun skipForward(seconds: Int) {
+    override fun skipForward(seconds: Int) {
         scope.launch {
             getController()?.let {
                 it.seekTo(it.currentPosition + seconds * 1000)
@@ -252,7 +252,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun skipBackward(seconds: Int) {
+    override fun skipBackward(seconds: Int) {
         scope.launch {
             getController()?.let {
                 it.seekTo(it.currentPosition - seconds * 1000)
@@ -260,18 +260,18 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun setSleepTimer(millis: Long?, selectedMinutes: Int?) {
+    override fun setSleepTimer(millis: Long?, selectedMinutes: Int?) {
         _playerState.value = _playerState.value.copy(
             sleepTimerMillis = millis,
             selectedSleepTimerMinutes = selectedMinutes
         )
     }
 
-    actual fun setQueue(episodes: List<Episode>) {
+    override fun setQueue(episodes: List<Episode>) {
         _playerState.value = _playerState.value.copy(queue = episodes)
     }
 
-    actual fun playNext() {
+    override fun playNext() {
         val state = _playerState.value
         val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
         if (currentIndex != -1 && currentIndex < state.queue.size - 1) {
@@ -282,7 +282,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun playPrevious() {
+    override fun playPrevious() {
         val state = _playerState.value
         val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
         if (currentIndex > 0) {
@@ -293,9 +293,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun release() {}
-
-    fun releasePlayer() {
+    override fun release() {
         stopProgressUpdate()
         controller?.removeListener(playerListener)
         MediaController.releaseFuture(controllerFuture)
@@ -323,3 +321,5 @@ actual class AudioPlayer actual constructor() {
         progressJob = null
     }
 }
+
+actual fun createAudioPlayer(): AudioPlayer = AndroidAudioPlayer()

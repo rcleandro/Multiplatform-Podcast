@@ -15,14 +15,14 @@ import kotlinx.cinterop.ExperimentalForeignApi
 private const val TAG = "AudioPlayer"
 
 @OptIn(ExperimentalForeignApi::class)
-actual class AudioPlayer actual constructor() {
+class IosAudioPlayer : AudioPlayer {
     private var avPlayer: AVPlayer? = null
 
     private val _playerState = MutableStateFlow(PlayerState())
-    actual val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
+    override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
     private val _isReady = MutableStateFlow(false)
-    actual val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+    override val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var progressJob: Job? = null
@@ -38,11 +38,11 @@ actual class AudioPlayer actual constructor() {
         )
     }
 
-    actual fun setQueue(episodes: List<Episode>) {
+    override fun setQueue(episodes: List<Episode>) {
         _playerState.value = _playerState.value.copy(queue = episodes)
     }
 
-    actual fun playNext() {
+    override fun playNext() {
         val state = _playerState.value
         val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
         if (currentIndex != -1 && currentIndex < state.queue.size - 1) {
@@ -53,7 +53,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual fun playPrevious() {
+    override fun playPrevious() {
         val state = _playerState.value
         val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
         if (currentIndex > 0) {
@@ -64,7 +64,7 @@ actual class AudioPlayer actual constructor() {
         }
     }
 
-    actual suspend fun play(episode: Episode) {
+    override suspend fun play(episode: Episode) {
         AppLogger.i(TAG, "Playing episode in iOS: ${episode.title}")
         val url = if (episode.localPath != null) {
             NSURL.fileURLWithPath(episode.localPath)
@@ -90,7 +90,7 @@ actual class AudioPlayer actual constructor() {
         startProgressUpdate()
     }
 
-    actual fun prepare(episode: Episode, positionMs: Long) {
+    override fun prepare(episode: Episode, positionMs: Long) {
         AppLogger.d(TAG, "Preparing episode in iOS: ${episode.title}")
         val url = if (episode.localPath != null) {
             NSURL.fileURLWithPath(episode.localPath)
@@ -115,57 +115,57 @@ actual class AudioPlayer actual constructor() {
         )
     }
 
-    actual fun pause() {
+    override fun pause() {
         setSpeed(1.0f)
         avPlayer?.pause()
         _playerState.value = _playerState.value.copy(isPlaying = false)
         stopProgressUpdate()
     }
 
-    actual fun resume() {
+    override fun resume() {
         avPlayer?.setRate(_playerState.value.speed)
         _playerState.value = _playerState.value.copy(isPlaying = true)
         startProgressUpdate()
     }
 
-    actual fun stop() {
+    override fun stop() {
         avPlayer?.pause()
         avPlayer?.replaceCurrentItemWithPlayerItem(null)
         _playerState.value = _playerState.value.copy(isPlaying = false)
         stopProgressUpdate()
     }
 
-    actual fun seekTo(positionMs: Long) {
+    override fun seekTo(positionMs: Long) {
         val time = CMTimeMake(positionMs, 1000)
         avPlayer?.seekToTime(time)
     }
 
-    actual fun setSpeed(speed: Float) {
+    override fun setSpeed(speed: Float) {
         if (!_playerState.value.isPlaying) return
         _playerState.value = _playerState.value.copy(speed = speed)
         avPlayer?.rate = speed
     }
 
-    actual fun skipForward(seconds: Int) {
+    override fun skipForward(seconds: Int) {
         val currentTime = avPlayer?.currentTime() ?: return
         val newTime = CMTimeAdd(currentTime, CMTimeMakeWithSeconds(seconds.toDouble(), 1))
         avPlayer?.seekToTime(newTime)
     }
 
-    actual fun skipBackward(seconds: Int) {
+    override fun skipBackward(seconds: Int) {
         val currentTime = avPlayer?.currentTime() ?: return
         val newTime = CMTimeSubtract(currentTime, CMTimeMakeWithSeconds(seconds.toDouble(), 1))
         avPlayer?.seekToTime(newTime)
     }
 
-    actual fun setSleepTimer(millis: Long?, selectedMinutes: Int?) {
+    override fun setSleepTimer(millis: Long?, selectedMinutes: Int?) {
         _playerState.value = _playerState.value.copy(
             sleepTimerMillis = millis,
             selectedSleepTimerMinutes = selectedMinutes
         )
     }
 
-    actual fun release() {
+    override fun release() {
         stopProgressUpdate()
         avPlayer?.pause()
         avPlayer = null
@@ -198,3 +198,5 @@ actual class AudioPlayer actual constructor() {
         progressJob = null
     }
 }
+
+actual fun createAudioPlayer(): AudioPlayer = IosAudioPlayer()
