@@ -79,7 +79,7 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 ### Fase 5 — Integrações Nativas e Polimento (EM PROGRESSO 🔄)
 *   [x] **iOS:** Background Audio, Now Playing Integration e Lock Screen Controls.
 *   [x] **Android:** Notificações Media3 com suporte a Skip Forward/Backward e MediaSession.
-*   [ ] **Android:** Android Auto (metadados básicos implementados).
+*   [x] **Android:** Android Auto (metadados e controles personalizados).
 *   [x] **Desktop:** System Tray, atalhos globais de teclado, integração com Menu Bar.
 *   [x] **Web:** Media Session API.
 *   [ ] **Acessibilidade:** Suporte a Screen Readers em todas as plataformas.

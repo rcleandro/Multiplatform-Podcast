@@ -10,6 +10,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaConstants
@@ -93,13 +94,34 @@ class PodcastMediaService : MediaLibraryService() {
             session: MediaSession,
             controller: MediaSession.ControllerInfo
         ): MediaSession.ConnectionResult {
+            val skipForwardCommand = SessionCommand(CUSTOM_COMMAND_SKIP_FORWARD, Bundle.EMPTY)
+            val skipBackwardCommand = SessionCommand(CUSTOM_COMMAND_SKIP_BACKWARD, Bundle.EMPTY)
+
             val availableSessionCommands = SessionCommands.Builder()
-                .add(SessionCommand(CUSTOM_COMMAND_SKIP_FORWARD, Bundle.EMPTY))
-                .add(SessionCommand(CUSTOM_COMMAND_SKIP_BACKWARD, Bundle.EMPTY))
+                .add(skipForwardCommand)
+                .add(skipBackwardCommand)
                 .build()
+
+            val skipBackwardIcon = resources.getIdentifier("ic_replay_10", "drawable", packageName)
+            val skipForwardIcon = resources.getIdentifier("ic_forward_30", "drawable", packageName)
+
+            val customLayout = listOf(
+                CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+                    .setSessionCommand(skipForwardCommand)
+                    .setCustomIconResId(if (skipForwardIcon != 0) skipForwardIcon else android.R.drawable.ic_media_ff)
+                    .setDisplayName("Avançar 30s")
+                    .build(),
+                CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+                    .setSessionCommand(skipBackwardCommand)
+                    .setCustomIconResId(if (skipBackwardIcon != 0) skipBackwardIcon else android.R.drawable.ic_media_rew)
+                    .setDisplayName("Voltar 10s")
+                    .build()
+            )
+
 
             return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                 .setAvailableSessionCommands(availableSessionCommands)
+                .setCustomLayout(ImmutableList.copyOf(customLayout))
                 .build()
         }
 
