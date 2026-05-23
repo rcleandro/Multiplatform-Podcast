@@ -72,13 +72,15 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
     *   [x] Episode Detail (`EpisodeDetailScreen`).
     *   [x] Downloads (`DownloadedEpisodesScreen`).
     *   [x] Player (MiniPlayer e Tela Cheia via `PlayerScreen`).
-*   [x] Layout Adaptativo (Listas/Grids responsivos).
+*   [x] Layout Adaptativo (ListDetailPaneScaffold e NavigationSuiteScaffold).
 *   [x] Refinamento do Design System (Cores, Tipografia Material 3).
 *   [x] Animações complexas de transição entre MiniPlayer e Player expandido.
 
-### Fase 5 — Integrações Nativas e Polimento (PRÓXIMOS PASSOS 🔜)
+### Fase 5 — Integrações Nativas e Polimento (EM PROGRESSO 🔄)
+*   [x] **iOS:** Background Audio, Now Playing Integration e Lock Screen Controls.
+*   [x] **Android:** Notificações Media3 com suporte a Skip Forward/Backward e MediaSession.
 *   [ ] **iOS:** WidgetKit, Live Activities, integração com Apple Watch.
-*   [ ] **Android:** Notificações Media3, Android Auto, Glance Widgets.
+*   [ ] **Android:** Android Auto (metadados básicos implementados), Glance Widgets.
 *   [ ] **Desktop:** System Tray, atalhos globais de teclado, integração com Menu Bar.
 *   [ ] **Web:** PWA, Service Workers para offline, Media Session API.
 *   [ ] **Acessibilidade:** Suporte a Screen Readers em todas as plataformas.
