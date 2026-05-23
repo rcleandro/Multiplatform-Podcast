@@ -16,11 +16,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
@@ -42,141 +44,181 @@ fun PlayerScreen(
     var showSleepTimerDialog by remember { mutableStateOf(false) }
     var showQueueDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(),
-        topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Rounded.KeyboardArrowDown,
-                            contentDescription = "Minimizar"
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(),
+            topBar = {
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Transparent
+                    ),
+                    title = {
+                        Text(
+                            text = "AGORA OUVINDO",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.Rounded.KeyboardArrowDown,
+                                contentDescription = "Minimizar",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
-                }
-            )
-        }
-    ) { padding ->
-        if (showSpeedDialog) {
-            SpeedSelectorDialog(
-                currentSpeed = playerState.speed,
-                onSpeedSelected = {
-                    viewModel.setSpeed(it)
-                    showSpeedDialog = false
-                },
-                onDismiss = { showSpeedDialog = false }
-            )
-        }
-
-        if (showSleepTimerDialog) {
-            SleepTimerDialog(
-                playerState = playerState,
-                onTimerSelected = {
-                    viewModel.setSleepTimer(it)
-                    showSleepTimerDialog = false
-                },
-                onDismiss = { showSleepTimerDialog = false }
-            )
-        }
-
-        if (showQueueDialog) {
-            QueueDialog(
-                queue = playerState.queue,
-                currentEpisodeId = episode?.id,
-                onEpisodeSelected = {
-                    viewModel.play(it)
-                    showQueueDialog = false
-                },
-                onDismiss = { showQueueDialog = false }
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
-                    .padding(vertical = 16.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                AsyncImage(
-                    model = episode?.imageUrl,
-                    contentDescription = "podcast image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                    placeholder = painterResource(Res.drawable.app_icon),
-                    error = painterResource(Res.drawable.app_icon)
+                )
+            }
+        ) { padding ->
+            if (showSpeedDialog) {
+                SpeedSelectorDialog(
+                    currentSpeed = playerState.speed,
+                    onSpeedSelected = {
+                        viewModel.setSpeed(it)
+                        showSpeedDialog = false
+                    },
+                    onDismiss = { showSpeedDialog = false }
                 )
             }
 
-            Text(
-                text = episode?.title ?: "Nenhum episódio selecionado",
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            PlayerProgressBar(
-                position = playerState.position,
-                duration = playerState.duration ?: 0,
-                onSeek = { viewModel.seekTo(it) }
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            val currentIndex = playerState.queue.indexOfFirst { it.id == episode?.id }
-            PlaybackControls(
-                isPlaying = playerState.isPlaying,
-                isBuffering = playerState.isBuffering,
-                onPlayPause = { if (playerState.isPlaying) viewModel.pause() else viewModel.resume() },
-                onSkipBack = { viewModel.skipBackward() },
-                onSkipForward = { viewModel.skipForward() },
-                onNext = { viewModel.playNext() },
-                onPrevious = { viewModel.playPrevious() },
-                hasNext = currentIndex != -1 && currentIndex < playerState.queue.size - 1,
-                hasPrevious = currentIndex > 0
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(onClick = { showSpeedDialog = true }) {
-                    Text("${playerState.speed}x")
-                }
-
-                IconButton(onClick = { showQueueDialog = true }) {
-                    Icon(Icons.AutoMirrored.Rounded.List, contentDescription = "Fila")
-                }
-
-                IconButton(onClick = { showSleepTimerDialog = true }) {
-                    val isTimerActive = playerState.sleepTimerMillis != null
-                    val icon = if (isTimerActive) Icons.Rounded.Notifications else Icons.Outlined.Notifications
-                    val tint = if (isTimerActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = "Timer",
-                        tint = tint
-                    )
-                }
+            if (showSleepTimerDialog) {
+                SleepTimerDialog(
+                    playerState = playerState,
+                    onTimerSelected = {
+                        viewModel.setSleepTimer(it)
+                        showSleepTimerDialog = false
+                    },
+                    onDismiss = { showSleepTimerDialog = false }
+                )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            if (showQueueDialog) {
+                QueueDialog(
+                    queue = playerState.queue,
+                    currentEpisodeId = episode?.id,
+                    onEpisodeSelected = {
+                        viewModel.play(it)
+                        showQueueDialog = false
+                    },
+                    onDismiss = { showQueueDialog = false }
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(if (episode?.imageUrl == null) 48.dp else 0.dp)
+                ) {
+                    AsyncImage(
+                        model = episode?.imageUrl,
+                        contentDescription = episode?.title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        placeholder = painterResource(Res.drawable.app_icon),
+                        error = painterResource(Res.drawable.app_icon)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Text(
+                    text = episode?.title ?: "Nenhum episódio selecionado",
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                episode?.podcastTitle?.let { title ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                PlayerProgressBar(
+                    position = playerState.position,
+                    duration = playerState.duration ?: 0,
+                    onSeek = { viewModel.seekTo(it) }
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                val currentIndex = playerState.queue.indexOfFirst { it.id == episode?.id }
+                PlaybackControls(
+                    isPlaying = playerState.isPlaying,
+                    isBuffering = playerState.isBuffering,
+                    onPlayPause = { if (playerState.isPlaying) viewModel.pause() else viewModel.resume() },
+                    onSkipBack = { viewModel.skipBackward() },
+                    onSkipForward = { viewModel.skipForward() },
+                    onNext = { viewModel.playNext() },
+                    onPrevious = { viewModel.playPrevious() },
+                    hasNext = currentIndex != -1 && currentIndex < playerState.queue.size - 1,
+                    hasPrevious = currentIndex > 0
+                )
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FilterChip(
+                        selected = false,
+                        onClick = { showSpeedDialog = true },
+                        label = { Text("${playerState.speed}x") },
+                        leadingIcon = { Icon(Icons.Rounded.Speed, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                    )
+
+                    IconButton(onClick = { showQueueDialog = true }) {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.List, 
+                            contentDescription = "Fila",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    IconButton(onClick = { showSleepTimerDialog = true }) {
+                        val isTimerActive = playerState.sleepTimerMillis != null
+                        val icon = if (isTimerActive) Icons.Rounded.Timer else Icons.Outlined.Timer
+                        val tint = if (isTimerActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = "Timer",
+                            tint = tint
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }

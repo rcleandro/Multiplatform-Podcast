@@ -216,10 +216,15 @@ fun RootContent(component: RootComponentImpl) {
                     modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
                     playerState.currentEpisode?.let { episode ->
+                        val progress = if (playerState.duration != null && playerState.duration > 0) {
+                            playerState.position.toFloat() / playerState.duration.toFloat()
+                        } else 0f
+
                         MiniPlayer(
                             episode = episode,
                             isPlaying = playerState.isPlaying,
                             isBuffering = playerState.isBuffering,
+                            progress = progress,
                             onPlayPauseClick = {
                                 if (playerState.isPlaying) playerViewModel.pause()
                                 else playerViewModel.resume()

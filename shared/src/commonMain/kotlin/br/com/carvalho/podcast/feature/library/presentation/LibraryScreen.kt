@@ -44,8 +44,13 @@ fun LibraryScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text("Biblioteca") },
+            LargeTopAppBar(
+                title = { 
+                    Text(
+                        "Biblioteca",
+                        style = MaterialTheme.typography.headlineMedium
+                    ) 
+                },
                 actions = {
                     IconButton(onClick = { viewModel.onRefreshAll() }) {
                         Icon(Icons.Rounded.Refresh, contentDescription = "Atualizar Tudo")

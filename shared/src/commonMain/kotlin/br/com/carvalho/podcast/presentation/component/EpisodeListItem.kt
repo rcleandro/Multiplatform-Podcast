@@ -17,9 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import br.com.carvalho.podcast.core.extensions.toDate
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -73,18 +75,18 @@ fun EpisodeListItem(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(56.dp)
+                .clip(MaterialTheme.shapes.small)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             AsyncImage(
                 model = episode.imageUrl,
-                contentDescription = "podcast image",
+                contentDescription = episode.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
                 alpha = if (episode.isPlayed) 0.5f else 1f,
@@ -95,14 +97,14 @@ fun EpisodeListItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.CheckCircle,
                         contentDescription = "Finalizado",
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             } else if (episode.playbackPosition > 0 && episode.duration > 0) {
@@ -112,9 +114,9 @@ fun EpisodeListItem(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .height(4.dp),
+                        .height(3.dp),
                     color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
+                    trackColor = Color.Transparent
                 )
             }
         }
@@ -127,32 +129,35 @@ fun EpisodeListItem(
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                color = titleColor
+                color = titleColor,
+                lineHeight = 18.sp
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                        alpha = if (episode.isPlayed) 0.6f else 1f
-                    )
-                )
-            }
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = if (episode.isPlayed) 0.5f else 0.8f
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
+
+        Spacer(modifier = Modifier.width(8.dp))
 
         // Status de Download
         Box(
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(32.dp),
             contentAlignment = Alignment.Center
         ) {
             when (downloadStatus) {
                 is DownloadStatus.Downloading -> {
                     CircularProgressIndicator(
                         progress = { downloadStatus.progress },
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp,
                     )
                 }
@@ -161,13 +166,14 @@ fun EpisodeListItem(
                         Icon(
                             imageVector = Icons.Rounded.Delete,
                             contentDescription = "Excluir download",
-                            modifier = Modifier.size(20.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
                 is DownloadStatus.Queued -> {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp
                     )
                 }
@@ -177,7 +183,8 @@ fun EpisodeListItem(
                             Icon(
                                 imageVector = Icons.Rounded.Download,
                                 contentDescription = "Baixar",
-                                modifier = Modifier.size(20.dp)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     } else {
@@ -185,7 +192,8 @@ fun EpisodeListItem(
                             Icon(
                                 imageVector = Icons.Rounded.Delete,
                                 contentDescription = "Excluir download",
-                                modifier = Modifier.size(20.dp)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }
@@ -194,12 +202,12 @@ fun EpisodeListItem(
         }
 
         Box(
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center
         ) {
             if (isBuffering) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp
                 )
             } else {
@@ -207,7 +215,8 @@ fun EpisodeListItem(
                     Icon(
                         imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                         contentDescription = if (isPlaying) "Pausar" else "Ouvir",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }

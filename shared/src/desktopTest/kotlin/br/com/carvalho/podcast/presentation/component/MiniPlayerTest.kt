@@ -36,6 +36,7 @@ class MiniPlayerTest {
                 episode = episode,
                 isPlaying = false,
                 isBuffering = false,
+                progress = 0f,
                 onPlayPauseClick = { playPauseClicked = true },
                 onClick = {}
             )
@@ -74,6 +75,7 @@ class MiniPlayerTest {
                 episode = episode,
                 isPlaying = true,
                 isBuffering = false,
+                progress = 0f,
                 onPlayPauseClick = {},
                 onClick = {}
             )
