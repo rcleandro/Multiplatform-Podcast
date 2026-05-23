@@ -50,35 +50,50 @@ class RootComponentImpl(
         }
 
     override fun onLibraryTabClicked() {
-        navigation.bringToFront(Config.Library)
+        selectTab(Config.Library)
     }
 
     override fun onSearchTabClicked() {
-        navigation.bringToFront(Config.Search)
+        selectTab(Config.Search)
     }
 
     override fun onDownloadsTabClicked() {
-        navigation.bringToFront(Config.DownloadedEpisodes)
+        selectTab(Config.DownloadedEpisodes)
     }
 
     override fun onPlayerTabClicked() {
-        navigation.bringToFront(Config.Player)
+        selectTab(Config.Player)
+    }
+
+    private fun selectTab(config: Config) {
+        AppLogger.d(TAG, "Action: Tab selected: $config")
+        navigation.navigate { stack ->
+            val cleanStack = stack.filterNot { it is Config.PodcastDetail || it is Config.EpisodeDetail }
+            if (cleanStack.contains(config)) {
+                cleanStack.filterNot { it == config } + config
+            } else {
+                cleanStack + config
+            }
+        }
     }
 
     fun onPodcastSelected(podcastId: String) {
         AppLogger.d(TAG, "Action: Podcast selected: $podcastId")
-        navigation.bringToFront(Config.PodcastDetail(podcastId))
+        navigation.navigate { stack ->
+            stack.filterNot { it is Config.PodcastDetail || it is Config.EpisodeDetail }
+                .let { it + Config.PodcastDetail(podcastId) }
+        }
     }
 
     fun onEpisodeSelected(episodeId: String, podcastId: String) {
         AppLogger.d(TAG, "Action: Episode selected: $episodeId (Podcast: $podcastId)")
         
         navigation.navigate { stack ->
-            val newStack = stack.filterNot { 
+            val cleanStack = stack.filterNot { 
                 (it is Config.PodcastDetail && it.podcastId == podcastId) || 
                 (it is Config.EpisodeDetail && it.episodeId == episodeId)
             }
-            newStack + Config.PodcastDetail(podcastId) + Config.EpisodeDetail(episodeId, podcastId)
+            cleanStack + Config.PodcastDetail(podcastId) + Config.EpisodeDetail(episodeId, podcastId)
         }
     }
 
