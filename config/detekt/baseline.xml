@@ -1,0 +1,195 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:RootContent.kt$episodeChild != null &amp;&amp; activeChild !is RootComponent.Child.Library &amp;&amp; activeChild !is RootComponent.Child.Search &amp;&amp; activeChild !is RootComponent.Child.DownloadedEpisodes</ID>
+    <ID>ComplexCondition:RootContent.kt$podcastChild != null &amp;&amp; activeChild !is RootComponent.Child.Library &amp;&amp; activeChild !is RootComponent.Child.Search &amp;&amp; activeChild !is RootComponent.Child.DownloadedEpisodes</ID>
+    <ID>CyclomaticComplexMethod:EpisodeListItem.kt$@OptIn(ExperimentalFoundationApi::class) @Composable fun EpisodeListItem( episode: Episode, onClick: () -&gt; Unit, onPlayClick: () -&gt; Unit, modifier: Modifier = Modifier, podcastTitle: String? = null, isBuffering: Boolean = false, isPlaying: Boolean = false, downloadStatus: DownloadStatus = DownloadStatus.Idle, onLongClick: () -&gt; Unit = {}, onDownloadClick: () -&gt; Unit = {}, onDeleteClick: () -&gt; Unit = {} )</ID>
+    <ID>CyclomaticComplexMethod:RootContent.kt$@OptIn(ExperimentalMaterial3AdaptiveApi::class) @Composable fun RootContent(component: RootComponentImpl)</ID>
+    <ID>CyclomaticComplexMethod:RssMapper.kt$private fun parsePubDate(pubDate: String): Long</ID>
+    <ID>EmptyFunctionBlock:KtorEpisodeDownloader.kt$KtorEpisodeDownloader${ }</ID>
+    <ID>FunctionNaming:App.kt$@Composable fun App(root: RootComponentImpl)</ID>
+    <ID>FunctionNaming:DownloadedEpisodesScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun DownloadedEpisodesScreen( viewModel: DownloadedEpisodesViewModel = koinViewModel(), onEpisodeClick: (String, String) -&gt; Unit )</ID>
+    <ID>FunctionNaming:EpisodeDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun EpisodeDetailScreen( episodeId: String, viewModel: EpisodeDetailViewModel = koinViewModel(key = episodeId) { parametersOf(episodeId) }, onBackClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:EpisodeListItem.kt$@OptIn(ExperimentalFoundationApi::class) @Composable fun EpisodeListItem( episode: Episode, onClick: () -&gt; Unit, onPlayClick: () -&gt; Unit, modifier: Modifier = Modifier, podcastTitle: String? = null, isBuffering: Boolean = false, isPlaying: Boolean = false, downloadStatus: DownloadStatus = DownloadStatus.Idle, onLongClick: () -&gt; Unit = {}, onDownloadClick: () -&gt; Unit = {}, onDeleteClick: () -&gt; Unit = {} )</ID>
+    <ID>FunctionNaming:HtmlText.kt$@Composable fun HtmlText( html: String, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:LibraryScreen.kt$@Composable fun AddPodcastDialog( url: String, onUrlChange: (String) -&gt; Unit, onDismiss: () -&gt; Unit, onConfirm: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:LibraryScreen.kt$@Composable fun DeletePodcastDialog( podcastTitle: String, onDismiss: () -&gt; Unit, onConfirm: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:LibraryScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun LibraryScreen( viewModel: LibraryViewModel = koinViewModel(), isPlayerVisible: Boolean = false, onPodcastClick: (String) -&gt; Unit )</ID>
+    <ID>FunctionNaming:MainViewController.kt$@OptIn(FlowPreview::class) fun MainViewController(): UIViewController</ID>
+    <ID>FunctionNaming:MiniPlayer.kt$@Composable fun MiniPlayer( episode: Episode, isPlaying: Boolean, isBuffering: Boolean, progress: Float, onPlayPauseClick: () -&gt; Unit, onClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:PlayerScreen.kt$@Composable private fun PlaybackControls( isPlaying: Boolean, isBuffering: Boolean, onPlayPause: () -&gt; Unit, onSkipBack: () -&gt; Unit, onSkipForward: () -&gt; Unit, onNext: () -&gt; Unit, onPrevious: () -&gt; Unit, hasNext: Boolean, hasPrevious: Boolean )</ID>
+    <ID>FunctionNaming:PlayerScreen.kt$@Composable private fun PlayerProgressBar( position: Long, duration: Long, onSeek: (Long) -&gt; Unit )</ID>
+    <ID>FunctionNaming:PlayerScreen.kt$@Composable private fun QueueDialog( queue: List&lt;Episode&gt;, currentEpisodeId: String?, onEpisodeSelected: (Episode) -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:PlayerScreen.kt$@Composable private fun SleepTimerDialog( playerState: PlayerState, onTimerSelected: (Int?) -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:PlayerScreen.kt$@Composable private fun SpeedSelectorDialog( currentSpeed: Float, onSpeedSelected: (Float) -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:PlayerScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun PlayerScreen( viewModel: PlayerViewModel = koinViewModel(), onBackClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:PodcastCard.kt$@OptIn(ExperimentalFoundationApi::class) @Composable fun PodcastCard( podcast: Podcast, onClick: () -&gt; Unit, onLongClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:PodcastDetailScreen.kt$@Composable private fun FilterSection( currentFilter: EpisodeFilter, onFilterSelected: (EpisodeFilter) -&gt; Unit )</ID>
+    <ID>FunctionNaming:PodcastDetailScreen.kt$@Composable private fun PodcastHeader(uiState: PodcastDetailUiState)</ID>
+    <ID>FunctionNaming:PodcastDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun PodcastDetailScreen( podcastId: String, viewModel: PodcastDetailViewModel = koinViewModel(key = podcastId) { parametersOf(podcastId) }, onBackClick: () -&gt; Unit, onEpisodeClick: (String, String) -&gt; Unit )</ID>
+    <ID>FunctionNaming:RootContent.kt$@OptIn(ExperimentalMaterial3AdaptiveApi::class) @Composable fun RootContent(component: RootComponentImpl)</ID>
+    <ID>FunctionNaming:SearchScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SearchScreen( viewModel: SearchViewModel = koinViewModel(), onEpisodeClick: (String, String) -&gt; Unit )</ID>
+    <ID>FunctionNaming:Theme.kt$@Composable fun PodcastTheme( darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -&gt; Unit )</ID>
+    <ID>LongMethod:DownloadedEpisodesScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun DownloadedEpisodesScreen( viewModel: DownloadedEpisodesViewModel = koinViewModel(), onEpisodeClick: (String, String) -&gt; Unit )</ID>
+    <ID>LongMethod:EpisodeDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun EpisodeDetailScreen( episodeId: String, viewModel: EpisodeDetailViewModel = koinViewModel(key = episodeId) { parametersOf(episodeId) }, onBackClick: () -&gt; Unit )</ID>
+    <ID>LongMethod:EpisodeListItem.kt$@OptIn(ExperimentalFoundationApi::class) @Composable fun EpisodeListItem( episode: Episode, onClick: () -&gt; Unit, onPlayClick: () -&gt; Unit, modifier: Modifier = Modifier, podcastTitle: String? = null, isBuffering: Boolean = false, isPlaying: Boolean = false, downloadStatus: DownloadStatus = DownloadStatus.Idle, onLongClick: () -&gt; Unit = {}, onDownloadClick: () -&gt; Unit = {}, onDeleteClick: () -&gt; Unit = {} )</ID>
+    <ID>LongMethod:LibraryScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun LibraryScreen( viewModel: LibraryViewModel = koinViewModel(), isPlayerVisible: Boolean = false, onPodcastClick: (String) -&gt; Unit )</ID>
+    <ID>LongMethod:MiniPlayer.kt$@Composable fun MiniPlayer( episode: Episode, isPlaying: Boolean, isBuffering: Boolean, progress: Float, onPlayPauseClick: () -&gt; Unit, onClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:PlayerScreen.kt$@Composable private fun PlaybackControls( isPlaying: Boolean, isBuffering: Boolean, onPlayPause: () -&gt; Unit, onSkipBack: () -&gt; Unit, onSkipForward: () -&gt; Unit, onNext: () -&gt; Unit, onPrevious: () -&gt; Unit, hasNext: Boolean, hasPrevious: Boolean )</ID>
+    <ID>LongMethod:PlayerScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun PlayerScreen( viewModel: PlayerViewModel = koinViewModel(), onBackClick: () -&gt; Unit )</ID>
+    <ID>LongMethod:PodcastDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun PodcastDetailScreen( podcastId: String, viewModel: PodcastDetailViewModel = koinViewModel(key = podcastId) { parametersOf(podcastId) }, onBackClick: () -&gt; Unit, onEpisodeClick: (String, String) -&gt; Unit )</ID>
+    <ID>LongMethod:PodcastMediaService.kt$PodcastMediaService.LibraryCallback$@OptIn(UnstableApi::class) override fun onGetChildren( session: MediaLibrarySession, browser: MediaSession.ControllerInfo, parentId: String, page: Int, pageSize: Int, params: LibraryParams? ): ListenableFuture&lt;LibraryResult&lt;ImmutableList&lt;MediaItem&gt;&gt;&gt;</ID>
+    <ID>LongMethod:PodcastMediaService.kt$PodcastMediaService.LibraryCallback$@OptIn(UnstableApi::class) override fun onGetItem( session: MediaLibrarySession, browser: MediaSession.ControllerInfo, mediaId: String ): ListenableFuture&lt;LibraryResult&lt;MediaItem&gt;&gt;</ID>
+    <ID>LongMethod:RootContent.kt$@OptIn(ExperimentalMaterial3AdaptiveApi::class) @Composable fun RootContent(component: RootComponentImpl)</ID>
+    <ID>LongMethod:SearchScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SearchScreen( viewModel: SearchViewModel = koinViewModel(), onEpisodeClick: (String, String) -&gt; Unit )</ID>
+    <ID>LongParameterList:EpisodeListItem.kt$( episode: Episode, onClick: () -&gt; Unit, onPlayClick: () -&gt; Unit, modifier: Modifier = Modifier, podcastTitle: String? = null, isBuffering: Boolean = false, isPlaying: Boolean = false, downloadStatus: DownloadStatus = DownloadStatus.Idle, onLongClick: () -&gt; Unit = {}, onDownloadClick: () -&gt; Unit = {}, onDeleteClick: () -&gt; Unit = {} )</ID>
+    <ID>LongParameterList:MiniPlayer.kt$( episode: Episode, isPlaying: Boolean, isBuffering: Boolean, progress: Float, onPlayPauseClick: () -&gt; Unit, onClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongParameterList:PlayerScreen.kt$( isPlaying: Boolean, isBuffering: Boolean, onPlayPause: () -&gt; Unit, onSkipBack: () -&gt; Unit, onSkipForward: () -&gt; Unit, onNext: () -&gt; Unit, onPrevious: () -&gt; Unit, hasNext: Boolean, hasPrevious: Boolean )</ID>
+    <ID>LongParameterList:WebMediaSession.kt$( onPlay: () -&gt; Unit, onPause: () -&gt; Unit, onSeekBackward: () -&gt; Unit, onSeekForward: () -&gt; Unit, onPreviousTrack: () -&gt; Unit, onNextTrack: () -&gt; Unit )</ID>
+    <ID>MagicNumber:AppConfig.kt$AppConfig$0.5f</ID>
+    <ID>MagicNumber:AppConfig.kt$AppConfig$0.8f</ID>
+    <ID>MagicNumber:AppConfig.kt$AppConfig$1.25f</ID>
+    <ID>MagicNumber:AppConfig.kt$AppConfig$1.5f</ID>
+    <ID>MagicNumber:AppConfig.kt$AppConfig$2.5f</ID>
+    <ID>MagicNumber:AudioPlayer.android.kt$AndroidAudioPlayer$1000</ID>
+    <ID>MagicNumber:AudioPlayer.android.kt$AndroidAudioPlayer$500</ID>
+    <ID>MagicNumber:AudioPlayer.desktop.kt$DesktopAudioPlayer$500</ID>
+    <ID>MagicNumber:AudioPlayer.ios.kt$IosAudioPlayer$1000</ID>
+    <ID>MagicNumber:AudioPlayer.ios.kt$IosAudioPlayer$15</ID>
+    <ID>MagicNumber:AudioPlayer.ios.kt$IosAudioPlayer$15.0</ID>
+    <ID>MagicNumber:AudioPlayer.ios.kt$IosAudioPlayer$30</ID>
+    <ID>MagicNumber:AudioPlayer.ios.kt$IosAudioPlayer$30.0</ID>
+    <ID>MagicNumber:AudioPlayer.ios.kt$IosAudioPlayer$500</ID>
+    <ID>MagicNumber:AudioPlayer.wasmJs.kt$WasmAudioPlayer$1000.0</ID>
+    <ID>MagicNumber:AudioPlayer.wasmJs.kt$WasmAudioPlayer$15</ID>
+    <ID>MagicNumber:AudioPlayer.wasmJs.kt$WasmAudioPlayer$30</ID>
+    <ID>MagicNumber:AudioPlayer.wasmJs.kt$WasmAudioPlayer$500</ID>
+    <ID>MagicNumber:Color.kt$0xFF000000</ID>
+    <ID>MagicNumber:Color.kt$0xFF212121</ID>
+    <ID>MagicNumber:Color.kt$0xFF323232</ID>
+    <ID>MagicNumber:Color.kt$0xFF424242</ID>
+    <ID>MagicNumber:Color.kt$0xFF616161</ID>
+    <ID>MagicNumber:Color.kt$0xFF690005</ID>
+    <ID>MagicNumber:Color.kt$0xFFBA1A1A</ID>
+    <ID>MagicNumber:Color.kt$0xFFBDBDBD</ID>
+    <ID>MagicNumber:Color.kt$0xFFE0E0E0</ID>
+    <ID>MagicNumber:Color.kt$0xFFEEEEEE</ID>
+    <ID>MagicNumber:Color.kt$0xFFF5F5F5</ID>
+    <ID>MagicNumber:Color.kt$0xFFFFB4AB</ID>
+    <ID>MagicNumber:Color.kt$0xFFFFFFFF</ID>
+    <ID>MagicNumber:EpisodeListItem.kt$60</ID>
+    <ID>MagicNumber:Formatters.kt$1000</ID>
+    <ID>MagicNumber:Formatters.kt$24</ID>
+    <ID>MagicNumber:Formatters.kt$3600</ID>
+    <ID>MagicNumber:Formatters.kt$60</ID>
+    <ID>MagicNumber:Formatters.kt$7</ID>
+    <ID>MagicNumber:HttpClientFactory.android.kt$15_000</ID>
+    <ID>MagicNumber:HttpClientFactory.android.kt$30_000</ID>
+    <ID>MagicNumber:HttpClientFactory.desktop.kt$15_000</ID>
+    <ID>MagicNumber:HttpClientFactory.desktop.kt$30_000</ID>
+    <ID>MagicNumber:HttpClientFactory.ios.kt$15_000</ID>
+    <ID>MagicNumber:HttpClientFactory.ios.kt$30_000</ID>
+    <ID>MagicNumber:HttpClientFactory.wasmJs.kt$15_000</ID>
+    <ID>MagicNumber:HttpClientFactory.wasmJs.kt$30_000</ID>
+    <ID>MagicNumber:LongExtensions.kt$1000</ID>
+    <ID>MagicNumber:LongExtensions.kt$24</ID>
+    <ID>MagicNumber:LongExtensions.kt$3600</ID>
+    <ID>MagicNumber:LongExtensions.kt$60</ID>
+    <ID>MagicNumber:LongExtensions.kt$7</ID>
+    <ID>MagicNumber:PlayerScreen.kt$15</ID>
+    <ID>MagicNumber:PlayerScreen.kt$30</ID>
+    <ID>MagicNumber:PlayerScreen.kt$45</ID>
+    <ID>MagicNumber:PlayerScreen.kt$5</ID>
+    <ID>MagicNumber:PlayerScreen.kt$60</ID>
+    <ID>MagicNumber:PodcastMediaService.kt$PodcastMediaService$15000</ID>
+    <ID>MagicNumber:PodcastMediaService.kt$PodcastMediaService$30000</ID>
+    <ID>MagicNumber:RssMapper.kt$10</ID>
+    <ID>MagicNumber:RssMapper.kt$11</ID>
+    <ID>MagicNumber:RssMapper.kt$12</ID>
+    <ID>MagicNumber:RssMapper.kt$3</ID>
+    <ID>MagicNumber:RssMapper.kt$3600</ID>
+    <ID>MagicNumber:RssMapper.kt$4</ID>
+    <ID>MagicNumber:RssMapper.kt$5</ID>
+    <ID>MagicNumber:RssMapper.kt$6</ID>
+    <ID>MagicNumber:RssMapper.kt$60</ID>
+    <ID>MagicNumber:RssMapper.kt$7</ID>
+    <ID>MagicNumber:RssMapper.kt$8</ID>
+    <ID>MagicNumber:RssMapper.kt$9</ID>
+    <ID>MagicNumber:RssXmlParser.kt$RssXmlParser$6</ID>
+    <ID>MagicNumber:TimeUtils.ios.kt$1000</ID>
+    <ID>MatchingDeclarationName:Dimensions.kt$AppDimensions</ID>
+    <ID>MatchingDeclarationName:FileUtils.desktop.kt$FileUtils</ID>
+    <ID>MatchingDeclarationName:FileUtils.wasmJs.kt$FileUtils</ID>
+    <ID>MaxLineLength:AudioPlayer.desktop.kt$DesktopAudioPlayer$if</ID>
+    <ID>MaxLineLength:AudioPlayer.ios.kt$IosAudioPlayer$info[MPMediaItemPropertyPlaybackDuration] = CMTimeGetSeconds(avPlayer?.currentItem?.duration ?: CMTimeMake(0, 1))</ID>
+    <ID>MaxLineLength:AudioPlayer.ios.kt$IosAudioPlayer$info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(avPlayer?.currentTime() ?: CMTimeMake(0, 1))</ID>
+    <ID>MaxLineLength:EpisodeListItem.kt$tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AppDimensions.OPACITY_SUBTLE)</ID>
+    <ID>MaxLineLength:KtorEpisodeDownloader.kt$KtorEpisodeDownloader$updateStatus(episode.id, DownloadStatus.Downloading(progress, bytesSentTotal, contentLength))</ID>
+    <ID>MaxLineLength:MiniPlayer.kt$.</ID>
+    <ID>MaxLineLength:MiniPlayer.kt$color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = AppDimensions.OPACITY_MEDIUM)</ID>
+    <ID>MaxLineLength:MiniPlayer.kt$contentDescription = stringResource(if (isPlaying) Res.string.pause else Res.string.play)</ID>
+    <ID>MaxLineLength:PlayerRepositoryImpl.kt$PlayerRepositoryImpl$AppLogger.e(TAG, "Failed to deserialize playback state queue. episodeId=${entity.episodeId}, queueJson='${entity.queueJson}'", e)</ID>
+    <ID>MaxLineLength:PlayerScreen.kt$color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface</ID>
+    <ID>MaxLineLength:PlayerScreen.kt$if (isTimerActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant</ID>
+    <ID>MaxLineLength:PlayerViewModel.kt$PlayerViewModel$val resolvedEpisode = episode.copy(localPath = episodeDownloader.getLocalPath(episode.id))</ID>
+    <ID>MaxLineLength:PodcastMediaService.kt$PodcastMediaService.LibraryCallback$.</ID>
+    <ID>MaxLineLength:RootContent.kt$Text(stringResource(Res.string.select_podcast), style = MaterialTheme.typography.bodyLarge)</ID>
+    <ID>MaxLineLength:RootContent.kt$if</ID>
+    <ID>MaxLineLength:RootContent.kt$is RootComponent.Child.Library</ID>
+    <ID>MaxLineLength:RootContent.kt$val episodeChild = allChildren.filterIsInstance&lt;RootComponent.Child.EpisodeDetail&gt;().lastOrNull()</ID>
+    <ID>MaxLineLength:RootContent.kt$val podcastChild = allChildren.filterIsInstance&lt;RootComponent.Child.PodcastDetail&gt;().lastOrNull()</ID>
+    <ID>ReturnCount:RssMapper.kt$private fun parsePubDate(pubDate: String): Long</ID>
+    <ID>ReturnCount:RssXmlParser.kt$RssXmlParser$private fun extractAttribute(xml: String, tagName: String, attributeName: String): String?</ID>
+    <ID>ReturnCount:RssXmlParser.kt$RssXmlParser$private fun extractTag(xml: String, tagName: String): String?</ID>
+    <ID>TooGenericExceptionCaught:AudioPlayer.android.kt$AndroidAudioPlayer$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AudioPlayer.desktop.kt$DesktopAudioPlayer$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AudioPlayer.ios.kt$IosAudioPlayer$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AudioPlayer.wasmJs.kt$WasmAudioPlayer$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EpisodeDetailViewModel.kt$EpisodeDetailViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EpisodePagingSource.kt$EpisodePagingSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:KtorEpisodeDownloader.kt$KtorEpisodeDownloader$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:LibraryViewModel.kt$LibraryViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:LongExtensions.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PlayerRepositoryImpl.kt$PlayerRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PodcastDetailViewModel.kt$PodcastDetailViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RefreshPodcastUseCase.kt$RefreshPodcastUseCase$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RssMapper.kt$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:RssFeedDataSourceImpl.kt$RssFeedDataSourceImpl$throw Exception("Falha ao carregar o feed: ${response.status}")</ID>
+    <ID>TooManyFunctions:AudioPlayer.android.kt$AndroidAudioPlayer : AudioPlayer</ID>
+    <ID>TooManyFunctions:AudioPlayer.desktop.kt$DesktopAudioPlayer : AudioPlayer</ID>
+    <ID>TooManyFunctions:AudioPlayer.ios.kt$IosAudioPlayer : AudioPlayer</ID>
+    <ID>TooManyFunctions:AudioPlayer.kt$AudioPlayer</ID>
+    <ID>TooManyFunctions:AudioPlayer.wasmJs.kt$WasmAudioPlayer : AudioPlayer</ID>
+    <ID>TooManyFunctions:EpisodeDao.kt$EpisodeDao</ID>
+    <ID>TooManyFunctions:PlayerViewModel.kt$PlayerViewModel : ViewModel</ID>
+    <ID>TooManyFunctions:PodcastDetailViewModel.kt$PodcastDetailViewModel : ViewModel</ID>
+    <ID>TooManyFunctions:PodcastRepository.kt$PodcastRepository</ID>
+    <ID>TooManyFunctions:PodcastRepositoryImpl.kt$PodcastRepositoryImpl : PodcastRepository</ID>
+    <ID>UseCheckOrError:AppContext.kt$AppContext$throw IllegalStateException("Context not initialized")</ID>
+    <ID>WildcardImport:AudioPlayer.android.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:AudioPlayer.desktop.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:AudioPlayer.ios.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:AudioPlayer.ios.kt$import platform.AVFoundation.*</ID>
+    <ID>WildcardImport:AudioPlayer.ios.kt$import platform.CoreMedia.*</ID>
+    <ID>WildcardImport:AudioPlayer.ios.kt$import platform.Foundation.*</ID>
+    <ID>WildcardImport:AudioPlayer.ios.kt$import platform.MediaPlayer.*</ID>
+    <ID>WildcardImport:AudioPlayer.wasmJs.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:DownloadedEpisodesViewModel.kt$import kotlinx.coroutines.flow.*</ID>
+    <ID>WildcardImport:Formatters.kt$import br.com.carvalho.podcast.shared.*</ID>
+    <ID>WildcardImport:KtorEpisodeDownloader.kt$import io.ktor.client.*</ID>
+    <ID>WildcardImport:KtorEpisodeDownloader.kt$import io.ktor.client.plugins.*</ID>
+    <ID>WildcardImport:KtorEpisodeDownloader.kt$import io.ktor.client.request.*</ID>
+    <ID>WildcardImport:KtorEpisodeDownloader.kt$import io.ktor.client.statement.*</ID>
+    <ID>WildcardImport:KtorEpisodeDownloader.kt$import io.ktor.http.*</ID>
+    <ID>WildcardImport:KtorEpisodeDownloader.kt$import io.ktor.utils.io.*</ID>
+    <ID>WildcardImport:KtorEpisodeDownloader.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:KtorEpisodeDownloader.kt$import kotlinx.coroutines.flow.*</ID>
+    <ID>WildcardImport:PlayerViewModel.kt$import kotlinx.coroutines.flow.*</ID>
+    <ID>WildcardImport:PodcastDetailViewModel.kt$import kotlinx.coroutines.flow.*</ID>
+    <ID>WildcardImport:RootComponentImpl.kt$import com.arkivanov.decompose.router.stack.*</ID>
+    <ID>WildcardImport:RootContent.kt$import androidx.compose.foundation.layout.*</ID>
+    <ID>WildcardImport:RootContent.kt$import androidx.compose.material3.*</ID>
+    <ID>WildcardImport:SearchViewModel.kt$import kotlinx.coroutines.flow.*</ID>
+  </CurrentIssues>
+</SmellBaseline>
