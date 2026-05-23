@@ -62,7 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.domain.model.Episode
@@ -183,7 +183,7 @@ fun PlayerScreen(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimensions.spacingLarge))
 
                 Box(
                     modifier = Modifier
@@ -382,13 +382,13 @@ private fun PlaybackControls(
                 CircularProgressIndicator(
                     modifier = Modifier.size(AppDimensions.paddingGigantic),
                     color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 4.dp
+                    strokeWidth = AppDimensions.strokeWidthNormal
                 )
             } else {
                 FilledIconButton(
                     onClick = onPlayPause,
                     modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(AppDimensions.playButtonRadius)
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
@@ -424,15 +424,15 @@ private fun PlaybackControls(
             )
         }
     }
-}
+    }
 
-@Composable
-private fun SpeedSelectorDialog(
+    @Composable
+    private fun SpeedSelectorDialog(
     currentSpeed: Float,
     onSpeedSelected: (Float) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val speeds = listOf(0.5f, 0.8f, 1.0f, 1.25f, 1.5f, 2.0f, 2.5f)
+    val speeds = AppConfig.PLAYBACK_SPEEDS
     val scrollState = rememberScrollState()
 
     AlertDialog(
@@ -542,7 +542,7 @@ private fun QueueDialog(
         title = { Text(stringResource(Res.string.queue)) },
         text = {
             Column(
-                modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)
+                modifier = Modifier.fillMaxWidth().heightIn(max = AppDimensions.maxPlayerContentHeight)
                     .verticalScroll(rememberScrollState())
             ) {
                 queue.forEach { episode ->
@@ -581,7 +581,7 @@ private fun QueueDialog(
 
 private fun formatRemainingTime(millis: Long?): String {
     if (millis == null) return ""
-    val totalSeconds = millis / 1000
+    val totalSeconds = millis / AppConfig.MILLIS_PER_SECOND
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
     return "${minutes}:${seconds.toString().padStart(2, '0')}"

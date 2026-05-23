@@ -22,7 +22,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
 import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.shared.Res
@@ -82,7 +81,7 @@ fun PodcastCard(
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                lineHeight = 18.sp
+                lineHeight = AppDimensions.LINE_HEIGHT_NORMAL
             )
 
             podcast.author?.let { author ->

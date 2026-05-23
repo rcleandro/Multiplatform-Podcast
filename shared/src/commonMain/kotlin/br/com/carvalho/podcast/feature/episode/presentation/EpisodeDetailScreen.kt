@@ -41,7 +41,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.presentation.component.HtmlText
 import br.com.carvalho.podcast.shared.Res
@@ -119,8 +118,8 @@ fun EpisodeDetailScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(8.dp))
+                                .size(AppDimensions.episodeDetailImageSize)
+                                .clip(RoundedCornerShape(AppDimensions.radiusSmall))
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             AsyncImage(

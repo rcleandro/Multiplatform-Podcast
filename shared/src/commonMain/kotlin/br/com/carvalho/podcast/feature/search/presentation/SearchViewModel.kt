@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.feature.search.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
@@ -35,7 +36,7 @@ class SearchViewModel(
     val pagedResults: Flow<PagingData<Episode>> = _uiState.map { it.searchQuery }
         .distinctUntilChanged()
         .combine(_refreshTrigger) { query, _ -> query }
-        .debounce(300)
+        .debounce(AppConfig.SEARCH_DEBOUNCE_MS)
         .flatMapLatest { query ->
             AppLogger.d(TAG, "Search query changed or refreshed: $query")
             repository.searchEpisodesPaged(query.takeIf { it.isNotBlank() })

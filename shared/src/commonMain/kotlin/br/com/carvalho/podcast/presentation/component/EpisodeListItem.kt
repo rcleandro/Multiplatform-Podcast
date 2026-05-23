@@ -38,8 +38,7 @@ import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.core.extensions.toDate
 import br.com.carvalho.podcast.core.extensions.toDuration
@@ -73,7 +72,7 @@ fun EpisodeListItem(
     onDeleteClick: () -> Unit = {}
 ) {
     val titleColor = if (episode.isPlayed) {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+        MaterialTheme.colorScheme.onSurface.copy(alpha = AppDimensions.OPACITY_HALF)
     } else {
         MaterialTheme.colorScheme.onSurface
     }
@@ -98,8 +97,8 @@ fun EpisodeListItem(
         if (episode.isPlayed) {
             parts.add(finishedString)
         } else if (episode.playbackPosition > 0 && episode.duration > 0) {
-            val remainingMs = (episode.duration * 1000) - episode.playbackPosition
-            val remainingMin = (remainingMs / (1000 * 60)).coerceAtLeast(1)
+            val remainingMs = (episode.duration * AppConfig.MILLIS_PER_SECOND) - episode.playbackPosition
+            val remainingMin = (remainingMs / (AppConfig.MILLIS_PER_SECOND * 60)).coerceAtLeast(1)
             parts.add(remainingMinFormat.replace("%d", remainingMin.toString()))
         }
 
@@ -136,7 +135,7 @@ fun EpisodeListItem(
                 contentDescription = null, // MergeDescendants na Row
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
-                alpha = if (episode.isPlayed) 0.5f else 1f,
+                alpha = if (episode.isPlayed) AppDimensions.OPACITY_HALF else 1f,
                 placeholder = painterResource(Res.drawable.app_icon),
                 error = painterResource(Res.drawable.app_icon)
             )
@@ -144,7 +143,7 @@ fun EpisodeListItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)),
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = AppDimensions.OPACITY_MUTED)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -156,14 +155,14 @@ fun EpisodeListItem(
                 }
             } else if (episode.playbackPosition > 0 && episode.duration > 0) {
                 val progress =
-                    episode.playbackPosition.toFloat() / (episode.duration * 1000).toFloat()
+                    episode.playbackPosition.toFloat() / (episode.duration * AppConfig.MILLIS_PER_SECOND).toFloat()
                 val progressValue = progress.coerceIn(0f, 1f)
                 LinearProgressIndicator(
                     progress = { progressValue },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .height(3.dp)
+                        .height(AppDimensions.progressBarHeight)
                         .semantics {
                             progressBarRangeInfo = ProgressBarRangeInfo(progressValue, 0f..1f)
                         },
@@ -182,7 +181,7 @@ fun EpisodeListItem(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 color = titleColor,
-                lineHeight = 18.sp
+                lineHeight = AppDimensions.LINE_HEIGHT_NORMAL
             )
 
             Spacer(modifier = Modifier.height(AppDimensions.spacingSmall))
@@ -191,7 +190,7 @@ fun EpisodeListItem(
                 text = subtitle,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                    alpha = if (episode.isPlayed) 0.5f else 0.8f
+                    alpha = if (episode.isPlayed) AppDimensions.OPACITY_HALF else AppDimensions.OPACITY_HIGH
                 ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -209,8 +208,8 @@ fun EpisodeListItem(
                 is DownloadStatus.Downloading -> {
                     CircularProgressIndicator(
                         progress = { downloadStatus.progress },
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(AppDimensions.iconSmallish),
+                        strokeWidth = AppDimensions.strokeWidthMedium,
                     )
                 }
 
@@ -222,7 +221,7 @@ fun EpisodeListItem(
                         Icon(
                             imageVector = Icons.Rounded.Delete,
                             contentDescription = stringResource(Res.string.delete_download_cd),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AppDimensions.OPACITY_SUBTLE),
                             modifier = Modifier.size(AppDimensions.iconSmall)
                         )
                     }
@@ -230,8 +229,8 @@ fun EpisodeListItem(
 
                 is DownloadStatus.Queued -> {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp
+                        modifier = Modifier.size(AppDimensions.iconTiny),
+                        strokeWidth = AppDimensions.strokeWidthMedium
                     )
                 }
 
@@ -244,7 +243,7 @@ fun EpisodeListItem(
                             Icon(
                                 imageVector = Icons.Rounded.Download,
                                 contentDescription = stringResource(Res.string.download_cd),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AppDimensions.OPACITY_SUBTLE),
                                 modifier = Modifier.size(AppDimensions.iconSmall)
                             )
                         }
@@ -256,7 +255,7 @@ fun EpisodeListItem(
                             Icon(
                                 imageVector = Icons.Rounded.Delete,
                                 contentDescription = stringResource(Res.string.delete_download_cd),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AppDimensions.OPACITY_SUBTLE),
                                 modifier = Modifier.size(AppDimensions.iconSmall)
                             )
                         }
@@ -271,8 +270,8 @@ fun EpisodeListItem(
         ) {
             if (isBuffering) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp
+                    modifier = Modifier.size(AppDimensions.iconSmallish),
+                    strokeWidth = AppDimensions.strokeWidthMedium
                 )
             } else {
                 IconButton(onClick = onPlayClick) {

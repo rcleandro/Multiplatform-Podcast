@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.download
 
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.FileUtils
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
@@ -70,7 +71,7 @@ open class KtorEpisodeDownloader(
                 val channel = response.bodyAsChannel()
                 val sink = fileSystem.sink(destPath).buffer()
                 try {
-                    val buffer = ByteArray(8192)
+                    val buffer = ByteArray(AppConfig.DOWNLOAD_BUFFER_SIZE)
                     while (!channel.isClosedForRead) {
                         val read = channel.readAvailable(buffer)
                         if (read > 0) {

@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
@@ -92,7 +91,7 @@ fun DownloadedEpisodesScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = 80.dp)
+            contentPadding = PaddingValues(bottom = AppDimensions.miniPlayerHeightWithPadding)
         ) {
             items(uiState.episodes, key = { it.id }) { episode ->
                 EpisodeListItem(

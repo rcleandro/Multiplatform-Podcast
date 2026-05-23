@@ -43,7 +43,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.presentation.component.PodcastCard
 import br.com.carvalho.podcast.shared.Res
@@ -107,7 +106,9 @@ fun LibraryScreen(
         },
         contentWindowInsets = WindowInsets(),
         floatingActionButton = {
-            val fabPadding by animateDpAsState(if (isPlayerVisible) AppDimensions.miniPlayerHeight else 0.dp)
+            val fabPadding by animateDpAsState(
+                if (isPlayerVisible) AppDimensions.miniPlayerHeight else AppDimensions.paddingNone
+            )
             FloatingActionButton(
                 onClick = { viewModel.onAddClicked() },
                 modifier = Modifier.padding(bottom = fabPadding)
@@ -138,13 +139,11 @@ fun LibraryScreen(
             } else {
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                     val columns = when {
-                        maxWidth < 600.dp -> 2
-                        maxWidth < 840.dp -> 3
-                        maxWidth < 1200.dp -> 4
-                        maxWidth < 1600.dp -> 5
-                        else -> 6
+                        maxWidth < AppDimensions.breakpointSmall -> AppDimensions.GRID_COLUMNS_PHONE
+                        maxWidth < AppDimensions.breakpointMedium -> AppDimensions.GRID_COLUMNS_TABLET
+                        maxWidth < AppDimensions.breakpointLarge -> AppDimensions.GRID_COLUMNS_DESKTOP
+                        else -> AppDimensions.GRID_COLUMNS_LARGE_DESKTOP
                     }
-
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(columns),
                         contentPadding = PaddingValues(

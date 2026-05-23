@@ -31,7 +31,6 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.shared.Res
@@ -77,7 +76,7 @@ fun MiniPlayer(
                     modifier = Modifier
                         .size(AppDimensions.iconExtraLarge)
                         .clip(MaterialTheme.shapes.small)
-                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f))
+                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = AppDimensions.OPACITY_FAINT))
                 ) {
                     AsyncImage(
                         model = episode.imageUrl,
@@ -103,7 +102,7 @@ fun MiniPlayer(
                         Text(
                             text = title,
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = AppDimensions.OPACITY_MEDIUM),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -118,8 +117,8 @@ fun MiniPlayer(
                 ) {
                     if (isBuffering) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(AppDimensions.iconSmallish),
+                            strokeWidth = AppDimensions.strokeWidthMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     } else {
@@ -140,12 +139,12 @@ fun MiniPlayer(
                 progress = { progressValue },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(2.dp)
+                    .height(AppDimensions.miniProgressBarHeight)
                     .semantics {
                         progressBarRangeInfo = ProgressBarRangeInfo(progressValue, 0f..1f)
                     },
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
+                trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = AppDimensions.OPACITY_FAINT)
             )
         }
     }

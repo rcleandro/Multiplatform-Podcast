@@ -7,9 +7,8 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
-import br.com.carvalho.podcast.domain.player.SKIP_BACKWARD_SECONDS
-import br.com.carvalho.podcast.domain.player.SKIP_FORWARD_SECONDS
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.FlowPreview
@@ -65,7 +64,7 @@ class PlayerViewModel(
 
         playerState
             .filter { it.isPlaying }
-            .debounce(2000)
+            .debounce(AppConfig.PLAYBACK_SAVE_DEBOUNCE_MS)
             .onEach { saveState(it) }
             .launchIn(viewModelScope)
 
@@ -85,7 +84,7 @@ class PlayerViewModel(
             queue = state.queue
         )
         val duration = state.duration
-        if (duration != null && duration > 0 && state.position > duration * 0.95) {
+        if (duration != null && duration > 0 && state.position > duration * AppConfig.PLAYBACK_FINISHED_THRESHOLD) {
             podcastRepository.markEpisodeAsPlayed(episode.id)
         } else if (state.position > 0) {
             podcastRepository.updateEpisodeProgress(episode.id, state.position)
@@ -103,9 +102,9 @@ class PlayerViewModel(
 
     fun seekTo(positionMs: Long) = audioPlayer.seekTo(positionMs)
 
-    fun skipForward() = audioPlayer.skipForward(seconds = SKIP_FORWARD_SECONDS)
+    fun skipForward() = audioPlayer.skipForward(seconds = AppConfig.SKIP_FORWARD_SECONDS)
 
-    fun skipBackward() = audioPlayer.skipBackward(seconds = SKIP_BACKWARD_SECONDS)
+    fun skipBackward() = audioPlayer.skipBackward(seconds = AppConfig.SKIP_BACKWARD_SECONDS)
 
     fun setSpeed(speed: Float) = audioPlayer.setSpeed(speed)
 
@@ -130,7 +129,7 @@ class PlayerViewModel(
             var remaining = totalDuration
             while (remaining.isPositive()) {
                 audioPlayer.setSleepTimer(remaining.inWholeMilliseconds, minutes)
-                delay(1000)
+                delay(AppConfig.SLEEP_TIMER_TICK_MS)
                 remaining = totalDuration - mark.elapsedNow()
             }
             AppLogger.i(TAG, "Sleep timer finished. Pausing playback.")

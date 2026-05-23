@@ -47,7 +47,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
@@ -148,7 +147,7 @@ fun PodcastDetailScreen(
             Column(modifier = Modifier.fillMaxSize()) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 80.dp)
+                    contentPadding = PaddingValues(bottom = AppDimensions.miniPlayerHeightWithPadding)
                 ) {
                     item { PodcastHeader(uiState) }
 
@@ -248,7 +247,7 @@ private fun PodcastHeader(uiState: PodcastDetailUiState) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(100.dp).clip(RoundedCornerShape(12.dp))
+            modifier = Modifier.size(AppDimensions.headerImageSize).clip(RoundedCornerShape(AppDimensions.radiusMedium))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             AsyncImage(
