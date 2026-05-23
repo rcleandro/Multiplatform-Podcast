@@ -53,26 +53,28 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 *   [x] Testes de Integração do DAO rodando no iOS e Desktop.
 *   [x] 100% da lógica de negócio testada no `commonTest`.
 
-### Fase 3 — Player de Áudio e Persistência de Estado (EM PROGRESSO 🔄)
+### Fase 3 — Player de Áudio e Persistência de Estado (CONCLUÍDO ✅)
 *   [x] Implementação `AndroidAudioPlayer` (Media3/ExoPlayer).
 *   [x] Implementação `IosAudioPlayer` (AVFoundation).
 *   [x] Implementação `DesktopAudioPlayer` (JavaFX).
 *   [x] Implementação `WasmAudioPlayer` (HTML5 Audio).
 *   [x] Persistência automática de posição de áudio no banco de dados.
-*   [ ] Suporte a Fila de Reprodução (Queue) avançada em todas as plataformas.
-*   [ ] Sleep Timer multiplataforma.
+*   [x] Suporte a Fila de Reprodução (Queue) em todas as plataformas.
+*   [x] Sleep Timer multiplataforma (`setSleepTimer` implementado).
 
 ### Fase 4 — Interface de Usuário (Compose Multiplatform) (EM PROGRESSO 🔄)
-*   [x] Navegação básica com **Decompose**.
+*   [x] Navegação básica com **Decompose** (`RootComponent`).
 *   [x] Componentes Core (PodcastCard, EpisodeListItem, AsyncImage).
 *   [x] Telas Principais:
-    *   [x] Library (Biblioteca de Podcasts).
-    *   [x] Search (Busca local e remota).
-    *   [x] Podcast Detail.
-    *   [x] Episode Detail.
-    *   [x] Downloads.
-    *   [x] Player (MiniPlayer e Tela Cheia).
+    *   [x] Library (`LibraryScreen` via `LazyVerticalGrid`).
+    *   [x] Search (`SearchScreen`).
+    *   [x] Podcast Detail (`PodcastDetailScreen`).
+    *   [x] Episode Detail (`EpisodeDetailScreen`).
+    *   [x] Downloads (`DownloadedEpisodesScreen`).
+    *   [x] Player (MiniPlayer e Tela Cheia via `PlayerScreen`).
+*   [x] Layout Adaptativo (Listas/Grids responsivos).
 *   [ ] Refinamento do Design System (Cores, Tipografia Material 3).
+*   [ ] Animações complexas de transição entre MiniPlayer e Player expandido.
 *   [ ] Extração dinâmica de cores do Artwork.
 
 ### Fase 5 — Integrações Nativas e Polimento (PRÓXIMOS PASSOS 🔜)
