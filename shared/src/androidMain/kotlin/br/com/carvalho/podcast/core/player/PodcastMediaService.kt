@@ -10,11 +10,15 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaConstants
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionCommands
 import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import com.google.common.collect.ImmutableList
@@ -30,15 +34,24 @@ import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
 private const val TAG = "PodcastMediaService"
+private const val CUSTOM_COMMAND_SKIP_FORWARD = "CUSTOM_COMMAND_SKIP_FORWARD"
+private const val CUSTOM_COMMAND_SKIP_BACKWARD = "CUSTOM_COMMAND_SKIP_BACKWARD"
 
 class PodcastMediaService : MediaLibraryService() {
     private var mediaLibrarySession: MediaLibrarySession? = null
     private val podcastRepository: PodcastRepository by inject()
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
+    @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
         AppLogger.d(TAG, "onCreate")
+
+        setMediaNotificationProvider(
+            DefaultMediaNotificationProvider.Builder(this)
+                .build()
+        )
+
         val player = ExoPlayer.Builder(this)
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -47,6 +60,8 @@ class PodcastMediaService : MediaLibraryService() {
                     .build(),
                 false
             )
+            .setSeekForwardIncrementMs(30000)
+            .setSeekBackIncrementMs(15000)
             .build()
 
         val sessionActivityPendingIntent = packageManager
@@ -73,6 +88,38 @@ class PodcastMediaService : MediaLibraryService() {
     }
 
     private inner class LibraryCallback : MediaLibrarySession.Callback {
+        @OptIn(UnstableApi::class)
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): MediaSession.ConnectionResult {
+            val availableSessionCommands = SessionCommands.Builder()
+                .add(SessionCommand(CUSTOM_COMMAND_SKIP_FORWARD, Bundle.EMPTY))
+                .add(SessionCommand(CUSTOM_COMMAND_SKIP_BACKWARD, Bundle.EMPTY))
+                .build()
+
+            return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                .setAvailableSessionCommands(availableSessionCommands)
+                .build()
+        }
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: Bundle
+        ): ListenableFuture<SessionResult> {
+            when (customCommand.customAction) {
+                CUSTOM_COMMAND_SKIP_FORWARD -> {
+                    session.player.seekForward()
+                }
+                CUSTOM_COMMAND_SKIP_BACKWARD -> {
+                    session.player.seekBack()
+                }
+            }
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
+
         @OptIn(UnstableApi::class)
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,
