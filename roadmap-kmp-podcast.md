@@ -62,7 +62,7 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 *   [x] Suporte a Fila de Reprodução (Queue) em todas as plataformas.
 *   [x] Sleep Timer multiplataforma (`setSleepTimer` implementado).
 
-### Fase 4 — Interface de Usuário (Compose Multiplatform) (EM PROGRESSO 🔄)
+### Fase 4 — Interface de Usuário (Compose Multiplatform) (CONCLUÍDO ✅)
 *   [x] Navegação básica com **Decompose** (`RootComponent`).
 *   [x] Componentes Core (PodcastCard, EpisodeListItem, AsyncImage).
 *   [x] Telas Principais:
@@ -75,7 +75,6 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 *   [x] Layout Adaptativo (Listas/Grids responsivos).
 *   [x] Refinamento do Design System (Cores, Tipografia Material 3).
 *   [x] Animações complexas de transição entre MiniPlayer e Player expandido.
-*   [ ] Extração dinâmica de cores do Artwork.
 
 ### Fase 5 — Integrações Nativas e Polimento (PRÓXIMOS PASSOS 🔜)
 *   [ ] **iOS:** WidgetKit, Live Activities, integração com Apple Watch.
@@ -83,6 +82,13 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 *   [ ] **Desktop:** System Tray, atalhos globais de teclado, integração com Menu Bar.
 *   [ ] **Web:** PWA, Service Workers para offline, Media Session API.
 *   [ ] **Acessibilidade:** Suporte a Screen Readers em todas as plataformas.
+
+### Fase 6 — Expansão da Base de Testes e Qualidade (NOVO 🚀)
+*   [ ] **Testes de UI (Compose Test):** Implementar testes de interação para as principais telas em `commonTest`.
+*   [ ] **Cobertura de Casos de Borda:** Expandir testes de domínio para lidar com feeds RSS malformados e interrupções de rede.
+*   [ ] **Benchmarks de Performance:** Medir tempos de carregamento do banco de dados e parsing de XML.
+*   [ ] **Testes de Regressão Visual:** Configurar infraestrutura de screenshots para detectar mudanças inesperadas na UI.
+*   [ ] **Testes de Estresse do Player:** Validar comportamento sob condições extremas de buffering e troca rápida de faixas.
 
 ---
 
