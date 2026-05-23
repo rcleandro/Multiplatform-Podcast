@@ -173,8 +173,12 @@ kotlin {
             dependsOn(commonTest.get())
             dependencies {
                 implementation(libs.mockk)
-                implementation("androidx.sqlite:sqlite-bundled-jvm:2.7.0-alpha04")
+                implementation(libs.androidx.sqlite.bundled.jvm)
             }
+        }
+
+        val androidHostTest by getting {
+            dependsOn(jvmCommonTest)
         }
 
         val desktopTest by getting {

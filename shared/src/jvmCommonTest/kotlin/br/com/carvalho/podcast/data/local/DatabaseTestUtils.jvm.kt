@@ -10,3 +10,5 @@ actual fun createInMemoryDatabase(): AppDatabase {
         .setQueryCoroutineContext(Dispatchers.IO)
         .build()
 }
+
+actual val isDatabaseSupported: Boolean = true

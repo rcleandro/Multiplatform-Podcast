@@ -18,6 +18,7 @@ class DaoIntegrationTest {
 
     @BeforeTest
     fun setup() {
+        if (!isDatabaseSupported) return
         database = createInMemoryDatabase()
         podcastDao = database.podcastDao()
         episodeDao = database.episodeDao()
@@ -25,11 +26,13 @@ class DaoIntegrationTest {
 
     @AfterTest
     fun tearDown() {
+        if (!isDatabaseSupported) return
         database.close()
     }
 
     @Test
     fun `insert and retrieve podcast`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         val podcast = createPodcastEntity("p1")
         podcastDao.insert(podcast)
 
@@ -39,6 +42,7 @@ class DaoIntegrationTest {
 
     @Test
     fun `insert podcast and episodes then retrieve episodes by podcast id`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         val podcast = createPodcastEntity("p1")
         podcastDao.insert(podcast)
 
@@ -52,6 +56,7 @@ class DaoIntegrationTest {
 
     @Test
     fun `delete podcast also deletes its episodes due to cascade`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         val podcast = createPodcastEntity("p1")
         podcastDao.insert(podcast)
 
@@ -66,6 +71,7 @@ class DaoIntegrationTest {
 
     @Test
     fun `search episodes by title or description`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         val podcast = createPodcastEntity("p1")
         podcastDao.insert(podcast)
 

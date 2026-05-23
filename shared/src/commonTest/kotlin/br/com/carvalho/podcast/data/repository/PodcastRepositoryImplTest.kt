@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.data.repository
 
 import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.local.createInMemoryDatabase
+import br.com.carvalho.podcast.data.local.isDatabaseSupported
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.domain.model.Podcast
@@ -51,17 +52,20 @@ class PodcastRepositoryImplTest {
 
     @BeforeTest
     fun setup() {
+        if (!isDatabaseSupported) return
         database = createInMemoryDatabase()
         repository = PodcastRepositoryImpl(database.podcastDao(), database.episodeDao())
     }
 
     @AfterTest
     fun tearDown() {
+        if (!isDatabaseSupported) return
         database.close()
     }
 
     @Test
     fun `getPodcasts maps and returns podcasts from dao`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
 
         val podcasts = repository.getPodcasts().first()
@@ -73,6 +77,7 @@ class PodcastRepositoryImplTest {
 
     @Test
     fun `getPodcastById returns mapped podcast if exists`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
 
         val podcast = repository.getPodcastById(podcastId)
@@ -83,12 +88,14 @@ class PodcastRepositoryImplTest {
 
     @Test
     fun `getPodcastById returns null if not exists`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         val podcast = repository.getPodcastById("non-existent")
         assertNull(podcast)
     }
 
     @Test
     fun `getEpisodes returns mapped episodes for podcast`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
         database.episodeDao().insertAll(listOf(episodeEntity))
 
@@ -101,6 +108,7 @@ class PodcastRepositoryImplTest {
 
     @Test
     fun `savePodcast delegates to dao`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         val podcast = Podcast(
             id = podcastId,
             title = "Test Podcast",
@@ -123,6 +131,7 @@ class PodcastRepositoryImplTest {
 
     @Test
     fun `deletePodcast deletes podcast and its episodes`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
         database.episodeDao().insertAll(listOf(episodeEntity))
 
@@ -134,6 +143,7 @@ class PodcastRepositoryImplTest {
 
     @Test
     fun `updateEpisodeProgress updates playback in dao`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
         database.episodeDao().insertAll(listOf(episodeEntity))
 
@@ -145,6 +155,7 @@ class PodcastRepositoryImplTest {
 
     @Test
     fun `markEpisodeAsPlayed updates playback in dao`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
         database.episodeDao().insertAll(listOf(episodeEntity))
 
@@ -156,6 +167,7 @@ class PodcastRepositoryImplTest {
 
     @Test
     fun `searchEpisodes returns results from dao`() = runTest {
+        if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
         database.episodeDao().insertAll(listOf(episodeEntity))
 

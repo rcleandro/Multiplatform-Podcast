@@ -79,6 +79,7 @@ paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pag
 runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "runtime" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 sqlite-web = { module = "androidx.sqlite:sqlite-web-wasm-js", version.ref = "sqlite" }
+androidx-sqlite-bundled-jvm = { module = "androidx.sqlite:sqlite-bundled-jvm", version.ref = "sqlite" }
 
 # Ktor 3
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
