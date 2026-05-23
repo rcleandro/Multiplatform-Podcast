@@ -89,7 +89,7 @@ kotlin {
             implementation(libs.ktor.logging)
 
             // Koin 4
-            implementation(libs.koin.core)
+            api(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
 
