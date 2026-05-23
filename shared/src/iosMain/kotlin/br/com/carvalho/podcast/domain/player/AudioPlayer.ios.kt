@@ -10,13 +10,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import platform.AVFoundation.*
 import platform.Foundation.*
 import platform.CoreMedia.*
+import platform.MediaPlayer.*
 import kotlinx.cinterop.ExperimentalForeignApi
+import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.AVAudioSessionCategoryPlayback
+import platform.AVFAudio.setActive
 
 private const val TAG = "AudioPlayer"
 
 @OptIn(ExperimentalForeignApi::class)
 class IosAudioPlayer : AudioPlayer {
     private var avPlayer: AVPlayer? = null
+    private val nowPlayingInfoCenter = MPNowPlayingInfoCenter.defaultCenter()
+    private val remoteCommandCenter = MPRemoteCommandCenter.sharedCommandCenter()
 
     private val _playerState = MutableStateFlow(PlayerState())
     override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
@@ -28,6 +34,9 @@ class IosAudioPlayer : AudioPlayer {
     private var progressJob: Job? = null
 
     init {
+        setupAudioSession()
+        setupRemoteCommands()
+
         NSNotificationCenter.defaultCenter.addObserverForName(
             name = AVPlayerItemDidPlayToEndTimeNotification,
             `object` = null,
@@ -36,6 +45,56 @@ class IosAudioPlayer : AudioPlayer {
                 playNext()
             }
         )
+    }
+
+    private fun setupAudioSession() {
+        val audioSession = AVAudioSession.sharedInstance()
+        try {
+            audioSession.setCategory(AVAudioSessionCategoryPlayback, error = null)
+            audioSession.setActive(true, error = null)
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Failed to setup AVAudioSession", e)
+        }
+    }
+
+    private fun setupRemoteCommands() {
+        remoteCommandCenter.playCommand.enabled = true
+        remoteCommandCenter.playCommand.addTargetWithHandler {
+            resume()
+            MPRemoteCommandHandlerStatusSuccess
+        }
+
+        remoteCommandCenter.pauseCommand.enabled = true
+        remoteCommandCenter.pauseCommand.addTargetWithHandler {
+            pause()
+            MPRemoteCommandHandlerStatusSuccess
+        }
+
+        remoteCommandCenter.skipForwardCommand.enabled = true
+        remoteCommandCenter.skipForwardCommand.preferredIntervals = listOf(30.0)
+        remoteCommandCenter.skipForwardCommand.addTargetWithHandler {
+            skipForward(30)
+            MPRemoteCommandHandlerStatusSuccess
+        }
+
+        remoteCommandCenter.skipBackwardCommand.enabled = true
+        remoteCommandCenter.skipBackwardCommand.preferredIntervals = listOf(15.0)
+        remoteCommandCenter.skipBackwardCommand.addTargetWithHandler {
+            skipBackward(15)
+            MPRemoteCommandHandlerStatusSuccess
+        }
+    }
+
+    private fun updateNowPlayingInfo() {
+        val episode = _playerState.value.currentEpisode ?: return
+        val info = mutableMapOf<Any?, Any?>()
+
+        info[MPMediaItemPropertyTitle] = episode.title
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(avPlayer?.currentTime() ?: CMTimeMake(0, 1))
+        info[MPMediaItemPropertyPlaybackDuration] = CMTimeGetSeconds(avPlayer?.currentItem?.duration ?: CMTimeMake(0, 1))
+        info[MPNowPlayingInfoPropertyPlaybackRate] = if (_playerState.value.isPlaying) _playerState.value.speed else 0.0
+
+        nowPlayingInfoCenter.nowPlayingInfo = info
     }
 
     override fun setQueue(episodes: List<Episode>) {
@@ -87,6 +146,7 @@ class IosAudioPlayer : AudioPlayer {
             currentEpisode = episode,
             isPlaying = true
         )
+        updateNowPlayingInfo()
         startProgressUpdate()
     }
 
@@ -113,18 +173,21 @@ class IosAudioPlayer : AudioPlayer {
             position = positionMs,
             duration = episode.duration * 1000
         )
+        updateNowPlayingInfo()
     }
 
     override fun pause() {
         setSpeed(1.0f)
         avPlayer?.pause()
         _playerState.value = _playerState.value.copy(isPlaying = false)
+        updateNowPlayingInfo()
         stopProgressUpdate()
     }
 
     override fun resume() {
         avPlayer?.setRate(_playerState.value.speed)
         _playerState.value = _playerState.value.copy(isPlaying = true)
+        updateNowPlayingInfo()
         startProgressUpdate()
     }
 
