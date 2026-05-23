@@ -1,13 +1,39 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -17,8 +43,20 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.shared.cancel
+import br.com.carvalho.podcast.shared.clear
+import br.com.carvalho.podcast.shared.delete
+import br.com.carvalho.podcast.shared.delete_download
+import br.com.carvalho.podcast.shared.delete_download_confirmation
+import br.com.carvalho.podcast.shared.error_loading_results
+import br.com.carvalho.podcast.shared.refresh
+import br.com.carvalho.podcast.shared.search
+import br.com.carvalho.podcast.shared.search_placeholder
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,10 +83,11 @@ fun SearchScreen(
         }
     }
 
+    val errorLoadingResults = stringResource(Res.string.error_loading_results)
     LaunchedEffect(pagedResults.loadState.refresh) {
         val refreshState = pagedResults.loadState.refresh
         if (refreshState is LoadState.Error) {
-            viewModel.setError("Erro ao carregar resultados")
+            viewModel.setError(errorLoadingResults)
         }
     }
 
@@ -59,7 +98,8 @@ fun SearchScreen(
             TopAppBar(
                 title = {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(end = AppDimensions.paddingNormal),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextField(
@@ -67,13 +107,18 @@ fun SearchScreen(
                             onValueChange = { viewModel.onQueryChange(it) },
                             placeholder = {
                                 Text(
-                                    text = "Buscar episódios...",
+                                    text = stringResource(Res.string.search_placeholder),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             },
                             modifier = Modifier.weight(1f),
-                            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "Search") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Rounded.Search,
+                                    contentDescription = stringResource(Res.string.search)
+                                )
+                            },
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                                 unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
@@ -83,14 +128,20 @@ fun SearchScreen(
                             trailingIcon = {
                                 if (uiState.searchQuery.isNotEmpty()) {
                                     IconButton(onClick = { viewModel.onQueryChange("") }) {
-                                        Icon(Icons.Rounded.Clear, contentDescription = "Clear")
+                                        Icon(
+                                            Icons.Rounded.Clear,
+                                            contentDescription = stringResource(Res.string.clear)
+                                        )
                                     }
                                 }
                             },
                             singleLine = true
                         )
                         IconButton(onClick = { viewModel.refresh() }) {
-                            Icon(Icons.Rounded.Refresh, contentDescription = "Atualizar")
+                            Icon(
+                                Icons.Rounded.Refresh,
+                                contentDescription = stringResource(Res.string.refresh)
+                            )
                         }
                     }
                 },
@@ -125,14 +176,14 @@ fun SearchScreen(
                         onDownloadClick = { viewModel.downloadEpisode(episode) },
                         onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                     )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = AppDimensions.paddingNormal))
                 }
             }
 
             if (pagedResults.loadState.append is LoadState.Loading) {
                 item {
                     Box(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(AppDimensions.paddingNormal),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator()
@@ -144,8 +195,15 @@ fun SearchScreen(
         if (uiState.deleteEpisodeConfirmation != null) {
             AlertDialog(
                 onDismissRequest = viewModel::hideDeleteConfirmation,
-                title = { Text("Excluir download") },
-                text = { Text("Deseja realmente excluir o download do episódio \"${uiState.deleteEpisodeConfirmation?.title}\"?") },
+                title = { Text(stringResource(Res.string.delete_download)) },
+                text = {
+                    Text(
+                        stringResource(
+                            Res.string.delete_download_confirmation,
+                            uiState.deleteEpisodeConfirmation?.title ?: ""
+                        )
+                    )
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -153,12 +211,12 @@ fun SearchScreen(
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Excluir")
+                        Text(stringResource(Res.string.delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = viewModel::hideDeleteConfirmation) {
-                        Text("Cancelar")
+                        Text(stringResource(Res.string.cancel))
                     }
                 }
             )

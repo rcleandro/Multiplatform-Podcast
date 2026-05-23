@@ -1,33 +1,79 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryScrollableTabRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.presentation.component.HtmlText
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
+import br.com.carvalho.podcast.shared.back
+import br.com.carvalho.podcast.shared.cancel
+import br.com.carvalho.podcast.shared.delete
+import br.com.carvalho.podcast.shared.delete_download
+import br.com.carvalho.podcast.shared.delete_download_confirmation
+import br.com.carvalho.podcast.shared.filter_all
+import br.com.carvalho.podcast.shared.filter_downloaded
+import br.com.carvalho.podcast.shared.filter_unplayed
+import br.com.carvalho.podcast.shared.mark_as_played
+import br.com.carvalho.podcast.shared.mark_as_played_description
+import br.com.carvalho.podcast.shared.only_this_one
+import br.com.carvalho.podcast.shared.podcast
+import br.com.carvalho.podcast.shared.refresh
+import br.com.carvalho.podcast.shared.this_and_all_below
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -58,18 +104,21 @@ fun PodcastDetailScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Podcast") },
+                title = { Text(stringResource(Res.string.podcast)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "Voltar"
+                            contentDescription = stringResource(Res.string.back)
                         )
                     }
                 },
                 actions = {
                     IconButton(onClick = { viewModel.refresh() }) {
-                        Icon(Icons.Rounded.Refresh, contentDescription = "Atualizar")
+                        Icon(
+                            Icons.Rounded.Refresh,
+                            contentDescription = stringResource(Res.string.refresh)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -123,7 +172,7 @@ fun PodcastDetailScreen(
                                 onDownloadClick = { viewModel.downloadEpisode(episode) },
                                 onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                             )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = AppDimensions.paddingNormal))
                         }
                     }
                 }
@@ -132,20 +181,27 @@ fun PodcastDetailScreen(
             if (uiState.selectedEpisode != null) {
                 AlertDialog(
                     onDismissRequest = viewModel::onSelectEpisode,
-                    title = { Text("Marcar como ouvido") },
-                    text = { Text("Escolha uma opção para o episódio \"${uiState.selectedEpisode?.title}\"") },
+                    title = { Text(stringResource(Res.string.mark_as_played)) },
+                    text = {
+                        Text(
+                            stringResource(
+                                Res.string.mark_as_played_description,
+                                uiState.selectedEpisode?.title ?: ""
+                            )
+                        )
+                    },
                     confirmButton = {
                         TextButton(onClick = {
                             uiState.selectedEpisode?.let { viewModel.markAsPlayed(it.id) }
                         }) {
-                            Text("Apenas este")
+                            Text(stringResource(Res.string.only_this_one))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = {
                             uiState.selectedEpisode?.let { viewModel.markOlderAsPlayed(it.publishDate) }
                         }) {
-                            Text("Este e todos abaixo")
+                            Text(stringResource(Res.string.this_and_all_below))
                         }
                     }
                 )
@@ -154,8 +210,15 @@ fun PodcastDetailScreen(
             if (uiState.deleteEpisodeConfirmation != null) {
                 AlertDialog(
                     onDismissRequest = viewModel::hideDeleteConfirmation,
-                    title = { Text("Excluir download") },
-                    text = { Text("Deseja realmente excluir o download do episódio \"${uiState.deleteEpisodeConfirmation?.title}\"?") },
+                    title = { Text(stringResource(Res.string.delete_download)) },
+                    text = {
+                        Text(
+                            stringResource(
+                                Res.string.delete_download_confirmation,
+                                uiState.deleteEpisodeConfirmation?.title ?: ""
+                            )
+                        )
+                    },
                     confirmButton = {
                         TextButton(
                             onClick = {
@@ -163,12 +226,12 @@ fun PodcastDetailScreen(
                             },
                             colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {
-                            Text("Excluir")
+                            Text(stringResource(Res.string.delete))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = viewModel::hideDeleteConfirmation) {
-                            Text("Cancelar")
+                            Text(stringResource(Res.string.cancel))
                         }
                     }
                 )
@@ -181,7 +244,7 @@ fun PodcastDetailScreen(
 private fun PodcastHeader(uiState: PodcastDetailUiState) {
     val podcast = uiState.podcast ?: return
     Row(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(AppDimensions.paddingNormal),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -197,7 +260,7 @@ private fun PodcastHeader(uiState: PodcastDetailUiState) {
                 error = painterResource(Res.drawable.app_icon)
             )
         }
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(AppDimensions.spacingNormal))
         Column {
             Text(
                 text = podcast.title,
@@ -215,7 +278,10 @@ private fun PodcastHeader(uiState: PodcastDetailUiState) {
     }
     HtmlText(
         html = podcast.description,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        modifier = Modifier.padding(
+            horizontal = AppDimensions.paddingNormal,
+            vertical = AppDimensions.paddingMedium
+        )
     )
 }
 
@@ -226,7 +292,7 @@ private fun FilterSection(
 ) {
     SecondaryScrollableTabRow(
         selectedTabIndex = currentFilter.ordinal,
-        edgePadding = 16.dp,
+        edgePadding = AppDimensions.paddingNormal,
         containerColor = MaterialTheme.colorScheme.background,
         divider = {}
     ) {
@@ -237,9 +303,9 @@ private fun FilterSection(
                 text = {
                     Text(
                         text = when (filter) {
-                            EpisodeFilter.ALL -> "Todos"
-                            EpisodeFilter.UNPLAYED -> "Não ouvidos"
-                            EpisodeFilter.DOWNLOADED -> "Baixados"
+                            EpisodeFilter.ALL -> stringResource(Res.string.filter_all)
+                            EpisodeFilter.UNPLAYED -> stringResource(Res.string.filter_unplayed)
+                            EpisodeFilter.DOWNLOADED -> stringResource(Res.string.filter_downloaded)
                         }
                     )
                 }

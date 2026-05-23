@@ -1,25 +1,64 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.dp
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.presentation.component.PodcastCard
+import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.shared.add
+import br.com.carvalho.podcast.shared.add_podcast
+import br.com.carvalho.podcast.shared.cancel
+import br.com.carvalho.podcast.shared.delete
+import br.com.carvalho.podcast.shared.delete_podcast
+import br.com.carvalho.podcast.shared.delete_podcast_confirmation
+import br.com.carvalho.podcast.shared.library_title
+import br.com.carvalho.podcast.shared.no_podcasts_found
+import br.com.carvalho.podcast.shared.refresh_all
+import br.com.carvalho.podcast.shared.rss_url_label
+import br.com.carvalho.podcast.shared.rss_url_placeholder
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,13 +86,16 @@ fun LibraryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Biblioteca",
+                        stringResource(Res.string.library_title),
                         style = MaterialTheme.typography.headlineMedium
                     )
                 },
                 actions = {
                     IconButton(onClick = { viewModel.onRefreshAll() }) {
-                        Icon(Icons.Rounded.Refresh, contentDescription = "Atualizar Tudo")
+                        Icon(
+                            Icons.Rounded.Refresh,
+                            contentDescription = stringResource(Res.string.refresh_all)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -65,12 +107,12 @@ fun LibraryScreen(
         },
         contentWindowInsets = WindowInsets(),
         floatingActionButton = {
-            val fabPadding by animateDpAsState(if (isPlayerVisible) 64.dp else 0.dp)
+            val fabPadding by animateDpAsState(if (isPlayerVisible) AppDimensions.miniPlayerHeight else 0.dp)
             FloatingActionButton(
                 onClick = { viewModel.onAddClicked() },
                 modifier = Modifier.padding(bottom = fabPadding)
             ) {
-                Icon(Icons.Rounded.Add, contentDescription = "Adicionar Podcast")
+                Icon(Icons.Rounded.Add, contentDescription = stringResource(Res.string.add_podcast))
             }
         }
     ) { padding ->
@@ -91,7 +133,7 @@ fun LibraryScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Nenhum podcast encontrado")
+                    Text(stringResource(Res.string.no_podcasts_found))
                 }
             } else {
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -105,9 +147,14 @@ fun LibraryScreen(
 
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(columns),
-                        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 80.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(
+                            start = AppDimensions.paddingNormal,
+                            top = AppDimensions.paddingNormal,
+                            end = AppDimensions.paddingNormal,
+                            bottom = AppDimensions.miniPlayerHeightWithPadding
+                        ),
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacingLarge),
+                        verticalArrangement = Arrangement.spacedBy(AppDimensions.spacingLarge),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(uiState.podcasts) { podcast ->
@@ -149,18 +196,18 @@ fun DeletePodcastDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Excluir Podcast") },
+        title = { Text(stringResource(Res.string.delete_podcast)) },
         text = {
-            Text("Tem certeza que deseja excluir o podcast \"$podcastTitle\" e todos os seus episódios?")
+            Text(stringResource(Res.string.delete_podcast_confirmation, podcastTitle))
         },
         confirmButton = {
             Button(onClick = onConfirm) {
-                Text("Excluir")
+                Text(stringResource(Res.string.delete))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(Res.string.cancel))
             }
         }
     )
@@ -175,28 +222,28 @@ fun AddPodcastDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Adicionar Podcast") },
+        title = { Text(stringResource(Res.string.add_podcast)) },
         text = {
             Column {
-                Text("Insira a URL do feed RSS:")
-                Spacer(modifier = Modifier.height(8.dp))
+                Text(stringResource(Res.string.rss_url_label))
+                Spacer(modifier = Modifier.height(AppDimensions.spacingMedium))
                 TextField(
                     value = url,
                     onValueChange = onUrlChange,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("https://...") },
+                    placeholder = { Text(stringResource(Res.string.rss_url_placeholder)) },
                     singleLine = true
                 )
             }
         },
         confirmButton = {
             Button(onClick = onConfirm) {
-                Text("Adicionar")
+                Text(stringResource(Res.string.add))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(Res.string.cancel))
             }
         }
     )

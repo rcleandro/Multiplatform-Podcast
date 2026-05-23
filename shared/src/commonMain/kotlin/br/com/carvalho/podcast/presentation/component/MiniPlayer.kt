@@ -2,26 +2,45 @@ package br.com.carvalho.podcast.presentation.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
+import br.com.carvalho.podcast.shared.pause
+import br.com.carvalho.podcast.shared.play
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MiniPlayer(
@@ -36,24 +55,27 @@ fun MiniPlayer(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(
+                horizontal = AppDimensions.paddingNormal,
+                vertical = AppDimensions.paddingMedium
+            )
             .clip(MaterialTheme.shapes.medium)
-            .height(64.dp)
+            .height(AppDimensions.miniPlayerHeight)
             .clickable(onClick = onClick)
             .semantics(mergeDescendants = true) {},
         color = MaterialTheme.colorScheme.primaryContainer,
-        tonalElevation = 4.dp
+        tonalElevation = AppDimensions.elevationLow
     ) {
         Column {
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = AppDimensions.spacingNormal),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(AppDimensions.iconExtraLarge)
                         .clip(MaterialTheme.shapes.small)
                         .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f))
                 ) {
@@ -67,7 +89,7 @@ fun MiniPlayer(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppDimensions.spacingNormal))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -88,10 +110,10 @@ fun MiniPlayer(
                     }
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimensions.paddingMedium))
 
                 Box(
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(AppDimensions.iconExtraLarge),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isBuffering) {
@@ -104,7 +126,7 @@ fun MiniPlayer(
                         IconButton(onClick = onPlayPauseClick) {
                             Icon(
                                 imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                                contentDescription = if (isPlaying) "Pausar" else "Reproduzir",
+                                contentDescription = stringResource(if (isPlaying) Res.string.pause else Res.string.play),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }

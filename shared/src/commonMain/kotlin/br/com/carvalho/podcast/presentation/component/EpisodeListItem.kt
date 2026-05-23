@@ -3,14 +3,29 @@ package br.com.carvalho.podcast.presentation.component
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -25,14 +40,22 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.core.extensions.toDate
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
+import br.com.carvalho.podcast.shared.delete_download_cd
+import br.com.carvalho.podcast.shared.download_cd
+import br.com.carvalho.podcast.shared.finished
+import br.com.carvalho.podcast.shared.pause
+import br.com.carvalho.podcast.shared.play
+import br.com.carvalho.podcast.shared.remaining_min
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -55,18 +78,29 @@ fun EpisodeListItem(
         MaterialTheme.colorScheme.onSurface
     }
 
-    val subtitle = remember(podcastTitle, episode.duration, episode.publishDate, episode.isPlayed, episode.playbackPosition) {
+    val finishedString = stringResource(Res.string.finished)
+    val remainingMinFormat = stringResource(Res.string.remaining_min)
+
+    val subtitle = remember(
+        podcastTitle,
+        episode.duration,
+        episode.publishDate,
+        episode.isPlayed,
+        episode.playbackPosition,
+        finishedString,
+        remainingMinFormat
+    ) {
         val parts = mutableListOf<String>()
         podcastTitle?.let { parts.add(it) }
         parts.add(episode.duration.toDuration())
         parts.add(episode.publishDate.toDate())
 
         if (episode.isPlayed) {
-            parts.add("Finalizado")
+            parts.add(finishedString)
         } else if (episode.playbackPosition > 0 && episode.duration > 0) {
             val remainingMs = (episode.duration * 1000) - episode.playbackPosition
             val remainingMin = (remainingMs / (1000 * 60)).coerceAtLeast(1)
-            parts.add("$remainingMin min restante")
+            parts.add(remainingMinFormat.replace("%d", remainingMin.toString()))
         }
 
         parts.joinToString(" • ")
@@ -80,17 +114,20 @@ fun EpisodeListItem(
                 onLongClick = onLongClick
             )
             .semantics(mergeDescendants = true) {
-                onLongClick("Opções do episódio") {
+                onLongClick(null) { // Texto será inferido ou podemos passar stringResource
                     onLongClick()
                     true
                 }
             }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(
+                horizontal = AppDimensions.paddingNormal,
+                vertical = AppDimensions.paddingNormal
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(56.dp)
+                .size(AppDimensions.episodeImageSize)
                 .clip(MaterialTheme.shapes.small)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
@@ -112,13 +149,14 @@ fun EpisodeListItem(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.CheckCircle,
-                        contentDescription = "Finalizado",
+                        contentDescription = stringResource(Res.string.finished),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(AppDimensions.iconMedium)
                     )
                 }
             } else if (episode.playbackPosition > 0 && episode.duration > 0) {
-                val progress = episode.playbackPosition.toFloat() / (episode.duration * 1000).toFloat()
+                val progress =
+                    episode.playbackPosition.toFloat() / (episode.duration * 1000).toFloat()
                 val progressValue = progress.coerceIn(0f, 1f)
                 LinearProgressIndicator(
                     progress = { progressValue },
@@ -135,7 +173,7 @@ fun EpisodeListItem(
             }
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(AppDimensions.spacingLarge))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -147,7 +185,7 @@ fun EpisodeListItem(
                 lineHeight = 18.sp
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(AppDimensions.spacingSmall))
 
             Text(
                 text = subtitle,
@@ -160,11 +198,11 @@ fun EpisodeListItem(
             )
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimensions.spacingMedium))
 
         // Status de Download
         Box(
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(AppDimensions.spacingHuge),
             contentAlignment = Alignment.Center
         ) {
             when (downloadStatus) {
@@ -175,6 +213,7 @@ fun EpisodeListItem(
                         strokeWidth = 2.dp,
                     )
                 }
+
                 is DownloadStatus.Completed -> {
                     IconButton(
                         onClick = onDeleteClick,
@@ -182,18 +221,20 @@ fun EpisodeListItem(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Delete,
-                            contentDescription = "Excluir download",
+                            contentDescription = stringResource(Res.string.delete_download_cd),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(AppDimensions.iconSmall)
                         )
                     }
                 }
+
                 is DownloadStatus.Queued -> {
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp
                     )
                 }
+
                 else -> {
                     if (!episode.isDownloaded) {
                         IconButton(
@@ -202,9 +243,9 @@ fun EpisodeListItem(
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Download,
-                                contentDescription = "Baixar",
+                                contentDescription = stringResource(Res.string.download_cd),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(AppDimensions.iconSmall)
                             )
                         }
                     } else {
@@ -214,9 +255,9 @@ fun EpisodeListItem(
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Delete,
-                                contentDescription = "Excluir download",
+                                contentDescription = stringResource(Res.string.delete_download_cd),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(AppDimensions.iconSmall)
                             )
                         }
                     }
@@ -225,7 +266,7 @@ fun EpisodeListItem(
         }
 
         Box(
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(AppDimensions.spacingGigantic),
             contentAlignment = Alignment.Center
         ) {
             if (isBuffering) {
@@ -237,12 +278,13 @@ fun EpisodeListItem(
                 IconButton(onClick = onPlayClick) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                        contentDescription = if (isPlaying) "Pausar" else "Ouvir",
+                        contentDescription = stringResource(if (isPlaying) Res.string.pause else Res.string.play),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(AppDimensions.iconNormal)
                     )
                 }
             }
         }
     }
 }
+

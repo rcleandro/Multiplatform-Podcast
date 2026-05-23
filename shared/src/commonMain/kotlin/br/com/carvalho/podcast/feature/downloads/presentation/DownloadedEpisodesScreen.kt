@@ -1,16 +1,44 @@
 package br.com.carvalho.podcast.feature.downloads.presentation
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.shared.cancel
+import br.com.carvalho.podcast.shared.delete
+import br.com.carvalho.podcast.shared.delete_download
+import br.com.carvalho.podcast.shared.delete_download_confirmation
+import br.com.carvalho.podcast.shared.downloads
+import br.com.carvalho.podcast.shared.no_downloads
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,7 +65,7 @@ fun DownloadedEpisodesScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text("Downloads") },
+                title = { Text(stringResource(Res.string.downloads)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surface,
@@ -54,7 +82,7 @@ fun DownloadedEpisodesScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Nenhum episódio baixado",
+                    text = stringResource(Res.string.no_downloads),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -77,15 +105,22 @@ fun DownloadedEpisodesScreen(
                     onPlayClick = { viewModel.playEpisode(episode) },
                     onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                 )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = AppDimensions.paddingNormal))
             }
         }
 
         if (uiState.deleteEpisodeConfirmation != null) {
             AlertDialog(
                 onDismissRequest = viewModel::hideDeleteConfirmation,
-                title = { Text("Excluir download") },
-                text = { Text("Deseja realmente excluir o download do episódio \"${uiState.deleteEpisodeConfirmation?.title}\"?") },
+                title = { Text(stringResource(Res.string.delete_download)) },
+                text = {
+                    Text(
+                        stringResource(
+                            Res.string.delete_download_confirmation,
+                            uiState.deleteEpisodeConfirmation?.title ?: ""
+                        )
+                    )
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -93,12 +128,12 @@ fun DownloadedEpisodesScreen(
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Excluir")
+                        Text(stringResource(Res.string.delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = viewModel::hideDeleteConfirmation) {
-                        Text("Cancelar")
+                        Text(stringResource(Res.string.cancel))
                     }
                 }
             )

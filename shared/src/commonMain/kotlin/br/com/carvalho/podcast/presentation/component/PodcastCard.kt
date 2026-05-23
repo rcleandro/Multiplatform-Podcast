@@ -3,7 +3,14 @@ package br.com.carvalho.podcast.presentation.component
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -15,12 +22,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
+import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -33,7 +40,7 @@ fun PodcastCard(
 ) {
     Surface(
         modifier = modifier
-            .padding(4.dp)
+            .padding(AppDimensions.paddingSmall)
             .clip(MaterialTheme.shapes.medium)
             .combinedClickable(
                 onClick = onClick,
@@ -48,7 +55,7 @@ fun PodcastCard(
         color = Color.Transparent
     ) {
         Column(
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(AppDimensions.paddingMedium)
         ) {
             Box(
                 modifier = Modifier
@@ -67,7 +74,7 @@ fun PodcastCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimensions.spacingNormal))
 
             Text(
                 text = podcast.title,
@@ -79,7 +86,7 @@ fun PodcastCard(
             )
 
             podcast.author?.let { author ->
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(AppDimensions.spacingTiny))
                 Text(
                     text = author,
                     style = MaterialTheme.typography.labelSmall,
