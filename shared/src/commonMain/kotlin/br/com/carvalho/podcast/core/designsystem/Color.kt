@@ -2,44 +2,43 @@ package br.com.carvalho.podcast.core.designsystem
 
 import androidx.compose.ui.graphics.Color
 
-// Primary Brand Colors (Indigo/Deep Purple)
-val PrimaryLight = Color(0xFF4F52B2)
-val OnPrimaryLight = Color(0xFFFFFFFF)
-val PrimaryContainerLight = Color(0xFFE0E0FF)
-val OnPrimaryContainerLight = Color(0xFF00006E)
+// Light Theme (Grayscale)
+val PrimaryLight = Color(0xFF000000) // Black
+val OnPrimaryLight = Color(0xFFFFFFFF) // White
+val PrimaryContainerLight = Color(0xFFE0E0E0) // Light Gray
+val OnPrimaryContainerLight = Color(0xFF000000)
 
-val PrimaryDark = Color(0xFFBEC2FF)
-val OnPrimaryDark = Color(0xFF1B1B82)
-val PrimaryContainerDark = Color(0xFF373A99)
-val OnPrimaryContainerDark = Color(0xFFE0E0FF)
-
-// Secondary Colors (Teal/Cool tones)
-val SecondaryLight = Color(0xFF5D5D72)
+val SecondaryLight = Color(0xFF616161) // Medium Gray
 val OnSecondaryLight = Color(0xFFFFFFFF)
-val SecondaryContainerLight = Color(0xFFE2E0F9)
-val OnSecondaryContainerLight = Color(0xFF191A2C)
+val SecondaryContainerLight = Color(0xFFF5F5F5) // Very Light Gray
+val OnSecondaryContainerLight = Color(0xFF000000)
 
-val SecondaryDark = Color(0xFFC6C4DD)
-val OnSecondaryDark = Color(0xFF2F2F42)
-val SecondaryContainerDark = Color(0xFF454559)
-val OnSecondaryContainerDark = Color(0xFFE2E0F9)
+val BackgroundLight = Color(0xFFFFFFFF) // White
+val OnBackgroundLight = Color(0xFF000000)
+val SurfaceLight = Color(0xFFFFFFFF)
+val OnSurfaceLight = Color(0xFF000000)
+val SurfaceVariantLight = Color(0xFFEEEEEE)
+val OnSurfaceVariantLight = Color(0xFF424242)
 
-// Neutrals/Surfaces
-val BackgroundLight = Color(0xFFFBF8FF)
-val OnBackgroundLight = Color(0xFF1B1B21)
-val SurfaceLight = Color(0xFFFBF8FF)
-val OnSurfaceLight = Color(0xFF1B1B21)
-val SurfaceVariantLight = Color(0xFFE4E1EC)
-val OnSurfaceVariantLight = Color(0xFF46464F)
+// Dark Theme (Black/Grayscale)
+val PrimaryDark = Color(0xFFFFFFFF) // White
+val OnPrimaryDark = Color(0xFF000000) // Black
+val PrimaryContainerDark = Color(0xFF424242) // Dark Gray
+val OnPrimaryContainerDark = Color(0xFFFFFFFF)
 
-val BackgroundDark = Color(0xFF121318) // Deep dark, not pure black
-val OnBackgroundDark = Color(0xFFE4E1E9)
-val SurfaceDark = Color(0xFF121318)
-val OnSurfaceDark = Color(0xFFE4E1E9)
-val SurfaceVariantDark = Color(0xFF46464F)
-val OnSurfaceVariantDark = Color(0xFFC7C5D0)
+val SecondaryDark = Color(0xFFBDBDBD) // Light Gray
+val OnSecondaryDark = Color(0xFF000000)
+val SecondaryContainerDark = Color(0xFF212121) // Very Dark Gray
+val OnSecondaryContainerDark = Color(0xFFFFFFFF)
 
-// Errors
+val BackgroundDark = Color(0xFF000000) // Pure Black
+val OnBackgroundDark = Color(0xFFFFFFFF)
+val SurfaceDark = Color(0xFF000000)
+val OnSurfaceDark = Color(0xFFFFFFFF)
+val SurfaceVariantDark = Color(0xFF323232)
+val OnSurfaceVariantDark = Color(0xFFBDBDBD)
+
+// Errors (Keeping them semantic but fitting the noir vibe)
 val ErrorLight = Color(0xFFBA1A1A)
 val OnErrorLight = Color(0xFFFFFFFF)
 val ErrorDark = Color(0xFFFFB4AB)
