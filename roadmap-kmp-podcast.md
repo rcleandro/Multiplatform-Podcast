@@ -84,15 +84,15 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 *   [x] **Web:** Media Session API.
 *   [x] **Acessibilidade:** Suporte a Screen Readers e Touch Targets (min 48dp) em componentes core.
 
-### Fase 6 — Internacionalização e Padronização de Constantes (EM PROGRESSO 🔄)
+### Fase 6 — Internacionalização e Padronização de Constantes (CONCLUÍDO ✅)
 *   [x] **Extração de Strings:** Remover todas as strings hardcoded e migrar para `composeResources` (strings.xml).
 *   [x] **Suporte Multi-idioma:** Implementar traduções completas para:
     *   [x] Português (Brasil) - `pt-BR`.
     *   [x] Inglês - `en`.
     *   [x] Espanhol - `es`.
 *   [x] **Padronização de Dimensões:** Criar um objeto de design system (ex: `AppDimensions`) para centralizar espaçamentos (dp), raios de borda e tamanhos de ícones.
-*   [ ] **Constantes de Negócio:** Centralizar valores numéricos (timeouts, intervalos de skip, limites de cache) em arquivos de configuração apropriados.
-*   [ ] **Formatadores Localizados:** Garantir que datas e durações usem o locale do sistema para exibição.
+*   [x] **Constantes de Negócio:** Centralizar valores numéricos (timeouts, intervalos de skip, limites de cache) em arquivos de configuração apropriados.
+*   [x] **Formatadores Localizados:** Garantir que datas e durações usem o locale do sistema para exibição (via `Formatters.kt`).
 
 ### Fase 7 — Expansão da Base de Testes e Qualidade
 *   [ ] **Testes de UI (Compose Test):** Implementar testes de interação para as principais telas em `commonTest`.
