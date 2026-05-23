@@ -73,8 +73,8 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
     *   [x] Downloads (`DownloadedEpisodesScreen`).
     *   [x] Player (MiniPlayer e Tela Cheia via `PlayerScreen`).
 *   [x] Layout Adaptativo (Listas/Grids responsivos).
-*   [ ] Refinamento do Design System (Cores, Tipografia Material 3).
-*   [ ] Animações complexas de transição entre MiniPlayer e Player expandido.
+*   [x] Refinamento do Design System (Cores, Tipografia Material 3).
+*   [x] Animações complexas de transição entre MiniPlayer e Player expandido.
 *   [ ] Extração dinâmica de cores do Artwork.
 
 ### Fase 5 — Integrações Nativas e Polimento (PRÓXIMOS PASSOS 🔜)
