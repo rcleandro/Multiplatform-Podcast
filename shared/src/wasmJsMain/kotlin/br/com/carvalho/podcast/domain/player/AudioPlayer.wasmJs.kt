@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.domain.player
 
+import br.com.carvalho.podcast.core.player.setupMediaSessionActions
+import br.com.carvalho.podcast.core.player.updateMediaSessionMetadata
+import br.com.carvalho.podcast.core.player.updateMediaSessionPlaybackState
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -12,6 +15,7 @@ import org.w3c.dom.HTMLAudioElement
 
 private const val TAG = "AudioPlayer"
 
+@OptIn(ExperimentalWasmJsInterop::class)
 class WasmAudioPlayer : AudioPlayer {
     private val audio = (window.document.createElement("audio") as HTMLAudioElement).apply {
         onplay = {
@@ -39,10 +43,28 @@ class WasmAudioPlayer : AudioPlayer {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var progressJob: Job? = null
 
-    @OptIn(ExperimentalCoroutinesApi::class, ExperimentalWasmJsInterop::class)
+    init {
+        setupMediaSessionActions(
+            onPlay = { resume() },
+            onPause = { pause() },
+            onSeekBackward = { skipBackward(15) },
+            onSeekForward = { skipForward(30) },
+            onPreviousTrack = { playPrevious() },
+            onNextTrack = { playNext() }
+        )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun play(episode: Episode) {
         val playbackUri = episode.localPath ?: episode.audioUrl
         AppLogger.i(TAG, "Playing episode in Wasm: ${episode.title} ($playbackUri)")
+
+        updateMediaSessionMetadata(
+            title = episode.title,
+            artist = episode.podcastTitle.orEmpty(),
+            artworkUrl = episode.imageUrl.orEmpty()
+        )
+
         audio.src = playbackUri
         try {
             audio.play()
@@ -55,6 +77,13 @@ class WasmAudioPlayer : AudioPlayer {
 
     override fun prepare(episode: Episode, positionMs: Long) {
         val playbackUri = episode.localPath ?: episode.audioUrl
+
+        updateMediaSessionMetadata(
+            title = episode.title,
+            artist = episode.podcastTitle.orEmpty(),
+            artworkUrl = episode.imageUrl.orEmpty()
+        )
+
         audio.src = playbackUri
         audio.currentTime = positionMs / 1000.0
         _playerState.value = _playerState.value.copy(
@@ -70,7 +99,6 @@ class WasmAudioPlayer : AudioPlayer {
         stopProgressUpdate()
     }
 
-    @OptIn(ExperimentalWasmJsInterop::class)
     override fun resume() {
         audio.play()
         startProgressUpdate()
@@ -149,6 +177,7 @@ class WasmAudioPlayer : AudioPlayer {
             duration = duration,
             isBuffering = buffering
         )
+        updateMediaSessionPlaybackState(if (playing) "playing" else "paused")
     }
 
     private fun startProgressUpdate() {
