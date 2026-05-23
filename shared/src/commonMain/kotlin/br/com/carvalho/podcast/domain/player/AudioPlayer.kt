@@ -4,9 +4,6 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import kotlinx.coroutines.flow.StateFlow
 
-const val SKIP_FORWARD_SECONDS = 30
-const val SKIP_BACKWARD_SECONDS = 10
-
 interface AudioPlayer {
     val playerState: StateFlow<PlayerState>
     val isReady: StateFlow<Boolean>
