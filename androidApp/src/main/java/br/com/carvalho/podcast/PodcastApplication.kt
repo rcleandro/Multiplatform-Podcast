@@ -22,8 +22,8 @@ class PodcastApplication : Application() {
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_DESTROY) {
-                    getKoin().get<AudioPlayer>().releasePlayer()
+                if (event == Lifecycle.Event.ON_STOP || event == Lifecycle.Event.ON_DESTROY) {
+                    getKoin().get<AudioPlayer>().release()
                 }
             }
         )
