@@ -53,7 +53,7 @@ fun PlayerScreen(
                 CenterAlignedTopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Unspecified,
+                        scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = Color.Unspecified,
                         titleContentColor = Color.Unspecified,
                         actionIconContentColor = Color.Unspecified

@@ -61,6 +61,10 @@ fun EpisodeDetailScreen(
                         )
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                ),
                 scrollBehavior = scrollBehavior
             )
         },

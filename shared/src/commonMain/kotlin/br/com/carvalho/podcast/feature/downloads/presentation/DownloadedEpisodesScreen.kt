@@ -38,6 +38,10 @@ fun DownloadedEpisodesScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Downloads") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                ),
                 scrollBehavior = scrollBehavior
             )
         },

@@ -56,6 +56,10 @@ fun LibraryScreen(
                         Icon(Icons.Rounded.Refresh, contentDescription = "Atualizar Tudo")
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                ),
                 scrollBehavior = scrollBehavior
             )
         },

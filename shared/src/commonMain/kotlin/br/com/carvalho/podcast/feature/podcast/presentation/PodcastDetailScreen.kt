@@ -72,6 +72,10 @@ fun PodcastDetailScreen(
                         Icon(Icons.Rounded.Refresh, contentDescription = "Atualizar")
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                ),
                 scrollBehavior = scrollBehavior
             )
         },
