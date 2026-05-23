@@ -33,7 +33,7 @@ class DaoIntegrationTest {
     @Test
     fun `insert and retrieve podcast`() = runTest {
         if (!isDatabaseSupported) return@runTest
-        val podcast = createPodcastEntity("p1")
+        val podcast = "p1".createPodcastEntity()
         podcastDao.insert(podcast)
 
         val retrieved = podcastDao.getById("p1")
@@ -43,7 +43,7 @@ class DaoIntegrationTest {
     @Test
     fun `insert podcast and episodes then retrieve episodes by podcast id`() = runTest {
         if (!isDatabaseSupported) return@runTest
-        val podcast = createPodcastEntity("p1")
+        val podcast = "p1".createPodcastEntity()
         podcastDao.insert(podcast)
 
         val episode = createEpisodeEntity("e1", "p1")
@@ -57,7 +57,7 @@ class DaoIntegrationTest {
     @Test
     fun `delete podcast also deletes its episodes due to cascade`() = runTest {
         if (!isDatabaseSupported) return@runTest
-        val podcast = createPodcastEntity("p1")
+        val podcast = "p1".createPodcastEntity()
         podcastDao.insert(podcast)
 
         val episode = createEpisodeEntity("e1", "p1")
@@ -72,7 +72,7 @@ class DaoIntegrationTest {
     @Test
     fun `search episodes by title or description`() = runTest {
         if (!isDatabaseSupported) return@runTest
-        val podcast = createPodcastEntity("p1")
+        val podcast = "p1".createPodcastEntity()
         podcastDao.insert(podcast)
 
         val ep1 = createEpisodeEntity("e1", "p1", title = "Kotlin Programming")
@@ -88,9 +88,9 @@ class DaoIntegrationTest {
         assertEquals("e2", results2[0].id)
     }
 
-    private fun createPodcastEntity(id: String) = PodcastEntity(
-        id = id,
-        title = "Title $id",
+    private fun String.createPodcastEntity() = PodcastEntity(
+        id = this,
+        title = "Title $this",
         description = "Desc",
         imageUrl = "img",
         author = "Author",
