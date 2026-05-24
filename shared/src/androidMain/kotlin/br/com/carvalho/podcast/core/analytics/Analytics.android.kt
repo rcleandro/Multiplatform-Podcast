@@ -9,7 +9,7 @@ actual object Analytics {
     private val firebaseAnalytics by lazy {
         try {
             Firebase.analytics
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

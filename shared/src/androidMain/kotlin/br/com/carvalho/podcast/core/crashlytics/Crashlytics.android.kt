@@ -10,7 +10,7 @@ actual object Crashlytics {
     private val firebaseCrashlytics by lazy {
         try {
             Firebase.crashlytics
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Em testes unitários Android (HostTest), o FirebaseApp não está inicializado.
             null
         }

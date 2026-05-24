@@ -10,7 +10,7 @@ actual object Performance {
             val firebaseTrace = FirebasePerformance.getInstance().newTrace(identifier)
             firebaseTrace.start()
             AndroidTrace(firebaseTrace)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // No unit tests, FirebasePerformance is not available
             NoOpTrace
         }

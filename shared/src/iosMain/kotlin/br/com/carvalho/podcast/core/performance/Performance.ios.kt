@@ -11,7 +11,7 @@ actual object Performance {
     actual fun startTrace(identifier: String): Trace {
         val isFirebaseInitialized = try {
             FIRApp.defaultApp() != null
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
 
@@ -20,7 +20,7 @@ actual object Performance {
                 val firTrace = FIRPerformance.sharedInstance().traceWithName(identifier)
                 firTrace?.start()
                 IosTraceImpl(firTrace)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 NoOpTrace
             }
         } else {

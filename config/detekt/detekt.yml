@@ -337,7 +337,7 @@ naming:
     excludeClassPattern: '$^'
   FunctionParameterNaming:
     active: true
-    parameterPattern: '[a-z][A-Za-z0-9]*'
+    parameterPattern: '[a-z][A-Za-z0-9]*|_'
     excludeClassPattern: '$^'
   InvalidPackageDeclaration:
     active: true
@@ -376,8 +376,8 @@ naming:
     minimumVariableNameLength: 1
   VariableNaming:
     active: true
-    variablePattern: '[a-z][A-Za-z0-9]*'
-    privateVariablePattern: '(_)?[a-z][A-Za-z0-9]*'
+    variablePattern: '[a-z][A-Za-z0-9]*|_'
+    privateVariablePattern: '(_)?[a-z][A-Za-z0-9]*|_'
     excludeClassPattern: '$^'
 
 performance:
