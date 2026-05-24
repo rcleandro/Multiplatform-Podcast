@@ -76,6 +76,16 @@ kotlin {
         pod("FirebaseInstallations") {
             version = "~> 11.0"
         }
+        pod("GoogleUtilities") {
+            version = "~> 8.0"
+        }
+        pod("nanopb") {
+            version = "~> 3.0"
+        }
+        pod("PromisesObjC") {
+            version = "~> 2.0"
+            moduleName = "FBLPromises"
+        }
     }
 
     applyDefaultHierarchyTemplate()

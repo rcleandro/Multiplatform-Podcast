@@ -75,14 +75,28 @@ object RssXmlParser {
     }
 
     private fun extractTag(xml: String, tagName: String): String? {
-        val startTag = "<$tagName>"
-        val endTag = "</$tagName>"
-        val startIndex = xml.indexOf(startTag)
+        val startTagPattern = "<$tagName"
+        var startIndex = xml.indexOf(startTagPattern)
+        
+        // Verify it's actually the tag name and not a prefix (e.g. <tag vs <tagName)
+        while (startIndex != -1) {
+            val nextChar = xml.getOrNull(startIndex + startTagPattern.length)
+            if (nextChar == '>' || nextChar == ' ' || nextChar == '\t' || nextChar == '\r' || nextChar == '\n') {
+                break
+            }
+            startIndex = xml.indexOf(startTagPattern, startIndex + 1)
+        }
+        
         if (startIndex == -1) return null
-        val endIndex = xml.indexOf(endTag, startIndex)
+        
+        val startTagEnd = xml.indexOf(">", startIndex)
+        if (startTagEnd == -1) return null
+        
+        val endTag = "</$tagName>"
+        val endIndex = xml.indexOf(endTag, startTagEnd)
         if (endIndex == -1) return null
         
-        val content = xml.substring(startIndex + startTag.length, endIndex).trim()
+        val content = xml.substring(startTagEnd + 1, endIndex).trim()
         
         return if (content.startsWith("<![CDATA[")) {
             content.removePrefix("<![CDATA[").removeSuffix("]]>").trim()

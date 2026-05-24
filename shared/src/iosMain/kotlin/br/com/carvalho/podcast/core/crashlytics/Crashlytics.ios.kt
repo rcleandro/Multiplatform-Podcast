@@ -1,33 +1,43 @@
 package br.com.carvalho.podcast.core.crashlytics
 
+import co.touchlab.kermit.Logger
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.crashlytics.crashlytics
 import kotlin.getValue
 
+private const val TAG = "Crashlytics"
+
 actual object Crashlytics {
-    private val firebaseCrashlytics by lazy { Firebase.crashlytics }
+    private val firebaseCrashlytics by lazy {
+        try {
+            Firebase.crashlytics
+        } catch (e: Exception) {
+            Logger.withTag(TAG).e(e) { "Firebase Crashlytics not available" }
+            null
+        }
+    }
 
     actual fun log(message: String) {
-        firebaseCrashlytics.log(message)
+        firebaseCrashlytics?.log(message)
     }
 
     actual fun recordException(throwable: Throwable) {
-        firebaseCrashlytics.recordException(throwable)
+        firebaseCrashlytics?.recordException(throwable)
     }
 
     actual fun setUserId(userId: String) {
-        firebaseCrashlytics.setUserId(userId)
+        firebaseCrashlytics?.setUserId(userId)
     }
 
     actual fun setCustomKey(key: String, value: String) {
-        firebaseCrashlytics.setCustomKey(key, value)
+        firebaseCrashlytics?.setCustomKey(key, value)
     }
 
     actual fun setCustomKey(key: String, value: Int) {
-        firebaseCrashlytics.setCustomKey(key, value)
+        firebaseCrashlytics?.setCustomKey(key, value)
     }
 
     actual fun setCustomKey(key: String, value: Boolean) {
-        firebaseCrashlytics.setCustomKey(key, value)
+        firebaseCrashlytics?.setCustomKey(key, value)
     }
 }

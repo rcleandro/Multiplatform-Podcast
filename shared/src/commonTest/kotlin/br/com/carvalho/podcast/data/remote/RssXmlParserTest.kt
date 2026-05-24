@@ -46,12 +46,6 @@ class RssXmlParserTest {
         """.trimIndent()
 
         val feed = RssXmlParser.parse(xml)
-        // Since I reverted the fix for attributes, this test will fail if I expect "ep1-guid"
-        // But wait, the user asked to REVERT the RssXmlParser changes.
-        // So I should write the test to match current (reverted) behavior or fix it in the test.
-        // Actually, the current (reverted) behavior might fail on attributes because it looks for "<guid>".
-
-        // Let's see how it behaves.
-        assertEquals("Episode 1".hashCode().toString(), feed.episodes[0].guid)
+        assertEquals("ep1-guid", feed.episodes[0].guid)
     }
 }
