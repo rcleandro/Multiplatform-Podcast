@@ -51,7 +51,7 @@ kotlin {
     cocoapods {
         version = "1.0"
         summary = "Shared module for Podcast app"
-        homepage = "https://github.com/leandro/Podcast"
+        homepage = "https://github.com/rcleandro/Multiplatform-Podcast"
         ios.deploymentTarget = "16.0"
         framework {
             baseName = "Shared"
