@@ -54,7 +54,7 @@ class DownloadedEpisodesViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            awaitItem() // initial state
+            awaitItem()
             viewModel.deleteDownload("e1")
             
             val state = awaitItem()

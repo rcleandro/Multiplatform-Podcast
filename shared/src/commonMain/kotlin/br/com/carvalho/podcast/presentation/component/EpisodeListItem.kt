@@ -113,7 +113,7 @@ fun EpisodeListItem(
                 onLongClick = onLongClick
             )
             .semantics(mergeDescendants = true) {
-                onLongClick(null) { // Texto será inferido ou podemos passar stringResource
+                onLongClick(null) {
                     onLongClick()
                     true
                 }
@@ -132,7 +132,7 @@ fun EpisodeListItem(
         ) {
             AsyncImage(
                 model = episode.imageUrl,
-                contentDescription = null, // MergeDescendants na Row
+                contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
                 alpha = if (episode.isPlayed) AppDimensions.OPACITY_HALF else 1f,

@@ -58,7 +58,7 @@ class EpisodeDetailViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            awaitItem() // skip initial load state
+            awaitItem()
             viewModel.playEpisode()
 
             assertEquals(episodeId, audioPlayer.playCalledWith?.id)

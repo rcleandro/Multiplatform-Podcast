@@ -74,15 +74,12 @@ class RssMapperTest {
 
     @Test
     fun `parsePubDate handles various RFC 822 formats`() {
-        // Standard format
         val ep1 = createRssEpisode(pubDate = "Fri, 15 May 2026 10:00:00 GMT")
         assertEquals(1778839200000L, ep1.toEpisode("p").publishDate)
 
-        // No comma
         val ep2 = createRssEpisode(pubDate = "15 May 2026 10:00:00 GMT")
         assertEquals(1778839200000L, ep2.toEpisode("p").publishDate)
 
-        // Single digit day
         val ep3 = createRssEpisode(pubDate = "Fri, 5 May 2026 10:00:00 GMT")
         assertEquals(1777975200000L, ep3.toEpisode("p").publishDate)
     }

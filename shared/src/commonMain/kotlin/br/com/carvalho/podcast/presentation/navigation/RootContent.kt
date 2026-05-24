@@ -244,7 +244,6 @@ fun RootContent(component: RootComponentImpl) {
             }
         }
 
-        // Full screen Player as an overlay
         AnimatedVisibility(
             visible = activeChild is RootComponent.Child.Player,
             enter = slideInVertically(initialOffsetY = { it }),

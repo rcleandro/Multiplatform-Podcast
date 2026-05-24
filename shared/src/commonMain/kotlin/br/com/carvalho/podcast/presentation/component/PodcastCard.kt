@@ -65,7 +65,7 @@ fun PodcastCard(
             ) {
                 AsyncImage(
                     model = podcast.imageUrl,
-                    contentDescription = null, // Redundante pois mergeDescendants=true na Surface
+                    contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                     placeholder = painterResource(Res.drawable.app_icon),

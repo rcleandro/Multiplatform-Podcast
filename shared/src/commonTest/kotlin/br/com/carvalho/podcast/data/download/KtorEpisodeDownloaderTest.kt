@@ -57,16 +57,14 @@ class KtorEpisodeDownloaderTest {
         val downloader = createDownloader(mockEngine)
 
         downloader.activeDownloads.test {
-            assertEquals(emptyMap(), awaitItem()) // Initial
+            assertEquals(emptyMap(), awaitItem())
 
             downloader.download(sampleEpisode)
 
-            // Advance to Queued
             testDispatcher.scheduler.runCurrent()
             val queuedStatus = awaitItem()[sampleEpisode.id]
             assertTrue(queuedStatus is DownloadStatus.Queued, "Should be Queued but was $queuedStatus")
 
-            // Advance to completion
             testDispatcher.scheduler.advanceUntilIdle()
 
             val finalMap = awaitItem()
@@ -89,10 +87,10 @@ class KtorEpisodeDownloaderTest {
         val downloader = createDownloader(mockEngine)
 
         downloader.activeDownloads.test {
-            awaitItem() // initial
+            awaitItem()
             downloader.download(sampleEpisode)
             testDispatcher.scheduler.runCurrent()
-            awaitItem() // queued
+            awaitItem()
 
             testDispatcher.scheduler.advanceUntilIdle()
 
