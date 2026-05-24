@@ -61,6 +61,9 @@ kotlin {
         pod("FirebaseAnalytics") {
             version = "~> 11.0"
         }
+        pod("FirebaseCrashlytics") {
+            version = "~> 11.0"
+        }
     }
 
     applyDefaultHierarchyTemplate()
@@ -138,6 +141,7 @@ kotlin {
             implementation(project.dependencies.platform(libs.firebase.bom))
             implementation(libs.firebase.common)
             implementation(libs.firebase.analytics)
+            implementation(libs.firebase.crashlytics)
         }
 
         val iosMain by getting {
@@ -148,6 +152,7 @@ kotlin {
                 // Firebase
                 implementation(libs.firebase.common)
                 implementation(libs.firebase.analytics)
+                implementation(libs.firebase.crashlytics)
             }
         }
 
@@ -188,22 +193,19 @@ kotlin {
             implementation(libs.ktor.client.mock)
             implementation(libs.ui.test)
             implementation(libs.okio.fakefilesystem)
+            implementation(libs.mockk)
         }
 
-        val jvmCommonTest by creating {
-            dependsOn(commonTest.get())
+        val androidHostTest by getting {
             dependencies {
-                implementation(libs.mockk)
                 implementation(libs.androidx.sqlite.bundled.jvm)
             }
         }
 
-        val androidHostTest by getting {
-            dependsOn(jvmCommonTest)
-        }
-
         val desktopTest by getting {
-            dependsOn(jvmCommonTest)
+            dependencies {
+                implementation(libs.androidx.sqlite.bundled.jvm)
+            }
         }
     }
 }

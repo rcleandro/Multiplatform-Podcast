@@ -53,6 +53,7 @@ detekt = "1.23.8"
 firebase-bom = "34.13.0"
 firebase-gitlive = "2.4.0"
 google-services = "4.4.4"
+firebase-crashlytics-plugin = "3.0.7"
 
 # Testes
 turbine = "1.2.1"
@@ -137,6 +138,7 @@ kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-analytics = { module = "dev.gitlive:firebase-analytics", version.ref = "firebase-gitlive" }
 firebase-common = { module = "dev.gitlive:firebase-common", version.ref = "firebase-gitlive" }
+firebase-crashlytics = { module = "dev.gitlive:firebase-crashlytics", version.ref = "firebase-gitlive" }
 
 # Lifecycle
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
@@ -170,4 +172,5 @@ room = { id = "androidx.room3", version.ref = "room3" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-plugin" }
 kotlin-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods"}
