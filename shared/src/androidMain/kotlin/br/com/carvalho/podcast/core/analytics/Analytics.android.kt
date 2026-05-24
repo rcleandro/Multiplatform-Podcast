@@ -1,6 +1,5 @@
 package br.com.carvalho.podcast.core.analytics
 
-import br.com.carvalho.podcast.core.util.AppLogger
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.analytics.analytics
 

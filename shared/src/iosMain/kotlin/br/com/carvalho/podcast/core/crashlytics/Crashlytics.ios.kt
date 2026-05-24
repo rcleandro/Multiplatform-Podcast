@@ -1,6 +1,5 @@
 package br.com.carvalho.podcast.core.crashlytics
 
-import co.touchlab.kermit.Logger
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.crashlytics.crashlytics
 import kotlin.getValue
