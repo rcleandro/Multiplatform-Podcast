@@ -45,14 +45,22 @@ kotlin {
         browser()
     }
 
-    iosArm64()
-    iosSimulatorArm64()
+    iosArm64 {
+        compilerOptions {
+            freeCompilerArgs.add("-Xmin-setup-version=18.2")
+        }
+    }
+    iosSimulatorArm64 {
+        compilerOptions {
+            freeCompilerArgs.add("-Xmin-setup-version=18.2")
+        }
+    }
 
     cocoapods {
         version = "1.0"
         summary = "Shared module for Podcast app"
         homepage = "https://github.com/rcleandro/Multiplatform-Podcast"
-        ios.deploymentTarget = "16.0"
+        ios.deploymentTarget = "18.2"
         framework {
             baseName = "Shared"
             isStatic = true

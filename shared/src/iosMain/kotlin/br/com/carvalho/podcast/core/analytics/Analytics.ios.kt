@@ -2,13 +2,20 @@ package br.com.carvalho.podcast.core.analytics
 
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.analytics.analytics
+import cocoapods.FirebaseCore.FIRApp
+import kotlinx.cinterop.ExperimentalForeignApi
 
 actual object Analytics {
+    @OptIn(ExperimentalForeignApi::class)
     @Suppress("TooGenericExceptionCaught", "SwallowedException")
     private val firebaseAnalytics by lazy {
         try {
-            Firebase.analytics
-        } catch (_: Exception) {
+            if (FIRApp.defaultApp() == null) {
+                null
+            } else {
+                Firebase.analytics
+            }
+        } catch (_: Throwable) {
             null
         }
     }
