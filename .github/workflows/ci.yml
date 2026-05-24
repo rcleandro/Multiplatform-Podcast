@@ -44,6 +44,7 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Create GoogleService-Info.plist
+              if: "${{ secrets.GOOGLE_SERVICE_INFO_PLIST != '' }}"
               run: |
                 echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > iosApp/iosApp/GoogleService-Info.plist
 
@@ -100,6 +101,7 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Create GoogleService-Info.plist
+              if: "${{ secrets.GOOGLE_SERVICE_INFO_PLIST != '' }}"
               run: |
                 echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > iosApp/iosApp/GoogleService-Info.plist
 
