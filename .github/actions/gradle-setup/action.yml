@@ -8,5 +8,18 @@ runs:
             with:
                 java-version: "21"
                 distribution: "temurin"
+
         -   name: Setup Gradle
             uses: gradle/actions/setup-gradle@v4
+
+        -   name: Cache CocoaPods
+            uses: actions/cache@v4
+            with:
+                path: |
+                    ~/.cocoapods
+                    shared/build/cocoapods
+                    Pods
+                    shared/build/cocoapods/synthetic
+                key: ${{ runner.os }}-cocoapods-v2-${{ hashFiles('shared/build.gradle.kts', '**/Podfile.lock') }}
+                restore-keys: |
+                    ${{ runner.os }}-cocoapods-v2-
