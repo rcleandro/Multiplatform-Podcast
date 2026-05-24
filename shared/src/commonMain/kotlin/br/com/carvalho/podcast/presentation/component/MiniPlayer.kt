@@ -60,8 +60,7 @@ fun MiniPlayer(
             )
             .clip(MaterialTheme.shapes.medium)
             .height(AppDimensions.miniPlayerHeight)
-            .clickable(onClick = onClick)
-            .semantics(mergeDescendants = true) {},
+            .clickable(onClick = onClick),
         color = MaterialTheme.colorScheme.primaryContainer,
         tonalElevation = AppDimensions.elevationLow
     ) {
