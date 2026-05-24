@@ -27,3 +27,7 @@ iosApp/Podfile.lock
 *.podspec
 
 # Android
+androidApp/google-services.json
+
+# iOS
+iosApp/iosApp/GoogleService-Info.plist
