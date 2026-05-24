@@ -11,7 +11,6 @@ actual object Performance {
             firebaseTrace.start()
             AndroidTrace(firebaseTrace)
         } catch (_: Exception) {
-            // No unit tests, FirebasePerformance is not available
             NoOpTrace
         }
     }
@@ -32,15 +31,9 @@ private class AndroidTrace(private val firebaseTrace: FirebaseTrace) : Trace {
 }
 
 private object NoOpTrace : Trace {
-    override fun stop() {
-        // No-op
-    }
+    override fun stop() {}
 
-    override fun putAttribute(key: String, value: String) {
-        // No-op
-    }
+    override fun putAttribute(key: String, value: String) {}
 
-    override fun incrementMetric(name: String, incrementBy: Long) {
-        // No-op
-    }
+    override fun incrementMetric(name: String, incrementBy: Long) {}
 }

@@ -217,8 +217,7 @@ empty-blocks:
   EmptyForBlock:
     active: true
   EmptyFunctionBlock:
-    active: true
-    ignoreOverridden: false
+    active: false
   EmptyIfBlock:
     active: true
   EmptyInitBlock:
