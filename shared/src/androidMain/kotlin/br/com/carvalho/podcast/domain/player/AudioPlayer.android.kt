@@ -84,35 +84,36 @@ class AndroidAudioPlayer : AudioPlayer {
         scope.launch {
             try {
                 AppLogger.d(TAG, "Connecting to MediaController...")
-                controller = controllerFuture.await()
-                AppLogger.d(TAG, "Controller ready, playbackState = ${controller?.playbackState}")
+                val readyController = controllerFuture.await()
+                controller = readyController
+                AppLogger.d(TAG, "Controller ready, playbackState = ${readyController.playbackState}")
 
-                controller?.addListener(playerListener)
-                AppLogger.d(TAG, "MediaController connected")
+                readyController.addListener(playerListener)
+                AppLogger.d(TAG, "MediaController connected and listener added")
 
-                controller?.let { player ->
-                    when (player.playbackState) {
-                        Player.STATE_BUFFERING -> {
-                            _playerState.value = _playerState.value.copy(isBuffering = true)
-                        }
-                        Player.STATE_READY -> {
-                            _playerState.value = _playerState.value.copy(isBuffering = false)
-                        }
+                when (readyController.playbackState) {
+                    Player.STATE_BUFFERING -> {
+                        _playerState.value = _playerState.value.copy(isBuffering = true)
                     }
-
-                    if (player.isPlaying || player.playbackState != Player.STATE_IDLE) {
-                        _playerState.value = _playerState.value.copy(
-                            isPlaying = player.isPlaying,
-                            speed = player.playbackParameters.speed,
-                            duration = player.duration.takeIf { d -> d >= 0 },
-                            position = player.currentPosition
-                        )
-                    } else {
-                        player.playbackParameters = PlaybackParameters(_playerState.value.speed)
+                    Player.STATE_READY -> {
+                        _playerState.value = _playerState.value.copy(isBuffering = false)
                     }
-
-                    if (player.isPlaying) startProgressUpdate()
                 }
+
+                if (readyController.isPlaying || readyController.playbackState != Player.STATE_IDLE) {
+                    _playerState.value = _playerState.value.copy(
+                        isPlaying = readyController.isPlaying,
+                        speed = readyController.playbackParameters.speed,
+                        duration = readyController.duration.takeIf { d -> d >= 0 },
+                        position = readyController.currentPosition
+                    )
+                } else {
+                    readyController.playbackParameters = PlaybackParameters(_playerState.value.speed)
+                }
+
+                if (readyController.isPlaying) startProgressUpdate()
+            } catch (_: CancellationException) {
+                AppLogger.d(TAG, "MediaController connection cancelled")
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Failed to connect to MediaController", e)
             } finally {
@@ -126,10 +127,15 @@ class AndroidAudioPlayer : AudioPlayer {
 
     private suspend fun getController(): MediaController? {
         if (controller != null) return controller
+        AppLogger.d(TAG, "getController: controller is null, awaiting controllerFuture...")
         return try {
             controllerFuture.await().also {
                 controller = it
+                AppLogger.d(TAG, "getController: controller initialized via future")
             }
+        } catch (_: CancellationException) {
+            AppLogger.d(TAG, "getController: Await cancelled")
+            null
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error awaiting MediaController", e)
             null

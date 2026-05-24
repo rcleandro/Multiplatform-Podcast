@@ -251,10 +251,12 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 // Custom task to sync Compose resources for Android assets (AGP 9.x compatibility)
 val syncComposeResourcesForAndroid = tasks.register<Copy>("syncComposeResourcesForAndroid") {
     dependsOn("prepareComposeResourcesTaskForCommonMain")
-    from(layout.buildDirectory.dir("generated/compose/resourceGenerator/preparedResources/commonMain/composeResources"))
+    val sourceDir = layout.buildDirectory.dir("generated/compose/resourceGenerator/preparedResources/commonMain/composeResources")
+    from(sourceDir)
     into(layout.buildDirectory.dir("generated/compose/androidAssets/composeResources/br.com.carvalho.podcast.shared"))
+    inputs.dir(sourceDir)
 }
 
 kotlin.sourceSets.getByName("androidMain").resources.srcDirs(
-    syncComposeResourcesForAndroid.map { it.destinationDir.parentFile }
+    syncComposeResourcesForAndroid.map { it.destinationDir.parentFile.parentFile }
 )
