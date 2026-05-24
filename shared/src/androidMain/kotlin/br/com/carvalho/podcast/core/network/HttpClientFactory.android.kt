@@ -5,6 +5,8 @@ import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.cache.HttpCache
+import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
@@ -13,6 +15,11 @@ import io.ktor.serialization.kotlinx.json.json
 actual fun createHttpClient(): HttpClient = HttpClient(Android) {
     install(ContentNegotiation) {
         json(commonJson)
+    }
+    install(HttpCache)
+    install(ContentEncoding) {
+        gzip()
+        deflate()
     }
     install(HttpTimeout) {
         requestTimeoutMillis = 30_000

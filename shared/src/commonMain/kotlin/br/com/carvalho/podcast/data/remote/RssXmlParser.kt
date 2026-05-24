@@ -25,12 +25,13 @@ object RssXmlParser {
         var currentPos = firstItemPos
 
         while (currentPos != -1) {
-            val nextItemPos = xml.indexOf("<item>", currentPos + 6)
-            val itemXml = if (nextItemPos != -1) {
-                xml.substring(currentPos, nextItemPos)
-            } else {
-                xml.substring(currentPos)
-            }
+            val startItem = xml.indexOf("<item>", currentPos)
+            if (startItem == -1) break
+            
+            val endItem = xml.indexOf("</item>", startItem)
+            if (endItem == -1) break
+            
+            val itemXml = xml.substring(startItem, endItem + 7)
 
             val title = extractTag(itemXml, "title") ?: "Sem título"
             val guid = extractTag(itemXml, "guid") ?: title.hashCode().toString()
@@ -55,7 +56,7 @@ object RssXmlParser {
                 )
             )
 
-            currentPos = nextItemPos
+            currentPos = endItem + 7
         }
 
         AppLogger.d(TAG, "Finished XML parse. Total episodes: ${episodes.size}")
@@ -80,10 +81,14 @@ object RssXmlParser {
         if (startIndex == -1) return null
         val endIndex = xml.indexOf(endTag, startIndex)
         if (endIndex == -1) return null
-        return xml.substring(startIndex + startTag.length, endIndex)
-            .replace("<![CDATA[", "")
-            .replace("]]>", "")
-            .trim()
+        
+        val content = xml.substring(startIndex + startTag.length, endIndex).trim()
+        
+        return if (content.startsWith("<![CDATA[")) {
+            content.removePrefix("<![CDATA[").removeSuffix("]]>").trim()
+        } else {
+            content
+        }
     }
 
     private fun extractAttribute(xml: String, tagName: String, attributeName: String): String? {

@@ -13,7 +13,7 @@ import br.com.carvalho.podcast.data.local.entity.PlaybackStateEntity
 
 @Database(
     entities = [PodcastEntity::class, EpisodeEntity::class, PlaybackStateEntity::class],
-    version = 2
+    version = 3
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "60a59e4720d467ce2b01db2eceae87b5",
+    "identityHash": "dd95c8398dd5cbb723faf049be4521c9",
     "entities": [
       {
         "tableName": "podcasts",
@@ -80,7 +80,7 @@
       },
       {
         "tableName": "episodes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `podcastId` TEXT NOT NULL, `podcastTitle` TEXT, `title` TEXT NOT NULL, `description` TEXT, `audioUrl` TEXT NOT NULL, `imageUrl` TEXT, `duration` INTEGER NOT NULL, `publishDate` INTEGER NOT NULL, `isPlayed` INTEGER NOT NULL, `playbackPosition` INTEGER NOT NULL, `isDownloaded` INTEGER NOT NULL, `fileSize` INTEGER, `localPath` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`podcastId`) REFERENCES `podcasts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `podcastId` TEXT NOT NULL, `podcastTitle` TEXT, `title` TEXT NOT NULL, `description` TEXT, `audioUrl` TEXT NOT NULL, `imageUrl` TEXT, `duration` INTEGER NOT NULL, `publishDate` INTEGER NOT NULL, `isPlayed` INTEGER NOT NULL, `playbackPosition` INTEGER NOT NULL, `isDownloaded` INTEGER NOT NULL, `fileSize` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`podcastId`) REFERENCES `podcasts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -155,11 +155,6 @@
             "fieldPath": "fileSize",
             "columnName": "fileSize",
             "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "localPath",
-            "columnName": "localPath",
-            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -177,6 +172,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_episodes_podcastId` ON `${TABLE_NAME}` (`podcastId`)"
+          },
+          {
+            "name": "index_episodes_publishDate",
+            "unique": false,
+            "columnNames": [
+              "publishDate"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_episodes_publishDate` ON `${TABLE_NAME}` (`publishDate`)"
           }
         ],
         "foreignKeys": [
@@ -237,7 +241,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '60a59e4720d467ce2b01db2eceae87b5')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dd95c8398dd5cbb723faf049be4521c9')"
     ]
   }
 }

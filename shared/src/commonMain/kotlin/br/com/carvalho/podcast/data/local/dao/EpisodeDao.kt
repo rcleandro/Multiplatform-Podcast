@@ -7,6 +7,8 @@ import androidx.room3.Query
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import kotlinx.coroutines.flow.Flow
 
+import androidx.room3.Transaction
+
 @Dao
 interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE podcastId = :podcastId ORDER BY publishDate DESC")
@@ -41,6 +43,7 @@ interface EpisodeDao {
     """)
     suspend fun searchPaged(query: String, limit: Int, offset: Int): List<EpisodeEntity>
 
+    @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(episodes: List<EpisodeEntity>)
 
@@ -66,6 +69,7 @@ interface EpisodeDao {
     @Query("UPDATE episodes SET isDownloaded = :downloaded WHERE id = :id")
     suspend fun updateDownloadStatus(id: String, downloaded: Boolean)
 
+    @Transaction
     @Query("""
         UPDATE episodes
         SET isPlayed = 1, playbackPosition = 0

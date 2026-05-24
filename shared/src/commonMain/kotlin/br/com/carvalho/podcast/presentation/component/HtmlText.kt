@@ -9,13 +9,14 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.runtime.remember
 
 @Composable
 fun HtmlText(
     html: String,
     modifier: Modifier = Modifier
 ) {
-    val annotatedString = parseHtml(html)
+    val annotatedString = remember(html) { parseHtml(html) }
     Text(
         text = annotatedString,
         modifier = modifier,

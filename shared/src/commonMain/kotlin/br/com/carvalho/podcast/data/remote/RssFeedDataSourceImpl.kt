@@ -2,16 +2,21 @@ package br.com.carvalho.podcast.data.remote
 
 import br.com.carvalho.podcast.data.remote.model.RssFeed
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.head
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.withContext
 
 private const val TAG = "RssFeedDataSource"
 
-class RssFeedDataSourceImpl(private val client: HttpClient) : RssFeedDataSource {
+class RssFeedDataSourceImpl(
+    private val client: HttpClient,
+    private val dispatchers: CoroutineDispatchers
+) : RssFeedDataSource {
 
     override suspend fun fetchFeed(url: String): Result<RssFeed> = runCatching {
         AppLogger.d(TAG, "Fetching feed from URL: $url")
@@ -21,7 +26,10 @@ class RssFeedDataSourceImpl(private val client: HttpClient) : RssFeedDataSource 
             throw Exception("Falha ao carregar o feed: ${response.status}")
         }
         val xmlContent = response.bodyAsText()
-        RssXmlParser.parse(xmlContent)
+        
+        withContext(dispatchers.default) {
+            RssXmlParser.parse(xmlContent)
+        }
     }
 
     override suspend fun validateFeedUrl(url: String): Result<Boolean> = runCatching {

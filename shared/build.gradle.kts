@@ -111,6 +111,7 @@ kotlin {
             implementation(libs.ktor.content.negotiation)
             implementation(libs.ktor.serialization.json)
             implementation(libs.ktor.logging)
+            implementation(libs.ktor.encoding)
 
             // Koin 4
             api(libs.koin.core)

@@ -156,7 +156,11 @@ fun LibraryScreen(
                         verticalArrangement = Arrangement.spacedBy(AppDimensions.spacingLarge),
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(uiState.podcasts) { podcast ->
+                        items(
+                            items = uiState.podcasts,
+                            key = { it.id },
+                            contentType = { "podcast" }
+                        ) { podcast ->
                             PodcastCard(
                                 podcast = podcast,
                                 onClick = { onPodcastClick(podcast.id) },

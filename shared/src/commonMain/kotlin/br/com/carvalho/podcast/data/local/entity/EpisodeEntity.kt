@@ -13,7 +13,10 @@ import androidx.room3.PrimaryKey
         childColumns = ["podcastId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index("podcastId")]
+    indices = [
+        Index("podcastId"),
+        Index("publishDate")
+    ]
 )
 data class EpisodeEntity(
     @PrimaryKey val id: String,

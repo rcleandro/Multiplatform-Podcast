@@ -1,7 +1,9 @@
 package br.com.carvalho.podcast.domain.model
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 
+@Immutable
 @Serializable
 data class Episode(
     val id: String,

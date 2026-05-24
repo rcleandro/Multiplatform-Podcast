@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.core.di
 
+import br.com.carvalho.podcast.core.image.createImageLoader
+import br.com.carvalho.podcast.core.network.commonJson
 import br.com.carvalho.podcast.core.network.createHttpClient
 import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.local.createAppDatabase
@@ -7,7 +9,6 @@ import br.com.carvalho.podcast.data.remote.RssFeedDataSource
 import br.com.carvalho.podcast.data.remote.RssFeedDataSourceImpl
 import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
-import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.player.createAudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
@@ -30,12 +31,20 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val dispatcherModule = module {
-    single { CoroutineDispatchers(main = Dispatchers.Main, io = ioDispatcher()) }
+    single {
+        CoroutineDispatchers(
+            main = Dispatchers.Main,
+            io = ioDispatcher(),
+            default = Dispatchers.Default
+        )
+    }
 }
 
 val networkModule = module {
+    single { commonJson }
     single { createHttpClient() }
-    single<RssFeedDataSource> { RssFeedDataSourceImpl(get()) }
+    single { createImageLoader(get()) }
+    single<RssFeedDataSource> { RssFeedDataSourceImpl(get(), get()) }
 }
 
 val playerModule = module {
