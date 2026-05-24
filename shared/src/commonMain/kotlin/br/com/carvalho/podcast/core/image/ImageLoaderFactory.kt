@@ -10,7 +10,7 @@ import coil3.request.crossfade
 import okio.FileSystem
 
 private const val MEMORY_CACHE_SIZE_PERCENT = 0.25
-private const val DISK_CACHE_MAX_SIZE = 512L * 1024L * 1024L // 512MB
+private const val DISK_CACHE_MAX_SIZE = 512L * 1024L * 1024L
 
 fun createImageLoader(context: PlatformContext): ImageLoader {
     return ImageLoader.Builder(context)

@@ -42,13 +42,10 @@ class MiniPlayerTest {
             )
         }
 
-        // Check title
         onNodeWithText("Teste Episodio").assertExists()
 
-        // Check play icon
         onNodeWithContentDescription("Reproduzir").assertExists()
 
-        // Test play click
         onNodeWithContentDescription("Reproduzir").performClick()
         assertEquals(true, playPauseClicked)
     }

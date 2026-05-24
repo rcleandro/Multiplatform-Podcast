@@ -91,7 +91,7 @@ class RootComponentTest {
         rootComponent.onEpisodeSelected(episodeId, podcastId)
 
         val stack = rootComponent.stack.value.items
-        assertEquals(3, stack.size) // Library + PodcastDetail + EpisodeDetail
+        assertEquals(3, stack.size)
 
         val activeChild = rootComponent.stack.value.active.instance
         assertTrue(activeChild is RootComponent.Child.EpisodeDetail)
@@ -117,11 +117,11 @@ class RootComponentTest {
     fun switching_tabs_should_clear_details() = runTest(testDispatcher) {
         createRootComponent()
         rootComponent.onEpisodeSelected("e1", "p1")
-        assertEquals(3, rootComponent.stack.value.items.size) // Lib, P1, E1
+        assertEquals(3, rootComponent.stack.value.items.size)
 
         rootComponent.onSearchTabClicked()
         val stack = rootComponent.stack.value.items
-        assertEquals(2, stack.size) // Lib, Search
+        assertEquals(2, stack.size)
         assertTrue(stack[0].instance is RootComponent.Child.Library)
         assertTrue(stack[1].instance is RootComponent.Child.Search)
     }
@@ -130,11 +130,11 @@ class RootComponentTest {
     fun selecting_podcast_should_clear_previous_episodes() = runTest(testDispatcher) {
         createRootComponent()
         rootComponent.onEpisodeSelected("e1", "p1")
-        assertEquals(3, rootComponent.stack.value.items.size) // Lib, P1, E1
+        assertEquals(3, rootComponent.stack.value.items.size)
 
         rootComponent.onPodcastSelected("p2")
         val stack = rootComponent.stack.value.items
-        assertEquals(2, stack.size) // Lib, P2
+        assertEquals(2, stack.size)
         assertTrue(stack[0].instance is RootComponent.Child.Library)
         assertTrue(stack[1].instance is RootComponent.Child.PodcastDetail)
         assertEquals("p2", (stack[1].instance as RootComponent.Child.PodcastDetail).podcastId)

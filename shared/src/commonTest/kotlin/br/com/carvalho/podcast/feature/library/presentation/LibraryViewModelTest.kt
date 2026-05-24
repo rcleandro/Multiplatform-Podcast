@@ -60,7 +60,7 @@ class LibraryViewModelTest {
     fun `onAddClicked opens dialog`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         viewModel.uiState.test {
-            awaitItem() // skip initial
+            awaitItem()
             viewModel.onAddClicked()
             assertTrue(awaitItem().isAddDialogOpen)
         }
@@ -75,7 +75,7 @@ class LibraryViewModelTest {
         rssDataSource.delayMs = 10
 
         viewModel.uiState.test {
-            awaitItem() // initial state
+            awaitItem()
 
             viewModel.onAddClicked()
             awaitItem()
@@ -85,7 +85,6 @@ class LibraryViewModelTest {
 
             viewModel.addPodcast()
             
-            // Wait for the state where isRefreshing becomes true
             var state = awaitItem()
             while (!state.isRefreshing) {
                 state = awaitItem()
@@ -93,7 +92,6 @@ class LibraryViewModelTest {
             assertTrue(state.isRefreshing)
             assertFalse(state.isAddDialogOpen)
 
-            // Wait for the state where isRefreshing becomes false
             state = awaitItem()
             while (state.isRefreshing) {
                 state = awaitItem()
@@ -112,7 +110,7 @@ class LibraryViewModelTest {
         val podcast = Podcast(id = "1", title = "P1", description = "", imageUrl = null, author = null, language = null, categories = emptyList(), feedUrl = "", siteUrl = null, lastUpdated = 0, isSubscribed = true)
         
         viewModel.uiState.test {
-            awaitItem() // initial
+            awaitItem()
             
             viewModel.onDeleteClicked(podcast)
             awaitItem()

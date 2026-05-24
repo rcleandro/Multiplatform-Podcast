@@ -52,7 +52,7 @@ class SearchViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            awaitItem() // initial
+            awaitItem()
 
             viewModel.onQueryChange("Title")
             

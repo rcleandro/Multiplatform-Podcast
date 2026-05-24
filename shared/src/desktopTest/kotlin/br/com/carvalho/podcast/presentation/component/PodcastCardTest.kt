@@ -37,13 +37,10 @@ class PodcastCardTest {
             )
         }
 
-        // Check if title is displayed
         onNodeWithText("Teste Podcast").assertExists()
 
-        // Check if author is displayed
         onNodeWithText("Teste Author").assertExists()
 
-        // Test click
         onNodeWithText("Teste Podcast").performClick()
         assertEquals(true, clicked)
     }

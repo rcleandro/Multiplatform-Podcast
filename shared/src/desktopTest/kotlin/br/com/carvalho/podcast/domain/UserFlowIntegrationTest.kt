@@ -70,21 +70,17 @@ class UserFlowIntegrationTest {
 
         coEvery { rssDataSource.fetchFeed(url) } returns Result.success(rssFeed)
 
-        // 1. Add Podcast
         val addResult = addPodcastUseCase(url)
         assertEquals(true, addResult.isSuccess)
 
-        // 2. Verify in library
         val podcasts = repository.getPodcasts().first()
         assertEquals(1, podcasts.size)
         assertEquals("Flow Podcast", podcasts[0].title)
 
-        // 3. Verify episodes
         val episodes = repository.getEpisodes(url).first()
         assertEquals(1, episodes.size)
         assertEquals("Ep 1", episodes[0].title)
 
-        // 4. Refresh (simulate new episode)
         val updatedRssFeed = rssFeed.copy(
             episodes = rssFeed.episodes + RssEpisode(
                 guid = "e2",
@@ -104,7 +100,6 @@ class UserFlowIntegrationTest {
 
         refreshPodcastUseCase(url)
 
-        // 5. Verify updated episodes
         val updatedEpisodes = repository.getEpisodes(url).first()
         assertEquals(2, updatedEpisodes.size)
         assertEquals("Ep 2", updatedEpisodes[0].title)

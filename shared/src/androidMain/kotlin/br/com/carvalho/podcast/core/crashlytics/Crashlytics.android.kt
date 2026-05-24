@@ -10,7 +10,6 @@ actual object Crashlytics {
         try {
             Firebase.crashlytics
         } catch (_: Exception) {
-            // Em testes unitários Android (HostTest), o FirebaseApp não está inicializado.
             null
         }
     }

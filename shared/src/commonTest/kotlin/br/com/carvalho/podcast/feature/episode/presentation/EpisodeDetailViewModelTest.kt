@@ -45,7 +45,6 @@ class EpisodeDetailViewModelTest {
 
         viewModel.uiState.test {
             val state = awaitItem()
-            // In unconfined dispatcher, we might get the loaded state immediately
             assertEquals(episode.id, state.episode?.id)
         }
     }

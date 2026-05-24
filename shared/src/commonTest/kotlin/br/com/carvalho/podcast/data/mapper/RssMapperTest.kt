@@ -52,8 +52,7 @@ class RssMapperTest {
         assertEquals("guid_123", episode.id)
         assertEquals("podcast_id", episode.podcastId)
         assertEquals("Podcast Title", episode.podcastTitle)
-        assertEquals(5400L, episode.duration) // 1h 30m = 5400s
-        // 2026-05-15 10:00:00 UTC = 1778839200000 ms
+        assertEquals(5400L, episode.duration)
         assertEquals(1778839200000L, episode.publishDate)
     }
 

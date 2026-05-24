@@ -72,7 +72,7 @@ class PodcastDetailViewModelTest {
 
         val viewModel = createViewModel()
         viewModel.uiState.test {
-            awaitItem() // Initial load state
+            awaitItem()
 
             viewModel.refresh()
             
