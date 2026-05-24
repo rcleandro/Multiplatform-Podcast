@@ -3,6 +3,10 @@ platform :ios, '16.0'
 target 'iosApp' do
   use_frameworks!
 
+  pod 'FirebaseAnalytics', '~> 11.15'
+  pod 'FirebaseCrashlytics', '~> 11.15'
+  pod 'FirebasePerformance', '~> 11.15'
+  
   pod 'shared', :path => '../shared'
 end
 

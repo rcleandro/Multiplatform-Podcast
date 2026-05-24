@@ -9,6 +9,8 @@ import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.core.analytics.Analytics
+import br.com.carvalho.podcast.core.performance.Performance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
@@ -52,6 +54,10 @@ class LibraryViewModel(
     fun confirmDelete() {
         val podcast = _uiState.value.podcastToDelete ?: return
         viewModelScope.launch(dispatchers.io) {
+            Analytics.logEvent("delete_podcast", mapOf(
+                "podcast_id" to podcast.id,
+                "podcast_title" to podcast.title
+            ))
             deletePodcastUseCase(podcast.id)
             _uiState.update { it.copy(podcastToDelete = null) }
         }
@@ -59,14 +65,20 @@ class LibraryViewModel(
 
     fun onRefreshAll() {
         viewModelScope.launch(dispatchers.io) {
+            Analytics.logEvent("refresh_all_podcasts")
+            val trace = Performance.startTrace("refresh_all_podcasts_trace")
             _uiState.update { it.copy(isRefreshing = true) }
             AppLogger.i(TAG, "Refreshing all podcasts")
             try {
                 refreshPodcastUseCase.refreshAll()
+                trace.putAttribute("status", "success")
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error refreshing all podcasts", e)
+                trace.putAttribute("status", "error")
+                trace.putAttribute("error_message", e.message ?: "unknown")
                 _uiState.update { it.copy(error = "Erro ao atualizar podcasts.") }
             } finally {
+                trace.stop()
                 _uiState.update { it.copy(isRefreshing = false) }
             }
         }
@@ -91,17 +103,30 @@ class LibraryViewModel(
         val finalUrl = if (!url.startsWith("http")) "https://$url" else url
 
         viewModelScope.launch(dispatchers.io) {
+            Analytics.logEvent("add_podcast_attempt", mapOf("url" to finalUrl))
+            val trace = Performance.startTrace("add_podcast_trace")
+            trace.putAttribute("url", finalUrl)
+            
             _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false, error = null) }
             AppLogger.i(TAG, "Adding podcast from URL: $finalUrl")
             try {
-                addPodcastUseCase(finalUrl).onFailure { e ->
+                addPodcastUseCase(finalUrl).onSuccess {
+                    Analytics.logEvent("add_podcast_success", mapOf("url" to finalUrl))
+                    trace.putAttribute("status", "success")
+                }.onFailure { e ->
                     AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
+                    Analytics.logEvent("add_podcast_failure", mapOf("url" to finalUrl, "error" to e.message))
+                    trace.putAttribute("status", "failure")
+                    trace.putAttribute("error_message", e.message ?: "unknown")
                     _uiState.update { it.copy(error = "Erro ao adicionar podcast. Verifique a URL e a conexão.") }
                 }
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Unexpected error adding podcast", e)
+                trace.putAttribute("status", "error")
+                trace.putAttribute("error_message", e.message ?: "unknown")
                 _uiState.update { it.copy(error = "Ocorreu um erro inesperado: ${e.message}") }
             } finally {
+                trace.stop()
                 _uiState.update { it.copy(isRefreshing = false, addUrl = "") }
             }
         }
