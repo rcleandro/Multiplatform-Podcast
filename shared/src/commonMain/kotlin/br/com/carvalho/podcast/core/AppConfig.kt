@@ -1,9 +1,15 @@
 package br.com.carvalho.podcast.core
 
+import br.com.carvalho.podcast.core.config.RemoteConfig
+
 object AppConfig {
     // Playback
-    const val SKIP_FORWARD_SECONDS = 30
-    const val SKIP_BACKWARD_SECONDS = 10
+    val SKIP_FORWARD_SECONDS: Int
+        get() = RemoteConfig.getLong("skip_forward_seconds").toInt().takeIf { it > 0 } ?: 30
+        
+    val SKIP_BACKWARD_SECONDS: Int
+        get() = RemoteConfig.getLong("skip_backward_seconds").toInt().takeIf { it > 0 } ?: 10
+        
     const val PLAYBACK_SAVE_DEBOUNCE_MS = 2000L
     const val PLAYBACK_FINISHED_THRESHOLD = 0.95f
     const val SLEEP_TIMER_TICK_MS = 1000L

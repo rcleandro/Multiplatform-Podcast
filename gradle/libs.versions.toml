@@ -140,6 +140,7 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-analytics = { module = "dev.gitlive:firebase-analytics", version.ref = "firebase-gitlive" }
 firebase-common = { module = "dev.gitlive:firebase-common", version.ref = "firebase-gitlive" }
 firebase-crashlytics = { module = "dev.gitlive:firebase-crashlytics", version.ref = "firebase-gitlive" }
+firebase-config = { module = "dev.gitlive:firebase-config", version.ref = "firebase-gitlive" }
 firebase-performance = { module = "com.google.firebase:firebase-perf" }
 
 # Lifecycle

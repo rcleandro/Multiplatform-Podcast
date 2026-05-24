@@ -99,7 +99,7 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 *   [x] **Firebase Analytics:** Implementar rastreamento de eventos de engajamento (play, pause, busca, assinaturas) no Android e iOS via wrapper KMP.
 *   [x] **Firebase Crashlytics:** Configurar a captura de crashes nativos (C/C++, Swift) e exceções Kotlin não tratadas para garantir estabilidade em todas as plataformas.
 *   [x] **Firebase Performance Monitoring:** Monitorar tempos de resposta de rede (Ktor), carregamento de imagens e o tempo de inicialização "Time to First Render".
-*   [ ] **Firebase Remote Config:** Implementar controle remoto de flags de funcionalidades e constantes de negócio (ex: intervalos de skip) sem necessidade de novo deploy.
+*   [x] **Firebase Remote Config:** Implementar controle remoto de flags de funcionalidades e constantes de negócio (ex: intervalos de skip) sem necessidade de novo deploy.
 *   [x] **Análise Estática (Detekt):** Configurar o **Detekt** para garantir a qualidade do código Kotlin e manter padrões arquiteturais consistentes em todos os módulos.
 
 ### Fase 8 — Expansão da Base de Testes e Qualidade

@@ -140,11 +140,13 @@ PODS:
     - FirebaseCrashlytics (~> 11.0)
     - FirebaseInstallations (~> 11.0)
     - FirebasePerformance (~> 11.0)
+    - FirebaseRemoteConfig (~> 11.0)
 
 DEPENDENCIES:
   - FirebaseAnalytics (~> 11.15)
   - FirebaseCrashlytics (~> 11.15)
   - FirebasePerformance (~> 11.15)
+  - FirebaseRemoteConfig (~> 11.15)
   - shared (from `../shared`)
 
 SPEC REPOS:
@@ -193,8 +195,8 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
-  shared: cebe86ec83b524f7cd50003f8ada7c1d2d7d891d
+  shared: 2c7e61dbfd46b513a01e388f0ebaa16021003894
 
-PODFILE CHECKSUM: 126ee3c69ebbd6ed98bb434fcc77c5c9db1c9841
+PODFILE CHECKSUM: 0ce2763deb41efe778f08e6721cb244292a074ff
 
 COCOAPODS: 1.16.2

@@ -1,8 +1,13 @@
 package br.com.carvalho.podcast.core.di
 
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.config.RemoteConfig
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.initialize
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 private const val TAG = "Koin"
 private var isKoinInitialized = false
@@ -13,9 +18,19 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
         return
     }
     isKoinInitialized = true
-    AppLogger.i(TAG, "Initializing Koin for iOS...")
+    AppLogger.i(TAG, "Initializing Koin and Firebase for iOS...")
+    Firebase.initialize()
     startKoin {
         appDeclaration()
         modules(commonModules)
+    }
+
+    MainScope().launch {
+        try {
+            RemoteConfig.fetchAndActivate()
+            AppLogger.i(TAG, "Remote Config fetched and activated")
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Failed to fetch Remote Config", e)
+        }
     }
 }

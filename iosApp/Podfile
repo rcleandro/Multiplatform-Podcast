@@ -6,6 +6,7 @@ target 'iosApp' do
   pod 'FirebaseAnalytics', '~> 11.15'
   pod 'FirebaseCrashlytics', '~> 11.15'
   pod 'FirebasePerformance', '~> 11.15'
+  pod 'FirebaseRemoteConfig', '~> 11.15'
   
   pod 'shared', :path => '../shared'
 end

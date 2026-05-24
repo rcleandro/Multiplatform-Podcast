@@ -14,6 +14,7 @@ Pod::Spec.new do |spec|
     spec.dependency 'FirebaseCrashlytics', '~> 11.0'
     spec.dependency 'FirebaseInstallations', '~> 11.0'
     spec.dependency 'FirebasePerformance', '~> 11.0'
+    spec.dependency 'FirebaseRemoteConfig', '~> 11.0'
     if !Dir.exist?('build/cocoapods/framework/Shared.framework') || Dir.empty?('build/cocoapods/framework/Shared.framework')
         raise "
         Kotlin framework 'Shared' doesn't exist yet, so a proper Xcode project can't be generated.
