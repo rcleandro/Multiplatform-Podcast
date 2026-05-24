@@ -31,3 +31,12 @@ androidApp/google-services.json
 
 # iOS
 iosApp/iosApp/GoogleService-Info.plist
+
+# Kotlin/JS & Wasm
+.kotlin/
+kotlin-js-store/
+node_modules/
+package-lock.json
+yarn.lock
+*.wasm
+*.js.map
