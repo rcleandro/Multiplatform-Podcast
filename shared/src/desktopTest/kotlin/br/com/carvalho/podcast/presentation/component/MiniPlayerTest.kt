@@ -1,7 +1,7 @@
 package br.com.carvalho.podcast.presentation.component
 
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
@@ -44,9 +44,9 @@ class MiniPlayerTest {
 
         onNodeWithText("Teste Episodio").assertExists()
 
-        onNodeWithContentDescription("Reproduzir").assertExists()
+        onNodeWithTag(MiniPlayerTestTags.PLAY_PAUSE_BUTTON).assertExists()
 
-        onNodeWithContentDescription("Reproduzir").performClick()
+        onNodeWithTag(MiniPlayerTestTags.PLAY_PAUSE_BUTTON).performClick()
         assertEquals(true, playPauseClicked)
     }
 
@@ -78,6 +78,6 @@ class MiniPlayerTest {
             )
         }
 
-        onNodeWithContentDescription("Pausar").assertExists()
+        onNodeWithTag(MiniPlayerTestTags.PLAY_PAUSE_BUTTON).assertExists()
     }
 }

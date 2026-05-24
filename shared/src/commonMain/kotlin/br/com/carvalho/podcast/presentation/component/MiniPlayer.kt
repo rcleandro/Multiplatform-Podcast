@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
@@ -116,12 +117,17 @@ fun MiniPlayer(
                 ) {
                     if (isBuffering) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(AppDimensions.iconSmallish),
+                            modifier = Modifier
+                                .size(AppDimensions.iconSmallish)
+                                .testTag(MiniPlayerTestTags.BUFFERING_INDICATOR),
                             strokeWidth = AppDimensions.strokeWidthMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     } else {
-                        IconButton(onClick = onPlayPauseClick) {
+                        IconButton(
+                            onClick = onPlayPauseClick,
+                            modifier = Modifier.testTag(MiniPlayerTestTags.PLAY_PAUSE_BUTTON)
+                        ) {
                             Icon(
                                 imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                                 contentDescription = stringResource(if (isPlaying) Res.string.pause else Res.string.play),
