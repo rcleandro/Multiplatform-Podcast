@@ -13,51 +13,10 @@ object RssXmlParser {
 
         val channelTitle = extractTag(channelXml, "title") ?: "Podcast Desconhecido"
         val channelDescription = extractTag(channelXml, "description") ?: ""
-
-        var channelImage = extractAttribute(channelXml, "itunes:image", "href")
-        if (channelImage == null) {
-            channelImage = extractTag(channelXml, "url")
-        }
-
+        val channelImage = extractChannelImage(channelXml)
         val channelAuthor = extractTag(channelXml, "itunes:author") ?: "Autor Desconhecido"
 
-        val episodes = mutableListOf<RssEpisode>()
-        var currentPos = firstItemPos
-
-        while (currentPos != -1) {
-            val startItem = xml.indexOf("<item>", currentPos)
-            if (startItem == -1) break
-            
-            val endItem = xml.indexOf("</item>", startItem)
-            if (endItem == -1) break
-            
-            val itemXml = xml.substring(startItem, endItem + 7)
-
-            val title = extractTag(itemXml, "title") ?: "Sem título"
-            val guid = extractTag(itemXml, "guid") ?: title.hashCode().toString()
-            val enclosureUrl = extractAttribute(itemXml, "enclosure", "url") ?: ""
-            val imageUrl = extractAttribute(itemXml, "itunes:image", "href") ?: channelImage
-            val duration = extractTag(itemXml, "itunes:duration")
-            val pubDate = extractTag(itemXml, "pubDate") ?: ""
-
-            episodes.add(
-                RssEpisode(
-                    guid = guid,
-                    title = title,
-                    description = extractTag(itemXml, "description"),
-                    enclosureUrl = enclosureUrl,
-                    enclosureType = "audio/mpeg",
-                    duration = duration,
-                    publishDate = pubDate,
-                    imageUrl = imageUrl,
-                    explicit = false,
-                    season = null,
-                    episode = null
-                )
-            )
-
-            currentPos = endItem + 7
-        }
+        val episodes = parseEpisodes(xml, firstItemPos, channelImage)
 
         AppLogger.d(TAG, "Finished XML parse. Total episodes: ${episodes.size}")
 
@@ -74,30 +33,82 @@ object RssXmlParser {
         )
     }
 
-    private fun extractTag(xml: String, tagName: String): String? {
-        val startTagPattern = "<$tagName"
-        var startIndex = xml.indexOf(startTagPattern)
-        
-        // Verify it's actually the tag name and not a prefix (e.g. <tag vs <tagName)
-        while (startIndex != -1) {
-            val nextChar = xml.getOrNull(startIndex + startTagPattern.length)
-            if (nextChar == '>' || nextChar == ' ' || nextChar == '\t' || nextChar == '\r' || nextChar == '\n') {
-                break
+    private fun extractChannelImage(channelXml: String): String? {
+        return extractAttribute(channelXml, "itunes:image", "href") ?: extractTag(channelXml, "url")
+    }
+
+    private const val ITEM_TAG_LENGTH = 7
+
+    private fun parseEpisodes(xml: String, firstItemPos: Int, defaultImage: String?): List<RssEpisode> {
+        val episodes = mutableListOf<RssEpisode>()
+        var currentPos = firstItemPos
+
+        while (currentPos != -1) {
+            val startItem = xml.indexOf("<item>", currentPos)
+            val endItem = if (startItem != -1) xml.indexOf("</item>", startItem) else -1
+
+            if (startItem == -1 || endItem == -1) {
+                currentPos = -1
+            } else {
+                val itemXml = xml.substring(startItem, endItem + ITEM_TAG_LENGTH)
+                episodes.add(parseEpisodeItem(itemXml, defaultImage))
+                currentPos = endItem + ITEM_TAG_LENGTH
             }
-            startIndex = xml.indexOf(startTagPattern, startIndex + 1)
         }
-        
-        if (startIndex == -1) return null
-        
+        return episodes
+    }
+
+    private fun parseEpisodeItem(itemXml: String, defaultImage: String?): RssEpisode {
+        val title = extractTag(itemXml, "title") ?: "Sem título"
+        val guid = extractTag(itemXml, "guid") ?: title.hashCode().toString()
+        val enclosureUrl = extractAttribute(itemXml, "enclosure", "url") ?: ""
+        val imageUrl = extractAttribute(itemXml, "itunes:image", "href") ?: defaultImage
+        val duration = extractTag(itemXml, "itunes:duration")
+        val pubDate = extractTag(itemXml, "pubDate") ?: ""
+
+        return RssEpisode(
+            guid = guid,
+            title = title,
+            description = extractTag(itemXml, "description"),
+            enclosureUrl = enclosureUrl,
+            enclosureType = "audio/mpeg",
+            duration = duration,
+            publishDate = pubDate,
+            imageUrl = imageUrl,
+            explicit = false,
+            season = null,
+            episode = null
+        )
+    }
+
+    private fun extractTag(xml: String, tagName: String): String? {
+        val startIndex = findTagStart(xml, tagName) ?: return null
         val startTagEnd = xml.indexOf(">", startIndex)
         if (startTagEnd == -1) return null
-        
+
         val endTag = "</$tagName>"
         val endIndex = xml.indexOf(endTag, startTagEnd)
         if (endIndex == -1) return null
-        
+
         val content = xml.substring(startTagEnd + 1, endIndex).trim()
-        
+        return cleanCData(content)
+    }
+
+    private fun findTagStart(xml: String, tagName: String): Int? {
+        val startTagPattern = "<$tagName"
+        var startIndex = xml.indexOf(startTagPattern)
+
+        while (startIndex != -1) {
+            val nextChar = xml.getOrNull(startIndex + startTagPattern.length)
+            if (nextChar == null || nextChar == '>' || nextChar.isWhitespace()) {
+                return startIndex
+            }
+            startIndex = xml.indexOf(startTagPattern, startIndex + 1)
+        }
+        return null
+    }
+
+    private fun cleanCData(content: String): String {
         return if (content.startsWith("<![CDATA[")) {
             content.removePrefix("<![CDATA[").removeSuffix("]]>").trim()
         } else {

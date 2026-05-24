@@ -6,8 +6,16 @@ actual object Performance {
     }
 }
 
-private object NoOpTrace : Trace {
-    override fun stop() {}
-    override fun putAttribute(key: String, value: String) {}
-    override fun incrementMetric(name: String, incrementBy: Long) {}
+private object WasmTrace : Trace {
+    override fun stop() {
+        // No-op
+    }
+
+    override fun putAttribute(key: String, value: String) {
+        // No-op
+    }
+
+    override fun incrementMetric(name: String, incrementBy: Long) {
+        // No-op
+    }
 }

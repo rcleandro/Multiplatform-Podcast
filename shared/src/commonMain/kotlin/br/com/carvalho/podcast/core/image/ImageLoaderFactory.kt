@@ -9,6 +9,9 @@ import coil3.request.CachePolicy
 import coil3.request.crossfade
 import okio.FileSystem
 
+private const val MEMORY_CACHE_SIZE_PERCENT = 0.25
+private const val DISK_CACHE_MAX_SIZE = 512L * 1024L * 1024L // 512MB
+
 fun createImageLoader(context: PlatformContext): ImageLoader {
     return ImageLoader.Builder(context)
         .components {
@@ -16,13 +19,13 @@ fun createImageLoader(context: PlatformContext): ImageLoader {
         }
         .memoryCache {
             MemoryCache.Builder()
-                .maxSizePercent(context, 0.25)
+                .maxSizePercent(context, MEMORY_CACHE_SIZE_PERCENT)
                 .build()
         }
         .diskCache {
             DiskCache.Builder()
                 .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
-                .maxSizeBytes(512L * 1024L * 1024L)
+                .maxSizeBytes(DISK_CACHE_MAX_SIZE)
                 .build()
         }
         .crossfade(true)
