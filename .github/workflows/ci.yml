@@ -27,7 +27,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Run tests
-              run: ./gradlew :shared:testAndroidHostTest :shared:desktopTest
+              run: ./gradlew :shared:testAndroidHostTest :shared:desktopTest --stacktrace --info
 
             - name: Upload test reports
               if: always()
@@ -52,7 +52,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Run tests
-              run: ./gradlew :shared:iosSimulatorArm64Test
+              run: ./gradlew :shared:iosSimulatorArm64Test --stacktrace --info
 
             - name: Upload test reports
               if: always()
