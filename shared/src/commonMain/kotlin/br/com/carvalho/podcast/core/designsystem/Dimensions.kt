@@ -4,7 +4,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 object AppDimensions {
-    // Spacings
     val paddingNone = 0.dp
     val paddingSmall = 4.dp
     val paddingMedium = 8.dp
@@ -21,7 +20,6 @@ object AppDimensions {
     val spacingHuge = 32.dp
     val spacingGigantic = 40.dp
 
-    // Sizes
     val iconTiny = 16.dp
     val iconSmall = 18.dp
     val iconSmallish = 20.dp
@@ -42,7 +40,6 @@ object AppDimensions {
     val podcastImageSize = 280.dp
     val maxPlayerContentHeight = 400.dp
 
-    // Radii
     val radiusExtraSmall = 4.dp
     val radiusSmall = 8.dp
     val radiusMedium = 12.dp
@@ -50,25 +47,20 @@ object AppDimensions {
     val radiusExtraLarge = 24.dp
     val playButtonRadius = 20.dp
 
-    // Stroke
     val strokeWidthMedium = 2.dp
     val strokeWidthNormal = 4.dp
 
-    // Elevation
     val elevationLow = 4.dp
 
-    // Window Breakpoints
     val breakpointSmall = 600.dp
     val breakpointMedium = 840.dp
     val breakpointLarge = 1200.dp
 
-    // Grid Columns
     const val GRID_COLUMNS_PHONE = 2
     const val GRID_COLUMNS_TABLET = 3
     const val GRID_COLUMNS_DESKTOP = 4
     const val GRID_COLUMNS_LARGE_DESKTOP = 5
 
-    // Opacity
     const val OPACITY_FAINT = 0.1f
     const val OPACITY_MUTED = 0.4f
     const val OPACITY_HALF = 0.5f
@@ -76,6 +68,5 @@ object AppDimensions {
     const val OPACITY_MEDIUM = 0.7f
     const val OPACITY_HIGH = 0.8f
 
-    // Text
     val LINE_HEIGHT_NORMAL = 18.sp
 }

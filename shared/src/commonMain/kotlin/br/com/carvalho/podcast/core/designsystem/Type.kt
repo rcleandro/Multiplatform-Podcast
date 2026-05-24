@@ -8,7 +8,6 @@ import androidx.compose.ui.unit.sp
 
 // Full Material 3 Typography Scale
 val Typography = Typography(
-    // Display
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
@@ -31,7 +30,6 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
 
-    // Headline
     headlineLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
@@ -54,7 +52,6 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
 
-    // Title
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
@@ -77,7 +74,6 @@ val Typography = Typography(
         letterSpacing = 0.1.sp
     ),
 
-    // Body
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
@@ -100,7 +96,6 @@ val Typography = Typography(
         letterSpacing = 0.4.sp
     ),
 
-    // Label
     labelLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,

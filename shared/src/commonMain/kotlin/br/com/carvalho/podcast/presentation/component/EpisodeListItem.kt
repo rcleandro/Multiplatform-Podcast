@@ -199,7 +199,6 @@ fun EpisodeListItem(
 
         Spacer(modifier = Modifier.width(AppDimensions.spacingMedium))
 
-        // Status de Download
         Box(
             modifier = Modifier.size(AppDimensions.spacingHuge),
             contentAlignment = Alignment.Center

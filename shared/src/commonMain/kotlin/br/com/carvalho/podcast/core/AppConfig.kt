@@ -6,7 +6,6 @@ object AppConfig {
     private const val DEFAULT_SKIP_FORWARD_SECONDS = 30
     private const val DEFAULT_SKIP_BACKWARD_SECONDS = 10
 
-    // Playback
     val SKIP_FORWARD_SECONDS: Int
         get() = RemoteConfig.getLong("skip_forward_seconds").toInt().takeIf { it > 0 } ?: DEFAULT_SKIP_FORWARD_SECONDS
         

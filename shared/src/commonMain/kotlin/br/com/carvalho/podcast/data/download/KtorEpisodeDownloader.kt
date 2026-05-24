@@ -82,7 +82,6 @@ open class KtorEpisodeDownloader(
                     sink.close()
                 }
 
-                // Atualiza no banco de dados
                 episodeDao.updateDownloadStatus(episode.id, true)
 
                 updateStatus(episode.id, DownloadStatus.Completed(destPath.toString()))

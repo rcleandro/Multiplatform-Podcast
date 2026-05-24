@@ -80,7 +80,7 @@ fun MiniPlayer(
                 ) {
                     AsyncImage(
                         model = episode.imageUrl,
-                        contentDescription = null, // Redundante
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
                         placeholder = painterResource(Res.drawable.app_icon),
@@ -133,7 +133,6 @@ fun MiniPlayer(
                 }
             }
 
-            // Sutil progress bar at the bottom
             val progressValue = progress.coerceIn(0f, 1f)
             LinearProgressIndicator(
                 progress = { progressValue },
