@@ -54,5 +54,18 @@ sequenceDiagram
 2.  **Repository Pattern:** Centraliza o acesso aos dados e decide entre dados locais ou remotos de forma transparente para o Use Case.
 3.  **Command / Use Case Pattern:** Cada ação do usuário (Add, Refresh, Delete) é encapsulada em uma classe de Use Case única, facilitando a testabilidade e reuso.
 4.  **Mapper Pattern:** Isola as camadas de dados das camadas de domínio, garantindo que mudanças em APIs externas não quebrem a lógica interna.
+5.  **Expect/Actual Pattern:** Utilizado para fornecer implementações nativas de componentes que exigem APIs de plataforma, como o `AudioPlayer` e a criação do banco de dados `Room`.
+
+### 5. Abstração do Player de Áudio
+
+O `AudioPlayer` é definido como uma `interface` no módulo `commonMain`. Cada plataforma (`androidMain`, `iosMain`, etc.) implementa esta interface utilizando suas APIs nativas, permitindo que a lógica de controle da fila e estado de reprodução permaneça no ViewModel compartilhado.
+
+## 6. Estratégia de Testes
+
+O projeto prioriza a confiabilidade através de uma pirâmide de testes multiplataforma:
+
+*   **Testes Unitários (`commonTest`):** 100% da lógica de Use Cases, Mappers e ViewModels é testada no código compartilhado.
+*   **Fakes Manuais:** Em vez de frameworks de mocking dinâmico (como MockK), o projeto utiliza implementações `Fake` (ex: `FakePodcastRepository`) para garantir compatibilidade com todos os compiladores (Kotlin/Native, Wasm, JVM).
+*   **Testes de Integração de DAO:** Validação do comportamento do Room utilizando `createInMemoryDatabase` rodando em simuladores/emuladores reais.
 
 > ⚠️ **Nota:** O uso de Mocks foi desencorajado em favor de **Fakes manuais** para garantir que os testes rodem em todos os targets do KMP (especialmente iOS e Wasm), onde bibliotecas de mocking dinâmico costumam falhar.
