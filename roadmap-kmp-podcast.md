@@ -96,7 +96,7 @@ Atualmente, o projeto superou os estágios iniciais de infraestrutura e possui u
 
 ### Fase 7 — Telemetria, Monitoramento e Observabilidade (PRÓXIMOS PASSOS 🚀)
 *   [x] **Logging Multiplataforma (Kermit):** Substituir logs manuais/println pelo **Kermit (Touchlab)** no código compartilhado para melhor depuração em produção e integração com logs nativos.
-*   [ ] **Firebase Analytics:** Implementar rastreamento de eventos de engajamento (play, pause, busca, assinaturas) no Android e iOS via wrapper KMP.
+*   [x] **Firebase Analytics:** Implementar rastreamento de eventos de engajamento (play, pause, busca, assinaturas) no Android e iOS via wrapper KMP.
 *   [ ] **Firebase Crashlytics:** Configurar a captura de crashes nativos (C/C++, Swift) e exceções Kotlin não tratadas para garantir estabilidade em todas as plataformas.
 *   [ ] **Firebase Performance Monitoring:** Monitorar tempos de resposta de rede (Ktor), carregamento de imagens e o tempo de inicialização "Time to First Render".
 *   [ ] **Firebase Remote Config:** Implementar controle remoto de flags de funcionalidades e constantes de negócio (ex: intervalos de skip) sem necessidade de novo deploy.

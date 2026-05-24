@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "898171777556",
+    "project_id": "multiplatform-podcast",
+    "storage_bucket": "multiplatform-podcast.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:898171777556:android:9bc403d6efa8f43ea82d01",
+        "android_client_info": {
+          "package_name": "br.com.carvalho.podcast"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_ioObzUsjeNOR7kcIhtyRXEmsmKu_2iQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

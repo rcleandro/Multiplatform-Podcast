@@ -49,6 +49,11 @@ kermit = "2.1.0"
 # Static Analysis
 detekt = "1.23.8"
 
+# Firebase
+firebase-bom = "34.13.0"
+firebase-gitlive = "2.4.0"
+google-services = "4.4.4"
+
 # Testes
 turbine = "1.2.1"
 mockk = "1.14.9"
@@ -128,6 +133,11 @@ coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.re
 # Logging
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 
+# Firebase
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+firebase-analytics = { module = "dev.gitlive:firebase-analytics", version.ref = "firebase-gitlive" }
+firebase-common = { module = "dev.gitlive:firebase-common", version.ref = "firebase-gitlive" }
+
 # Lifecycle
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }
@@ -159,3 +169,5 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room3", version.ref = "room3" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
+kotlin-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods"}

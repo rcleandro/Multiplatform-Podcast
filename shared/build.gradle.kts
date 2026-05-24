@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
     alias(libs.plugins.kover)
+    alias(libs.plugins.kotlin.cocoapods)
 }
 
 kover {
@@ -44,13 +45,21 @@ kotlin {
         browser()
     }
 
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
+    iosArm64()
+    iosSimulatorArm64()
+
+    cocoapods {
+        version = "1.0"
+        summary = "Shared module for Podcast app"
+        homepage = "https://github.com/leandro/Podcast"
+        ios.deploymentTarget = "16.0"
+        framework {
             baseName = "Shared"
             isStatic = true
+            linkerOpts("-ObjC")
+        }
+        pod("FirebaseAnalytics") {
+            version = "~> 11.0"
         }
     }
 
@@ -124,12 +133,21 @@ kotlin {
             implementation(libs.media3.exoplayer)
             implementation(libs.media3.session)
             implementation(libs.kotlinx.coroutines.guava)
+
+            // Firebase
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.common)
+            implementation(libs.firebase.analytics)
         }
 
         val iosMain by getting {
             dependencies {
                 implementation(libs.ktor.client.darwin)
                 implementation(libs.sqlite.bundled)
+
+                // Firebase
+                implementation(libs.firebase.common)
+                implementation(libs.firebase.analytics)
             }
         }
 
@@ -211,7 +229,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
 // Custom task to sync Compose resources for Android assets (AGP 9.x compatibility)
 val syncComposeResourcesForAndroid = tasks.register<Copy>("syncComposeResourcesForAndroid") {
-    from("src/commonMain/composeResources")
+    dependsOn("prepareComposeResourcesTaskForCommonMain")
+    from(layout.buildDirectory.dir("generated/compose/resourceGenerator/preparedResources/commonMain/composeResources"))
     into(layout.buildDirectory.dir("generated/compose/androidAssets/composeResources/br.com.carvalho.podcast.shared"))
 }
 

@@ -1,0 +1,20 @@
+platform :ios, '16.0'
+
+target 'iosApp' do
+  use_frameworks!
+
+  pod 'shared', :path => '../shared'
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+      
+      # Força o Xcode a encontrar os XCFrameworks do Firebase em builds limpos
+      config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= ['$(inherited)']
+      config.build_settings['FRAMEWORK_SEARCH_PATHS'] << '"$(PROJECT_DIR)/../shared/build/cocoapods/framework"'
+    end
+  end
+end

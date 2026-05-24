@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.feature.episode.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.carvalho.podcast.core.analytics.Analytics
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -35,6 +36,7 @@ class EpisodeDetailViewModel(
 
     private fun loadEpisode() {
         viewModelScope.launch(dispatchers.io) {
+            Analytics.logEvent("load_episode_detail", mapOf("episode_id" to episodeId))
             AppLogger.d(TAG, "Loading episode detail for id: $episodeId")
             try {
                 val episode = repository.getEpisodeById(episodeId)
@@ -44,6 +46,7 @@ class EpisodeDetailViewModel(
                 )
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error loading episode detail", e)
+                Analytics.logEvent("load_episode_detail_error", mapOf("episode_id" to episodeId, "error" to e.message))
                 _uiState.value = EpisodeDetailUiState(
                     isLoading = false,
                     error = "Erro ao carregar detalhes do episódio"
@@ -55,6 +58,10 @@ class EpisodeDetailViewModel(
     fun playEpisode() {
         uiState.value.episode?.let { episode ->
             viewModelScope.launch(dispatchers.io) {
+                Analytics.logEvent("play_episode_from_episode_detail", mapOf(
+                    "episode_id" to episode.id,
+                    "episode_title" to episode.title
+                ))
                 val currentPlayerState = audioPlayer.playerState.value
                 if (currentPlayerState.currentEpisode?.id == episode.id) {
                     if (currentPlayerState.isPlaying) {
