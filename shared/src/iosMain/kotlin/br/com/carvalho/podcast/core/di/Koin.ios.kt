@@ -30,6 +30,7 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
     val dispatchers = koin.get<CoroutineDispatchers>()
 
     CoroutineScope(dispatchers.default).launch {
+        @Suppress("TooGenericExceptionCaught")
         try {
             AppLogger.i(TAG, "Initializing Firebase in background...")
             Firebase.initialize()

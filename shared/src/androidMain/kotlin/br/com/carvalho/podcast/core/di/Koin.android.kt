@@ -32,6 +32,7 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
     val dispatchers = koin.get<CoroutineDispatchers>()
 
     CoroutineScope(dispatchers.default).launch {
+        @Suppress("TooGenericExceptionCaught")
         try {
             AppLogger.i(TAG, "Initializing Firebase in background...")
             Firebase.initialize(context)
@@ -40,6 +41,7 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
             RemoteConfig.fetchAndActivate()
             AppLogger.i(TAG, "Remote Config fetched and activated")
         } catch (e: Exception) {
+            // No unit tests, Firebase might not be available
             AppLogger.e(TAG, "Failed to initialize Firebase or Remote Config", e)
         }
     }

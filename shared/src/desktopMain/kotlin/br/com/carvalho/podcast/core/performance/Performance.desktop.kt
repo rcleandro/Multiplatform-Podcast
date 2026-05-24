@@ -2,7 +2,7 @@ package br.com.carvalho.podcast.core.performance
 
 actual object Performance {
     actual fun startTrace(identifier: String): Trace {
-        return NoOpTrace
+        return DesktopTrace
     }
 }
 

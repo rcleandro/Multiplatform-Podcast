@@ -5,14 +5,12 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.crashlytics.crashlytics
 import kotlin.getValue
 
-private const val TAG = "Crashlytics"
-
 actual object Crashlytics {
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
     private val firebaseCrashlytics by lazy {
         try {
             Firebase.crashlytics
         } catch (e: Exception) {
-            Logger.withTag(TAG).e(e) { "Firebase Crashlytics not available" }
             null
         }
     }
