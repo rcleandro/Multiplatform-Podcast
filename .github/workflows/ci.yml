@@ -40,10 +40,15 @@ jobs:
 
     test-ios:
         name: Run iOS Tests
-        runs-on: macos-latest
+        runs-on: macos-15
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+
+            - name: Select Xcode version
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: '16.2'
 
             - name: Create GoogleService-Info.plist
               if: env.GOOGLE_SERVICE_INFO_PLIST != ''
@@ -55,7 +60,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Run tests
-              run: ./gradlew :shared:iosSimulatorArm64Test --stacktrace --info
+              run: ./gradlew :shared:iosSimulatorArm64Test --stacktrace --info 2>&1 | tee ios-test.log
 
             - name: Upload test reports
               if: always()
@@ -63,6 +68,13 @@ jobs:
               with:
                   name: test-reports-ios
                   path: "**/build/reports/tests/"
+
+            - name: Upload full build log on failure
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ios-test-full-log
+                  path: ios-test.log
 
     build-android:
         name: Build Android
@@ -99,11 +111,16 @@ jobs:
 
     build-ios:
         name: Build iOS
-        runs-on: macos-latest
+        runs-on: macos-15
         needs: [ test-jvm, test-ios ]
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+
+            - name: Select Xcode version
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: '16.2'
 
             - name: Create GoogleService-Info.plist
               if: env.GOOGLE_SERVICE_INFO_PLIST != ''
