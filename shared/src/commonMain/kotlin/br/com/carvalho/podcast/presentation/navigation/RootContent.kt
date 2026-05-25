@@ -38,7 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.window.core.layout.WindowSizeClass
@@ -81,7 +81,7 @@ fun RootContent(component: RootComponentImpl) {
         }
     }
 
-    val adaptiveInfo = currentWindowAdaptiveInfoV2()
+    val adaptiveInfo = currentWindowAdaptiveInfo()
     val isMediumScreenWidth = adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(
         widthDpBreakpoint = WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND
     )
