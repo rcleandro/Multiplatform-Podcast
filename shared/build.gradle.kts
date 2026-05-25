@@ -252,6 +252,12 @@ dependencies {
     add("kspWasmJs", libs.room3.compiler)
 }
 
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains.skiko:skiko:0.9.43")
+    }
+}
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
