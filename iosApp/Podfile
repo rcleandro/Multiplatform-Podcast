@@ -1,4 +1,4 @@
-platform :ios, '16.0'
+platform` :ios, '18.2'
 
 target 'iosApp' do
   use_frameworks!
@@ -7,7 +7,7 @@ target 'iosApp' do
   pod 'FirebaseCrashlytics', '~> 11.15'
   pod 'FirebasePerformance', '~> 11.15'
   pod 'FirebaseRemoteConfig', '~> 11.15'
-  
+
   pod 'shared', :path => '../shared'
 end
 
@@ -16,7 +16,7 @@ post_install do |installer|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '18.2'
       config.build_settings['ENABLE_BITCODE'] = 'NO'
-      
+
       # Força o Xcode a encontrar os XCFrameworks do Firebase em builds limpos
       config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= ['$(inherited)']
       config.build_settings['FRAMEWORK_SEARCH_PATHS'] << '"$(PROJECT_DIR)/../shared/build/cocoapods/framework"'

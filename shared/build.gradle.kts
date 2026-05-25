@@ -45,16 +45,8 @@ kotlin {
         browser()
     }
 
-    iosArm64 {
-        compilerOptions {
-            freeCompilerArgs.add("-Xmin-setup-version=18.2")
-        }
-    }
-    iosSimulatorArm64 {
-        compilerOptions {
-            freeCompilerArgs.add("-Xmin-setup-version=18.2")
-        }
-    }
+    iosArm64()
+    iosSimulatorArm64()
 
     cocoapods {
         version = "1.0"
