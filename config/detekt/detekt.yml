@@ -583,8 +583,10 @@ style:
         value: 'TODO:'
     allowedPatterns: ''
   ForbiddenImport:
-    active: false
-    imports: []
+    active: true
+    # Screens take colors from MaterialTheme.colorScheme / PodcastTheme.colors (ADR 0001).
+    excludes: ['**/core/designsystem/**']
+    imports: ['androidx.compose.ui.graphics.Color']
     forbiddenPatterns: ''
   ForbiddenMethodCall:
     active: false
@@ -610,7 +612,7 @@ style:
     maxJumpCount: 1
   MagicNumber:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.kts', '**/Previews.kt']
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.kts', '**/Previews.kt', '**/designsystem/Type.kt', '**/designsystem/Dimensions.kt', '**/designsystem/Shape.kt', '**/designsystem/Motion.kt']
     ignoreNumbers:
       - '-1'
       - '0'
@@ -618,14 +620,14 @@ style:
       - '2'
     ignoreHashCodeFunction: true
     ignorePropertyDeclaration: false
-    ignoreLocalVariableDeclaration: false
+    ignoreLocalVariableDeclaration: true
     ignoreConstantDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
-    ignoreAnnotation: false
-    ignoreNamedArgument: true
+    ignoreAnnotation: true
+    ignoreNamedArgument: false
     ignoreEnums: false
     ignoreRanges: false
-    ignoreExtensionFunctions: true
+    ignoreExtensionFunctions: false
   MandatoryBracesLoops:
     active: false
   MaxChainedCallsOnSameLine:

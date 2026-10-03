@@ -246,13 +246,37 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   **Exceção mantida:** `DownloadStatus.Failed` ainda carrega a mensagem crua da exceção, mas ela não chega à tela
   (o `DownloadState.Failed` do design system não tem texto); o tipo do erro fica para a 14.9.
 
-### 9.9 Migração das telas ✅ — G
+### 9.9 Migração das telas ✔ — G
 - **Ação:** as 6 telas e o `RootContent` passam a usar só tokens e componentes do design system. Cada tela vira
   `XxxScreen(viewModel)` + `XxxContent(state, onIntent)` sem estado, com previews de vazio, carregando, erro e
   conteúdo. O `PlayerScreen` (588 linhas) é quebrado em arquivos menores no caminho.
 - **Regra no build:** o `MagicNumber` do Detekt passa a pegar `16.dp` e argumentos nomeados
   (`ignoreNamedArgument: false`, `ignoreExtensionFunctions: false`), com previews isentos. Um `ForbiddenImport`
   barra `androidx.compose.ui.graphics.Color` fora do design system.
+
+- **Implementado:** as 6 telas viraram `XxxScreen(viewModel)` (coleta estado, snackbar, diálogos de player) +
+  `XxxContent(state, actions)` sem estado, com as ações agrupadas em `XxxActions` (`LibraryActions`,
+  `PodcastDetailActions`, `SearchActions`, `PlayerActions`). Todas usam só tokens e componentes do design system:
+  `LoadingState`, `EmptyState` com ação (biblioteca vazia oferece "Adicionar podcast"; busca e downloads vazios
+  explicam o que fazer), `ConfirmDialog` nas exclusões, `FilterChipRow` no lugar das abas do detalhe,
+  `PodcastArtwork` em todas as capas (o `app_icon.png` como placeholder saiu das telas) e campo de busca em pílula.
+  O `PlayerScreen` (588 linhas) virou `PlayerScreen` (65), `PlayerContent` (204) e `PlayerDialogs` (215), com o
+  `PlayerSlider` e o `PlayPauseButton` do design system; o tempo da direita passou a ser o restante ("−35:25").
+  Previews de todas as telas em `presentation/preview/Previews.kt` (vazio, carregando, conteúdo, claro e escuro).
+  **Regras no build:** `MagicNumber` com `ignoreNamedArgument: false` e `ignoreExtensionFunctions: false` (pega
+  `16.dp` e `maxLines = 3`), `ignoreLocalVariableDeclaration: true` (o `val` local com nome da regra) e
+  `ignoreAnnotation: true`; isentos os arquivos de tokens e os `Previews.kt`. `ForbiddenImport` barra
+  `androidx.compose.ui.graphics.Color` fora de `core/designsystem`. Verificado plantando um `import Color` e um
+  `padding(16.dp)` numa tela: os dois quebram o Detekt. Os 9 números que sobraram fora das telas viraram constantes
+  (`PAGE_SIZE`, `MAX_RETRIES`, `MILLIS_PER_SECOND` no player Web). **Corrigido no caminho:** três diálogos usavam
+  `%s`, que o Compose Resources não substitui (o diálogo mostrava "%s" no lugar do nome): viraram `%1$s`, e o
+  `StringResourcesTest` ganhou `placeholdersArePositional` (falha nos recursos antigos); 8 chaves de data e duração
+  sem uso saíram; o placeholder da busca dizia "Search podcasts…" e ela busca episódios; o texto da fila usava
+  `primary` como cor de texto (proibido pela ADR) e passou a `accentText`; "Sleep Timer" estava em inglês no pt; o
+  campo de busca invadia a barra de status. Testes: `ScreenContentTest` (biblioteca vazia chama "adicionar",
+  toque no card abre o podcast certo, "próximo" desabilitado no último episódio da fila). Conferido no Razr 60
+  (biblioteca, busca, downloads vazio e player). **Fica para a 11.10:** o `RootContent` não foi reestruturado (só
+  usa `MaterialTheme`); o botão de atualizar da busca saiu (ela atualiza ao abrir).
 
 ### 9.10 Cor dinâmica pela capa (opcional) 🔎 — M
 - **Ação:** extrair a cor dominante da capa (amostragem dos pixels do bitmap que o Coil já carrega, sem dependência

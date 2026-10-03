@@ -1,25 +1,19 @@
 package br.com.carvalho.podcast.feature.downloads.presentation
 
-import org.jetbrains.compose.resources.getString
-import br.com.carvalho.podcast.core.designsystem.Sizes
-import br.com.carvalho.podcast.core.designsystem.Spacing
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -27,10 +21,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
+import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.domain.download.DownloadStatus
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.cancel
@@ -38,11 +36,12 @@ import br.com.carvalho.podcast.shared.delete
 import br.com.carvalho.podcast.shared.delete_download
 import br.com.carvalho.podcast.shared.delete_download_confirmation
 import br.com.carvalho.podcast.shared.downloads
+import br.com.carvalho.podcast.shared.downloads_empty_message
 import br.com.carvalho.podcast.shared.no_downloads
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadedEpisodesScreen(
     viewModel: DownloadedEpisodesViewModel = koinViewModel(),
@@ -51,8 +50,6 @@ fun DownloadedEpisodesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState.snackbarMessage) {
@@ -62,81 +59,87 @@ fun DownloadedEpisodesScreen(
         }
     }
 
+    DownloadedEpisodesContent(
+        state = uiState,
+        playerState = playerState,
+        activeDownloads = activeDownloads,
+        snackbarHostState = snackbarHostState,
+        onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
+        onPlay = viewModel::playEpisode,
+        onRemove = viewModel::showDeleteConfirmation,
+        onConfirmRemove = { viewModel.deleteDownload(it.id) },
+        onDismissRemove = viewModel::hideDeleteConfirmation,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DownloadedEpisodesContent(
+    state: DownloadedEpisodesUiState,
+    playerState: PlayerState,
+    activeDownloads: Map<String, DownloadStatus>,
+    onEpisodeClick: (Episode) -> Unit,
+    onPlay: (Episode) -> Unit,
+    onRemove: (Episode) -> Unit,
+    onConfirmRemove: (Episode) -> Unit,
+    onDismissRemove: () -> Unit,
+    modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+) {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(Res.string.downloads)) },
+                title = { Text(stringResource(Res.string.downloads), style = MaterialTheme.typography.headlineMedium) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
                 scrollBehavior = scrollBehavior
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
     ) { padding ->
-        if (uiState.episodes.isEmpty()) {
-            Box(
+        if (state.episodes.isEmpty()) {
+            EmptyState(
+                icon = Icons.Rounded.DownloadDone,
+                title = stringResource(Res.string.no_downloads),
+                message = stringResource(Res.string.downloads_empty_message),
+                modifier = Modifier.padding(padding),
+            )
+        } else {
+            LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
+                contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
             ) {
-                Text(
-                    text = stringResource(Res.string.no_downloads),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            return@Scaffold
-        }
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
-        ) {
-            items(uiState.episodes, key = { it.id }) { episode ->
-                EpisodeListItem(
-                    episode = episode,
-                    podcastTitle = episode.podcastTitle,
-                    isBuffering = playerState.currentEpisode?.id == episode.id && playerState.isBuffering,
-                    isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
-                    downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Completed(""),
-                    onClick = { onEpisodeClick(episode.id, episode.podcastId) },
-                    onPlayClick = { viewModel.playEpisode(episode) },
-                    onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
-                )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = Spacing.l))
-            }
-        }
-
-        if (uiState.deleteEpisodeConfirmation != null) {
-            AlertDialog(
-                onDismissRequest = viewModel::hideDeleteConfirmation,
-                title = { Text(stringResource(Res.string.delete_download)) },
-                text = {
-                    Text(
-                        stringResource(
-                            Res.string.delete_download_confirmation,
-                            uiState.deleteEpisodeConfirmation?.title ?: ""
-                        )
+                items(state.episodes, key = { it.id }) { episode ->
+                    val isCurrent = playerState.currentEpisode?.id == episode.id
+                    EpisodeListItem(
+                        episode = episode,
+                        podcastTitle = episode.podcastTitle,
+                        isBuffering = isCurrent && playerState.isBuffering,
+                        isPlaying = isCurrent && playerState.isPlaying,
+                        downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Completed(""),
+                        onClick = { onEpisodeClick(episode) },
+                        onPlayClick = { onPlay(episode) },
+                        onDeleteClick = { onRemove(episode) }
                     )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            uiState.deleteEpisodeConfirmation?.let { viewModel.deleteDownload(it.id) }
-                        },
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text(stringResource(Res.string.delete))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = viewModel::hideDeleteConfirmation) {
-                        Text(stringResource(Res.string.cancel))
-                    }
                 }
+            }
+        }
+
+        state.deleteEpisodeConfirmation?.let { episode ->
+            ConfirmDialog(
+                title = stringResource(Res.string.delete_download),
+                message = stringResource(Res.string.delete_download_confirmation, episode.title),
+                confirmLabel = stringResource(Res.string.delete),
+                dismissLabel = stringResource(Res.string.cancel),
+                onConfirm = { onConfirmRemove(episode) },
+                onDismiss = onDismissRemove,
             )
         }
     }

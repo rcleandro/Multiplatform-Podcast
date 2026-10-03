@@ -14,6 +14,8 @@ import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+private const val PAGE_SIZE = 20
+
 private const val TAG = "PodcastRepository"
 
 class PodcastRepositoryImpl(
@@ -47,7 +49,7 @@ class PodcastRepositoryImpl(
 
     override fun getEpisodesPaged(podcastId: String): Flow<PagingData<Episode>> {
         return Pager(
-            config = PagingConfig(pageSize = 20),
+            config = PagingConfig(pageSize = PAGE_SIZE),
             pagingSourceFactory = { EpisodePagingSource(episodeDao, podcastId) }
         ).flow
     }
@@ -60,7 +62,7 @@ class PodcastRepositoryImpl(
 
     override fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>> {
         return Pager(
-            config = PagingConfig(pageSize = 20),
+            config = PagingConfig(pageSize = PAGE_SIZE),
             pagingSourceFactory = { EpisodePagingSource(episodeDao, query = query) }
         ).flow
     }

@@ -22,4 +22,14 @@ class StringResourcesTest {
             assertEquals(emptySet(), other - default, "Only in $locale")
         }
     }
+
+    /** Compose resources only fill positional placeholders (%1$s); a bare %s would show up literally. */
+    @Test
+    fun placeholdersArePositional() {
+        val bare = Regex("%[sdf]")
+        listOf("values", "values-pt", "values-es").forEach { locale ->
+            val offending = File(root, "$locale/strings.xml").readLines().filter { bare.containsMatchIn(it) }
+            assertEquals(emptyList(), offending, "Non-positional placeholders in $locale")
+        }
+    }
 }

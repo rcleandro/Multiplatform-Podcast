@@ -29,7 +29,7 @@ import br.com.carvalho.podcast.core.designsystem.Spacing
 fun EmptyState(
     icon: ImageVector,
     title: String,
-    message: String,
+    message: String?,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
@@ -40,7 +40,7 @@ fun EmptyState(
 fun ErrorState(
     icon: ImageVector,
     title: String,
-    message: String,
+    message: String?,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
@@ -57,7 +57,7 @@ fun LoadingState(modifier: Modifier = Modifier) {
 private fun StateMessage(
     icon: ImageVector,
     title: String,
-    message: String,
+    message: String?,
     isError: Boolean,
     actionLabel: String?,
     onAction: (() -> Unit)?,
@@ -83,12 +83,14 @@ private fun StateMessage(
                 Icon(icon, contentDescription = null, tint = glyphColors.second, modifier = Modifier.size(Sizes.iconL))
             }
             Text(title, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
+            message?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
             if (actionLabel != null && onAction != null) {
                 if (isError) {
                     OutlinedButton(onClick = onAction) { Text(actionLabel) }

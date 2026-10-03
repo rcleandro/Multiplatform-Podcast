@@ -9,6 +9,8 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 
+private const val MAX_RETRIES = 3
+
 actual fun createHttpClient(): HttpClient = HttpClient(Js) {
     install(ContentNegotiation) {
         json(commonJson)
@@ -19,7 +21,7 @@ actual fun createHttpClient(): HttpClient = HttpClient(Js) {
         socketTimeoutMillis = 30_000
     }
     install(HttpRequestRetry) {
-        retryOnServerErrors(maxRetries = 3)
+        retryOnServerErrors(maxRetries = MAX_RETRIES)
         exponentialDelay()
     }
     install(Logging) {
