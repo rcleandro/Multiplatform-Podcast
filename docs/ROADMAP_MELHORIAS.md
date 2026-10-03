@@ -510,9 +510,16 @@ de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
   `FileUtils`, com as mesmas pastas de antes) e observabilidade. O `AppContext` saiu: o banco e o player do Android
   recebem o `Context` do `androidContext()`. O `AppLogger` repassa os logs e as exceções ao `CrashReporter` injetado.
 
-### 11.7 Grafo do Koin verificado ✅ — P
+### 11.7 Grafo do Koin verificado ✔ — P
 - **Ação:** um teste JVM com `koin-test` (`verify()` nos módulos) que falha quando falta um binding, em vez de o
   erro aparecer só ao abrir a tela.
+- **Implementado:** `KoinGraphTest` em `shared/src/jvmCommonTest`, que roda no Desktop (`desktopTest`) e no host
+  Android (`testAndroidHostTest`). Assim, os dois `platformModule` (o do Android com Firebase) são verificados
+  junto com `commonModules`, que inclui os módulos Koin das features. Os `extraTypes` são os tipos que as lambdas recebem
+  de fora do Koin: `CoroutineDispatcher`, `HttpClientEngine`, `FileSystem` e `Path`. Verificado removendo o
+  binding de `PlayerRepository`: o teste falhou apontando o `PlayerViewModel` e voltou a passar depois de restaurar
+  o binding. Limite: `verify()` olha construtores, não chamadas `get()` dentro de lambdas que montam o objeto à mão.
+  Por isso, um `get()` sem binding numa lambda só aparece quando o objeto é criado.
 
 ### 11.8 Padrão de estado e eventos ✅ — M
 - **Problema:** cada ViewModel inventa o seu formato: erros como `String`, `snackbarMessage`, diálogos como campos
