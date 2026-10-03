@@ -10,6 +10,7 @@ kotlin {
         namespace = "br.com.carvalho.podcast.core.designsystem"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+        androidResources { enable = true }
     }
 
     jvm("desktop")
@@ -28,9 +29,20 @@ kotlin {
             api(libs.foundation)
             api(libs.material3)
             api(libs.compose.ui)
+            implementation(libs.components.resources)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.ui.test)
+        }
+        val desktopTest by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+            }
         }
     }
+}
+
+compose.resources {
+    packageOfResClass = "br.com.carvalho.podcast.core.designsystem.generated.resources"
 }

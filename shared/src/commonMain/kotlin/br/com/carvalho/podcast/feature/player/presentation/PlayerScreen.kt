@@ -64,6 +64,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.AppDimensions
+import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
@@ -322,11 +323,11 @@ private fun PlayerProgressBar(
         ) {
             Text(
                 text = position.toTime(),
-                style = MaterialTheme.typography.labelMedium
+                style = PodcastTheme.typography.timer
             )
             Text(
                 text = duration.toTime(),
-                style = MaterialTheme.typography.labelMedium
+                style = PodcastTheme.typography.timer
             )
         }
     }

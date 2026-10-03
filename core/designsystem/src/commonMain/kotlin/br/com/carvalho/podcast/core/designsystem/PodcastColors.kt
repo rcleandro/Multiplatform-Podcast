@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.core.designsystem
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 
 /** App colors that Material 3 has no role for. Read them through [PodcastTheme.colors]. */
 @Immutable
@@ -33,3 +34,5 @@ internal val DarkPodcastColors = PodcastColors(
 )
 
 internal val LocalPodcastColors = staticCompositionLocalOf { LightPodcastColors }
+
+internal val LocalPodcastTypography = staticCompositionLocalOf { podcastExtraTypography(FontFamily.Default) }

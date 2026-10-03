@@ -133,11 +133,23 @@ passam a usar só o design system.
   vermelhos de erro do M3 no tema claro). Rodado contra o esquema antigo, o de completude falha nos dois temas;
   com o novo, os 5 testes passam. Conferido no Razr 60 no tema escuro.
 
-### 9.4 Tipografia ✅ — P
+### 9.4 Tipografia ✔ — P
 - **Problema:** `Type.kt` reescreve os 15 estilos do M3 com `FontFamily.Default` e os valores padrão, e os tempos do
   player ("12:05") mudam de largura a cada segundo.
 - **Ação:** fonte embarcada e uma escala só com os estilos usados. `PodcastTheme.typography.timer` com
   `fontFeatureSettings = "tnum"`. Proibir `.sp` e `.copy(fontSize = …)` nas features.
+- **Implementado:** Onest 400/500/600/700 (TTF estáticos do Google Fonts, com `tnum`) em
+  `core/designsystem/src/commonMain/composeResources/font`, licença em `core/designsystem/OFL-Onest.txt`. O módulo
+  ganhou o próprio `Res` (`…core.designsystem.generated.resources`) e `androidResources { enable = true }`: as fontes
+  entram no APK em `assets/composeResources/…` **sem** a task manual de sincronização que o `:shared` usa (ver 10.3).
+  `podcastTypography(family)` aplica a família a todos os 15 estilos do M3 (inclusive os que só os componentes do
+  M3 usam por dentro, como snackbar e diálogo, para não voltarem à fonte do sistema) e os valores da ADR nos 7
+  usados pelas telas; `PodcastTheme.typography` traz `timer` (13/18, 500, `tnum`) e `section` (11/16, 600, +0,06em; quem
+  chama põe em caixa alta). Os tempos do player passaram a usar `timer`. `TypographyTest` (desktop, com Compose
+  ui-test) exige uma família só em todos os estilos, diferente da padrão do sistema: falha com a família do
+  sistema, como no código antigo, e passa com a Onest. Conferido no Razr 60: fontes no APK, sem erro de recurso e
+  com a Onest nas telas. **Pendente:** iOS e Web só compilam aqui; o carregamento da fonte nessas plataformas fica
+  para conferir no CI e quando a distribuição Web (10.10) voltar a funcionar.
 
 ### 9.5 Espaçamentos e tamanhos ✅ — P
 - **Problema:** `AppDimensions` tem 60 tokens com valores repetidos (`paddingSmall` e `spacingSmall` valem 4 dp;
@@ -243,7 +255,7 @@ cor, `sp` ou `dp` solto nem texto de tela nas features (garantido pelo Detekt); 
 |---|---|---|---|---|
 | 10.1 Arquivos de máquina e lixo | ✅ | `gradle_debug.log` versionado; `composeResources/drawable/compose-multiplatform.xml` (do template) sem uso | `git rm` | P |
 | 10.2 Segredo versionado | ✅ | `iosApp/GoogleService-Info.plist` está no git, embora o `google-services.json` do Android tenha saído (`6d1301b`) e o `.gitignore` só cubra `iosApp/iosApp/` | Tirar do git, ajustar o `.gitignore` e restringir a API key no console do Google Cloud por bundle id (o repositório é público) | P |
-| 10.3 Convention plugins | ✅ | `shared/build.gradle.kts` com 278 linhas: lista de `ksp<Target>` à mão, `-Xexpect-actual-classes` duas vezes, task de sync de recursos para o AGP 9, JavaFX em string com classificador | `build-logic/` com `podcast.kmp.library`, `podcast.kmp.compose`, `podcast.android.application`, `podcast.room` e `podcast.quality` (Detekt + Kover). Pré-requisito da fase 11 | M |
+| 10.3 Convention plugins | ✅ | `shared/build.gradle.kts` com 278 linhas: lista de `ksp<Target>` à mão, `-Xexpect-actual-classes` duas vezes, task de sync de recursos para o AGP 9 (desnecessária: na 9.4, `androidResources { enable = true }` empacotou os recursos do `:core:designsystem` sem ela; trocar no `:shared` e apagar a task e o `sourceSets.assets` do `androidApp`), JavaFX em string com classificador | `build-logic/` com `podcast.kmp.library`, `podcast.kmp.compose`, `podcast.android.application`, `podcast.room` e `podcast.quality` (Detekt + Kover). Pré-requisito da fase 11 | M |
 | 10.4 Lockfiles | ✅ | O `.gitignore` ignora `kotlin-js-store/`, `yarn.lock` e `Podfile.lock`, mas os dois lockfiles estão versionados | Manter os lockfiles (builds reproduzíveis, como a JetBrains recomenda para o `kotlin-js-store`) e tirar essas linhas do `.gitignore` | P |
 | 10.5 CI | ✅ | Sem Detekt; sem `concurrency`; testes com `--info` (logs enormes); cache manual em vez do `setup-gradle`; o build do Desktop roda só no Linux | Job `static-analysis` (Detekt + `lint` do Android); `concurrency` com `cancel-in-progress`; `gradle/actions/setup-gradle`; cache do `~/.konan`; matriz macOS/Windows/Linux para empacotar o Desktop | M |
 | 10.6 Atualização de dependências | ✅ | Versões mantidas à mão | Renovate (ou Dependabot) lendo o `libs.versions.toml`, com PRs agrupados por ecossistema | P |
