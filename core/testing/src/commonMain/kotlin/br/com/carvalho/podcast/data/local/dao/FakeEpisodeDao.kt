@@ -85,9 +85,9 @@ class FakeEpisodeDao : EpisodeDao {
         podcasts.value = podcasts.value.map { if (it.id == podcast.id) podcast else it }
     }
 
-    override suspend fun updateDownloadStatus(id: String, downloaded: Boolean) {
+    override suspend fun updateDownloadFile(id: String, fileName: String?) {
         episodes.value = episodes.value.map {
-            if (it.id == id) it.copy(isDownloaded = downloaded) else it
+            if (it.id == id) it.copy(downloadFile = fileName, isDownloaded = fileName != null) else it
         }
     }
 

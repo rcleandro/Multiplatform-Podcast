@@ -31,5 +31,7 @@ data class EpisodeEntity(
     val isPlayed: Boolean,
     val playbackPosition: Long,
     val isDownloaded: Boolean,
-    val fileSize: Long?
+    val fileSize: Long?,
+    /** The downloaded audio's name inside the downloads folder; the folder's absolute path can change on iOS. */
+    val downloadFile: String? = null,
 )

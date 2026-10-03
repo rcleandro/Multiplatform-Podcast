@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.data.download
 import br.com.carvalho.podcast.core.util.AppDirectories
 import app.cash.turbine.test
 import br.com.carvalho.podcast.data.local.dao.FakeEpisodeDao
+import br.com.carvalho.podcast.data.mapper.toEntity
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import io.ktor.client.*
@@ -129,6 +130,34 @@ class KtorEpisodeDownloaderTest {
         assertEquals(0, bytesOnDisk(), "No partial file should stay behind")
     }
 
+    @Test
+    fun `the file is named after the audio type and recorded in the database`() = runTest {
+        episodeDao.insertAll(listOf(sampleEpisode.toEntity()))
+        val engine = MockEngine {
+            respond("aac audio", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "audio/mp4"))
+        }
+        val downloader = KtorEpisodeDownloader(
+            HttpClient(engine), episodeDao, AppDirectories(fileSystem, baseDir), Dispatchers.Default
+        )
+
+        downloader.download(sampleEpisode)
+        withContext(Dispatchers.Default) {
+            withTimeout(STREAM_TIMEOUT_MS) {
+                downloader.activeDownloads.first { it[sampleEpisode.id] is DownloadStatus.Completed }
+            }
+        }
+
+        assertEquals("e1.m4a", episodeDao.getById("e1")?.downloadFile)
+        assertEquals((baseDir / "downloads" / "e1.m4a").toString(), downloader.getLocalPath("e1"))
+    }
+
+    @Test
+    fun `the extension falls back to the url and then to mp3`() {
+        assertEquals("m4a", audioExtension(ContentType.Application.OctetStream, "https://host/ep.M4A?token=1"))
+        assertEquals("mp3", audioExtension(null, "https://host/download?id=1"))
+        assertEquals("ogg", audioExtension(ContentType.parse("audio/ogg; codecs=opus"), "https://host/ep.mp3"))
+    }
+
     private fun bytesOnDisk(): Long = fileSystem.listOrNull(baseDir / "downloads").orEmpty()
         .sumOf { fileSystem.metadata(it).size ?: 0 }
 
@@ -162,6 +191,7 @@ class KtorEpisodeDownloaderTest {
         val path = baseDir / "downloads" / "e1.mp3"
         fileSystem.createDirectories(baseDir / "downloads")
         fileSystem.write(path) { writeUtf8("content") }
+        episodeDao.insertAll(listOf(sampleEpisode.toEntity().copy(downloadFile = "e1.mp3")))
 
         downloader.delete("e1")
         testDispatcher.scheduler.advanceUntilIdle()

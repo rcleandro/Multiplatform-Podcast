@@ -79,8 +79,9 @@ class EpisodeIdMigration(private val directories: AppDirectories) : Migration(FR
     private fun renameDownloads(newIds: Map<String, String>) {
         val fileSystem = directories.fileSystem
         newIds.forEach { (old, new) ->
-            val file = directories.downloadPath(old)
-            if (fileSystem.exists(file)) fileSystem.atomicMove(file, directories.downloadPath(new))
+            // Version 3 named every download "<id>.mp3".
+            val file = directories.downloadPath("$old.mp3")
+            if (fileSystem.exists(file)) fileSystem.atomicMove(file, directories.downloadPath("$new.mp3"))
         }
     }
 

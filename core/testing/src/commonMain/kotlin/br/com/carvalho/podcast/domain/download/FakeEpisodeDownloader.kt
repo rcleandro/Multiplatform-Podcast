@@ -36,5 +36,5 @@ class FakeEpisodeDownloader : EpisodeDownloader {
         return MutableStateFlow(DownloadStatus.Idle).asStateFlow()
     }
 
-    override fun getLocalPath(episodeId: String): String? = localPaths[episodeId]
+    override suspend fun getLocalPath(episodeId: String): String? = localPaths[episodeId]
 }

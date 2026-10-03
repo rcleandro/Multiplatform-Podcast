@@ -50,14 +50,13 @@ open class KtorEpisodeDownloader(
         }
 
         val job = scope.launch {
-            val destPath = directories.downloadPath(episode.id)
             // The episode only appears under its final name once it is whole; a failure leaves just the .part.
-            val partPath = destPath.parent!! / "${destPath.name}$PART_SUFFIX"
+            val partPath = directories.downloadPath("${episode.id}$PART_SUFFIX")
             try {
                 updateStatus(episode.id, DownloadStatus.Queued())
 
                 // prepareGet + execute streams the body to disk; get() would hold the whole episode in memory first.
-                val completed = httpClient.prepareGet(episode.audioUrl) {
+                val fileName = httpClient.prepareGet(episode.audioUrl) {
                     // An episode takes minutes; only connecting and silence are limited, not the whole transfer.
                     timeout { requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS }
                     onDownload { bytesSentTotal, contentLength ->
@@ -69,16 +68,18 @@ open class KtorEpisodeDownloader(
                 }.execute { response ->
                     if (!response.status.isSuccess()) {
                         updateStatus(episode.id, DownloadStatus.Failed(AppError.Http(response.status.value)))
-                        return@execute false
+                        return@execute null
                     }
                     fileSystem.createDirectories(directories.downloadsDir)
                     writeBody(response.bodyAsChannel(), partPath, response.contentLength())
-                    fileSystem.atomicMove(partPath, destPath)
-                    true
-                }
-                if (!completed) return@launch
+                    // The extension tells the platform player the format (AVPlayer reads nothing else).
+                    "${episode.id}.${audioExtension(response.contentType(), episode.audioUrl)}".also {
+                        fileSystem.atomicMove(partPath, directories.downloadPath(it))
+                    }
+                } ?: return@launch
 
-                episodeDao.updateDownloadStatus(episode.id, true)
+                episodeDao.updateDownloadFile(episode.id, fileName)
+                val destPath = directories.downloadPath(fileName)
 
                 updateStatus(episode.id, DownloadStatus.Completed(destPath.toString()))
                 AppLogger.d(TAG, "Download completed for ${episode.id}: $destPath")
@@ -108,25 +109,16 @@ open class KtorEpisodeDownloader(
     override suspend fun cancel(episodeId: String) {
         downloadJobs[episodeId]?.cancel()
         downloadJobs.remove(episodeId)
-
-        val destPath = directories.downloadPath(episodeId)
-        if (fileSystem.exists(destPath)) {
-            fileSystem.delete(destPath)
-        }
-
-        episodeDao.updateDownloadStatus(episodeId, false)
-        updateStatus(episodeId, DownloadStatus.Idle)
+        delete(episodeId)
     }
 
     override suspend fun delete(episodeId: String) {
-        val destPath = directories.downloadPath(episodeId)
-
         withContext(Dispatchers.Default) {
             try {
-                if (fileSystem.exists(destPath)) {
-                    fileSystem.delete(destPath)
+                episodeDao.getById(episodeId)?.downloadFile?.let {
+                    fileSystem.delete(directories.downloadPath(it), mustExist = false)
                 }
-                episodeDao.updateDownloadStatus(episodeId, false)
+                episodeDao.updateDownloadFile(episodeId, null)
                 updateStatus(episodeId, DownloadStatus.Idle)
                 AppLogger.d(TAG, "Deleted local file for episode: $episodeId")
             } catch (e: Exception) {
@@ -140,9 +132,9 @@ open class KtorEpisodeDownloader(
             .stateIn(scope, SharingStarted.WhileSubscribed(), DownloadStatus.Idle)
     }
 
-    override fun getLocalPath(episodeId: String): String? {
-        val destPath = directories.downloadPath(episodeId)
-        return if (fileSystem.exists(destPath)) destPath.toString() else null
+    override suspend fun getLocalPath(episodeId: String): String? {
+        val fileName = episodeDao.getById(episodeId)?.downloadFile ?: return null
+        return directories.downloadPath(fileName).takeIf { fileSystem.exists(it) }?.toString()
     }
 
     private suspend fun writeBody(channel: ByteReadChannel, destPath: Path, contentLength: Long?) {
@@ -167,3 +159,28 @@ open class KtorEpisodeDownloader(
         _activeDownloads.value += (episodeId to status)
     }
 }
+
+private const val DEFAULT_EXTENSION = "mp3"
+
+private val EXTENSIONS_BY_TYPE = mapOf(
+    "audio/mpeg" to "mp3",
+    "audio/mp3" to "mp3",
+    "audio/mp4" to "m4a",
+    "audio/x-m4a" to "m4a",
+    "audio/m4a" to "m4a",
+    "audio/aac" to "aac",
+    "audio/ogg" to "ogg",
+    "audio/opus" to "opus",
+    "audio/wav" to "wav",
+    "video/mp4" to "mp4",
+)
+
+/**
+ * The downloaded file's extension: from the response type, else from the URL (many hosts answer with
+ * `application/octet-stream`), else mp3.
+ */
+internal fun audioExtension(contentType: ContentType?, audioUrl: String): String =
+    EXTENSIONS_BY_TYPE[contentType?.withoutParameters()?.toString()?.lowercase()]
+        ?: Url(audioUrl).encodedPath.substringAfterLast('/').substringAfterLast('.', "").lowercase()
+            .takeIf { it in EXTENSIONS_BY_TYPE.values }
+        ?: DEFAULT_EXTENSION

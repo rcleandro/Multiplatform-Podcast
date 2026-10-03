@@ -7,6 +7,6 @@ import okio.Path
 data class AppDirectories(val fileSystem: FileSystem, val baseDir: Path) {
     val downloadsDir: Path get() = baseDir / "downloads"
 
-    /** The audio file of a downloaded episode; the database migration that renames ids relies on it too. */
-    fun downloadPath(episodeId: String): Path = downloadsDir / "$episodeId.mp3"
+    /** A file in the downloads folder; the episode's file name is stored in the database. */
+    fun downloadPath(fileName: String): Path = downloadsDir / fileName
 }
