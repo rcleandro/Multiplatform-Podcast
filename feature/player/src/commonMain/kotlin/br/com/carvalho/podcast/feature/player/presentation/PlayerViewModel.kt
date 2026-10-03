@@ -188,12 +188,6 @@ class PlayerViewModel(
             pause()
         }
     }
-
-    override fun onCleared() {
-        super.onCleared()
-        sleepTimerJob?.cancel()
-        audioPlayer.release()
-    }
 }
 
 sealed interface PlayerIntent {

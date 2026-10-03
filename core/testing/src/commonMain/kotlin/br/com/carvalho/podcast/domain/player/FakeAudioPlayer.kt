@@ -19,6 +19,7 @@ class FakeAudioPlayer : AudioPlayer {
     var stopCalled = false
     var seekToCalledWith: Long? = null
     var queueSet: List<Episode>? = null
+    var releaseCalled = false
 
     /** Moves the playback position, as the real players do every 500 ms while playing. */
     fun advanceTo(positionMs: Long) {
@@ -81,5 +82,7 @@ class FakeAudioPlayer : AudioPlayer {
 
     override fun playPrevious() {}
 
-    override fun release() {}
+    override fun release() {
+        releaseCalled = true
+    }
 }

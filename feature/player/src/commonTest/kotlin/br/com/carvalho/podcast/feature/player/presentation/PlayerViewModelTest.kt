@@ -7,6 +7,10 @@ import br.com.carvalho.podcast.domain.repository.FakePlayerRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -20,6 +24,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -49,6 +54,21 @@ class PlayerViewModelTest {
         viewModel.onIntent(PlayerIntent.Play(episode))
 
         assertEquals("e1", audioPlayer.playCalledWith?.id)
+    }
+
+    @Test
+    fun `closing the player screen leaves the shared player working`() = runTest(testDispatcher) {
+        val store = ViewModelStore()
+        val factory = viewModelFactory {
+            initializer {
+                PlayerViewModel(audioPlayer, playerRepository, podcastRepository, episodeDownloader, dispatchers, FakeAnalytics())
+            }
+        }
+        ViewModelProvider.create(store, factory)[PlayerViewModel::class]
+
+        store.clear()
+
+        assertFalse(audioPlayer.releaseCalled)
     }
 
     @Test
