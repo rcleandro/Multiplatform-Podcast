@@ -40,7 +40,7 @@ Regras, verificadas no build pela 11.5:
 | `:core:common` | nenhum módulo do projeto |
 | `:core:observability`, `:core:designsystem`, `:core:network`, `:core:database` | `:core:common` |
 | `:core:ui` | `:core:designsystem`, `:domain`, `:core:common` |
-| `:domain` | `:core:common` |
+| `:domain` | `:core:common`, `:core:observability` |
 | `:core:player` | `:domain`, `:core:common`, `:core:observability` |
 | `:data` | `:domain`, `:core:database`, `:core:network`, `:core:common`, `:core:observability` |
 | `:feature:*` | `:domain`, `:core:ui`, `:core:designsystem`, `:core:common`, `:core:observability` — **nunca** outra feature, `:data`, `:core:database`, `:core:network` ou `:core:player` |
@@ -53,6 +53,9 @@ Decisões menores:
   (Android e iOS) moram no `:shared`, onde estão os pods, e entram pelo Koin. Desktop e Web recebem as
   implementações que só registram em log. Assim os testes de cada módulo não dependem de Firebase.
 - **`PagingData` no domínio é aceito.** É do `androidx.paging:paging-common`, uma biblioteca KMP sem Android.
+- **Log e `@Serializable` no domínio são aceitos.** Os casos de uso registram em log pelo `AppLogger` do
+  `:core:observability`, que não conhece o Firebase, e `Episode` é serializável porque a fila do player é salva
+  em JSON; as duas bibliotecas são KMP puras.
 - **Estabilidade do Compose fora do domínio.** Os modelos perdem `@Immutable`; um arquivo de configuração de
   estabilidade nos módulos de UI declara os modelos como estáveis.
 - **Um `Res` por módulo de UI.** Os textos usados por várias features ficam em `:core:ui`; texto de uma feature

@@ -126,11 +126,7 @@ class IosAudioPlayer : AudioPlayer {
 
     override suspend fun play(episode: Episode) {
         AppLogger.i(TAG, "Playing episode in iOS: ${episode.title}")
-        val url = if (episode.localPath != null) {
-            NSURL.fileURLWithPath(episode.localPath)
-        } else {
-            NSURL.URLWithString(episode.audioUrl)
-        } ?: run {
+        val url = episode.playableUrl() ?: run {
             AppLogger.e(TAG, "Invalid audio URL: ${episode.audioUrl}")
             return
         }
@@ -153,11 +149,7 @@ class IosAudioPlayer : AudioPlayer {
 
     override fun prepare(episode: Episode, positionMs: Long) {
         AppLogger.d(TAG, "Preparing episode in iOS: ${episode.title}")
-        val url = if (episode.localPath != null) {
-            NSURL.fileURLWithPath(episode.localPath)
-        } else {
-            NSURL.URLWithString(episode.audioUrl)
-        } ?: return
+        val url = episode.playableUrl() ?: return
         val playerItem = AVPlayerItem.playerItemWithURL(url)
 
 
@@ -262,3 +254,6 @@ class IosAudioPlayer : AudioPlayer {
         progressJob = null
     }
 }
+
+private fun Episode.playableUrl(): NSURL? =
+    localPath?.let { NSURL.fileURLWithPath(it) } ?: NSURL.URLWithString(audioUrl)

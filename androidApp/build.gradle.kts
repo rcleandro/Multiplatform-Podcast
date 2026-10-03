@@ -41,6 +41,7 @@ android {
 dependencies {
     implementation(project(":shared"))
     implementation(project(":core:observability"))
+    implementation(project(":domain"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.appcompat)

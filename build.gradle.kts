@@ -19,7 +19,10 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
-        config.setFrom(files("${rootProject.projectDir}/config/detekt/detekt.yml"))
+        config.setFrom(
+            files("${rootProject.projectDir}/config/detekt/detekt.yml") +
+                if (path == ":core:testing") files("${rootProject.projectDir}/config/detekt/testing.yml") else files()
+        )
         baseline = file("${rootProject.projectDir}/config/detekt/baseline.xml")
         buildUponDefaultConfig = true
         allRules = false

@@ -1,11 +1,10 @@
 package br.com.carvalho.podcast.domain.usecase
 
-import br.com.carvalho.podcast.data.remote.RssFeedSource
-import br.com.carvalho.podcast.data.remote.FakeRssFeedDataSource
-import br.com.carvalho.podcast.data.remote.model.RssFeed
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastError
+import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,9 +12,9 @@ import kotlin.test.assertTrue
 import kotlin.test.assertIs
 
 class AddPodcastFromUrlUseCaseTest {
-    private val rssDataSource = FakeRssFeedDataSource()
+    private val feedSource = FakeFeedSource()
     private val podcastRepo = FakePodcastRepository()
-    private val useCase = AddPodcastFromUrlUseCase(RssFeedSource(rssDataSource), podcastRepo)
+    private val useCase = AddPodcastFromUrlUseCase(feedSource, podcastRepo)
 
     @Test
     fun `returns AlreadyExists if podcast is already in database`() = runTest {
@@ -45,19 +44,12 @@ class AddPodcastFromUrlUseCaseTest {
     @Test
     fun `fetches feed and saves podcast and episodes on success`() = runTest {
         val url = "https://test.com/rss"
-        val rssFeed = RssFeed(
-            title = "New Podcast",
-            description = "Desc",
-            imageUrl = "img",
-            author = "Author",
-            language = "en",
-            categories = listOf("Tech"),
-            link = "link",
-            ttl = null,
-            episodes = emptyList()
+        val podcast = Podcast(
+            id = url, title = "New Podcast", description = "Desc", imageUrl = "img", author = "Author",
+            language = "en", categories = listOf("Tech"), feedUrl = url, siteUrl = "link", lastUpdated = 0,
+            isSubscribed = true
         )
-
-        rssDataSource.feedResult = Result.success(rssFeed)
+        feedSource.result = Result.success(FetchedFeed(podcast, emptyList()))
 
         val result = useCase(url)
 

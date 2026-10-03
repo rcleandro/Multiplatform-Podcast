@@ -12,6 +12,7 @@ kotlin {
         commonMain.dependencies {
             api(project(":core:observability"))
             api(project(":core:database"))
+            api(project(":domain"))
             implementation(libs.kotlinx.coroutines.core)
         }
         // In-memory Room with the bundled driver: Android host tests run on the JVM, so both use the JVM artifact.

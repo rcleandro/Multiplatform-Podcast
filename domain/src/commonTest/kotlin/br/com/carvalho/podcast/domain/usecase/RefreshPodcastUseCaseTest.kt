@@ -1,20 +1,19 @@
 package br.com.carvalho.podcast.domain.usecase
 
-import br.com.carvalho.podcast.data.remote.RssFeedSource
-import br.com.carvalho.podcast.data.remote.FakeRssFeedDataSource
-import br.com.carvalho.podcast.data.remote.model.RssEpisode
-import br.com.carvalho.podcast.data.remote.model.RssFeed
+import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RefreshPodcastUseCaseTest {
-    private val rssDataSource = FakeRssFeedDataSource()
+    private val feedSource = FakeFeedSource()
     private val podcastRepo = FakePodcastRepository()
-    private val useCase = RefreshPodcastUseCase(RssFeedSource(rssDataSource), podcastRepo)
+    private val useCase = RefreshPodcastUseCase(feedSource, podcastRepo)
 
     private val samplePodcast = Podcast(
         id = "url",
@@ -30,28 +29,13 @@ class RefreshPodcastUseCaseTest {
         isSubscribed = true
     )
 
-    private val sampleFeed = RssFeed(
-        title = "Title",
-        description = "",
-        imageUrl = null,
-        author = null,
-        language = null,
-        categories = emptyList(),
-        link = null,
-        ttl = null,
+    private val sampleFeed = FetchedFeed(
+        podcast = samplePodcast,
         episodes = listOf(
-            RssEpisode(
-                guid = "guid",
-                title = "Ep",
-                description = null,
-                enclosureUrl = "audio",
-                enclosureType = null,
-                duration = null,
-                publishDate = "Fri, 15 May 2026 10:00:00 GMT",
-                imageUrl = null,
-                explicit = false,
-                season = null,
-                episode = null
+            Episode(
+                id = "guid", podcastId = "url", title = "Ep", description = null, audioUrl = "audio", imageUrl = null,
+                duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false,
+                fileSize = null
             )
         )
     )
@@ -59,7 +43,7 @@ class RefreshPodcastUseCaseTest {
     @Test
     fun `invoking refresh updates podcast and episodes`() = runTest {
         podcastRepo.podcasts.value = listOf(samplePodcast)
-        rssDataSource.feedResult = Result.success(sampleFeed)
+        feedSource.result = Result.success(sampleFeed)
 
         val result = useCase("url")
 
@@ -71,11 +55,11 @@ class RefreshPodcastUseCaseTest {
     @Test
     fun `refreshAll updates all subscribed podcasts`() = runTest {
         podcastRepo.podcasts.value = listOf(samplePodcast)
-        rssDataSource.feedResult = Result.success(sampleFeed)
+        feedSource.result = Result.success(sampleFeed)
 
         val result = useCase.refreshAll()
 
         assertTrue(result.isSuccess)
-        assertEquals("url", rssDataSource.fetchFeedCalledWith)
+        assertEquals("url", feedSource.fetchCalledWith)
     }
 }

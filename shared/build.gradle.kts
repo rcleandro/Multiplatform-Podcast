@@ -64,6 +64,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core:common"))
+            implementation(project(":domain"))
             implementation(project(":core:database"))
             implementation(project(":core:designsystem"))
             implementation(project(":core:network"))
