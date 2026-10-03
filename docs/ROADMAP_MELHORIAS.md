@@ -686,17 +686,46 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   recebe os segundos. Teste do mapeamento dos ícones em `commonTest`. Quando a 18.5 levar o valor para as
   Configurações, basta trocar a constante pela preferência nesses quatro lugares.
 
-### 13.5 Lógica de reprodução repetida em quatro plataformas ✅ — G
+### 13.5 Lógica de reprodução repetida em quatro plataformas ✔ (falta conferir em cada plataforma) — G
 - **Problema:** fila, próximo/anterior, laço de progresso, estado do sleep timer e montagem do `PlayerState` estão
   reimplementados em `AudioPlayer.android/ios/desktop/wasmJs.kt` (206 a 331 linhas cada), sem testes.
 - **Ação:** um `PlaybackController` em `commonMain` com toda a regra (fila, próximo, fim do episódio, sleep timer,
   progresso, salvamento) sobre uma interface mínima por plataforma (`load`, `play`, `pause`, `seekTo`, `setSpeed`,
   `position`, `events`). Os `actual` passam a só traduzir a API nativa. Testes em `commonTest` com um engine fake.
+- **Implementado** (em dois commits, porque a interface mudou para as quatro plataformas de uma vez):
+  - `PlatformPlayer` (`:core:player`): `load(episode, posição, tocar?)`, `play`, `pause`, `seekTo`, `setSpeed`,
+    posição, duração, `loadedEpisodeId` e eventos (tocando, carregando, fim, comandos externos: tela de bloqueio,
+    notificação, teclas de mídia). `AndroidPlatformPlayer` (MediaController do `PodcastMediaService`, com os comandos
+    esperando a conexão), `IosPlatformPlayer` (AVPlayer, now playing e comandos remotos, reaproveitando o
+    `setupIosAudioSession` que estava sem uso), `DesktopPlatformPlayer` (JavaFX) e `WebPlatformPlayer` (`<audio>` e
+    Media Session) substituem os quatro `AudioPlayer` (206 a 331 linhas cada).
+  - `PlaybackController` (`commonMain`), registrado no Koin como o `AudioPlayer` do app: fila, próximo/anterior,
+    fim do episódio, laço de progresso (500 ms), salvamento a cada 5 s de reprodução e ao pausar, restauração da
+    sessão uma vez por processo, velocidade e sleep timer. Sempre toca o arquivo baixado quando existe (inclusive
+    os próximos da fila, que antes iam por streaming), então o `PlayEpisodeUseCase` não procura mais o arquivo.
+  - `AudioPlayer` perdeu `isReady`, `prepare`, `stop` e `release`; o `PlayerViewModel` ficou só com os comandos da
+    tela (saíram a restauração, o salvamento, o sleep timer e três dependências).
+  - **Bugs corrigidos no caminho:** pausar voltava a velocidade para 1x no Desktop, no iOS e na Web (`pause()`
+    chamava `setSpeed(1f)`); no Android, cada novo `PlayerViewModel` (por exemplo, ao recriar a activity) restaurava
+    a sessão com `prepare()`, que fazia `player.stop()` e cortava o áudio que estava tocando. Agora a restauração roda
+    uma vez e, se o serviço já está tocando (inclusive pelo Android Auto), o controller adota esse episódio.
+  - Testes: 10 no `PlaybackControllerTest` com um `FakePlatformPlayer` e tempo virtual (fim marca como ouvido e
+    avança, último episódio para, sleep timer por minutos e por fim do episódio, velocidade após pausa, salvamento
+    durante a reprodução, restauração pausada com arquivo baixado, próximo pelo arquivo baixado, anterior no
+    primeiro, arquivo baixado no play). O controller aceita o escopo por parâmetro para os testes não travarem.
+  - **Falta conferir em cada plataforma:** Android (tocar, notificação, fechar e reabrir com o áudio tocando, Android
+    Auto), iOS (tela de bloqueio, próximo/anterior pelo controle remoto), Desktop e Web (teclas de mídia). Não há
+    `buffering` no iOS (o AVPlayer não informa sem KVO), como antes.
 
-### 13.6 Sleep timer preso à tela ✅ — P
+### 13.6 Sleep timer preso à tela ✔ — P
 - **Problema:** o timer é um laço no `viewModelScope`; se a activity for destruída com o áudio tocando em background,
   o timer morre e o áudio não para.
 - **Ação:** o timer vai para o `PlaybackController` (13.5), com a opção "fim do episódio".
+- **Implementado:** `SleepTimer` (`Minutes(n)` ou `EndOfEpisode`) no `:domain`, e `AudioPlayer.setSleepTimer(timer)`.
+  O timer roda no escopo do controller, que vive com o processo, então sobrevive à tela. "Fim do episódio" entrou no
+  diálogo (texto novo nos três idiomas) e, no fim do episódio, pausa em vez de avançar. O ícone do timer fica ativo
+  para as duas opções (antes olhava só a contagem). A contagem usa `delay` para ser testável em tempo virtual
+  (comentário `ponytail:`: uns 2 s de atraso em 30 min).
 
 ### 13.7 Regra de "tocar" duplicada nos ViewModels ✔ — P
 - **Problema:** alternar entre play e pause, montar a fila e resolver o arquivo local está copiado em
@@ -713,10 +742,13 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   (arquivo baixado, fila padrão, fila dada, pausa do atual) e, na busca, um episódio baixado tocado pelo arquivo
   (falhou no código antigo). O `FakeEpisodeDownloader` ganhou `localPaths`.
 
-### 13.8 Episódio concluído 🔎 — P
+### 13.8 Episódio concluído ✔ — P
 - **Suspeita:** no fim (`STATE_ENDED`), o Android chama `playNext()` direto, e a marcação de ouvido depende de algum
   salvamento ter acontecido acima de 95%, o que, com o 13.1, quase nunca acontece.
 - **Ação:** o `PlaybackController` marca como ouvido no evento de fim, antes de avançar.
+- **Implementado:** confirmado: as quatro plataformas avançavam no fim sem marcar como ouvido. No evento `Ended`, o
+  controller marca o episódio como ouvido e só então para (timer de fim de episódio) ou avança. Teste
+  `theEndOfAnEpisodeMarksItPlayedAndMovesToTheNextOne`.
 
 **Critério de conclusão:** o progresso sobrevive a matar o processo durante a reprodução; o player funciona depois
 de fechar e reabrir o app; a regra de reprodução tem testes em `commonTest`.
