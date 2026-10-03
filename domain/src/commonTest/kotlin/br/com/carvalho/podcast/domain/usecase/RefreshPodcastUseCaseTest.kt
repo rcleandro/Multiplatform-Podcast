@@ -56,19 +56,24 @@ class RefreshPodcastUseCaseTest {
         podcastRepo.podcasts.value = listOf(samplePodcast)
         feedSource.result = Result.success(sampleFeed)
 
-        val result = useCase.refreshAll()
+        val summary = useCase.refreshAll()
 
-        assertTrue(result.isSuccess)
+        assertEquals(RefreshSummary(total = 1, failures = emptyList()), summary)
         assertEquals("url", feedSource.fetchCalledWith)
     }
 
     @Test
-    fun `refreshAll reports a feed that failed`() = runTest {
-        podcastRepo.podcasts.value = listOf(samplePodcast)
-        feedSource.result = Result.failure(IllegalStateException("offline"))
+    fun `refreshAll counts the feeds that failed and keeps refreshing the others`() = runTest {
+        val other = samplePodcast.copy(id = "other", feedUrl = "other")
+        podcastRepo.podcasts.value = listOf(samplePodcast, other)
+        feedSource.result = Result.success(sampleFeed)
+        feedSource.resultsByUrl["other"] = Result.failure(IllegalStateException("offline"))
 
-        val result = useCase.refreshAll()
+        val summary = useCase.refreshAll()
 
-        assertTrue(result.isFailure)
+        assertEquals(2, summary.total)
+        assertEquals(1, summary.failures.size)
+        assertEquals(false, summary.allFailed)
+        assertEquals(1, podcastRepo.saveFeedCalledCount)
     }
 }

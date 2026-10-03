@@ -2,8 +2,8 @@ package br.com.carvalho.podcast.feature.downloads.presentation
 
 import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
+import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -27,8 +27,8 @@ class DownloadedEpisodesViewModel(
     private val _uiState = MutableStateFlow(DownloadedEpisodesUiState())
     val uiState: StateFlow<DownloadedEpisodesUiState> = _uiState.asStateFlow()
 
-    private val _messages = Channel<StringResource>(Channel.BUFFERED)
-    val messages: Flow<StringResource> = _messages.receiveAsFlow()
+    private val _messages = Channel<UiMessage>(Channel.BUFFERED)
+    val messages: Flow<UiMessage> = _messages.receiveAsFlow()
 
     init {
         repository.getDownloadedEpisodes()
@@ -69,7 +69,7 @@ class DownloadedEpisodesViewModel(
         _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
-            _messages.send(Res.string.download_deleted)
+            _messages.send(UiMessage(Res.string.download_deleted))
         }
     }
 }

@@ -61,6 +61,7 @@
     <string name="app_name">Podcast KMP</string>
     <string name="rss_url_placeholder">https://...</string>
     <string name="error_refresh_podcasts">No se pudieron actualizar los podcasts. Revisa la conexión.</string>
+    <string name="error_refresh_some_podcasts">No se pudieron actualizar %1$d de %2$d podcasts.</string>
     <string name="error_add_podcast">No se pudo agregar el podcast. Revisa la URL y la conexión.</string>
     <string name="error_podcast_exists">Este podcast ya está en tu biblioteca.</string>
     <string name="error_refresh_episodes">No se pudieron actualizar los episodios.</string>

@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.presentation.UiMessage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -133,7 +134,7 @@ class PodcastDetailViewModelTest {
         viewModel.onIntent(PodcastDetailIntent.Refresh)
 
         viewModel.messages.test {
-            assertEquals(Res.string.error_no_connection, awaitItem())
+            assertEquals(UiMessage(Res.string.error_no_connection), awaitItem())
         }
         assertFalse(viewModel.uiState.value.isRefreshing)
     }

@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.feature.library.presentation
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_feed
+import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
@@ -23,6 +24,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.presentation.UiMessage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -150,7 +152,7 @@ class LibraryViewModelTest {
         viewModel.onIntent(LibraryIntent.ConfirmAdd)
 
         viewModel.messages.test {
-            assertEquals(Res.string.error_podcast_exists, awaitItem())
+            assertEquals(UiMessage(Res.string.error_podcast_exists), awaitItem())
         }
     }
 
@@ -163,7 +165,27 @@ class LibraryViewModelTest {
         viewModel.onIntent(LibraryIntent.ConfirmAdd)
 
         viewModel.messages.test {
-            assertEquals(Res.string.error_invalid_feed, awaitItem())
+            assertEquals(UiMessage(Res.string.error_invalid_feed), awaitItem())
+        }
+    }
+
+    @Test
+    fun `refreshing all when some feeds fail says how many`() = runTest(testDispatcher) {
+        val podcasts = listOf("a", "b", "c").map {
+            Podcast(
+                id = it, title = it, description = "", imageUrl = null, author = null, language = null,
+                categories = emptyList(), feedUrl = it, siteUrl = null, lastUpdated = 0, isSubscribed = true
+            )
+        }
+        repository.podcasts.value = podcasts
+        feedSource.result = Result.success(FetchedFeed(podcasts.first(), emptyList()))
+        feedSource.resultsByUrl["b"] = Result.failure(AppError.NoConnection)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.RefreshAll)
+
+        viewModel.messages.test {
+            assertEquals(UiMessage(Res.string.error_refresh_some_podcasts, listOf(1, 3)), awaitItem())
         }
     }
 }

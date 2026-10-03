@@ -26,12 +26,14 @@ class RefreshPodcastUseCase(
             }
     }
 
-    /** Refreshes every podcast, even after one fails, and reports the first failure. */
-    suspend fun refreshAll(): Result<Unit> {
+    /** Refreshes every podcast, even after one fails, and says how many failed and why. */
+    suspend fun refreshAll(): RefreshSummary {
         AppLogger.i(TAG, "Starting refresh for all podcasts")
-        val failure = podcastRepository.getPodcasts().first()
-            .map { invoke(it.id) }
-            .firstNotNullOfOrNull { it.exceptionOrNull() }
-        return if (failure == null) Result.success(Unit) else Result.failure(failure)
+        val results = podcastRepository.getPodcasts().first().map { invoke(it.id) }
+        return RefreshSummary(total = results.size, failures = results.mapNotNull { it.exceptionOrNull() })
     }
+}
+
+data class RefreshSummary(val total: Int, val failures: List<Throwable>) {
+    val allFailed: Boolean get() = total > 0 && failures.size == total
 }

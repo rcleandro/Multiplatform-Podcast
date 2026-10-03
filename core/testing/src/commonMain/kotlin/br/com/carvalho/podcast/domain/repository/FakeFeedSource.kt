@@ -7,9 +7,12 @@ class FakeFeedSource : FeedSource {
     var fetchCalledWith: String? = null
     var delayMs = 0L
 
+    /** Overrides [result] for one feed URL. */
+    val resultsByUrl = mutableMapOf<String, Result<FetchedFeed>>()
+
     override suspend fun fetch(feedUrl: String): Result<FetchedFeed> {
         fetchCalledWith = feedUrl
         delay(delayMs)
-        return result
+        return resultsByUrl[feedUrl] ?: result
     }
 }

@@ -2,8 +2,8 @@ package br.com.carvalho.podcast.feature.podcast.presentation
 
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_episodes
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
+import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
@@ -42,8 +42,8 @@ class PodcastDetailViewModel(
     private val _uiState = MutableStateFlow(PodcastDetailUiState(isLoading = true))
     val uiState: StateFlow<PodcastDetailUiState> = _uiState
 
-    private val _messages = Channel<StringResource>(Channel.BUFFERED)
-    val messages: Flow<StringResource> = _messages.receiveAsFlow()
+    private val _messages = Channel<UiMessage>(Channel.BUFFERED)
+    val messages: Flow<UiMessage> = _messages.receiveAsFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagedEpisodes: Flow<PagingData<Episode>> = _uiState
@@ -97,7 +97,7 @@ class PodcastDetailViewModel(
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
             refreshPodcastUseCase(podcastId).onFailure { e ->
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
-                _messages.send(e.toMessage(fallback = Res.string.error_refresh_episodes))
+                _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_refresh_episodes)))
             }
             _uiState.update { it.copy(isRefreshing = false) }
         }

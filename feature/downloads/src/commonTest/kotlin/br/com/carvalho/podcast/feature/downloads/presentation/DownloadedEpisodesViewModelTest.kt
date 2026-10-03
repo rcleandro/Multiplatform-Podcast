@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.presentation.UiMessage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -58,7 +59,7 @@ class DownloadedEpisodesViewModelTest {
         viewModel.onIntent(DownloadsIntent.ConfirmDelete(sampleEpisode))
 
         viewModel.messages.test {
-            assertEquals(Res.string.download_deleted, awaitItem())
+            assertEquals(UiMessage(Res.string.download_deleted), awaitItem())
         }
         assertEquals("e1", episodeDownloader.deleteCalledWith)
     }
