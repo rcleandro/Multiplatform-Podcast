@@ -647,7 +647,7 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   andando a cada 500 ms por um minuto de tempo virtual: pelo menos 10 salvamentos, o último a menos de 5 s do fim.
   No código antigo, foram 0.
 
-### 13.2 Player singleton liberado pelo ViewModel ✔ (falta conferir no aparelho) — M
+### 13.2 Player singleton liberado pelo ViewModel ✔ — M
 - **Problema:** `PlayerViewModel.onCleared()` chama `audioPlayer.release()` no player singleton do Koin. No Android,
   `release()` cancela o `scope` e libera o `MediaController` de vez. Basta fechar a activity pelo voltar com o
   processo vivo (o serviço continua tocando) para, ao reabrir, o novo ViewModel receber um player morto. O
@@ -661,17 +661,21 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   saiu, porque era código morto. Nenhum código chama mais `AudioPlayer.release()`: o player vive com o processo e,
   no Android, com o `PodcastMediaService`. O método continua na interface para o `PlaybackController` (13.5)
   decidir. Teste: limpar o `ViewModelStore`, como ao fechar a tela, não libera o player (falhou no código antigo).
-  **Falta:** reproduzir no Razr 60 (tocar, fechar pelo voltar com o áudio tocando, reabrir e usar o player).
+  **Conferido no Razr 60 (03/10/2026):** com o áudio tocando, o voltar destruiu a activity e o áudio continuou;
+  ao reabrir, o mini player pausou e retomou normalmente.
 
-### 13.3 Foco de áudio e fone desconectado (Android) ✔ (falta conferir no aparelho) — P
+### 13.3 Foco de áudio e fone desconectado (Android) ✔ — P
 - **Problema:** `PodcastMediaService` cria o ExoPlayer com `setAudioAttributes(…, handleAudioFocus = false)` e sem
   `setHandleAudioBecomingNoisy(true)`. O podcast toca por cima de ligações e de outros apps, e continua no
   alto-falante quando o fone é desconectado.
 - **Ação:** `handleAudioFocus = true` e `setHandleAudioBecomingNoisy(true)`. Validar com uma ligação e tirando o fone.
 - **Implementado:** as duas opções ligadas no `ExoPlayer.Builder` do `PodcastMediaService`. Sem teste
   automatizado: o comportamento é do ExoPlayer com o sistema (foco de áudio, broadcast `ACTION_AUDIO_BECOMING_NOISY`)
-  e só aparece em aparelho. **Falta:** no Razr 60, tocar e (1) receber uma ligação: pausa e volta ao desligar;
-  (2) tocar outro app de áudio: o podcast pausa; (3) tirar o fone com fio ou desligar o Bluetooth: pausa.
+  e só aparece em aparelho. **Conferido no Razr 60 (03/10/2026), pelo log do sistema:** (1) numa ligação, o app
+  recebeu `onAudioFocusChange(-2)` e pausou em 50 ms; ao desligar, recebeu o foco de volta e retomou do mesmo ponto;
+  (2) com o YouTube pedindo foco, recebeu `onAudioFocusChange(-1)` e pausou, sem retomar depois (perda permanente);
+  (3) ao desconectar o fone Bluetooth, pausou junto com a desconexão. Os botões do fone (inclusive 3 toques) chegam
+  ao podcast quando ele foi o último app a tocar; antes disso, o Android os entrega ao último app de mídia.
 
 ### 13.4 Saltos diferentes na notificação e no app ✔ — P
 - **Problema:** o serviço fixa 30 s/15 s (`setSeekForwardIncrementMs(30000)`, `setSeekBackIncrementMs(15000)`) e o
@@ -686,7 +690,7 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   recebe os segundos. Teste do mapeamento dos ícones em `commonTest`. Quando a 18.5 levar o valor para as
   Configurações, basta trocar a constante pela preferência nesses quatro lugares.
 
-### 13.5 Lógica de reprodução repetida em quatro plataformas ✔ (falta conferir em cada plataforma) — G
+### 13.5 Lógica de reprodução repetida em quatro plataformas ✔ (falta conferir iOS, Desktop, Web e Android Auto) — G
 - **Problema:** fila, próximo/anterior, laço de progresso, estado do sleep timer e montagem do `PlayerState` estão
   reimplementados em `AudioPlayer.android/ios/desktop/wasmJs.kt` (206 a 331 linhas cada), sem testes.
 - **Ação:** um `PlaybackController` em `commonMain` com toda a regra (fila, próximo, fim do episódio, sleep timer,
@@ -713,9 +717,15 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
     avança, último episódio para, sleep timer por minutos e por fim do episódio, velocidade após pausa, salvamento
     durante a reprodução, restauração pausada com arquivo baixado, próximo pelo arquivo baixado, anterior no
     primeiro, arquivo baixado no play). O controller aceita o escopo por parâmetro para os testes não travarem.
-  - **Falta conferir em cada plataforma:** Android (tocar, notificação, fechar e reabrir com o áudio tocando, Android
-    Auto), iOS (tela de bloqueio, próximo/anterior pelo controle remoto), Desktop e Web (teclas de mídia). Não há
-    `buffering` no iOS (o AVPlayer não informa sem KVO), como antes.
+  - **Conferido no Razr 60 (03/10/2026)**, instalando por cima da versão de antes da fase 11, com dados reais: as
+    migrações 3→4→5 (7 podcasts, 14.719 episódios com o id novo, os 3 com progresso preservados, sessão e fila
+    convertidas); a sessão restaurada no episódio migrado; o progresso restaurado a 2 s de onde parou depois de
+    `force-stop` (13.1); saltos de 30/10 s na notificação (13.4); 1,5x mantido entre pausas; fim do episódio marcado
+    como ouvido e reprodução parada no último da fila (13.8).
+  - **Falta conferir:** iOS (tela de bloqueio, próximo/anterior pelo controle remoto), Desktop e Web (teclas de
+    mídia) e Android Auto. Não há `buffering` no iOS (o AVPlayer não informa sem KVO), como antes.
+  - **Observado:** quando o último episódio da fila termina, a sessão fica salva na posição final, e o mini player
+    mostra o episódio já terminado ao reabrir o app (antes, o Android limpava o episódio atual). Ver "A confirmar".
 
 ### 13.6 Sleep timer preso à tela ✔ — P
 - **Problema:** o timer é um laço no `viewModelScope`; se a activity for destruída com o áudio tocando em background,
@@ -752,6 +762,10 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
 
 **Critério de conclusão:** o progresso sobrevive a matar o processo durante a reprodução; o player funciona depois
 de fechar e reabrir o app; a regra de reprodução tem testes em `commonTest`.
+
+**Fase 13 concluída (03/10/2026).** Critério conferido no Razr 60 (13.1, 13.2) e pelos 10 testes do
+`PlaybackControllerTest`. Ficam para conferir, sem bloquear a fase: o comportamento do 13.5 no iOS, no Desktop, na
+Web e no Android Auto.
 
 ---
 
@@ -1004,7 +1018,8 @@ componentes que mostram o tempo; busca rápida com milhares de episódios; app m
 | Suspeita | Onde | Como verificar |
 |---|---|---|
 | Disk cache do Coil na Web | `ImageLoaderFactory.kt` usa `FileSystem.SYSTEM_TEMPORARY_DIRECTORY`, que não existe no Wasm | Abrir a Web com o console aberto e procurar erro do Coil ao carregar capas |
-| Observador de tempo do `AVPlayer` | `AudioPlayer.ios.kt` faz polling a cada 500 ms numa coroutine; conferir se `release()` cancela tudo e remove os observadores do `NSNotificationCenter` | Instruments (Leaks) trocando de episódio várias vezes |
+| Observadores do `AVPlayer` | Desde a 13.5, o polling é do `PlaybackController` e o `IosPlatformPlayer` vive com o processo (não há mais `release()`); o observador de fim no `NSNotificationCenter` usa `object = null` e recebe o fim de qualquer item | Instruments (Leaks) trocando de episódio várias vezes e conferindo que o fim de outro item não dispara `Ended` |
+| Episódio terminado no mini player | Quando o último episódio da fila termina, `PlaybackController` deixa a sessão salva na posição final; ao reabrir, o mini player mostra o episódio já ouvido (visto no Razr 60 em 03/10/2026) | Decidir se a sessão deve ser limpa ou ir para o próximo não ouvido; reproduzir deixando o último episódio da fila terminar |
 | `PodcastDetailViewModel` com `key = podcastId` | Cada podcast aberto cria um ViewModel guardado no `ViewModelStore` da activity, que nunca é limpo enquanto a activity vive | Abrir 30 podcasts e olhar o heap |
 | Firebase acessado antes de configurar no iOS | Ao abrir no simulador aparece "I-COR000003: The default Firebase app has not yet been configured": o `Firebase.initialize()` roda numa coroutine em segundo plano (`Koin.ios.kt`) e algum SDK (provavelmente o Crashlytics, via `AppLogger`) é acessado antes. Eventos e logs dos primeiros instantes podem se perder | Conferir no log se algum evento antes da inicialização some; se sim, configurar o Firebase de forma síncrona no início do app (no `iOSApp.swift` ou antes do `initKoin`), como o SDK recomenda |
 | Texto invisível na Web | Num Chrome headless (10.10), a interface Web apareceu com ícones e botões, mas sem texto. Pode ser só o print antes de a Onest carregar (as fontes do Compose carregam de forma assíncrona no Wasm) ou falha real de fonte | `./gradlew :webApp:wasmJsBrowserDevelopmentRun` num navegador comum; se o texto não aparecer, olhar o console e a aba de rede pelos `.ttf` |
