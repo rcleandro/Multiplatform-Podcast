@@ -1,0 +1,28 @@
+name: 'secret-file'
+description: 'Writes a secret to a file, decoding it from base64 when it is not already plain JSON or plist'
+inputs:
+    content:
+        description: 'Secret value (plain text or base64)'
+        required: true
+    path:
+        description: 'File to create'
+        required: true
+runs:
+    using: "composite"
+    steps:
+        -   name: Write ${{ inputs.path }}
+            shell: bash
+            env:
+                CONTENT: ${{ inputs.content }}
+                TARGET: ${{ inputs.path }}
+            run: |
+                if [ -z "$CONTENT" ]; then
+                    echo "Secret for $TARGET is empty; skipping."
+                    exit 0
+                fi
+                first=$(printf '%s' "$CONTENT" | sed -e 's/^[[:space:]]*//' | head -c 1)
+                if [ "$first" = "{" ] || [ "$first" = "<" ]; then
+                    printf '%s' "$CONTENT" > "$TARGET"
+                else
+                    printf '%s' "$CONTENT" | base64 --decode > "$TARGET"
+                fi

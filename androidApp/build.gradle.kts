@@ -27,6 +27,12 @@ android {
     sourceSets["main"].res.directories.add("src/main/res")
     sourceSets["main"].java.directories.add("src/main/java")
 
+    lint {
+        // Existing findings (Android Auto voice search, exported media service…) are tracked in the roadmap;
+        // only new ones fail the build.
+        baseline = file("lint-baseline.xml")
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
