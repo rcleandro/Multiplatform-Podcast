@@ -62,4 +62,14 @@ class RefreshPodcastUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals("url", feedSource.fetchCalledWith)
     }
+
+    @Test
+    fun `refreshAll reports a feed that failed`() = runTest {
+        podcastRepo.podcasts.value = listOf(samplePodcast)
+        feedSource.result = Result.failure(IllegalStateException("offline"))
+
+        val result = useCase.refreshAll()
+
+        assertTrue(result.isFailure)
+    }
 }

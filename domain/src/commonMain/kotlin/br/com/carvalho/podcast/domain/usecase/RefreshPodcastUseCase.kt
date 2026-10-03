@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -13,7 +14,7 @@ class RefreshPodcastUseCase(
 ) {
     suspend operator fun invoke(podcastId: String): Result<Unit> {
         val podcast = podcastRepository.getPodcastById(podcastId)
-            ?: return Result.failure(Exception("Podcast not found"))
+            ?: return Result.failure(AppError.NotFound)
 
         AppLogger.i(TAG, "Refreshing podcast: ${podcast.title}")
         return feedSource.fetch(podcast.feedUrl)
@@ -26,18 +27,12 @@ class RefreshPodcastUseCase(
             }
     }
 
+    /** Refreshes every podcast, even after one fails, and reports the first failure. */
     suspend fun refreshAll(): Result<Unit> {
         AppLogger.i(TAG, "Starting refresh for all podcasts")
-        return try {
-            val podcasts = podcastRepository.getPodcasts().first()
-            podcasts.forEach { podcast ->
-                invoke(podcast.id)
-            }
-            AppLogger.i(TAG, "All podcasts refreshed successfully")
-            Result.success(Unit)
-        } catch (e: Exception) {
-            AppLogger.e(TAG, "Error during bulk refresh", e)
-            Result.failure(e)
-        }
+        val failure = podcastRepository.getPodcasts().first()
+            .map { invoke(it.id) }
+            .firstNotNullOfOrNull { it.exceptionOrNull() }
+        return if (failure == null) Result.success(Unit) else Result.failure(failure)
     }
 }

@@ -63,10 +63,13 @@
     <string name="error_refresh_podcasts">No se pudieron actualizar los podcasts. Revisa la conexión.</string>
     <string name="error_add_podcast">No se pudo agregar el podcast. Revisa la URL y la conexión.</string>
     <string name="error_podcast_exists">Este podcast ya está en tu biblioteca.</string>
-    <string name="error_unexpected">Algo salió mal. Inténtalo de nuevo.</string>
     <string name="error_refresh_episodes">No se pudieron actualizar los episodios.</string>
     <string name="error_load_episode">No se pudo cargar este episodio.</string>
     <string name="try_again">Reintentar</string>
+    <string name="error_no_connection">Sin conexión a internet. Revisa la red e inténtalo de nuevo.</string>
+    <string name="error_server">El servidor del feed respondió con un error. Inténtalo más tarde.</string>
+    <string name="error_invalid_feed">Esta dirección no es un feed de podcast. Usa el enlace RSS.</string>
+    <string name="error_storage_full">No hay espacio de almacenamiento. Libera espacio e inténtalo de nuevo.</string>
     <string name="download_deleted">Descarga eliminada</string>
     <string name="time_just_now">Ahora</string>
     <plurals name="time_minutes_ago">

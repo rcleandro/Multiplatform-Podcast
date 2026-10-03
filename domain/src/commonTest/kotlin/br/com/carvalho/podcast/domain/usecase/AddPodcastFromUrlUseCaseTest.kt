@@ -1,7 +1,7 @@
 package br.com.carvalho.podcast.domain.usecase
 
 import br.com.carvalho.podcast.domain.model.Podcast
-import br.com.carvalho.podcast.domain.model.PodcastError
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
@@ -38,7 +38,7 @@ class AddPodcastFromUrlUseCaseTest {
         val result = useCase("test-url")
 
         assertTrue(result.isFailure)
-        assertIs<PodcastError.AlreadyExists>(result.exceptionOrNull())
+        assertIs<AppError.AlreadyExists>(result.exceptionOrNull())
     }
 
     @Test

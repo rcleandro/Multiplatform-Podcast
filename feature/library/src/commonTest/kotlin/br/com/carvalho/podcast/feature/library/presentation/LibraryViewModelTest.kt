@@ -1,6 +1,8 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
+import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_feed
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
@@ -148,6 +150,19 @@ class LibraryViewModelTest {
 
         viewModel.messages.test {
             assertEquals(Res.string.error_podcast_exists, awaitItem())
+        }
+    }
+
+    @Test
+    fun `adding a URL that is not a feed says so`() = runTest(testDispatcher) {
+        feedSource.result = Result.failure(AppError.InvalidFeed)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ChangeUrl("https://example.com"))
+        viewModel.onIntent(LibraryIntent.ConfirmAdd)
+
+        viewModel.messages.test {
+            assertEquals(Res.string.error_invalid_feed, awaitItem())
         }
     }
 }

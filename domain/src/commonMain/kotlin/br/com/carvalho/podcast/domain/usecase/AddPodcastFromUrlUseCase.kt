@@ -1,7 +1,7 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.model.Podcast
-import br.com.carvalho.podcast.domain.model.PodcastError
 import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 
@@ -11,7 +11,7 @@ class AddPodcastFromUrlUseCase(
 ) {
     suspend operator fun invoke(url: String): Result<Podcast> {
         if (podcastRepository.getPodcastById(url) != null) {
-            return Result.failure(PodcastError.AlreadyExists)
+            return Result.failure(AppError.AlreadyExists)
         }
 
         return feedSource.fetch(url)

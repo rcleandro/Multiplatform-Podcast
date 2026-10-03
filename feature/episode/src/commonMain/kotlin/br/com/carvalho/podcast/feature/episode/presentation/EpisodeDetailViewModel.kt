@@ -51,7 +51,10 @@ class EpisodeDetailViewModel(
                 )
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error loading episode detail", e)
-                analytics.logEvent("load_episode_detail_error", mapOf("episode_id" to episodeId, "error" to e.message))
+                analytics.logEvent(
+                    "load_episode_detail_error",
+                    mapOf("episode_id" to episodeId, "error" to e::class.simpleName)
+                )
                 _uiState.value = EpisodeDetailUiState(isLoading = false, loadFailed = true)
             }
         }

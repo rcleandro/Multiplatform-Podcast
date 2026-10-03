@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.presentation.toMessage
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
@@ -94,14 +95,11 @@ class PodcastDetailViewModel(
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("refresh_podcast_detail", mapOf("podcast_id" to podcastId))
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
-            try {
-                refreshPodcastUseCase(podcastId)
-            } catch (e: Exception) {
+            refreshPodcastUseCase(podcastId).onFailure { e ->
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
-                _messages.send(Res.string.error_refresh_episodes)
-            } finally {
-                _uiState.update { it.copy(isRefreshing = false) }
+                _messages.send(e.toMessage(fallback = Res.string.error_refresh_episodes))
             }
+            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 

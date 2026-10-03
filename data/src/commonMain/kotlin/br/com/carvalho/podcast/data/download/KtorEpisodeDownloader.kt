@@ -1,9 +1,11 @@
 package br.com.carvalho.podcast.data.download
 
 import br.com.carvalho.podcast.core.AppConfig
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
+import br.com.carvalho.podcast.data.remote.toAppError
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -58,7 +60,7 @@ open class KtorEpisodeDownloader(
                 }
 
                 if (!response.status.isSuccess()) {
-                    updateStatus(episode.id, DownloadStatus.Failed("HTTP Error: ${response.status}"))
+                    updateStatus(episode.id, DownloadStatus.Failed(AppError.Http(response.status.value)))
                     return@launch
                 }
 
@@ -93,7 +95,7 @@ open class KtorEpisodeDownloader(
                 updateStatus(episode.id, DownloadStatus.Idle)
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Download failed for ${episode.id}", e)
-                updateStatus(episode.id, DownloadStatus.Failed(e.message ?: "Unknown error"))
+                updateStatus(episode.id, DownloadStatus.Failed(e.toAppError()))
             } finally {
                 downloadJobs.remove(episode.id)
             }

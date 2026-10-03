@@ -1,15 +1,13 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
-import br.com.carvalho.podcast.domain.model.PodcastError
-import br.com.carvalho.podcast.core.ui.generated.resources.error_unexpected
 import br.com.carvalho.podcast.core.ui.generated.resources.error_add_podcast
-import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_podcasts
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.presentation.toMessage
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
@@ -82,14 +80,11 @@ class LibraryViewModel(
             analytics.logEvent("refresh_all_podcasts")
             _uiState.update { it.copy(isRefreshing = true) }
             AppLogger.i(TAG, "Refreshing all podcasts")
-            try {
-                refreshPodcastUseCase.refreshAll()
-            } catch (e: Exception) {
+            refreshPodcastUseCase.refreshAll().onFailure { e ->
                 AppLogger.e(TAG, "Error refreshing all podcasts", e)
-                _messages.send(Res.string.error_refresh_podcasts)
-            } finally {
-                _uiState.update { it.copy(isRefreshing = false) }
+                _messages.send(e.toMessage(fallback = Res.string.error_refresh_podcasts))
             }
+            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 
@@ -103,25 +98,14 @@ class LibraryViewModel(
             analytics.logEvent("add_podcast_attempt", mapOf("url" to finalUrl))
             _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false) }
             AppLogger.i(TAG, "Adding podcast from URL: $finalUrl")
-            try {
-                addPodcastUseCase(finalUrl).onSuccess {
-                    analytics.logEvent("add_podcast_success", mapOf("url" to finalUrl))
-                }.onFailure { e ->
-                    AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
-                    analytics.logEvent("add_podcast_failure", mapOf("url" to finalUrl, "error" to e.message))
-                    val message = if (e is PodcastError.AlreadyExists) {
-                        Res.string.error_podcast_exists
-                    } else {
-                        Res.string.error_add_podcast
-                    }
-                    _messages.send(message)
-                }
-            } catch (e: Exception) {
-                AppLogger.e(TAG, "Unexpected error adding podcast", e)
-                _messages.send(Res.string.error_unexpected)
-            } finally {
-                _uiState.update { it.copy(isRefreshing = false, addUrl = "") }
+            addPodcastUseCase(finalUrl).onSuccess {
+                analytics.logEvent("add_podcast_success", mapOf("url" to finalUrl))
+            }.onFailure { e ->
+                AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
+                analytics.logEvent("add_podcast_failure", mapOf("url" to finalUrl, "error" to e::class.simpleName))
+                _messages.send(e.toMessage(fallback = Res.string.error_add_podcast))
             }
+            _uiState.update { it.copy(isRefreshing = false, addUrl = "") }
         }
     }
 }

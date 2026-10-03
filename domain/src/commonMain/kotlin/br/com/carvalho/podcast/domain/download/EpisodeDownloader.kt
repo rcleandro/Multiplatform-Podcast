@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.download
 
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.model.Episode
 import kotlinx.coroutines.flow.StateFlow
 
@@ -11,7 +12,7 @@ sealed class DownloadStatus {
     data class Queued(val priority: Int = 0) : DownloadStatus()
     data class Downloading(val progress: Float, val bytesDownloaded: Long, val totalBytes: Long?) : DownloadStatus()
     data class Completed(val localPath: String) : DownloadStatus()
-    data class Failed(val error: String) : DownloadStatus()
+    data class Failed(val error: AppError) : DownloadStatus()
 }
 
 /**

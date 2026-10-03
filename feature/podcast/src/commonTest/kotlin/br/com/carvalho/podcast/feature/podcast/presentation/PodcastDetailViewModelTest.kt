@@ -1,6 +1,9 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.error_no_connection
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import app.cash.turbine.test
@@ -119,5 +122,19 @@ class PodcastDetailViewModelTest {
         repository.episodes.value = listOf(sampleEpisode.copy(isPlayed = true))
 
         assertEquals(EpisodeFilter.UNPLAYED, viewModel.uiState.value.filter)
+    }
+
+    @Test
+    fun `a failed refresh tells the user why`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(samplePodcast)
+        feedSource.result = Result.failure(AppError.NoConnection)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.Refresh)
+
+        viewModel.messages.test {
+            assertEquals(Res.string.error_no_connection, awaitItem())
+        }
+        assertFalse(viewModel.uiState.value.isRefreshing)
     }
 }
