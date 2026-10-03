@@ -17,6 +17,7 @@ import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CancellationException
 import okio.IOException
 import okio.Path
 import okio.buffer
@@ -41,15 +42,11 @@ open class KtorEpisodeDownloader(
     private val _activeDownloads = MutableStateFlow<Map<String, DownloadStatus>>(emptyMap())
     override val activeDownloads: StateFlow<Map<String, DownloadStatus>> = _activeDownloads.asStateFlow()
 
-    private val downloadJobs = mutableMapOf<String, Job>()
+    // Updated from several coroutines at once; update {} makes check-and-add atomic on every platform.
+    private val downloadJobs = MutableStateFlow<Map<String, Job>>(emptyMap())
 
     override suspend fun download(episode: Episode) {
-        if (downloadJobs.containsKey(episode.id)) {
-            AppLogger.d(TAG, "Download already in progress for ${episode.id}")
-            return
-        }
-
-        val job = scope.launch {
+        val job = scope.launch(start = CoroutineStart.LAZY) {
             // The episode only appears under its final name once it is whole; a failure leaves just the .part.
             val partPath = directories.downloadPath("${episode.id}$PART_SUFFIX")
             try {
@@ -84,19 +81,31 @@ open class KtorEpisodeDownloader(
                 updateStatus(episode.id, DownloadStatus.Completed(destPath.toString()))
                 AppLogger.d(TAG, "Download completed for ${episode.id}: $destPath")
 
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                AppLogger.e(TAG, "Download canceled for ${episode.id}", e)
+            } catch (e: CancellationException) {
+                AppLogger.d(TAG, "Download canceled for ${episode.id}")
                 updateStatus(episode.id, DownloadStatus.Idle)
+                throw e
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Download failed for ${episode.id}", e)
                 updateStatus(episode.id, DownloadStatus.Failed(e.toAppError()))
             } finally {
                 fileSystem.delete(partPath, mustExist = false)
-                downloadJobs.remove(episode.id)
+                val self = coroutineContext.job
+                downloadJobs.update { jobs -> if (jobs[episode.id] === self) jobs - episode.id else jobs }
             }
         }
 
-        downloadJobs[episode.id] = job
+        var added = false
+        downloadJobs.update { jobs ->
+            added = episode.id !in jobs
+            if (added) jobs + (episode.id to job) else jobs
+        }
+        if (added) {
+            job.start()
+        } else {
+            AppLogger.d(TAG, "Download already in progress for ${episode.id}")
+            job.cancel()
+        }
     }
 
     override suspend fun pause(episodeId: String) {
@@ -107,8 +116,8 @@ open class KtorEpisodeDownloader(
     }
 
     override suspend fun cancel(episodeId: String) {
-        downloadJobs[episodeId]?.cancel()
-        downloadJobs.remove(episodeId)
+        // Wait for the job: it may be moving the finished file into place, which delete() must see.
+        downloadJobs.value[episodeId]?.cancelAndJoin()
         delete(episodeId)
     }
 
@@ -121,6 +130,8 @@ open class KtorEpisodeDownloader(
                 episodeDao.updateDownloadFile(episodeId, null)
                 updateStatus(episodeId, DownloadStatus.Idle)
                 AppLogger.d(TAG, "Deleted local file for episode: $episodeId")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Failed to delete episode: $episodeId", e)
             }

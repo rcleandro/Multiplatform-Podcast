@@ -158,6 +158,30 @@ class KtorEpisodeDownloaderTest {
         assertEquals("ogg", audioExtension(ContentType.parse("audio/ogg; codecs=opus"), "https://host/ep.mp3"))
     }
 
+    @Test
+    fun `cancel returns only after the download has stopped and cleaned up`() = runTest {
+        val body = ByteChannel()
+        val engine = MockEngine {
+            respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentLength, "${CHUNK * 2}"))
+        }
+        // Real threads: on a test dispatcher the job could only run while cancel() is suspended, hiding the race.
+        val downloader = KtorEpisodeDownloader(
+            HttpClient(engine), episodeDao, AppDirectories(fileSystem, baseDir), Dispatchers.Default
+        )
+        downloader.download(sampleEpisode)
+        body.writeFully(ByteArray(CHUNK))
+        body.flush()
+        withContext(Dispatchers.Default) {
+            withTimeout(STREAM_TIMEOUT_MS) { while (bytesOnDisk() < CHUNK) delay(POLL_MS) }
+        }
+
+        downloader.cancel(sampleEpisode.id)
+
+        assertEquals(0, bytesOnDisk(), "The partial file should be gone when cancel returns")
+        assertEquals(DownloadStatus.Idle, downloader.activeDownloads.value[sampleEpisode.id])
+        body.close()
+    }
+
     private fun bytesOnDisk(): Long = fileSystem.listOrNull(baseDir / "downloads").orEmpty()
         .sumOf { fileSystem.metadata(it).size ?: 0 }
 
