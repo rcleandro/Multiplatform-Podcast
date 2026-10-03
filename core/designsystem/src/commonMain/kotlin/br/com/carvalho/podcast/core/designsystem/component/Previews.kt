@@ -1,6 +1,5 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,10 +23,11 @@ import br.com.carvalho.podcast.core.designsystem.Spacing
 @Composable
 internal fun PreviewSurface(darkTheme: Boolean, content: @Composable () -> Unit) {
     PodcastTheme(darkTheme = darkTheme) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(Spacing.m),
-            modifier = Modifier.background(MaterialTheme.colorScheme.background).padding(Spacing.l),
-        ) { content() }
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.m), modifier = Modifier.padding(Spacing.l)) {
+                content()
+            }
+        }
     }
 }
 

@@ -295,11 +295,22 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   limite superior saiu (o branco já cai pelo filtro de saturação), com caso novo no teste. Conferido no Razr 60:
   degradê azul-petróleo no player de um episódio com capa ciano. iOS, Desktop e Web só compilam aqui.
 
-### 9.11 Snapshot tests ✅ — M
+### 9.11 Snapshot tests ✔ (falta gravar no Linux) — M
 - **Ação:** Roborazzi em `androidHostTest` do `:core:designsystem`, com cada componente em claro e escuro e com
   fonte em 200%. O `verifyRoborazzi…` roda no CI e os diffs sobem como artefato.
 - **Lição do PTT-LAN:** gravar as imagens no **Linux**, por um workflow manual (`record-snapshots.yml`). O
   Robolectric renderiza diferente no macOS, então uma referência gravada no Mac nunca bate no runner.
+
+- **Implementado:** Roborazzi 1.76 + Robolectric 4.17 no `androidHostTest` do `:core:designsystem`
+  (`@Config(sdk = [35])`, `GraphicsMode.NATIVE`, 411dp xxhdpi). `DesignSystemSnapshotTest` grava 9 imagens: botões,
+  linhas de episódio, peças do player e estados vazio/erro, cada um em claro e escuro, mais as linhas com fonte em
+  200%. Referências em `core/designsystem/snapshots/`. Workflow manual `record-snapshots.yml` grava no Linux e
+  commita as imagens na branch; o job de testes do CI passou a rodar também os testes do design system e roda
+  `verifyRoborazziAndroidHostTest` quando há imagens, publicando os diffs se falhar. **Achado pelas imagens:** no
+  tema escuro o título do `PodcastCard` e do `EmptyState`/`ErrorState` saía preto, porque herdava a cor do contêiner
+  (no app o `Scaffold` escondia o problema); os componentes passaram a definir a cor, e o `PreviewSurface` usa
+  `Surface`. **Pendente:** as imagens foram gravadas no Mac só para validar a configuração e não foram commitadas;
+  as de referência dependem de rodar o workflow no GitHub depois do push da branch.
 
 ### 9.12 Acessibilidade ✅ — M
 - **Ação:** alvos de toque de pelo menos 48 dp em todos os controles; `contentDescription` em todas as imagens e

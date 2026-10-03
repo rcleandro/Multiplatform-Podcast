@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.roborazzi)
 }
 
 kotlin {
@@ -11,6 +12,7 @@ kotlin {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
         androidResources { enable = true }
+        withHostTest { isIncludeAndroidResources = true }
     }
 
     jvm("desktop")
@@ -45,6 +47,16 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.ui.test)
         }
+        val androidHostTest by getting {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.robolectric)
+                implementation(libs.roborazzi)
+                implementation(libs.roborazzi.compose)
+                implementation(libs.androidx.compose.ui.test.junit4)
+                implementation(libs.androidx.compose.ui.test.manifest)
+            }
+        }
         val desktopTest by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
@@ -55,4 +67,10 @@ kotlin {
 
 compose.resources {
     packageOfResClass = "br.com.carvalho.podcast.core.designsystem.generated.resources"
+}
+
+// Reference images live in the repository and are recorded on Linux by the "Record snapshots" workflow:
+// Robolectric renders gradients and anti-aliasing differently on macOS, so images recorded on a Mac never match CI.
+roborazzi {
+    outputDir.set(file("snapshots"))
 }

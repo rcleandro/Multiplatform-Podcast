@@ -82,7 +82,12 @@ private fun StateMessage(
             ) {
                 Icon(icon, contentDescription = null, tint = glyphColors.second, modifier = Modifier.size(Sizes.iconL))
             }
-            Text(title, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+            )
             message?.let {
                 Text(
                     text = it,
