@@ -11,7 +11,7 @@ import okio.fakefilesystem.FakeFileSystem
 import org.koin.dsl.module
 
 actual val platformModule = module {
-    single(createdAtStart = true) { createAppDatabase() }
+    single(createdAtStart = true) { createAppDatabase(get()) }
     single<AudioPlayer> { WasmAudioPlayer() }
     // ponytail: in-memory file system, downloads vanish on reload; roadmap 14.7 hides downloads on the Web.
     single { AppDirectories(FakeFileSystem(), "/".toPath()) }

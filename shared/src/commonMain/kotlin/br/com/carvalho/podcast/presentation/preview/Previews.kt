@@ -81,7 +81,7 @@ internal fun LibraryLoadingPreview() = PodcastTheme(darkTheme = false) {
 @Composable
 internal fun PodcastDetailDarkPreview() = PodcastTheme(darkTheme = true) {
     PodcastDetailContent(
-        state = PodcastDetailUiState(podcast = samplePodcasts.first(), episodes = sampleEpisodes),
+        state = PodcastDetailUiState(podcast = samplePodcasts.first()),
         episodes = episodesPaging(),
         playerState = playingState,
         activeDownloads = mapOf("e3" to DownloadStatus.Downloading(0.4f, 0, null)),

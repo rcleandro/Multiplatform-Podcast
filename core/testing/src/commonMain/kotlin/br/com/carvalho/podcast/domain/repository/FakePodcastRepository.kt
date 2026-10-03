@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
@@ -25,9 +26,12 @@ class FakePodcastRepository : PodcastRepository {
 
     override fun getEpisodes(podcastId: String): Flow<List<Episode>> = episodes.map { it.filter { e -> e.podcastId == podcastId } }
 
-    override fun getEpisodesPaged(podcastId: String): Flow<PagingData<Episode>> {
+    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> {
         throw NotImplementedError("Paging not supported in fake")
     }
+
+    override suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode> =
+        episodes.value.filter { it.podcastId == podcastId && it.publishDate >= publishDate }.sortedBy { it.publishDate }
 
     override fun getDownloadedEpisodes(): Flow<List<Episode>> = episodes.map { list -> list.filter { it.isDownloaded } }
 
@@ -56,18 +60,12 @@ class FakePodcastRepository : PodcastRepository {
         }
     }
 
-    var savePodcastCalledCount = 0
-        private set
-    var saveEpisodesCalledCount = 0
+    var saveFeedCalledCount = 0
         private set
 
-    override suspend fun savePodcast(podcast: Podcast) {
-        savePodcastCalledCount++
-        podcasts.value = podcasts.value + podcast
-    }
-
-    override suspend fun saveEpisodes(episodes: List<Episode>) {
-        saveEpisodesCalledCount++
+    override suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>) {
+        saveFeedCalledCount++
+        podcasts.value = podcasts.value.filter { it.id != podcast.id } + podcast
         this.episodes.value = this.episodes.value + episodes
     }
 

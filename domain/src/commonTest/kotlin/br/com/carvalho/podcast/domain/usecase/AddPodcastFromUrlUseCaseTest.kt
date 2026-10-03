@@ -55,8 +55,7 @@ class AddPodcastFromUrlUseCaseTest {
 
         assertTrue(result.isSuccess)
         assertEquals("New Podcast", result.getOrNull()?.title)
-        assertEquals(1, podcastRepo.savePodcastCalledCount)
-        assertEquals(1, podcastRepo.saveEpisodesCalledCount)
+        assertEquals(1, podcastRepo.saveFeedCalledCount)
         assertEquals("New Podcast", podcastRepo.podcasts.value.find { it.feedUrl == url }?.title)
     }
 }

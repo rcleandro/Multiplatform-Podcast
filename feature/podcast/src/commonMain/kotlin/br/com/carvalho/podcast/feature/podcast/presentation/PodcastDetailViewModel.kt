@@ -2,10 +2,11 @@ package br.com.carvalho.podcast.feature.podcast.presentation
 
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_episodes
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
+import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.toMessage
 import br.com.carvalho.podcast.domain.player.AudioPlayer
@@ -16,7 +17,6 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.filter
 import br.com.carvalho.podcast.core.observability.Analytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -42,34 +42,20 @@ class PodcastDetailViewModel(
     private val _uiState = MutableStateFlow(PodcastDetailUiState(isLoading = true))
     val uiState: StateFlow<PodcastDetailUiState> = _uiState
 
-    private val _messages = Channel<StringResource>(Channel.BUFFERED)
-    val messages: Flow<StringResource> = _messages.receiveAsFlow()
+    private val _messages = Channel<UiMessage>(Channel.BUFFERED)
+    val messages: Flow<UiMessage> = _messages.receiveAsFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagedEpisodes: Flow<PagingData<Episode>> = _uiState
         .map { it.filter }
         .distinctUntilChanged()
-        .flatMapLatest { filter ->
-            repository.getEpisodesPaged(podcastId)
-                .map { pagingData ->
-                    pagingData.filter { episode ->
-                        when (filter) {
-                            EpisodeFilter.ALL -> true
-                            EpisodeFilter.UNPLAYED -> !episode.isPlayed
-                            EpisodeFilter.DOWNLOADED -> episode.isDownloaded
-                        }
-                    }
-                }
-        }.cachedIn(viewModelScope)
+        .flatMapLatest { filter -> repository.getEpisodesPaged(podcastId, filter) }
+        .cachedIn(viewModelScope)
 
     init {
-        combine(
-            repository.getPodcastByIdFlow(podcastId),
-            repository.getEpisodes(podcastId)
-        ) { podcast, episodes -> podcast to episodes }
-            .onEach { (podcast, episodes) ->
-                _uiState.update { it.copy(podcast = podcast, episodes = episodes, isLoading = false) }
-            }.launchIn(viewModelScope)
+        repository.getPodcastByIdFlow(podcastId)
+            .onEach { podcast -> _uiState.update { it.copy(podcast = podcast, isLoading = false) } }
+            .launchIn(viewModelScope)
     }
 
     fun onIntent(intent: PodcastDetailIntent) {
@@ -97,7 +83,7 @@ class PodcastDetailViewModel(
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
             refreshPodcastUseCase(podcastId).onFailure { e ->
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
-                _messages.send(e.toMessage(fallback = Res.string.error_refresh_episodes))
+                _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_refresh_episodes)))
             }
             _uiState.update { it.copy(isRefreshing = false) }
         }
@@ -124,19 +110,15 @@ class PodcastDetailViewModel(
                 return@launch
             }
 
-            val allEpisodes = uiState.value.episodes
-            val selectedIndex = allEpisodes.indexOfFirst { it.id == episode.id }
-            if (selectedIndex == -1) {
-                AppLogger.e(TAG, "Episode ${episode.id} not found in current list")
+            // The episode and the newer ones after it, read from the database instead of a list kept in memory.
+            val queue = repository.getEpisodesSince(podcastId, episode.publishDate).dropWhile { it.id != episode.id }
+            val selectedEpisode = queue.firstOrNull() ?: run {
+                AppLogger.e(TAG, "Episode ${episode.id} not found in podcast $podcastId")
                 return@launch
             }
-
-            val selectedEpisode = allEpisodes[selectedIndex]
             val resolvedEpisode = selectedEpisode.copy(localPath = episodeDownloader.getLocalPath(selectedEpisode.id))
 
             AppLogger.i(TAG, "Playing episode: ${resolvedEpisode.title} (Local: ${resolvedEpisode.localPath != null})")
-
-            val queue = allEpisodes.subList(0, selectedIndex + 1).reversed()
             audioPlayer.setQueue(queue)
             audioPlayer.play(resolvedEpisode)
         }
@@ -187,7 +169,6 @@ class PodcastDetailViewModel(
 
 data class PodcastDetailUiState(
     val podcast: Podcast? = null,
-    val episodes: List<Episode> = emptyList(),
     val filter: EpisodeFilter = EpisodeFilter.ALL,
     val selectedEpisode: Episode? = null,
     val deleteEpisodeConfirmation: Episode? = null,
@@ -209,5 +190,3 @@ sealed interface PodcastDetailIntent {
     data class MarkPlayed(val episode: Episode) : PodcastDetailIntent
     data class MarkOlderPlayed(val episode: Episode) : PodcastDetailIntent
 }
-
-enum class EpisodeFilter { ALL, UNPLAYED, DOWNLOADED }

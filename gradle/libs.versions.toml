@@ -92,10 +92,12 @@ compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-previ
 room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
 room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
 room3-paging = { module = "androidx.room3:room3-paging", version.ref = "room3" }
+room3-testing = { module = "androidx.room3:room3-testing", version.ref = "room3" }
 
 # Paging
 paging-common = { module = "androidx.paging:paging-common", version.ref = "paging" }
 paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
+paging-testing = { module = "androidx.paging:paging-testing", version.ref = "paging" }
 
 # SQLite drivers
 runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }

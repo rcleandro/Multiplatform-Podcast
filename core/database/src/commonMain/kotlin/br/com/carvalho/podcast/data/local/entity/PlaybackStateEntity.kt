@@ -9,5 +9,4 @@ data class PlaybackStateEntity(
     val episodeId: String?,
     val position: Long,
     val speed: Float,
-    val queueJson: String
 )

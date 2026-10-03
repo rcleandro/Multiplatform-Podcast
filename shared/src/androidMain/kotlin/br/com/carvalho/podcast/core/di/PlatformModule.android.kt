@@ -14,7 +14,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 actual val platformModule = module {
-    single(createdAtStart = true) { createAppDatabase(androidContext()) }
+    single(createdAtStart = true) { createAppDatabase(androidContext(), get()) }
     single<AudioPlayer> { AndroidAudioPlayer(androidContext()) }
     single { AppDirectories(FileSystem.SYSTEM, androidContext().filesDir.absolutePath.toPath()) }
     single<Analytics> { FirebaseAnalytics() }

@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.local
 
+import br.com.carvalho.podcast.core.util.AppDirectories
 import androidx.room3.Room
 import androidx.sqlite.driver.web.WebWorkerSQLiteDriver
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -7,12 +8,12 @@ import org.w3c.dom.Worker
 
 private const val TAG = "AppDatabase"
 
-fun createAppDatabase(): AppDatabase {
+fun createAppDatabase(directories: AppDirectories): AppDatabase {
     AppLogger.d(TAG, "Initializing database for Wasm with WebWorkerSQLiteDriver...")
     val driver = WebWorkerSQLiteDriver(createSqliteWorker())
     return Room.databaseBuilder<AppDatabase>("podcast.db")
         .setDriver(driver = driver)
-        .fallbackToDestructiveMigration(true)
+        .addAppMigrations(directories)
         .build()
 }
 

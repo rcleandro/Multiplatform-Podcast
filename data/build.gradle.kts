@@ -29,6 +29,7 @@ kotlin {
             implementation(libs.turbine)
             implementation(libs.ktor.client.mock)
             implementation(libs.okio.fakefilesystem)
+            implementation(libs.paging.testing)
         }
     }
 }

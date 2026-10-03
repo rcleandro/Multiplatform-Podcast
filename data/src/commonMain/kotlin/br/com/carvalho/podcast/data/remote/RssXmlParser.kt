@@ -63,7 +63,7 @@ object RssXmlParser {
         val rawTitle = extractTag(itemXml, "title")
         val description = extractTag(itemXml, "description")
         val enclosureUrl = extractAttribute(itemXml, "enclosure", "url") ?: ""
-        val guid = extractTag(itemXml, "guid") ?: (rawTitle ?: enclosureUrl).hashCode().toString()
+        val guid = extractTag(itemXml, "guid")
         // Without a title, fall back to the feed's own data instead of a fixed text.
         val title = rawTitle
             ?: description?.take(TITLE_FALLBACK_LENGTH)

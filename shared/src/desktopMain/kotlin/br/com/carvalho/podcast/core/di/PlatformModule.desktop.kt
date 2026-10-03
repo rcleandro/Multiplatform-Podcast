@@ -12,7 +12,7 @@ import org.koin.dsl.module
 import java.io.File
 
 actual val platformModule = module {
-    single(createdAtStart = true) { createAppDatabase() }
+    single(createdAtStart = true) { createAppDatabase(get()) }
     single<AudioPlayer> { DesktopAudioPlayer() }
     single { AppDirectories(FileSystem.SYSTEM, appDirectory()) }
     single<Analytics> { LogAnalytics() }

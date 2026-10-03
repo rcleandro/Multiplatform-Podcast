@@ -1,8 +1,5 @@
 package br.com.carvalho.podcast.domain.model
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class Episode(
     val id: String,
     val podcastId: String,

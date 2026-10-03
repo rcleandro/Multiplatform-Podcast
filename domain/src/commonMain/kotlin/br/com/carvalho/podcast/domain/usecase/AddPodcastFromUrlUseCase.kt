@@ -16,8 +16,7 @@ class AddPodcastFromUrlUseCase(
 
         return feedSource.fetch(url)
             .mapCatching { feed ->
-                podcastRepository.savePodcast(feed.podcast)
-                podcastRepository.saveEpisodes(feed.episodes)
+                podcastRepository.saveFeed(feed.podcast, feed.episodes)
                 feed.podcast
             }
     }

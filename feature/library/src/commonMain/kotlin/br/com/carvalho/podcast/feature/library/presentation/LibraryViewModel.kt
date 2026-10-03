@@ -2,9 +2,10 @@ package br.com.carvalho.podcast.feature.library.presentation
 
 import br.com.carvalho.podcast.core.ui.generated.resources.error_add_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_podcasts
+import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
+import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.toMessage
@@ -39,8 +40,8 @@ class LibraryViewModel(
     private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true))
     val uiState: StateFlow<LibraryUiState> = _uiState
 
-    private val _messages = Channel<StringResource>(Channel.BUFFERED)
-    val messages: Flow<StringResource> = _messages.receiveAsFlow()
+    private val _messages = Channel<UiMessage>(Channel.BUFFERED)
+    val messages: Flow<UiMessage> = _messages.receiveAsFlow()
 
     init {
         viewModelScope.launch(dispatchers.io) {
@@ -80,9 +81,16 @@ class LibraryViewModel(
             analytics.logEvent("refresh_all_podcasts")
             _uiState.update { it.copy(isRefreshing = true) }
             AppLogger.i(TAG, "Refreshing all podcasts")
-            refreshPodcastUseCase.refreshAll().onFailure { e ->
-                AppLogger.e(TAG, "Error refreshing all podcasts", e)
-                _messages.send(e.toMessage(fallback = Res.string.error_refresh_podcasts))
+            val summary = refreshPodcastUseCase.refreshAll()
+            summary.failures.firstOrNull()?.let { firstFailure ->
+                AppLogger.e(TAG, "${summary.failures.size} of ${summary.total} feeds failed", firstFailure)
+                // All failed: the cause (offline, server…) says more than a count. Some failed: say how many.
+                val message = if (summary.allFailed) {
+                    UiMessage(firstFailure.toMessage(fallback = Res.string.error_refresh_podcasts))
+                } else {
+                    UiMessage(Res.string.error_refresh_some_podcasts, listOf(summary.failures.size, summary.total))
+                }
+                _messages.send(message)
             }
             _uiState.update { it.copy(isRefreshing = false) }
         }
@@ -103,7 +111,7 @@ class LibraryViewModel(
             }.onFailure { e ->
                 AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
                 analytics.logEvent("add_podcast_failure", mapOf("url" to finalUrl, "error" to e::class.simpleName))
-                _messages.send(e.toMessage(fallback = Res.string.error_add_podcast))
+                _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_add_podcast)))
             }
             _uiState.update { it.copy(isRefreshing = false, addUrl = "") }
         }

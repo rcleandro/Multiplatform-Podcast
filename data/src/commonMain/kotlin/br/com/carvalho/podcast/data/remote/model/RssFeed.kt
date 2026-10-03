@@ -13,7 +13,8 @@ data class RssFeed(
 )
 
 data class RssEpisode(
-    val guid: String,
+    /** `null` when the item has no `<guid>`. */
+    val guid: String?,
     val title: String,
     val description: String?,
     val enclosureUrl: String,

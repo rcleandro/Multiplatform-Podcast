@@ -61,6 +61,7 @@
     <string name="podcast_options">Podcast options</string>
     <string name="episode_options">Episode options</string>
     <string name="error_refresh_podcasts">Couldn't refresh your podcasts. Check your connection.</string>
+    <string name="error_refresh_some_podcasts">Couldn't refresh %1$d of %2$d podcasts.</string>
     <string name="error_add_podcast">Couldn't add the podcast. Check the URL and your connection.</string>
     <string name="error_podcast_exists">This podcast is already in your library.</string>
     <string name="error_refresh_episodes">Couldn't refresh the episodes.</string>
