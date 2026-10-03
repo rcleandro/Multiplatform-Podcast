@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +21,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
+import br.com.carvalho.podcast.core.designsystem.Motion
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.generated.resources.Res
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_loading
@@ -87,7 +89,10 @@ fun PlayPauseButton(
                     strokeWidth = Sizes.progressStroke,
                 )
             }
-            Crossfade(targetState = isLoading to isPlaying) { (loading, playing) ->
+            Crossfade(
+                targetState = isLoading to isPlaying,
+                animationSpec = tween(Motion.SHORT, easing = Motion.Standard),
+            ) { (loading, playing) ->
                 when {
                     loading -> CircularProgressIndicator(
                         modifier = Modifier.size(size * ICON_FRACTION),

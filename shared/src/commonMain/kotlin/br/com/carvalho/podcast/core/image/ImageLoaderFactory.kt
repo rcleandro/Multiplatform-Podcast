@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.core.image
 
+import br.com.carvalho.podcast.core.designsystem.Motion
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.disk.DiskCache
@@ -28,7 +29,7 @@ fun createImageLoader(context: PlatformContext): ImageLoader {
                 .maxSizeBytes(DISK_CACHE_MAX_SIZE)
                 .build()
         }
-        .crossfade(true)
+        .crossfade(Motion.MEDIUM)
         .memoryCachePolicy(CachePolicy.ENABLED)
         .diskCachePolicy(CachePolicy.ENABLED)
         .build()

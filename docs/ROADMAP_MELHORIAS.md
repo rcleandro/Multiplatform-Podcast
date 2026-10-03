@@ -212,10 +212,17 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   mini player). O mini player usa `surfaceContainer` (não `surfaceContainerLowest`, que no escuro fica mais escuro
   que o fundo), e a referência HTML foi ajustada.
 
-### 9.7 Movimento e formas ✅ — P
+### 9.7 Movimento e formas ✔ — P
 - **Ação:** um objeto `Motion` com durações e curvas usado na transição do mini player para o player, no
   aparecer/sumir do mini player e no crossfade das capas, que hoje usam os valores padrão de cada API. `Shapes` com
   os raios definidos na 9.1.
+
+- **Implementado:** `Motion` no design system (`SHORT` 150, `MEDIUM` 250, `LONG` 400 ms; `Standard` e
+  `Emphasized`). Aplicado no player em tela cheia abrindo e fechando (`LONG` + `Emphasized`), no mini player
+  aparecendo e sumindo e no deslocamento do botão "+" (`MEDIUM` + `Standard`), no crossfade das capas do Coil
+  (`MEDIUM`) e na troca de ícone do `PlayPauseButton` (`SHORT`). Os raios das formas já tinham entrado na 9.5.
+  Sem teste novo (só valores de animação): verificado com os testes, o Detekt, os builds e no Razr 60, com uma
+  captura no meio da abertura do player.
 
 ### 9.8 Textos fora do código ✅ — M
 - **Problema:** a fase 6 foi marcada como feita, mas há texto em pt-BR nos ViewModels, em `LongExtensions.toDate()`,

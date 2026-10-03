@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import br.com.carvalho.podcast.core.designsystem.Motion
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
@@ -109,7 +111,8 @@ fun LibraryScreen(
         contentWindowInsets = WindowInsets(),
         floatingActionButton = {
             val fabPadding by animateDpAsState(
-                if (isPlayerVisible) Sizes.miniPlayerHeight else 0.dp
+                targetValue = if (isPlayerVisible) Sizes.miniPlayerHeight else 0.dp,
+                animationSpec = tween(Motion.MEDIUM, easing = Motion.Standard)
             )
             FloatingActionButton(
                 onClick = { viewModel.onAddClicked() },

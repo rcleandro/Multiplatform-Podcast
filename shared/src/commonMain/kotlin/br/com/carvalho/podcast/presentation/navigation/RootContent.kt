@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.presentation.navigation
 
+import androidx.compose.animation.core.tween
+import br.com.carvalho.podcast.core.designsystem.Motion
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Home
@@ -218,8 +220,8 @@ fun RootContent(component: RootComponentImpl) {
 
                 AnimatedVisibility(
                     visible = showMiniPlayer && isMiniPlayerVisible && activeChild !is RootComponent.Child.Player,
-                    enter = slideInVertically(initialOffsetY = { it }),
-                    exit = slideOutVertically(targetOffsetY = { it }),
+                    enter = slideInVertically(tween(Motion.MEDIUM, easing = Motion.Standard)) { it },
+                    exit = slideOutVertically(tween(Motion.MEDIUM, easing = Motion.Standard)) { it },
                     modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
                     playerState.currentEpisode?.let { episode ->
@@ -248,8 +250,8 @@ fun RootContent(component: RootComponentImpl) {
 
         AnimatedVisibility(
             visible = activeChild is RootComponent.Child.Player,
-            enter = slideInVertically(initialOffsetY = { it }),
-            exit = slideOutVertically(targetOffsetY = { it })
+            enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
+            exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
         ) {
             PlayerScreen(
                 onBackClick = { component.onBackClicked() }
