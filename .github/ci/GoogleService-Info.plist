@@ -4,7 +4,7 @@
 <dict>
 	<key>API_KEY</key><string>ci-placeholder</string>
 	<key>GCM_SENDER_ID</key><string>000000000000</string>
-	<key>BUNDLE_ID</key><string>br.com.carvalho.podcast.Podcast</string>
+	<key>BUNDLE_ID</key><string>br.com.carvalho.podcast</string>
 	<key>PROJECT_ID</key><string>podcast-ci-placeholder</string>
 	<key>GOOGLE_APP_ID</key><string>1:000000000000:ios:0000000000000000</string>
 	<key>IS_ANALYTICS_ENABLED</key><false/>
