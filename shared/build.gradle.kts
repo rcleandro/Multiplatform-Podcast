@@ -65,6 +65,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core:common"))
             implementation(project(":domain"))
+            implementation(project(":data"))
             implementation(project(":core:database"))
             implementation(project(":core:designsystem"))
             implementation(project(":core:network"))

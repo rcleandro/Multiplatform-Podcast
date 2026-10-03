@@ -1,7 +1,8 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
-import br.com.carvalho.podcast.data.remote.RssFeedSource
+import br.com.carvalho.podcast.domain.repository.FakeFeedSource
+import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -9,7 +10,6 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
-import br.com.carvalho.podcast.data.remote.FakeRssFeedDataSource
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,8 +28,8 @@ import kotlin.test.assertTrue
 class PodcastDetailViewModelTest {
     private val audioPlayer = FakeAudioPlayer()
     private val repository = FakePodcastRepository()
-    private val rssDataSource = FakeRssFeedDataSource()
-    private val refreshUseCase = RefreshPodcastUseCase(RssFeedSource(rssDataSource), repository)
+    private val feedSource = FakeFeedSource()
+    private val refreshUseCase = RefreshPodcastUseCase(feedSource, repository)
     private val episodeDownloader = FakeEpisodeDownloader()
     private val testDispatcher = UnconfinedTestDispatcher()
     private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)
@@ -67,10 +67,8 @@ class PodcastDetailViewModelTest {
     @Test
     fun `refresh calls use case`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
-        rssDataSource.feedResult = Result.success(br.com.carvalho.podcast.data.remote.model.RssFeed(
-            title = "P1", description = "", imageUrl = null, author = null, language = null, categories = emptyList(), link = null, ttl = null, episodes = emptyList()
-        ))
-        rssDataSource.delayMs = 10
+        feedSource.result = Result.success(FetchedFeed(samplePodcast, emptyList()))
+        feedSource.delayMs = 10
 
         val viewModel = createViewModel()
         viewModel.uiState.test {
@@ -84,7 +82,7 @@ class PodcastDetailViewModelTest {
             val finalState = awaitItem()
             assertFalse(finalState.isLoading)
             
-            assertEquals(podcastId, rssDataSource.fetchFeedCalledWith)
+            assertEquals(podcastId, feedSource.fetchCalledWith)
         }
     }
 

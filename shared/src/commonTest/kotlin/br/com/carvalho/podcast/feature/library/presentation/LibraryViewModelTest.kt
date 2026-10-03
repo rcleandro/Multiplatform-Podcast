@@ -1,14 +1,13 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
-import br.com.carvalho.podcast.data.remote.RssFeedSource
+import br.com.carvalho.podcast.domain.repository.FakeFeedSource
+import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.shared.error_podcast_exists
 import br.com.carvalho.podcast.shared.Res
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
-import br.com.carvalho.podcast.data.remote.FakeRssFeedDataSource
-import br.com.carvalho.podcast.data.remote.model.RssFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
@@ -29,9 +28,9 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModelTest {
     private val repository = FakePodcastRepository()
-    private val rssDataSource = FakeRssFeedDataSource()
-    private val addPodcastUseCase = AddPodcastFromUrlUseCase(RssFeedSource(rssDataSource), repository)
-    private val refreshPodcastUseCase = RefreshPodcastUseCase(RssFeedSource(rssDataSource), repository)
+    private val feedSource = FakeFeedSource()
+    private val addPodcastUseCase = AddPodcastFromUrlUseCase(feedSource, repository)
+    private val refreshPodcastUseCase = RefreshPodcastUseCase(feedSource, repository)
     private val deletePodcastUseCase = DeletePodcastUseCase(repository)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)
@@ -75,10 +74,12 @@ class LibraryViewModelTest {
     @Test
     fun `addPodcast calls use case and closes dialog`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
-        rssDataSource.feedResult = Result.success(RssFeed(
-            title = "New", description = "", imageUrl = null, author = null, language = null, categories = emptyList(), link = null, ttl = null, episodes = emptyList()
-        ))
-        rssDataSource.delayMs = 10
+        val podcast = Podcast(
+            id = "https://test-url", title = "New", description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), feedUrl = "https://test-url", siteUrl = null, lastUpdated = 0, isSubscribed = true
+        )
+        feedSource.result = Result.success(FetchedFeed(podcast, emptyList()))
+        feedSource.delayMs = 10
 
         viewModel.uiState.test {
             awaitItem()
@@ -105,7 +106,7 @@ class LibraryViewModelTest {
             assertFalse(state.isRefreshing)
             assertEquals("", state.addUrl)
             
-            assertEquals("https://test-url", rssDataSource.fetchFeedCalledWith)
+            assertEquals("https://test-url", feedSource.fetchCalledWith)
             cancelAndIgnoreRemainingEvents()
         }
     }
