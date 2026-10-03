@@ -8,6 +8,8 @@ import br.com.carvalho.podcast.core.player.PlatformPlayer
 import br.com.carvalho.podcast.core.player.WebPlatformPlayer
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
+import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
+import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import org.koin.dsl.module
 
 actual val platformModule = module {
@@ -16,4 +18,5 @@ actual val platformModule = module {
     // ponytail: in-memory file system, downloads vanish on reload; roadmap 14.7 hides downloads on the Web.
     single { AppDirectories(FakeFileSystem(), "/".toPath()) }
     single<Analytics> { LogAnalytics() }
+    single<EpisodeDownloader> { get<KtorEpisodeDownloader>() }
 }

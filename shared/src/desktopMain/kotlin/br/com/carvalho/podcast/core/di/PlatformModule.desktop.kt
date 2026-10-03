@@ -8,6 +8,8 @@ import br.com.carvalho.podcast.core.player.PlatformPlayer
 import br.com.carvalho.podcast.core.player.DesktopPlatformPlayer
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
+import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import org.koin.dsl.module
 import java.io.File
 
@@ -16,6 +18,7 @@ actual val platformModule = module {
     single<PlatformPlayer> { DesktopPlatformPlayer() }
     single { AppDirectories(FileSystem.SYSTEM, appDirectory()) }
     single<Analytics> { LogAnalytics() }
+    single<EpisodeDownloader> { get<KtorEpisodeDownloader>() }
 }
 
 private fun appDirectory() = File(System.getProperty("user.home"), ".podcast").apply { mkdirs() }.absolutePath.toPath()

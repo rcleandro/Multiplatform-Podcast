@@ -13,7 +13,6 @@ import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
-import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
@@ -63,7 +62,8 @@ val playerModule = module {
 val repositoryModule = module {
     single<PodcastRepository> { PodcastRepositoryImpl(get(), get()) }
     single<PlayerRepository> { PlayerRepositoryImpl(get()) }
-    single<EpisodeDownloader> { KtorEpisodeDownloader(get(), get(), get()) }
+    // Each platform binds EpisodeDownloader: Android and iOS wrap this one to download in the background.
+    single { KtorEpisodeDownloader(get(), get(), get()) }
 }
 
 val useCaseModule = module {

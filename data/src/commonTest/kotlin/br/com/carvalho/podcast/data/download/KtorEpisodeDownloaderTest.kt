@@ -12,7 +12,9 @@ import io.ktor.http.*
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -178,6 +180,30 @@ class KtorEpisodeDownloaderTest {
         downloader.cancel(sampleEpisode.id)
 
         assertEquals(0, bytesOnDisk(), "The partial file should be gone when cancel returns")
+        assertEquals(DownloadStatus.Idle, downloader.activeDownloads.value[sampleEpisode.id])
+        body.close()
+    }
+
+    @Test
+    fun `a transfer stops and cleans up with the coroutine that runs it`() = runTest {
+        val body = ByteChannel()
+        val engine = MockEngine {
+            respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentLength, "${CHUNK * 2}"))
+        }
+        val downloader = KtorEpisodeDownloader(
+            HttpClient(engine), episodeDao, AppDirectories(fileSystem, baseDir), Dispatchers.Default
+        )
+        // Stands for the Android worker: WorkManager cancels its coroutine to stop the download.
+        val worker = launch(Dispatchers.Default) { downloader.transfer(sampleEpisode.id, sampleEpisode.audioUrl) }
+        body.writeFully(ByteArray(CHUNK))
+        body.flush()
+        withContext(Dispatchers.Default) {
+            withTimeout(STREAM_TIMEOUT_MS) { while (bytesOnDisk() < CHUNK) delay(POLL_MS) }
+        }
+
+        worker.cancelAndJoin()
+
+        assertEquals(0, bytesOnDisk(), "The partial file should be gone with the worker")
         assertEquals(DownloadStatus.Idle, downloader.activeDownloads.value[sampleEpisode.id])
         body.close()
     }

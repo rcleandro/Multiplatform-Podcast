@@ -8,6 +8,9 @@ import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.core.player.AndroidPlatformPlayer
 import br.com.carvalho.podcast.core.player.PlatformPlayer
+import br.com.carvalho.podcast.core.download.WorkManagerEpisodeDownloader
+import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import androidx.work.WorkManager
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
@@ -19,4 +22,5 @@ actual val platformModule = module {
     single { AppDirectories(FileSystem.SYSTEM, androidContext().filesDir.absolutePath.toPath()) }
     single<Analytics> { FirebaseAnalytics() }
     single<CrashReporter> { FirebaseCrashReporter() }
+    single<EpisodeDownloader> { WorkManagerEpisodeDownloader(get(), WorkManager.getInstance(androidContext())) }
 }
