@@ -21,22 +21,25 @@ captures
 # iOS / CocoaPods
 iosApp/Pods/
 iosApp/.bundle/
-iosApp/Podfile.lock
 !iosApp/Podfile
-!shared/shared.podspec
 *.podspec
+!shared/shared.podspec
 
 # Android
-androidApp/google-services.json
+**/google-services.json
 
 # iOS
-iosApp/iosApp/GoogleService-Info.plist
+**/GoogleService-Info.plist
+# Placeholder Firebase configs used by CI when the secrets are missing or unreadable
+!.github/ci/google-services.json
+!.github/ci/GoogleService-Info.plist
 
 # Kotlin/JS & Wasm
 .kotlin/
-kotlin-js-store/
 node_modules/
 package-lock.json
-yarn.lock
 *.wasm
 *.js.map
+
+# Logs
+*.log

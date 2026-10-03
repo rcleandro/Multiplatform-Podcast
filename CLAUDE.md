@@ -2,7 +2,7 @@
 
 Guidance for Claude Code in the Podcast KMP repository. Project context lives in [docs/CONTEXTO.md](docs/CONTEXTO.md)
 and the work plan in [docs/ROADMAP_MELHORIAS.md](docs/ROADMAP_MELHORIAS.md) (phases 9+; phases 1–8 are in
-`roadmap-kmp-podcast.md`).
+[docs/roadmap-kmp-podcast.md](docs/roadmap-kmp-podcast.md)).
 
 ## Working on a roadmap phase
 
@@ -13,6 +13,9 @@ and the work plan in [docs/ROADMAP_MELHORIAS.md](docs/ROADMAP_MELHORIAS.md) (pha
 - Commits are plain Conventional Commits without a ticket (`feat(designsystem): …`, `fix(player): …`).
 
 ## Checks before a commit
+
+The pre-commit hook in `config/hooks` runs these; enable it once per clone with
+`git config core.hooksPath config/hooks`.
 
 `./gradlew :shared:detekt :shared:desktopTest` must pass (rule inherited from `GEMINI.md`). Do not commit with Detekt
 violations unless the user explicitly allows it. After touching platform code, also build the affected app

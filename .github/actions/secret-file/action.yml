@@ -1,0 +1,55 @@
+name: 'secret-file'
+description: 'Writes a secret to a file (plain JSON/plist or base64); falls back to a placeholder when it is missing or unreadable'
+inputs:
+    content:
+        description: 'Secret value (plain text or base64)'
+        required: true
+    path:
+        description: 'File to create'
+        required: true
+    placeholder:
+        description: 'File copied instead when the secret cannot be used (CI only builds and tests, Firebase is not reached)'
+        required: true
+runs:
+    using: "composite"
+    steps:
+        -   name: Write ${{ inputs.path }}
+            shell: bash
+            env:
+                CONTENT: ${{ inputs.content }}
+                TARGET: ${{ inputs.path }}
+                PLACEHOLDER: ${{ inputs.placeholder }}
+            run: |
+                use_placeholder() {
+                    echo "::warning::$1 Using the placeholder $PLACEHOLDER for $TARGET."
+                    cp "$PLACEHOLDER" "$TARGET"
+                }
+                if [ -z "$CONTENT" ]; then
+                    use_placeholder "Secret for $TARGET is empty."
+                    exit 0
+                fi
+                # Leading whitespace, newlines and a UTF-8 byte order mark are ignored when looking at the format.
+                trimmed=$(printf '%s' "$CONTENT" | sed -e '1s/^\xEF\xBB\xBF//' | tr -d '\r' | sed -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//')
+                first=$(printf '%s' "$trimmed" | head -c 1)
+                # The file must parse, otherwise it is not used: macOS base64 "decodes" plain text into garbage.
+                valid() {
+                    case "$TARGET" in
+                        *.json) python3 -c 'import json, sys; json.load(open(sys.argv[1]))' "$TARGET" 2>/dev/null ;;
+                        *.plist) python3 -c 'import plistlib, sys; plistlib.load(open(sys.argv[1], "rb"))' "$TARGET" 2>/dev/null ;;
+                        *) true ;;
+                    esac
+                }
+                if [ "$first" = "{" ] || [ "$first" = "<" ]; then
+                    printf '%s\n' "$trimmed" > "$TARGET"
+                elif printf '%s' "$trimmed" | tr -d '[:space:]' | base64 --decode > "$TARGET" 2>/dev/null && valid; then
+                    echo "Decoded $TARGET from base64."
+                    exit 0
+                fi
+                if ! valid; then
+                    case "$first" in
+                        [A-Za-z0-9]) kind="a letter or digit" ;;
+                        '"'|"'") kind="a quote" ;;
+                        *) kind="another symbol" ;;
+                    esac
+                    use_placeholder "Secret for $TARGET is not a valid file, plain or base64 (${#CONTENT} characters, starts with $kind)."
+                fi

@@ -1,0 +1,26 @@
+# Weekly dependency updates, grouped so related libraries move together (one PR per group).
+version: 2
+updates:
+    - package-ecosystem: gradle
+      directory: /
+      schedule:
+          interval: weekly
+      open-pull-requests-limit: 5
+      groups:
+          kotlin-and-compose:
+              patterns: [ "org.jetbrains.kotlin*", "org.jetbrains.compose*", "com.google.devtools.ksp*" ]
+          androidx:
+              patterns: [ "androidx.*", "com.android.*" ]
+          firebase:
+              patterns: [ "com.google.firebase*", "dev.gitlive*", "com.google.gms*" ]
+          ktor-and-kotlinx:
+              patterns: [ "io.ktor*", "org.jetbrains.kotlinx*" ]
+          testing:
+              patterns: [ "org.robolectric*", "io.github.takahirom.roborazzi*", "app.cash.turbine*", "io.mockk*", "junit*" ]
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: weekly
+      groups:
+          actions:
+              patterns: [ "*" ]

@@ -2,6 +2,7 @@ rootProject.name = "Podcast"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google()
         mavenCentral()
@@ -38,6 +39,20 @@ dependencyResolutionManagement {
             }
             content {
                 includeGroup("com.yarnpkg")
+            }
+        }
+        // Binaryen (Wasm optimizer) for the Web production build; the Kotlin plugin adds this repository
+        // itself, but PREFER_SETTINGS ignores repositories declared outside this file.
+        ivy {
+            url = uri("https://github.com/WebAssembly/binaryen/releases/download")
+            patternLayout {
+                artifact("version_[revision]/[artifact]-version_[revision]-[classifier].[ext]")
+            }
+            metadataSources {
+                artifact()
+            }
+            content {
+                includeGroup("com.github.webassembly")
             }
         }
     }

@@ -2,7 +2,7 @@
 
 > Retrato do código em `main` (commit `9e4f898`, 24/05/2026), escrito na retomada do projeto em 02/10/2026.
 > O plano de trabalho está em [ROADMAP_MELHORIAS.md](ROADMAP_MELHORIAS.md); o roadmap original (fases 1–8) em
-> [`roadmap-kmp-podcast.md`](../roadmap-kmp-podcast.md).
+> [`roadmap-kmp-podcast.md`](roadmap-kmp-podcast.md).
 
 ---
 
@@ -13,8 +13,8 @@ Player de podcasts multiplataforma com uma base única em Kotlin Multiplatform +
 
 O usuário adiciona podcasts **colando a URL do feed RSS**. O app baixa e interpreta o feed, guarda podcast e
 episódios num banco local e toca os episódios por streaming ou a partir de um download. Não há conta, backend próprio
-nem sincronização entre dispositivos: tudo fica no aparelho. Firebase (Analytics, Crashlytics, Performance e Remote
-Config) roda só no Android e no iOS.
+nem sincronização entre dispositivos: tudo fica no aparelho. Firebase (Analytics e Crashlytics) roda só no Android e no
+iOS; Remote Config e Performance saíram em 03/10/2026 (roadmap 10.11).
 
 Funcionalidades que existem hoje:
 
@@ -42,7 +42,7 @@ Funcionalidades que existem hoje:
 | Arquivos | Okio (`FakeFileSystem` na Web) | 3.17.0 |
 | Imagens | Coil 3 com fetcher Ktor | 3.4.0 |
 | Logs | Kermit, espelhado no Crashlytics por `AppLogger` | 2.1.0 |
-| Firebase | GitLive SDK (Android/iOS) + CocoaPods no iOS | 2.4.0 |
+| Firebase | Analytics e Crashlytics: GitLive SDK (Android/iOS) + CocoaPods no iOS | 2.4.0 |
 | Player | Media3 (Android), AVFoundation (iOS), JavaFX Media (Desktop), `<audio>` HTML5 (Web) | 1.10.1 / — / 21.0.5 / — |
 | Testes | kotlin-test, coroutines-test, Turbine, Ktor MockEngine, Compose ui-test, MockK (só JVM) | — |
 | Qualidade | Detekt (com baseline), Kover (só relatório, sem meta) | 1.23.8 / 0.9.8 |
@@ -65,7 +65,7 @@ Pacotes dentro de `:shared/src/commonMain/kotlin/br/com/carvalho/podcast`:
 
 | Pacote | O que tem |
 |---|---|
-| `core/` | `AppConfig` (constantes lidas do Remote Config com fallback), `designsystem/` (cores, tipografia, `AppDimensions`, shapes, `PodcastTheme`), `di/` (módulos Koin), `network/` (`createHttpClient` expect/actual, `commonJson`), `image/` (Coil), `analytics/`, `crashlytics/`, `performance/`, `config/` (todos `expect object`), `util/` (`AppLogger`, `AppContext`, `FileUtils`, `CoroutineDispatchers`, `getCurrentTimestamp`), `extensions/` (formatação de data e duração). |
+| `core/` | `AppConfig` (constantes lidas do Remote Config com fallback), `designsystem/` (cores, tipografia, `AppDimensions`, shapes, `PodcastTheme`), `di/` (módulos Koin), `network/` (`createHttpClient` expect/actual, `commonJson`), `image/` (Coil), `analytics/` e `crashlytics/` (`expect object`), `util/` (`AppLogger`, `AppContext`, `FileUtils`, `CoroutineDispatchers`, `getCurrentTimestamp`), `extensions/` (formatação de data e duração). |
 | `domain/` | `model/` (`Podcast`, `Episode`, `PlayerState`, `PodcastError`), `repository/` (interfaces), `usecase/` (`AddPodcastFromUrl`, `RefreshPodcast`, `DeletePodcast`, `GetLibraryStats`), `player/AudioPlayer` (interface + `expect fun createAudioPlayer()`), `download/EpisodeDownloader` (interface + `DownloadStatus`). |
 | `data/` | `local/` (Room: `AppDatabase` v3, entidades e DAOs), `remote/` (`RssFeedDataSourceImpl`, `RssXmlParser` feito à mão), `mapper/` (RSS → domínio, entidade ↔ domínio), `repository/` (`PodcastRepositoryImpl`, `PlayerRepositoryImpl`, `EpisodePagingSource`), `download/KtorEpisodeDownloader`. |
 | `feature/<nome>/presentation` | Uma tela + um ViewModel por feature: `library`, `podcast`, `episode`, `search`, `downloads`, `player`. |
@@ -122,12 +122,12 @@ e marca `isDownloaded` no banco. O player usa o arquivo local se `getLocalPath` 
 Os esquemas 1–3 estão exportados em `shared/schemas/`, mas **nenhuma migração existe**: todas as plataformas usam
 `fallbackToDestructiveMigration(true)`.
 
-## 6. Configuração remota (`AppConfig`)
+## 6. Constantes do app (`AppConfig`)
 
-Lidas do Remote Config com fallback local: `skip_forward_seconds` (30), `skip_backward_seconds` (10),
-`playback_save_debounce_ms` (2000), `playback_finished_threshold` (0,95), `sleep_timer_tick_ms` (1000),
-`search_debounce_ms` (300), `download_buffer_size` (8192), `millis_per_second` (1000), `playback_speeds`
-(0,5–2,5). No Desktop e na Web o Remote Config é no-op, então sempre valem os fallbacks.
+Até 03/10/2026 vinham do Firebase Remote Config com fallback local; o Remote Config saiu (10.11) e os fallbacks
+viraram constantes: avanço 30 s, retrocesso 10 s, debounce do salvamento 2000 ms, "ouvido" a 95%, tick do timer
+1000 ms, debounce da busca 300 ms, buffer de download 8192, velocidades 0,5–2,5. Sobra só a interface `firebase-config-interop` /
+`FirebaseRemoteConfigInterop`, que o Crashlytics declara; ela não contém o SDK nem chama o serviço.
 
 ## 7. Design system atual
 

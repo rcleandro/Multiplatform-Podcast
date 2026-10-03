@@ -1,62 +1,55 @@
-# 🎙️ Podcast KMP
+# Podcast KMP
 
-A modern, cross-platform podcast player application built with **Kotlin Multiplatform (KMP)**. This project demonstrates the power of a single codebase targeting **Android**, **iOS**, **Desktop (JVM)**, and **Web (Wasm)**.
+A podcast player for **Android** (with Android Auto), **iOS**, **Desktop** (macOS, Windows, Linux) and **Web**
+(Wasm), built from one Kotlin Multiplatform codebase with Compose Multiplatform. Add a podcast by its RSS feed,
+stream or download episodes, and pick up where you left off.
 
-## 🚀 Key Features
+- Project context: [docs/CONTEXTO.md](docs/CONTEXTO.md)
+- Work plan: [docs/ROADMAP_MELHORIAS.md](docs/ROADMAP_MELHORIAS.md)
+- Design system: [docs/podcast-design-system.html](docs/podcast-design-system.html) and [ADR 0001](docs/adr/0001-identidade-visual.md)
+- Decisions: [docs/adr](docs/adr)
 
-- **Multi-Platform Support**: Native feel on Android, iOS, Desktop (macOS/Windows/Linux), and Web.
-- **RSS Feed Integration**: Add any podcast via its RSS URL.
-- **Offline Downloads**: Download episodes for offline listening.
-- **Persistent Playback**: Resume from where you left off.
-- **Adaptive UI**: Responsive design using **Compose Multiplatform**.
+## Modules
 
-## 🛠️ Technology Stack
+| Module | What it holds |
+|---|---|
+| `:shared` | Domain, data (Room, Ktor, RSS), screens and navigation; builds the iOS framework through CocoaPods |
+| `:core:designsystem` | Theme, tokens, fonts and UI components |
+| `:androidApp`, `:desktopApp`, `:webApp`, `iosApp/` | Thin app shells |
+| `build-logic/` | Convention plugins (`podcast.kmp.library`, `podcast.kmp.compose`) |
 
-- **[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform)**: Shared UI components across all platforms.
-- **[Room 3 (KMP)](https://developer.android.com/kotlin/multiplatform/room)**: Local database for cross-platform data persistence.
-- **[Ktor 3](https://ktor.io/)**: Asynchronous HTTP client for fetching RSS feeds and downloading audio.
-- **[Koin 4](https://insert-koin.io/)**: Dependency injection for a modular and testable architecture.
-- **[Decompose](https://github.com/arkivanov/Decompose)**: Life-cycle aware navigation and component decomposition.
-- **[Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)**: For handling XML (RSS) and JSON.
+## Requirements
 
-## 📐 Architecture
+- **JDK 21**
+- **Android Studio** with the Kotlin Multiplatform plugin
+- **Xcode** and **CocoaPods** (`brew install cocoapods`) for iOS; if `pod` fails after a Ruby update, run
+  `brew reinstall cocoapods`
+- Firebase config files, not committed: `androidApp/google-services.json` and
+  `iosApp/iosApp/GoogleService-Info.plist`. In CI they come from the `GOOGLE_SERVICES_JSON` and
+  `GOOGLE_SERVICE_INFO_PLIST` secrets (plain text or base64).
 
-The project follows **Clean Architecture** principles combined with **MVVM**:
+After cloning, enable the pre-commit hook (Detekt and desktop tests):
 
-```
-:shared
- ├── commonMain/         # Core logic, domain models, and shared UI
- ├── androidMain/        # Android-specific implementations (Media3 Player)
- ├── iosMain/            # iOS-specific implementations (AVFoundation Player)
- ├── desktopMain/        # Desktop-specific implementations (JavaFX Media Player)
- └── wasmJsMain/         # Web-specific implementations (HTML5 Audio)
-
-:androidApp              # Android target wrapper
-:iosApp                  # iOS target (Xcode project)
-:desktopApp              # Desktop target wrapper
-:webApp                  # Web target (Wasm)
+```bash
+git config core.hooksPath config/hooks
 ```
 
-## 🏗️ Getting Started
+## Build and run
 
-### Prerequisites
+```bash
+./gradlew :androidApp:installDebug                 # Android
+./gradlew :desktopApp:run                          # Desktop
+./gradlew :webApp:wasmJsBrowserDevelopmentRun      # Web
+cd iosApp && pod install && open iosApp.xcworkspace   # iOS (open the workspace, not the project)
+```
 
-- **JDK 17 or 21**
-- **Android Studio** (Koala or newer) or **IntelliJ IDEA**
-- **Xcode** (for iOS development)
-- **KMP Support Plugin** installed in your IDE
+## Checks
 
-### Build and Run
+```bash
+./gradlew :shared:desktopTest :core:designsystem:desktopTest   # unit and UI tests (JVM)
+./gradlew :shared:iosSimulatorArm64Test                        # tests on the iOS simulator
+./gradlew :shared:detekt :core:designsystem:detekt             # static analysis
+./gradlew :androidApp:lintDebug                                # Android lint (baseline in androidApp/)
+```
 
-- **Android**: `./gradlew :androidApp:installDebug`
-- **Desktop**: `./gradlew :desktopApp:run`
-- **Web (Wasm)**: `./gradlew :webApp:wasmJsBrowserDevelopmentRun`
-- **iOS**: Open the `iosApp` folder in Xcode and run the project.
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-*Developed as a showcase of modern Kotlin Multiplatform capabilities.*
+Design system snapshots are recorded on Linux by the **Record snapshots** workflow and verified in CI.
