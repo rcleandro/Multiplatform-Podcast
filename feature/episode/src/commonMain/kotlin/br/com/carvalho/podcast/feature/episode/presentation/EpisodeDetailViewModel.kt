@@ -1,10 +1,10 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
 import androidx.lifecycle.ViewModel
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -19,7 +19,7 @@ private const val TAG = "EpisodeDetailViewModel"
 class EpisodeDetailViewModel(
     private val episodeId: String,
     private val repository: PodcastRepository,
-    private val audioPlayer: AudioPlayer,
+    private val playEpisode: PlayEpisodeUseCase,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics
 ) : ViewModel() {
@@ -33,7 +33,7 @@ class EpisodeDetailViewModel(
 
     fun onIntent(intent: EpisodeDetailIntent) {
         when (intent) {
-            EpisodeDetailIntent.Play -> playEpisode()
+            EpisodeDetailIntent.Play -> play()
             EpisodeDetailIntent.Retry -> loadEpisode()
         }
     }
@@ -60,25 +60,14 @@ class EpisodeDetailViewModel(
         }
     }
 
-    private fun playEpisode() {
+    private fun play() {
         uiState.value.episode?.let { episode ->
             viewModelScope.launch(dispatchers.io) {
                 analytics.logEvent("play_episode_from_episode_detail", mapOf(
                     "episode_id" to episode.id,
                     "episode_title" to episode.title
                 ))
-                val currentPlayerState = audioPlayer.playerState.value
-                if (currentPlayerState.currentEpisode?.id == episode.id) {
-                    if (currentPlayerState.isPlaying) {
-                        audioPlayer.pause()
-                    } else {
-                        audioPlayer.resume()
-                    }
-                    return@launch
-                }
-
-                AppLogger.i(TAG, "Playing episode: ${episode.title}")
-                audioPlayer.play(episode)
+                playEpisode(episode)
             }
         }
     }

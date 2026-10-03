@@ -13,6 +13,9 @@ class FakeEpisodeDownloader : EpisodeDownloader {
     var deleteCalledWith: String? = null
     var cancelCalledWith: String? = null
 
+    /** Downloaded files by episode id. */
+    val localPaths = mutableMapOf<String, String>()
+
     override suspend fun download(episode: Episode) {
         downloadCalledWith = episode
     }
@@ -33,5 +36,5 @@ class FakeEpisodeDownloader : EpisodeDownloader {
         return MutableStateFlow(DownloadStatus.Idle).asStateFlow()
     }
 
-    override fun getLocalPath(episodeId: String): String? = null
+    override fun getLocalPath(episodeId: String): String? = localPaths[episodeId]
 }

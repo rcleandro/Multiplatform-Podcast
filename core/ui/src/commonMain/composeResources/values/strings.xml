@@ -22,8 +22,8 @@
     <string name="pause">Pause</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
-    <string name="skip_forward">Skip 30s</string>
-    <string name="skip_backward">Skip 10s</string>
+    <string name="skip_forward">Skip forward %1$d s</string>
+    <string name="skip_backward">Skip back %1$d s</string>
     <string name="search">Search</string>
     <string name="clear">Clear</string>
     <string name="refresh">Refresh</string>
@@ -35,6 +35,7 @@
     <string name="timer_30_min">30 minutes</string>
     <string name="timer_45_min">45 minutes</string>
     <string name="timer_60_min">60 minutes</string>
+    <string name="timer_end_of_episode">End of episode</string>
     <string name="no_episode_selected">No episode selected</string>
     <string name="close">Close</string>
     <string name="podcast">Podcast</string>

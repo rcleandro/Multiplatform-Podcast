@@ -29,6 +29,7 @@ import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.close
@@ -41,6 +42,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.timer_45_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_5_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_60_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_disabled
+import br.com.carvalho.podcast.core.ui.generated.resources.timer_end_of_episode
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -95,16 +97,17 @@ internal fun SpeedSelectorDialog(
 @Composable
 internal fun SleepTimerDialog(
     playerState: PlayerState,
-    onTimerSelected: (Int?) -> Unit,
+    onTimerSelected: (SleepTimer?) -> Unit,
     onDismiss: () -> Unit
 ) {
     val options = listOf(
         null to stringResource(Res.string.timer_disabled),
-        5 to stringResource(Res.string.timer_5_min),
-        15 to stringResource(Res.string.timer_15_min),
-        30 to stringResource(Res.string.timer_30_min),
-        45 to stringResource(Res.string.timer_45_min),
-        60 to stringResource(Res.string.timer_60_min)
+        SleepTimer.Minutes(5) to stringResource(Res.string.timer_5_min),
+        SleepTimer.Minutes(15) to stringResource(Res.string.timer_15_min),
+        SleepTimer.Minutes(30) to stringResource(Res.string.timer_30_min),
+        SleepTimer.Minutes(45) to stringResource(Res.string.timer_45_min),
+        SleepTimer.Minutes(60) to stringResource(Res.string.timer_60_min),
+        SleepTimer.EndOfEpisode to stringResource(Res.string.timer_end_of_episode),
     )
 
     AlertDialog(
@@ -112,25 +115,25 @@ internal fun SleepTimerDialog(
         title = { Text(stringResource(Res.string.sleep_timer)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                options.forEach { (minutes, label) ->
-                    val isSelected = minutes == playerState.selectedSleepTimerMinutes
+                options.forEach { (timer, label) ->
+                    val isSelected = timer == playerState.sleepTimer
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .selectable(
                                 selected = isSelected,
-                                onClick = { onTimerSelected(minutes) }
+                                onClick = { onTimerSelected(timer) }
                             ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             selected = isSelected,
-                            onClick = { onTimerSelected(minutes) }
+                            onClick = { onTimerSelected(timer) }
                         )
                         Spacer(modifier = Modifier.width(Spacing.l))
                         Text(
-                            text = if (isSelected && minutes != null) {
+                            text = if (isSelected && timer is SleepTimer.Minutes) {
                                 "$label (${formatRemainingTime(playerState.sleepTimerMillis)})"
                             } else {
                                 label

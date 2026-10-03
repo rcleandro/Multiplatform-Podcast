@@ -10,24 +10,23 @@ class FakeAudioPlayer : AudioPlayer {
     private val _playerState = MutableStateFlow(PlayerState())
     override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
-    private val _isReady = MutableStateFlow(true)
-    override val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
     var playCalledWith: Episode? = null
     var pauseCalled = false
     var resumeCalled = false
-    var stopCalled = false
     var seekToCalledWith: Long? = null
     var queueSet: List<Episode>? = null
+
+    /** Moves the playback position, as the real players do every 500 ms while playing. */
+    fun advanceTo(positionMs: Long) {
+        _playerState.value = _playerState.value.copy(position = positionMs)
+    }
 
     override suspend fun play(episode: Episode) {
         playCalledWith = episode
         _playerState.value = _playerState.value.copy(currentEpisode = episode, isPlaying = true)
     }
 
-    override fun prepare(episode: Episode, positionMs: Long) {
-        _playerState.value = _playerState.value.copy(currentEpisode = episode, position = positionMs)
-    }
 
     override fun pause() {
         pauseCalled = true
@@ -39,10 +38,6 @@ class FakeAudioPlayer : AudioPlayer {
         _playerState.value = _playerState.value.copy(isPlaying = true)
     }
 
-    override fun stop() {
-        stopCalled = true
-        _playerState.value = _playerState.value.copy(isPlaying = false, currentEpisode = null)
-    }
 
     override fun seekTo(positionMs: Long) {
         seekToCalledWith = positionMs
@@ -63,8 +58,8 @@ class FakeAudioPlayer : AudioPlayer {
         _playerState.value = _playerState.value.copy(position = current - seconds * 1000)
     }
 
-    override fun setSleepTimer(millis: Long?, selectedMinutes: Int?) {
-        _playerState.value = _playerState.value.copy(sleepTimerMillis = millis, selectedSleepTimerMinutes = selectedMinutes)
+    override fun setSleepTimer(timer: SleepTimer?) {
+        _playerState.value = _playerState.value.copy(sleepTimer = timer)
     }
 
     override fun setQueue(episodes: List<Episode>) {
@@ -76,5 +71,4 @@ class FakeAudioPlayer : AudioPlayer {
 
     override fun playPrevious() {}
 
-    override fun release() {}
 }

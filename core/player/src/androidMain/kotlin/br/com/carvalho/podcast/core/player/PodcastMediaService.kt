@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
+import br.com.carvalho.podcast.core.AppConfig
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -59,10 +60,14 @@ class PodcastMediaService : MediaLibraryService() {
                     .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
                     .setUsage(C.USAGE_MEDIA)
                     .build(),
-                false
+                // Pauses for calls and other apps, and ducks or resumes as the system asks.
+                true
             )
-            .setSeekForwardIncrementMs(30000)
-            .setSeekBackIncrementMs(15000)
+            // Pauses when headphones are unplugged instead of going on through the speaker.
+            .setHandleAudioBecomingNoisy(true)
+            // The same jumps as the app's buttons.
+            .setSeekForwardIncrementMs(AppConfig.SKIP_FORWARD_SECONDS * AppConfig.MILLIS_PER_SECOND)
+            .setSeekBackIncrementMs(AppConfig.SKIP_BACKWARD_SECONDS * AppConfig.MILLIS_PER_SECOND)
             .build()
 
         val sessionActivityPendingIntent = packageManager
@@ -102,21 +107,16 @@ class PodcastMediaService : MediaLibraryService() {
                 .add(skipBackwardCommand)
                 .build()
 
-            val skipBackwardIcon = resources.getIdentifier("ic_replay_10", "drawable", packageName)
-            val skipForwardIcon = resources.getIdentifier("ic_forward_30", "drawable", packageName)
-
-            val skipForwardLabel = getString(R.string.skip_forward)
-            val skipBackwardLabel = getString(R.string.skip_backward)
+            val forward = AppConfig.SKIP_FORWARD_SECONDS
+            val backward = AppConfig.SKIP_BACKWARD_SECONDS
             val customLayout = listOf(
-                CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+                CommandButton.Builder(skipForwardIcon(forward))
                     .setSessionCommand(skipForwardCommand)
-                    .setCustomIconResId(if (skipForwardIcon != 0) skipForwardIcon else android.R.drawable.ic_media_ff)
-                    .setDisplayName(skipForwardLabel)
+                    .setDisplayName(getString(R.string.skip_forward, forward))
                     .build(),
-                CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+                CommandButton.Builder(skipBackwardIcon(backward))
                     .setSessionCommand(skipBackwardCommand)
-                    .setCustomIconResId(if (skipBackwardIcon != 0) skipBackwardIcon else android.R.drawable.ic_media_rew)
-                    .setDisplayName(skipBackwardLabel)
+                    .setDisplayName(getString(R.string.skip_backward, backward))
                     .build()
             )
 
@@ -374,3 +374,25 @@ class PodcastMediaService : MediaLibraryService() {
         super.onTaskRemoved(rootIntent)
     }
 }
+
+/** Media3's icon with the jump's number when there is one; a plain arrow otherwise. */
+private fun skipForwardIcon(seconds: Int): Int = when (seconds) {
+    SHORT_JUMP -> CommandButton.ICON_SKIP_FORWARD_5
+    MEDIUM_JUMP -> CommandButton.ICON_SKIP_FORWARD_10
+    QUARTER_JUMP -> CommandButton.ICON_SKIP_FORWARD_15
+    LONG_JUMP -> CommandButton.ICON_SKIP_FORWARD_30
+    else -> CommandButton.ICON_SKIP_FORWARD
+}
+
+private fun skipBackwardIcon(seconds: Int): Int = when (seconds) {
+    SHORT_JUMP -> CommandButton.ICON_SKIP_BACK_5
+    MEDIUM_JUMP -> CommandButton.ICON_SKIP_BACK_10
+    QUARTER_JUMP -> CommandButton.ICON_SKIP_BACK_15
+    LONG_JUMP -> CommandButton.ICON_SKIP_BACK_30
+    else -> CommandButton.ICON_SKIP_BACK
+}
+
+private const val SHORT_JUMP = 5
+private const val MEDIUM_JUMP = 10
+private const val QUARTER_JUMP = 15
+private const val LONG_JUMP = 30

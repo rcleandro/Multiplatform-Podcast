@@ -16,6 +16,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.previous
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.model.Podcast
 import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
@@ -49,17 +50,18 @@ class PlayerContentTest {
     @Test
     fun activeSleepTimerIsAnnouncedNotJustColored() = runComposeUiTest {
         val queue = listOf(episode("1"))
-        var timer by mutableStateOf<Long?>(null)
+        var timer by mutableStateOf<SleepTimer?>(null)
         setContent {
             PodcastTheme {
                 PlayerContent(
-                    state = PlayerState(currentEpisode = queue.first(), queue = queue, sleepTimerMillis = timer),
+                    state = PlayerState(currentEpisode = queue.first(), queue = queue, sleepTimer = timer),
                     actions = PlayerActions(),
                 )
             }
         }
         onNode(hasStateDescription(text(Res.string.state_on))).assertDoesNotExist()
-        timer = 60_000L
+        // The end-of-episode timer has no countdown and must still show as on.
+        timer = SleepTimer.EndOfEpisode
         waitForIdle()
         onNode(hasStateDescription(text(Res.string.state_on))).assertExists()
     }

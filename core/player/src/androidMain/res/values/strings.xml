@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Media notification and Android Auto; the screens read the same texts from Compose resources. -->
 <resources>
-    <string name="skip_forward">Skip 30s</string>
-    <string name="skip_backward">Skip 10s</string>
+    <string name="skip_forward">Skip forward %1$d s</string>
+    <string name="skip_backward">Skip back %1$d s</string>
     <string name="library_title">Library</string>
 </resources>

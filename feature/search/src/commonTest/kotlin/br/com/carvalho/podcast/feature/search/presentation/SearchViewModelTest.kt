@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -36,7 +37,10 @@ class SearchViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = SearchViewModel(repository, episodeDownloader, audioPlayer, dispatchers, FakeAnalytics())
+    private fun createViewModel() = SearchViewModel(
+        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer, repository),
+        dispatchers, FakeAnalytics()
+    )
 
     @Test
     fun `initial state is correct`() = runTest(testDispatcher) {

@@ -17,6 +17,7 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +28,8 @@ import br.com.carvalho.podcast.feature.episode.episodeFeatureModule
 import br.com.carvalho.podcast.feature.search.searchFeatureModule
 import br.com.carvalho.podcast.feature.downloads.downloadsFeatureModule
 import br.com.carvalho.podcast.feature.player.playerFeatureModule
+import br.com.carvalho.podcast.core.player.PlaybackController
+import br.com.carvalho.podcast.domain.player.AudioPlayer
 import org.koin.dsl.module
 
 val dispatcherModule = module {
@@ -53,6 +56,10 @@ val databaseModule = module {
     single { get<AppDatabase>().playbackStateDao() }
 }
 
+val playerModule = module {
+    single<AudioPlayer> { PlaybackController(get(), get(), get(), get(), get()) }
+}
+
 val repositoryModule = module {
     single<PodcastRepository> { PodcastRepositoryImpl(get(), get()) }
     single<PlayerRepository> { PlayerRepositoryImpl(get()) }
@@ -63,6 +70,7 @@ val useCaseModule = module {
     singleOf(::AddPodcastFromUrlUseCase)
     singleOf(::RefreshPodcastUseCase)
     singleOf(::DeletePodcastUseCase)
+    singleOf(::PlayEpisodeUseCase)
 }
 
 val commonModules = listOf(
@@ -70,6 +78,7 @@ val commonModules = listOf(
     networkModule,
     databaseModule,
     repositoryModule,
+    playerModule,
     useCaseModule,
     libraryFeatureModule,
     podcastFeatureModule,
