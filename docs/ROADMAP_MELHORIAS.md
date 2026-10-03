@@ -663,11 +663,15 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   decidir. Teste: limpar o `ViewModelStore`, como ao fechar a tela, não libera o player (falhou no código antigo).
   **Falta:** reproduzir no Razr 60 (tocar, fechar pelo voltar com o áudio tocando, reabrir e usar o player).
 
-### 13.3 Foco de áudio e fone desconectado (Android) ✅ — P
+### 13.3 Foco de áudio e fone desconectado (Android) ✔ (falta conferir no aparelho) — P
 - **Problema:** `PodcastMediaService` cria o ExoPlayer com `setAudioAttributes(…, handleAudioFocus = false)` e sem
   `setHandleAudioBecomingNoisy(true)`. O podcast toca por cima de ligações e de outros apps, e continua no
   alto-falante quando o fone é desconectado.
 - **Ação:** `handleAudioFocus = true` e `setHandleAudioBecomingNoisy(true)`. Validar com uma ligação e tirando o fone.
+- **Implementado:** as duas opções ligadas no `ExoPlayer.Builder` do `PodcastMediaService`. Sem teste
+  automatizado: o comportamento é do ExoPlayer com o sistema (foco de áudio, broadcast `ACTION_AUDIO_BECOMING_NOISY`)
+  e só aparece em aparelho. **Falta:** no Razr 60, tocar e (1) receber uma ligação: pausa e volta ao desligar;
+  (2) tocar outro app de áudio: o podcast pausa; (3) tirar o fone com fio ou desligar o Bluetooth: pausa.
 
 ### 13.4 Saltos diferentes na notificação e no app ✅ — P
 - **Problema:** o serviço fixa 30 s/15 s (`setSeekForwardIncrementMs(30000)`, `setSeekBackIncrementMs(15000)`) e o
