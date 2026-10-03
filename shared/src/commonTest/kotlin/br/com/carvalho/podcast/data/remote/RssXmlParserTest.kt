@@ -50,7 +50,7 @@ class RssXmlParserTest {
     }
 
     @Test
-    fun `missing titles and author fall back to feed data, not fixed text`() {
+    fun `missing titles and author fall back to feed data instead of fixed text`() {
         val xml = """
             <rss>
                 <channel>
