@@ -455,10 +455,18 @@ de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
   dos ViewModels montam `RssFeedSource(FakeRssFeedDataSource())`, então continuam cobrindo o mapeamento. O Media3 1.11
   deprecou o construtor de `ConnectionResult.AcceptedResultBuilder` usado no `PodcastMediaService` (ver fase 13).
 
-### 11.3 Extrair os módulos `core` ✅ — G
+### 11.3 Extrair os módulos `core` ✔ — G
 - **Ação:** mover `common`, `database`, `network`, `player` e `observability` nessa ordem, com o build verde a cada
   passo. O `core:testing` recebe os fakes que hoje estão em `shared/commonTest` (`FakePodcastRepository`,
   `FakeAudioPlayer`, `FakeEpisodeDownloader`…), porque eles vão ser usados por vários módulos.
+- **Implementado:** `:core:common` (AppConfig, dispatchers, `AppDirectories`, tempo), `:core:observability`
+  (interfaces e `AppLogger`), `:core:network` (HttpClient e engines), `:core:database` (Room, DAOs, schemas),
+  `:core:player` (players das quatro plataformas, `PodcastMediaService` com os textos da notificação como recursos
+  Android, sessões de áudio do iOS e da Web) e `:core:testing` (fakes de domínio e DAO, `FakeAnalytics`, banco em
+  memória). O `:domain` saiu junto, antes da 11.4, porque o player depende dele; os testes dos casos de uso
+  passaram a usar um `FakeFeedSource` em vez da camada RSS. Os pacotes não mudaram. O `:shared` perdeu Room, KSP,
+  drivers SQLite, engines Ktor, Media3 e JavaFX. O detekt passou a rodar em todos os módulos (com regras de teste
+  no `:core:testing`), e o CI roda `detekt`, `desktopTest` e `iosSimulatorArm64Test` do projeto inteiro.
 
 ### 11.4 Extrair `domain`, `data` e as features ✅ — G
 - **Ação:** cada feature leva sua tela, ViewModel, recursos de texto e módulo Koin. O `shared` fica com a navegação e
