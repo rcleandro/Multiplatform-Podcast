@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain
 
+import br.com.carvalho.podcast.data.remote.RssFeedSource
 import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.local.createInMemoryDatabase
 import br.com.carvalho.podcast.data.remote.RssFeedDataSource
@@ -30,8 +31,8 @@ class UserFlowIntegrationTest {
     fun setup() {
         database = createInMemoryDatabase()
         repository = PodcastRepositoryImpl(database.podcastDao(), database.episodeDao())
-        addPodcastUseCase = AddPodcastFromUrlUseCase(rssDataSource, repository)
-        refreshPodcastUseCase = RefreshPodcastUseCase(rssDataSource, repository)
+        addPodcastUseCase = AddPodcastFromUrlUseCase(RssFeedSource(rssDataSource), repository)
+        refreshPodcastUseCase = RefreshPodcastUseCase(RssFeedSource(rssDataSource), repository)
     }
 
     @AfterTest

@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import br.com.carvalho.podcast.data.remote.RssFeedSource
 import br.com.carvalho.podcast.shared.error_podcast_exists
 import br.com.carvalho.podcast.shared.Res
 import app.cash.turbine.test
@@ -28,8 +29,8 @@ import kotlin.test.assertTrue
 class LibraryViewModelTest {
     private val repository = FakePodcastRepository()
     private val rssDataSource = FakeRssFeedDataSource()
-    private val addPodcastUseCase = AddPodcastFromUrlUseCase(rssDataSource, repository)
-    private val refreshPodcastUseCase = RefreshPodcastUseCase(rssDataSource, repository)
+    private val addPodcastUseCase = AddPodcastFromUrlUseCase(RssFeedSource(rssDataSource), repository)
+    private val refreshPodcastUseCase = RefreshPodcastUseCase(RssFeedSource(rssDataSource), repository)
     private val deletePodcastUseCase = DeletePodcastUseCase(repository)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)

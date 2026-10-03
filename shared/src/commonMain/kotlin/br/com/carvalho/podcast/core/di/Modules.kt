@@ -7,6 +7,8 @@ import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.data.remote.RssFeedDataSource
 import br.com.carvalho.podcast.data.remote.RssFeedDataSourceImpl
+import br.com.carvalho.podcast.data.remote.RssFeedSource
+import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
 import br.com.carvalho.podcast.domain.player.createAudioPlayer
@@ -45,6 +47,7 @@ val networkModule = module {
     single { createHttpClient() }
     single { createImageLoader(get()) }
     single<RssFeedDataSource> { RssFeedDataSourceImpl(get(), get()) }
+    single<FeedSource> { RssFeedSource(get()) }
 }
 
 val playerModule = module {

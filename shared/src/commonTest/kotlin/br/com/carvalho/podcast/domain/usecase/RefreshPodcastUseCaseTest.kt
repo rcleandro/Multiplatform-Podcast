@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.data.remote.RssFeedSource
 import br.com.carvalho.podcast.data.remote.FakeRssFeedDataSource
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
@@ -13,7 +14,7 @@ import kotlin.test.assertTrue
 class RefreshPodcastUseCaseTest {
     private val rssDataSource = FakeRssFeedDataSource()
     private val podcastRepo = FakePodcastRepository()
-    private val useCase = RefreshPodcastUseCase(rssDataSource, podcastRepo)
+    private val useCase = RefreshPodcastUseCase(RssFeedSource(rssDataSource), podcastRepo)
 
     private val samplePodcast = Podcast(
         id = "url",

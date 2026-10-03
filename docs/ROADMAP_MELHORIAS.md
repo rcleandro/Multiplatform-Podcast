@@ -440,12 +440,20 @@ de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
   Ajuste em relação ao rascunho acima: `:core:ui` entrou (as telas leem textos do `Res` do `:shared`, que precisa
   ir para algum lugar comum) e `:core:observability` deixou de ter as implementações Firebase.
 
-### 11.2 Domínio puro ✅ — M
+### 11.2 Domínio puro ✔ — M
 - **Problema:** `AddPodcastFromUrlUseCase` e `RefreshPodcastUseCase` importam `data.mapper` e `data.remote.RssFeedDataSource`;
   `Episode` e `Podcast` importam `androidx.compose.runtime.Immutable`.
 - **Ação:** o domínio fala com uma interface `FeedRepository` (`fetch(url): Result<Feed>`), e o mapeamento RSS fica
   em `data`. A estabilidade dos modelos para o Compose passa a vir de um `compose-stability.conf` nos módulos de UI,
   e não de anotação no domínio.
+
+- **Implementado:** interface `FeedSource` no domínio (`fetch(feedUrl): Result<FetchedFeed>`, com podcast e episódios
+  já como modelos de domínio) e `RssFeedSource` em `data`, que faz a leitura RSS e os mappers. Os dois casos de uso
+  passaram a depender só de `FeedSource` e `PodcastRepository`, e o domínio não importa mais nada de `data` nem do
+  Compose. `Episode` e `Podcast` perderam o `@Immutable`; `config/compose/stability.conf` declara
+  `domain.model.*` como estável e o `podcast.kmp.compose` o aplica a todo módulo de UI. Os testes dos casos de uso e
+  dos ViewModels montam `RssFeedSource(FakeRssFeedDataSource())`, então continuam cobrindo o mapeamento. O Media3 1.11
+  deprecou o construtor de `ConnectionResult.AcceptedResultBuilder` usado no `PodcastMediaService` (ver fase 13).
 
 ### 11.3 Extrair os módulos `core` ✅ — G
 - **Ação:** mover `common`, `database`, `network`, `player` e `observability` nessa ordem, com o build verde a cada

@@ -1,8 +1,6 @@
 package br.com.carvalho.podcast.domain.model
 
-import androidx.compose.runtime.Immutable
 
-@Immutable
 data class Podcast(
     val id: String,
     val title: String,

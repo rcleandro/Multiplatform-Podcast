@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.data.remote.RssFeedSource
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -27,7 +28,7 @@ class PodcastDetailViewModelTest {
     private val audioPlayer = FakeAudioPlayer()
     private val repository = FakePodcastRepository()
     private val rssDataSource = FakeRssFeedDataSource()
-    private val refreshUseCase = RefreshPodcastUseCase(rssDataSource, repository)
+    private val refreshUseCase = RefreshPodcastUseCase(RssFeedSource(rssDataSource), repository)
     private val episodeDownloader = FakeEpisodeDownloader()
     private val testDispatcher = UnconfinedTestDispatcher()
     private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)

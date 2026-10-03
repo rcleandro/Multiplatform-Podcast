@@ -1,8 +1,6 @@
 package br.com.carvalho.podcast.domain.usecase
 
-import br.com.carvalho.podcast.data.mapper.toEpisode
-import br.com.carvalho.podcast.data.mapper.toPodcast
-import br.com.carvalho.podcast.data.remote.RssFeedDataSource
+import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.util.AppLogger
 import kotlinx.coroutines.flow.first
@@ -10,7 +8,7 @@ import kotlinx.coroutines.flow.first
 private const val TAG = "RefreshUseCase"
 
 class RefreshPodcastUseCase(
-    private val rssDataSource: RssFeedDataSource,
+    private val feedSource: FeedSource,
     private val podcastRepository: PodcastRepository
 ) {
     suspend operator fun invoke(podcastId: String): Result<Unit> {
@@ -18,19 +16,11 @@ class RefreshPodcastUseCase(
             ?: return Result.failure(Exception("Podcast not found"))
 
         AppLogger.i(TAG, "Refreshing podcast: ${podcast.title}")
-        return rssDataSource.fetchFeed(podcast.feedUrl)
+        return feedSource.fetch(podcast.feedUrl)
             .mapCatching { feed ->
-                val updatedPodcast = feed.toPodcast(feedUrl = podcast.feedUrl)
-                val updatedEpisodes = feed.episodes.map { 
-                    it.toEpisode(
-                        podcastId = updatedPodcast.id,
-                        podcastTitle = updatedPodcast.title
-                    ) 
-                }
-
-                podcastRepository.savePodcast(updatedPodcast)
-                podcastRepository.saveEpisodes(updatedEpisodes)
-                AppLogger.d(TAG, "Podcast ${podcast.title} updated with ${updatedEpisodes.size} episodes")
+                podcastRepository.savePodcast(feed.podcast)
+                podcastRepository.saveEpisodes(feed.episodes)
+                AppLogger.d(TAG, "Podcast ${podcast.title} updated with ${feed.episodes.size} episodes")
             }.onFailure { e ->
                 AppLogger.e(TAG, "Failed to refresh podcast: ${podcast.title}", e)
             }

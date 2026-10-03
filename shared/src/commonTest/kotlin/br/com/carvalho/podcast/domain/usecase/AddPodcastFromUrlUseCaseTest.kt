@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.data.remote.RssFeedSource
 import br.com.carvalho.podcast.data.remote.FakeRssFeedDataSource
 import br.com.carvalho.podcast.data.remote.model.RssFeed
 import br.com.carvalho.podcast.domain.model.Podcast
@@ -14,7 +15,7 @@ import kotlin.test.assertIs
 class AddPodcastFromUrlUseCaseTest {
     private val rssDataSource = FakeRssFeedDataSource()
     private val podcastRepo = FakePodcastRepository()
-    private val useCase = AddPodcastFromUrlUseCase(rssDataSource, podcastRepo)
+    private val useCase = AddPodcastFromUrlUseCase(RssFeedSource(rssDataSource), podcastRepo)
 
     @Test
     fun `returns AlreadyExists if podcast is already in database`() = runTest {
