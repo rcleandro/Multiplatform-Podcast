@@ -2,7 +2,7 @@
 
 Guidance for Claude Code in the Podcast KMP repository. Project context lives in [docs/CONTEXTO.md](docs/CONTEXTO.md)
 and the work plan in [docs/ROADMAP_MELHORIAS.md](docs/ROADMAP_MELHORIAS.md) (phases 9+; phases 1–8 are in
-`roadmap-kmp-podcast.md`).
+[docs/roadmap-kmp-podcast.md](docs/roadmap-kmp-podcast.md)).
 
 ## Working on a roadmap phase
 

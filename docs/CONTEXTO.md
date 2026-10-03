@@ -2,7 +2,7 @@
 
 > Retrato do código em `main` (commit `9e4f898`, 24/05/2026), escrito na retomada do projeto em 02/10/2026.
 > O plano de trabalho está em [ROADMAP_MELHORIAS.md](ROADMAP_MELHORIAS.md); o roadmap original (fases 1–8) em
-> [`roadmap-kmp-podcast.md`](../roadmap-kmp-podcast.md).
+> [`roadmap-kmp-podcast.md`](roadmap-kmp-podcast.md).
 
 ---
 
