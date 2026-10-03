@@ -119,7 +119,7 @@ e marca `isDownloaded` no banco. O player usa o arquivo local se `getLocalPath` 
 | `episodes` | `id` = guid | FK para `podcasts` com `CASCADE`; índices em `podcastId` e `publishDate`; guarda `isPlayed`, `playbackPosition` e `isDownloaded` |
 | `playback_state` | `id` = 1 | episódio atual, posição, velocidade e a fila inteira em JSON |
 
-Os esquemas 1–3 estão exportados em `shared/schemas/`, mas **nenhuma migração existe**: todas as plataformas usam
+Os esquemas 1–3 estão exportados em `core/database/schemas/`, mas **nenhuma migração existe**: todas as plataformas usam
 `fallbackToDestructiveMigration(true)`.
 
 ## 6. Constantes do app (`AppConfig`)
