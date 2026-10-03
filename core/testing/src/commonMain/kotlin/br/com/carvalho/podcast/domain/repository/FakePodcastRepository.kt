@@ -56,18 +56,12 @@ class FakePodcastRepository : PodcastRepository {
         }
     }
 
-    var savePodcastCalledCount = 0
-        private set
-    var saveEpisodesCalledCount = 0
+    var saveFeedCalledCount = 0
         private set
 
-    override suspend fun savePodcast(podcast: Podcast) {
-        savePodcastCalledCount++
-        podcasts.value = podcasts.value + podcast
-    }
-
-    override suspend fun saveEpisodes(episodes: List<Episode>) {
-        saveEpisodesCalledCount++
+    override suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>) {
+        saveFeedCalledCount++
+        podcasts.value = podcasts.value.filter { it.id != podcast.id } + podcast
         this.episodes.value = this.episodes.value + episodes
     }
 

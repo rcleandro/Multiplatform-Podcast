@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.data.local.dao
 
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
+import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -67,8 +68,16 @@ class FakeEpisodeDao : EpisodeDao {
     override fun getUnplayedCount(podcastId: String): Flow<Int> =
         episodes.map { it.count { e -> e.podcastId == podcastId && !e.isPlayed } }
 
-    override suspend fun deleteByPodcast(podcastId: String) {
-        episodes.value = episodes.value.filter { it.podcastId != podcastId }
+    val podcasts = MutableStateFlow<List<PodcastEntity>>(emptyList())
+
+    override suspend fun insertPodcastIfNew(podcast: PodcastEntity): Long {
+        if (podcasts.value.any { it.id == podcast.id }) return -1L
+        podcasts.value = podcasts.value + podcast
+        return podcasts.value.size.toLong()
+    }
+
+    override suspend fun updatePodcast(podcast: PodcastEntity) {
+        podcasts.value = podcasts.value.map { if (it.id == podcast.id) podcast else it }
     }
 
     override suspend fun updateDownloadStatus(id: String, downloaded: Boolean) {

@@ -136,7 +136,7 @@ class LibraryViewModelTest {
 
     @Test
     fun `adding a podcast already in the library shows a specific message`() = runTest(testDispatcher) {
-        repository.savePodcast(
+        repository.podcasts.value = listOf(
             Podcast(
                 id = "https://feed.example/rss", title = "Existing", description = "", imageUrl = null, author = null,
                 language = null, categories = emptyList(), feedUrl = "https://feed.example/rss", siteUrl = null,

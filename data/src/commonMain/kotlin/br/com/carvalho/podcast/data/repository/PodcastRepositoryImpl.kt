@@ -87,19 +87,14 @@ class PodcastRepositoryImpl(
         episodeDao.updatePlayback(id, true, 0L)
     }
 
-    override suspend fun savePodcast(podcast: Podcast) {
-        AppLogger.d(TAG, "Saving podcast: ${podcast.title}")
-        podcastDao.insert(podcast.toEntity())
+    override suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>) {
+        AppLogger.d(TAG, "Saving podcast ${podcast.title} with ${episodes.size} episodes")
+        episodeDao.saveFeed(podcast.toEntity(), episodes.map { it.toEntity() })
     }
 
-    override suspend fun saveEpisodes(episodes: List<Episode>) {
-        AppLogger.d(TAG, "Saving ${episodes.size} episodes")
-        episodeDao.saveFromFeed(episodes.map { it.toEntity() })
-    }
-
+    /** One statement: the episodes go with the podcast through the foreign key's ON DELETE CASCADE. */
     override suspend fun deletePodcast(id: String) {
         AppLogger.i(TAG, "Deleting podcast id: $id")
-        episodeDao.deleteByPodcast(id)
         podcastDao.deleteById(id)
     }
 

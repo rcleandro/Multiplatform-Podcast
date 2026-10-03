@@ -7,6 +7,9 @@ import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.data.mapper.toDomain
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.repository.FakeFeedSource
+import br.com.carvalho.podcast.domain.repository.FetchedFeed
+import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
@@ -108,7 +111,7 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
-    fun `savePodcast delegates to dao`() = runTest {
+    fun `saveFeed saves the podcast`() = runTest {
         if (!isDatabaseSupported) return@runTest
         val podcast = Podcast(
             id = podcastId,
@@ -124,7 +127,7 @@ class PodcastRepositoryImplTest {
             isSubscribed = true
         )
 
-        repository.savePodcast(podcast)
+        repository.saveFeed(podcast, emptyList())
 
         val retrieved = database.podcastDao().getById(podcastId)
         assertEquals("Test Podcast", retrieved?.title)
@@ -187,7 +190,7 @@ class PodcastRepositoryImplTest {
         )
         val fromFeed = episodeEntity.toDomain().copy(title = "Ep 1 (fixed)", audioUrl = "audio-v2")
 
-        repository.saveEpisodes(listOf(fromFeed))
+        repository.saveFeed(podcastEntity.toDomain(), listOf(fromFeed))
 
         val saved = database.episodeDao().getById("e1")!!
         assertEquals("Ep 1 (fixed)", saved.title)
@@ -195,6 +198,20 @@ class PodcastRepositoryImplTest {
         assertTrue(saved.isPlayed)
         assertEquals(500L, saved.playbackPosition)
         assertTrue(saved.isDownloaded)
+    }
+
+    @Test
+    fun `a feed whose episodes fail to save leaves no podcast behind`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = podcastEntity.toDomain()
+        // The episode points to a podcast that does not exist, so its foreign key fails.
+        val orphan = episodeEntity.copy(podcastId = "missing").toDomain()
+        val feedSource = FakeFeedSource().apply { result = Result.success(FetchedFeed(podcast, listOf(orphan))) }
+
+        val result = AddPodcastFromUrlUseCase(feedSource, repository)(podcastId)
+
+        assertTrue(result.isFailure)
+        assertNull(database.podcastDao().getById(podcastId))
     }
 
     private fun assertTrue(condition: Boolean) {

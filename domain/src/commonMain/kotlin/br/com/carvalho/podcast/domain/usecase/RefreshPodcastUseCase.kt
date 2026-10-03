@@ -19,8 +19,7 @@ class RefreshPodcastUseCase(
         AppLogger.i(TAG, "Refreshing podcast: ${podcast.title}")
         return feedSource.fetch(podcast.feedUrl)
             .mapCatching { feed ->
-                podcastRepository.savePodcast(feed.podcast)
-                podcastRepository.saveEpisodes(feed.episodes)
+                podcastRepository.saveFeed(feed.podcast, feed.episodes)
                 AppLogger.d(TAG, "Podcast ${podcast.title} updated with ${feed.episodes.size} episodes")
             }.onFailure { e ->
                 AppLogger.e(TAG, "Failed to refresh podcast: ${podcast.title}", e)

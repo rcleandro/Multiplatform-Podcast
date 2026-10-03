@@ -4,7 +4,9 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import androidx.room3.Update
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
+import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import kotlinx.coroutines.flow.Flow
 
 import androidx.room3.Transaction
@@ -65,6 +67,21 @@ interface EpisodeDao {
         publishDate: Long,
     )
 
+    // The podcast row is written here so [saveFeed] can save it with its episodes in one transaction.
+    // Insert-or-update instead of @Upsert: Room's upsert tells a conflict apart by the exception's message.
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPodcastIfNew(podcast: PodcastEntity): Long
+
+    @Update
+    suspend fun updatePodcast(podcast: PodcastEntity)
+
+    /** A feed read from the network: the podcast and its episodes, all or nothing. */
+    @Transaction
+    suspend fun saveFeed(podcast: PodcastEntity, episodes: List<EpisodeEntity>) {
+        if (insertPodcastIfNew(podcast) == NOT_INSERTED) updatePodcast(podcast)
+        saveFromFeed(episodes)
+    }
+
     /**
      * Saves episodes read from a feed: new ones are inserted, known ones get the feed's text, audio and dates while
      * keeping what the user did (played, position, downloaded).
@@ -95,9 +112,6 @@ interface EpisodeDao {
     @Query("SELECT COUNT(*) FROM episodes WHERE podcastId = :podcastId AND isPlayed = 0")
     fun getUnplayedCount(podcastId: String): Flow<Int>
 
-    @Query("DELETE FROM episodes WHERE podcastId = :podcastId")
-    suspend fun deleteByPodcast(podcastId: String)
-
     @Query("UPDATE episodes SET isDownloaded = :downloaded WHERE id = :id")
     suspend fun updateDownloadStatus(id: String, downloaded: Boolean)
 
@@ -108,4 +122,9 @@ interface EpisodeDao {
         WHERE podcastId = :podcastId AND publishDate <= :publishDate
     """)
     suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long)
+
+    private companion object {
+        /** Row id an IGNOREd insert returns. */
+        const val NOT_INSERTED = -1L
+    }
 }

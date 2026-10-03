@@ -18,8 +18,8 @@ interface PodcastRepository {
     fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>>
     suspend fun updateEpisodeProgress(id: String, progress: Long)
     suspend fun markEpisodeAsPlayed(id: String)
-    suspend fun savePodcast(podcast: Podcast)
-    suspend fun saveEpisodes(episodes: List<Episode>)
+    /** Saves a podcast and its episodes all at once: if any of it fails, nothing is saved. */
+    suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>)
     suspend fun deletePodcast(id: String)
     suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long)
 }

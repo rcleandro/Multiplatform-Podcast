@@ -48,8 +48,7 @@ class RefreshPodcastUseCaseTest {
         val result = useCase("url")
 
         assertTrue(result.isSuccess)
-        assertEquals(1, podcastRepo.savePodcastCalledCount)
-        assertEquals(1, podcastRepo.saveEpisodesCalledCount)
+        assertEquals(1, podcastRepo.saveFeedCalledCount)
     }
 
     @Test
