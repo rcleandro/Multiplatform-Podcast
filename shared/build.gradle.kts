@@ -92,6 +92,8 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":core:designsystem"))
+
             // Compose
             implementation(libs.runtime)
             implementation(libs.foundation)
@@ -236,6 +238,23 @@ kotlin {
         val desktopTest by getting {
             dependsOn(jvmCommonTest)
         }
+    }
+}
+
+// ponytail: the Kotlin CocoaPods plugin only raises pod deployment targets to iOS 12 (KT-57741), but Xcode 26+
+// rejects anything below 15, which breaks the Android Studio sync and the iOS build. Patch the generated Podfile
+// until the plugin raises it or Firebase 12 (minimum iOS 15) replaces the 11.x pods.
+tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.PodGenTask>().configureEach {
+    doLast {
+        val file = podfile.get()
+        file.writeText(
+            file.readText()
+                .replace(
+                    "deployment_target_major < 12 || (deployment_target_major == 12",
+                    "deployment_target_major < 15 || (deployment_target_major == 15"
+                )
+                .replace("\"#{12}.#{0}\"", "\"#{15}.#{0}\"")
+        )
     }
 }
 

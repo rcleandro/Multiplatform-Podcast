@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ds_play">Reproducir</string>
+    <string name="ds_pause">Pausar</string>
+    <string name="ds_loading">Cargando</string>
+    <string name="ds_resume_progress">Continuar, %1$d%% escuchado</string>
+    <string name="ds_download">Descargar</string>
+    <string name="ds_download_queued">En cola, cancelar descarga</string>
+    <string name="ds_downloading">Descargando %1$d%%, cancelar</string>
+    <string name="ds_downloaded">Descargado, eliminar descarga</string>
+    <string name="ds_download_failed">Error en la descarga, intentar de nuevo</string>
+    <string name="ds_new">Nuevo</string>
+    <string name="ds_played">Escuchado</string>
+    <string name="ds_downloaded_label">Descargado</string>
+    <string name="ds_position_of_duration">%1$s de %2$s</string>
+    <plurals name="ds_unplayed_count">
+        <item quantity="one">%1$d episodio sin escuchar</item>
+        <item quantity="other">%1$d episodios sin escuchar</item>
+    </plurals>
+    <string name="ds_open_player">Abrir reproductor</string>
+</resources>

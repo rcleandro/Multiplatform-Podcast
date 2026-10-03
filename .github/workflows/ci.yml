@@ -29,7 +29,18 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Run tests
-              run: ./gradlew :shared:testAndroidHostTest :shared:desktopTest --stacktrace --info
+              run: ./gradlew :shared:testAndroidHostTest :shared:desktopTest :core:designsystem:desktopTest --stacktrace
+
+            - name: Verify design system snapshots
+              if: hashFiles('core/designsystem/snapshots/*.png') != ''
+              run: ./gradlew :core:designsystem:verifyRoborazziAndroidHostTest
+
+            - name: Upload snapshot diffs
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: snapshot-diffs
+                  path: core/designsystem/build/outputs/roborazzi/
 
             - name: Upload test reports
               if: always()

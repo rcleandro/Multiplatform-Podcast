@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
+import br.com.carvalho.podcast.shared.error_load_episode
+import br.com.carvalho.podcast.shared.Res
+import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.core.analytics.Analytics
@@ -49,7 +52,7 @@ class EpisodeDetailViewModel(
                 Analytics.logEvent("load_episode_detail_error", mapOf("episode_id" to episodeId, "error" to e.message))
                 _uiState.value = EpisodeDetailUiState(
                     isLoading = false,
-                    error = "Erro ao carregar detalhes do episódio"
+                    error = Res.string.error_load_episode
                 )
             }
         }
@@ -82,5 +85,5 @@ class EpisodeDetailViewModel(
 data class EpisodeDetailUiState(
     val episode: Episode? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: StringResource? = null
 )

@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.w3c.dom.HTMLAudioElement
 
+private const val MILLIS_PER_SECOND = 1000
+
 private const val TAG = "AudioPlayer"
 
 @OptIn(ExperimentalWasmJsInterop::class)
@@ -30,7 +32,7 @@ class WasmAudioPlayer : AudioPlayer {
             playNext()
         }
         onloadedmetadata = {
-            updateState(duration = (duration * 1000).toLong())
+            updateState(duration = (duration * MILLIS_PER_SECOND).toLong())
         }
     }
 
@@ -89,7 +91,7 @@ class WasmAudioPlayer : AudioPlayer {
         _playerState.value = _playerState.value.copy(
             currentEpisode = episode,
             position = positionMs,
-            duration = episode.duration * 1000
+            duration = episode.duration * MILLIS_PER_SECOND
         )
     }
 
@@ -188,8 +190,8 @@ class WasmAudioPlayer : AudioPlayer {
                 val total = audio.duration
                 if (!total.isNaN()) {
                     _playerState.value = _playerState.value.copy(
-                        position = (current * 1000).toLong(),
-                        duration = (total * 1000).toLong()
+                        position = (current * MILLIS_PER_SECOND).toLong(),
+                        duration = (total * MILLIS_PER_SECOND).toLong()
                     )
                 }
                 delay(500)

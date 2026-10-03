@@ -48,4 +48,28 @@ class RssXmlParserTest {
         val feed = RssXmlParser.parse(xml)
         assertEquals("ep1-guid", feed.episodes[0].guid)
     }
+
+    @Test
+    fun `missing titles and author fall back to feed data, not fixed text`() {
+        val xml = """
+            <rss>
+                <channel>
+                    <item>
+                        <description>Interview about Kotlin</description>
+                        <enclosure url="https://example.com/a.mp3" />
+                    </item>
+                    <item>
+                        <enclosure url="https://example.com/files/ep-42.mp3?token=x" />
+                    </item>
+                </channel>
+            </rss>
+        """.trimIndent()
+
+        val feed = RssXmlParser.parse(xml)
+
+        assertEquals("", feed.title)
+        assertEquals(null, feed.author)
+        assertEquals("Interview about Kotlin", feed.episodes[0].title)
+        assertEquals("ep-42.mp3", feed.episodes[1].title)
+    }
 }

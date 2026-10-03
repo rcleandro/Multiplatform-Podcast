@@ -2,9 +2,9 @@
     <string name="library_title">Biblioteca</string>
     <string name="refresh_all">Actualizar todo</string>
     <string name="add_podcast">Añadir podcast</string>
-    <string name="search_placeholder">Buscar podcasts...</string>
+    <string name="search_placeholder">Buscar en tus episodios…</string>
     <string name="delete_podcast">Eliminar podcast</string>
-    <string name="delete_podcast_confirmation">¿Estás seguro de que quieres eliminar o podcast \"%s\" y todos sus episodios?</string>
+    <string name="delete_podcast_confirmation">¿Estás seguro de que quieres eliminar el podcast \"%1$s\" y todos sus episodios?</string>
     <string name="cancel">Cancelar</string>
     <string name="delete">Eliminar</string>
     <string name="add">Añadir</string>
@@ -15,7 +15,7 @@
     <string name="sleep_timer">Temporizador de apagado</string>
     <string name="queue">Cola de reproducción</string>
     <string name="finished">Finalizado</string>
-    <string name="remaining_min">%d min restante</string>
+    <string name="remaining_min">%1$d min restante</string>
     <string name="play">Reproducir</string>
     <string name="pause">Pausar</string>
     <string name="next">Siguiente</string>
@@ -26,7 +26,7 @@
     <string name="clear">Limpiar</string>
     <string name="refresh">Actualizar</string>
     <string name="delete_download">Eliminar descarga</string>
-    <string name="delete_download_confirmation">¿Realmente quieres eliminar la descarga del episodio \"%s\"?</string>
+    <string name="delete_download_confirmation">¿Realmente quieres eliminar la descarga del episodio \"%1$s\"?</string>
     <string name="timer_disabled">Desactivado</string>
     <string name="timer_5_min">5 minutos</string>
     <string name="timer_15_min">15 minutos</string>
@@ -38,7 +38,7 @@
     <string name="podcast">Podcast</string>
     <string name="back">Volver</string>
     <string name="mark_as_played">Marcar como escuchado</string>
-    <string name="mark_as_played_description">Elige una opción para el episodio \"%s\"</string>
+    <string name="mark_as_played_description">Elige una opción para el episodio \"%1$s\"</string>
     <string name="only_this_one">Solo este</string>
     <string name="this_and_all_below">Este y todos los de abajo</string>
     <string name="filter_all">Todos</string>
@@ -56,12 +56,38 @@
     <string name="download_cd">Descargar</string>
     <string name="player">Reproductor</string>
     <string name="select_podcast">Selecciona un podcast</string>
-    <string name="date_just_now">Ahora</string>
-    <string name="date_yesterday">Ayer</string>
-    <string name="date_minutes_ago">Hace %d min</string>
-    <string name="date_hours_ago">Hace %d h</string>
-    <string name="date_days_ago">Hace %d d</string>
-    <string name="date_some_days_ago">Hace unos días</string>
-    <string name="duration_h_m">%dh %dm</string>
-    <string name="duration_m">%dmin</string>
+    <string name="podcast_options">Opciones del podcast</string>
+    <string name="episode_options">Opciones del episodio</string>
+    <string name="app_name">Podcast KMP</string>
+    <string name="rss_url_placeholder">https://...</string>
+    <string name="error_refresh_podcasts">No se pudieron actualizar los podcasts. Revisa la conexión.</string>
+    <string name="error_add_podcast">No se pudo agregar el podcast. Revisa la URL y la conexión.</string>
+    <string name="error_podcast_exists">Este podcast ya está en tu biblioteca.</string>
+    <string name="error_unexpected">Algo salió mal. Inténtalo de nuevo.</string>
+    <string name="error_refresh_episodes">No se pudieron actualizar los episodios.</string>
+    <string name="error_load_episode">No se pudo cargar este episodio.</string>
+    <string name="download_deleted">Descarga eliminada</string>
+    <string name="time_just_now">Ahora</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="one">Hace %1$d min</item>
+        <item quantity="other">Hace %1$d min</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">Hace %1$d h</item>
+        <item quantity="other">Hace %1$d h</item>
+    </plurals>
+    <string name="time_yesterday">Ayer</string>
+    <plurals name="time_days_ago">
+        <item quantity="one">Hace %1$d día</item>
+        <item quantity="other">Hace %1$d días</item>
+    </plurals>
+    <string name="date_short">%1$d/%2$d/%3$d</string>
+    <string name="tray_next">Siguiente episodio</string>
+    <string name="tray_previous">Episodio anterior</string>
+    <string name="tray_quit">Salir</string>
+    <string name="library_empty_message">Toca + y pega la dirección del feed RSS de un podcast para empezar tu biblioteca.</string>
+    <string name="search_empty_title">No se encontraron episodios</string>
+    <string name="search_empty_message">Prueba otras palabras. La búsqueda mira los episodios de los podcasts de tu biblioteca.</string>
+    <string name="downloads_empty_message">Los episodios descargados se reproducen sin internet. Toca el botón de descarga de cualquier episodio.</string>
+    <string name="state_on">Activado</string>
 </resources>

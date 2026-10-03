@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.feature.downloads.presentation
 
+import br.com.carvalho.podcast.shared.download_deleted
+import br.com.carvalho.podcast.shared.Res
+import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
@@ -53,7 +56,7 @@ class DownloadedEpisodesViewModel(
         _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
-            _uiState.update { it.copy(snackbarMessage = "Download excluído") }
+            _uiState.update { it.copy(snackbarMessage = Res.string.download_deleted) }
         }
     }
 
@@ -73,5 +76,5 @@ class DownloadedEpisodesViewModel(
 data class DownloadedEpisodesUiState(
     val episodes: List<Episode> = emptyList(),
     val deleteEpisodeConfirmation: Episode? = null,
-    val snackbarMessage: String? = null
+    val snackbarMessage: StringResource? = null
 )

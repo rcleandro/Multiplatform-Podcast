@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.downloads.presentation
 
+import br.com.carvalho.podcast.shared.download_deleted
+import br.com.carvalho.podcast.shared.Res
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -58,7 +60,7 @@ class DownloadedEpisodesViewModelTest {
             viewModel.deleteDownload("e1")
             
             val state = awaitItem()
-            assertEquals("Download excluído", state.snackbarMessage)
+            assertEquals(Res.string.download_deleted, state.snackbarMessage)
             assertEquals("e1", episodeDownloader.deleteCalledWith)
         }
     }

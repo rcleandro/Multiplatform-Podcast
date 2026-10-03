@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import br.com.carvalho.podcast.shared.error_podcast_exists
+import br.com.carvalho.podcast.shared.Res
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
@@ -122,5 +124,22 @@ class LibraryViewModelTest {
             
             assertEquals("1", repository.deletePodcastCalledWith)
         }
+    }
+
+    @Test
+    fun `adding a podcast already in the library shows a specific message`() = runTest(testDispatcher) {
+        repository.savePodcast(
+            Podcast(
+                id = "https://feed.example/rss", title = "Existing", description = "", imageUrl = null, author = null,
+                language = null, categories = emptyList(), feedUrl = "https://feed.example/rss", siteUrl = null,
+                lastUpdated = 0, isSubscribed = true
+            )
+        )
+        val viewModel = createViewModel()
+
+        viewModel.onUrlChanged("https://feed.example/rss")
+        viewModel.addPodcast()
+
+        assertEquals(Res.string.error_podcast_exists, viewModel.uiState.value.error)
     }
 }

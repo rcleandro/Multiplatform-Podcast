@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.shared.error_refresh_episodes
+import br.com.carvalho.podcast.shared.Res
+import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.Episode
@@ -80,7 +83,7 @@ class PodcastDetailViewModel(
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
                 trace.putAttribute("status", "error")
                 trace.putAttribute("error_message", e.message ?: "unknown")
-                _uiState.update { it.copy(error = "Erro ao atualizar episódios") }
+                _uiState.update { it.copy(error = Res.string.error_refresh_episodes) }
             } finally {
                 trace.stop()
                 _uiState.update { it.copy(isLoading = false) }
@@ -138,6 +141,12 @@ class PodcastDetailViewModel(
         }
     }
 
+    fun cancelDownload(episodeId: String) {
+        viewModelScope.launch(dispatchers.io) {
+            episodeDownloader.cancel(episodeId)
+        }
+    }
+
     fun deleteDownload(episodeId: String) {
         Analytics.logEvent("delete_download_from_detail", mapOf("episode_id" to episodeId))
         _uiState.update { it.copy(isLoading = true, deleteEpisodeConfirmation = null) }
@@ -187,7 +196,7 @@ data class PodcastDetailUiState(
     val deleteEpisodeConfirmation: Episode? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-    val error: String? = null
+    val error: StringResource? = null
 )
 
 enum class EpisodeFilter { ALL, UNPLAYED, DOWNLOADED }

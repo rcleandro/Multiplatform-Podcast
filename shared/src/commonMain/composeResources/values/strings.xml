@@ -3,9 +3,9 @@
     <string name="library_title">Library</string>
     <string name="refresh_all">Refresh All</string>
     <string name="add_podcast">Add Podcast</string>
-    <string name="search_placeholder">Search podcasts...</string>
+    <string name="search_placeholder">Search your episodes…</string>
     <string name="delete_podcast">Delete Podcast</string>
-    <string name="delete_podcast_confirmation">Are you sure you want to delete the podcast \"%s\" and all its episodes?</string>
+    <string name="delete_podcast_confirmation">Are you sure you want to delete the podcast \"%1$s\" and all its episodes?</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
     <string name="add">Add</string>
@@ -17,7 +17,7 @@
     <string name="sleep_timer">Sleep Timer</string>
     <string name="queue">Queue</string>
     <string name="finished">Finished</string>
-    <string name="remaining_min">%d min remaining</string>
+    <string name="remaining_min">%1$d min remaining</string>
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="next">Next</string>
@@ -28,7 +28,7 @@
     <string name="clear">Clear</string>
     <string name="refresh">Refresh</string>
     <string name="delete_download">Delete download</string>
-    <string name="delete_download_confirmation">Do you really want to delete the download for episode \"%s\"?</string>
+    <string name="delete_download_confirmation">Do you really want to delete the download for episode \"%1$s\"?</string>
     <string name="timer_disabled">Disabled</string>
     <string name="timer_5_min">5 minutes</string>
     <string name="timer_15_min">15 minutes</string>
@@ -40,7 +40,7 @@
     <string name="podcast">Podcast</string>
     <string name="back">Back</string>
     <string name="mark_as_played">Mark as played</string>
-    <string name="mark_as_played_description">Choose an option for episode \"%s\"</string>
+    <string name="mark_as_played_description">Choose an option for episode \"%1$s\"</string>
     <string name="only_this_one">Only this one</string>
     <string name="this_and_all_below">This and all below</string>
     <string name="filter_all">All</string>
@@ -58,12 +58,37 @@
     <string name="download_cd">Download</string>
     <string name="player">Player</string>
     <string name="select_podcast">Select a podcast</string>
-    <string name="date_just_now">Now</string>
-    <string name="date_yesterday">Yesterday</string>
-    <string name="date_minutes_ago">%d min ago</string>
-    <string name="date_hours_ago">%d h ago</string>
-    <string name="date_days_ago">%d d ago</string>
-    <string name="date_some_days_ago">A few days ago</string>
-    <string name="duration_h_m">%dh %dm</string>
-    <string name="duration_m">%dmin</string>
+    <string name="podcast_options">Podcast options</string>
+    <string name="episode_options">Episode options</string>
+    <string name="error_refresh_podcasts">Couldn't refresh your podcasts. Check your connection.</string>
+    <string name="error_add_podcast">Couldn't add the podcast. Check the URL and your connection.</string>
+    <string name="error_podcast_exists">This podcast is already in your library.</string>
+    <string name="error_unexpected">Something went wrong. Try again.</string>
+    <string name="error_refresh_episodes">Couldn't refresh the episodes.</string>
+    <string name="error_load_episode">Couldn't load this episode.</string>
+    <string name="download_deleted">Download removed</string>
+    <string name="time_just_now">Just now</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="one">%1$d min ago</item>
+        <item quantity="other">%1$d min ago</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%1$d h ago</item>
+        <item quantity="other">%1$d h ago</item>
+    </plurals>
+    <string name="time_yesterday">Yesterday</string>
+    <plurals name="time_days_ago">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
+    <!-- Arguments: day, month, year -->
+    <string name="date_short">%2$d/%1$d/%3$d</string>
+    <string name="tray_next">Next episode</string>
+    <string name="tray_previous">Previous episode</string>
+    <string name="tray_quit">Quit</string>
+    <string name="library_empty_message">Tap + and paste the address of a podcast RSS feed to start your library.</string>
+    <string name="search_empty_title">No episodes found</string>
+    <string name="search_empty_message">Try other words. The search looks at the episodes of the podcasts in your library.</string>
+    <string name="downloads_empty_message">Downloaded episodes play without internet. Tap the download button on any episode.</string>
+    <string name="state_on">On</string>
 </resources>

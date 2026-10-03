@@ -1,5 +1,12 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import br.com.carvalho.podcast.domain.model.PodcastError
+import br.com.carvalho.podcast.shared.error_unexpected
+import br.com.carvalho.podcast.shared.error_add_podcast
+import br.com.carvalho.podcast.shared.error_podcast_exists
+import br.com.carvalho.podcast.shared.error_refresh_podcasts
+import br.com.carvalho.podcast.shared.Res
+import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.Podcast
@@ -76,7 +83,7 @@ class LibraryViewModel(
                 AppLogger.e(TAG, "Error refreshing all podcasts", e)
                 trace.putAttribute("status", "error")
                 trace.putAttribute("error_message", e.message ?: "unknown")
-                _uiState.update { it.copy(error = "Erro ao atualizar podcasts.") }
+                _uiState.update { it.copy(error = Res.string.error_refresh_podcasts) }
             } finally {
                 trace.stop()
                 _uiState.update { it.copy(isRefreshing = false) }
@@ -118,13 +125,21 @@ class LibraryViewModel(
                     Analytics.logEvent("add_podcast_failure", mapOf("url" to finalUrl, "error" to e.message))
                     trace.putAttribute("status", "failure")
                     trace.putAttribute("error_message", e.message ?: "unknown")
-                    _uiState.update { it.copy(error = "Erro ao adicionar podcast. Verifique a URL e a conexão.") }
+                    _uiState.update {
+                        it.copy(
+                            error = if (e is PodcastError.AlreadyExists) {
+                                Res.string.error_podcast_exists
+                            } else {
+                                Res.string.error_add_podcast
+                            }
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Unexpected error adding podcast", e)
                 trace.putAttribute("status", "error")
                 trace.putAttribute("error_message", e.message ?: "unknown")
-                _uiState.update { it.copy(error = "Ocorreu um erro inesperado: ${e.message}") }
+                _uiState.update { it.copy(error = Res.string.error_unexpected) }
             } finally {
                 trace.stop()
                 _uiState.update { it.copy(isRefreshing = false, addUrl = "") }
@@ -140,5 +155,5 @@ data class LibraryUiState(
     val isAddDialogOpen: Boolean = false,
     val podcastToDelete: Podcast? = null,
     val addUrl: String = "",
-    val error: String? = null
+    val error: StringResource? = null
 )

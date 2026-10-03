@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.presentation.navigation
 
+import androidx.compose.animation.core.tween
+import br.com.carvalho.podcast.core.designsystem.Motion
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Home
@@ -21,7 +23,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.compose.runtime.collectAsState
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
-import br.com.carvalho.podcast.presentation.component.MiniPlayer
+import br.com.carvalho.podcast.core.designsystem.component.MiniPlayer
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -218,8 +220,8 @@ fun RootContent(component: RootComponentImpl) {
 
                 AnimatedVisibility(
                     visible = showMiniPlayer && isMiniPlayerVisible && activeChild !is RootComponent.Child.Player,
-                    enter = slideInVertically(initialOffsetY = { it }),
-                    exit = slideOutVertically(targetOffsetY = { it }),
+                    enter = slideInVertically(tween(Motion.MEDIUM, easing = Motion.Standard)) { it },
+                    exit = slideOutVertically(tween(Motion.MEDIUM, easing = Motion.Standard)) { it },
                     modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
                     playerState.currentEpisode?.let { episode ->
@@ -229,11 +231,13 @@ fun RootContent(component: RootComponentImpl) {
                         } else 0f
 
                         MiniPlayer(
-                            episode = episode,
+                            title = episode.title,
+                            subtitle = episode.podcastTitle,
+                            imageUrl = episode.imageUrl,
                             isPlaying = playerState.isPlaying,
-                            isBuffering = playerState.isBuffering,
+                            isLoading = playerState.isBuffering,
                             progress = progress,
-                            onPlayPauseClick = {
+                            onPlayPause = {
                                 if (playerState.isPlaying) playerViewModel.pause()
                                 else playerViewModel.resume()
                             },
@@ -246,8 +250,8 @@ fun RootContent(component: RootComponentImpl) {
 
         AnimatedVisibility(
             visible = activeChild is RootComponent.Child.Player,
-            enter = slideInVertically(initialOffsetY = { it }),
-            exit = slideOutVertically(targetOffsetY = { it })
+            enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
+            exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
         ) {
             PlayerScreen(
                 onBackClick = { component.onBackClicked() }

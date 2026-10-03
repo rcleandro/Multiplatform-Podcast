@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.mapper
 
+import io.ktor.http.Url
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
@@ -14,7 +15,7 @@ private const val TAG = "RssMapper"
 
 fun RssFeed.toPodcast(feedUrl: String): Podcast = Podcast(
     id = feedUrl,
-    title = title,
+    title = title.ifBlank { Url(feedUrl).host.ifBlank { feedUrl } },
     description = description,
     imageUrl = imageUrl,
     author = author,
