@@ -28,7 +28,7 @@ stream or download episodes, and pick up where you left off.
   `iosApp/iosApp/GoogleService-Info.plist`. In CI they come from the `GOOGLE_SERVICES_JSON` and
   `GOOGLE_SERVICE_INFO_PLIST` secrets (plain text or base64).
 
-After cloning, enable the pre-commit hook (Detekt and desktop tests):
+After cloning, enable the pre-commit hook (Detekt, module rules and desktop tests):
 
 ```bash
 git config core.hooksPath config/hooks
@@ -46,10 +46,11 @@ cd iosApp && pod install && open iosApp.xcworkspace   # iOS (open the workspace,
 ## Checks
 
 ```bash
-./gradlew :shared:desktopTest :core:designsystem:desktopTest   # unit and UI tests (JVM)
-./gradlew :shared:iosSimulatorArm64Test                        # tests on the iOS simulator
-./gradlew :shared:detekt :core:designsystem:detekt             # static analysis
-./gradlew :androidApp:lintDebug                                # Android lint (baseline in androidApp/)
+./gradlew desktopTest                  # unit and UI tests (JVM)
+./gradlew iosSimulatorArm64Test        # tests on the iOS simulator
+./gradlew detekt                       # static analysis
+./gradlew checkModuleDependencies      # module graph rules (ADR 0003)
+./gradlew :androidApp:lintDebug        # Android lint (baseline in androidApp/)
 ```
 
 Design system snapshots are recorded on Linux by the **Record snapshots** workflow and verified in CI.

@@ -19,11 +19,14 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
-        config.setFrom(files("${rootProject.projectDir}/config/detekt/detekt.yml"))
+        config.setFrom(
+            files("${rootProject.projectDir}/config/detekt/detekt.yml") +
+                if (path == ":core:testing") files("${rootProject.projectDir}/config/detekt/testing.yml") else files()
+        )
         baseline = file("${rootProject.projectDir}/config/detekt/baseline.xml")
         buildUponDefaultConfig = true
         allRules = false
         parallel = true
-        source.setFrom(files("src/commonMain/kotlin", "src/androidMain/kotlin", "src/desktopMain/kotlin", "src/iosMain/kotlin", "src/wasmJsMain/kotlin"))
+        source.setFrom(files("src/commonMain/kotlin", "src/firebaseMain/kotlin", "src/jvmCommonMain/kotlin", "src/androidMain/kotlin", "src/desktopMain/kotlin", "src/iosMain/kotlin", "src/wasmJsMain/kotlin"))
     }
 }

@@ -1,142 +1,104 @@
 package br.com.carvalho.podcast.presentation.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
+import com.arkivanov.essenty.statekeeper.StateKeeperDispatcher
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class RootComponentTest {
+    private val backDispatcher = BackDispatcher()
 
-    private lateinit var lifecycle: LifecycleRegistry
-    private lateinit var rootComponent: RootComponentImpl
-    private val testDispatcher = UnconfinedTestDispatcher()
-
-    @BeforeTest
-    fun setup() {
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    @AfterTest
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
-    private fun createRootComponent() {
-        lifecycle = LifecycleRegistry()
-        lifecycle.resume()
-        rootComponent = RootComponentImpl(
-            componentContext = DefaultComponentContext(lifecycle = lifecycle)
+    private fun createRoot(stateKeeper: StateKeeperDispatcher = StateKeeperDispatcher()) = RootComponent(
+        DefaultComponentContext(
+            lifecycle = LifecycleRegistry().apply { resume() },
+            stateKeeper = stateKeeper,
+            backHandler = backDispatcher,
         )
+    )
+
+    private val RootComponent.current get() = state.value
+
+    @Test
+    fun startsOnTheLibraryWithNothingToGoBackTo() {
+        val root = createRoot()
+
+        assertEquals(Tab.Library, root.current.selectedTab)
+        assertFalse(backDispatcher.isEnabled)
     }
 
     @Test
-    fun initial_state_should_be_Library() = runTest(testDispatcher) {
-        createRootComponent()
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.Library)
+    fun selectingAnEpisodeOpensItOverItsPodcast() {
+        val root = createRoot()
+
+        root.onEpisodeSelected(episodeId = "e1", podcastId = "p1")
+
+        assertEquals(Detail.Podcast("p1"), root.current.podcast)
+        assertEquals(Detail.Episode("e1"), root.current.episode)
     }
 
     @Test
-    fun onSearchTabClicked_should_navigate_to_Search() = runTest(testDispatcher) {
-        createRootComponent()
-        rootComponent.onSearchTabClicked()
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.Search)
+    fun eachTabKeepsItsOwnStack() {
+        val root = createRoot()
+        root.onPodcastSelected("p1")
+
+        root.onTabClicked(Tab.Search)
+        assertNull(root.current.podcast)
+        root.onEpisodeSelected("e2", "p2")
+
+        root.onTabClicked(Tab.Library)
+        assertEquals(Detail.Podcast("p1"), root.current.podcast)
+        root.onTabClicked(Tab.Search)
+        assertEquals(Detail.Episode("e2"), root.current.episode)
     }
 
     @Test
-    fun onDownloadsTabClicked_should_navigate_to_DownloadedEpisodes() = runTest(testDispatcher) {
-        createRootComponent()
-        rootComponent.onDownloadsTabClicked()
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.DownloadedEpisodes)
+    fun selectingTheShownTabAgainReturnsToItsRoot() {
+        val root = createRoot()
+        root.onPodcastSelected("p1")
+
+        root.onTabClicked(Tab.Library)
+
+        assertTrue(root.current.currentStack.isEmpty())
     }
 
     @Test
-    fun onPlayerTabClicked_should_navigate_to_Player() = runTest(testDispatcher) {
-        createRootComponent()
-        rootComponent.onPlayerTabClicked()
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.Player)
+    fun backClosesThePlayerThenPopsTheTabThenReturnsToTheLibrary() {
+        val root = createRoot()
+        root.onTabClicked(Tab.Downloads)
+        root.onEpisodeSelected("e1", "p1")
+        root.onPlayerClicked()
+
+        assertTrue(backDispatcher.back())
+        assertFalse(root.current.isPlayerOpen)
+        assertTrue(backDispatcher.back())
+        assertEquals(Detail.Podcast("p1"), root.current.podcast)
+        assertNull(root.current.episode)
+        assertTrue(backDispatcher.back())
+        assertTrue(root.current.currentStack.isEmpty())
+        assertTrue(backDispatcher.back())
+        assertEquals(Tab.Library, root.current.selectedTab)
+        assertFalse(backDispatcher.isEnabled)
     }
 
     @Test
-    fun onPodcastSelected_should_navigate_to_PodcastDetail() = runTest(testDispatcher) {
-        createRootComponent()
-        val podcastId = "test-podcast-id"
-        rootComponent.onPodcastSelected(podcastId)
+    fun theStateSurvivesRecreation() {
+        val savedState = StateKeeperDispatcher().let { keeper ->
+            createRoot(keeper).apply {
+                onTabClicked(Tab.Search)
+                onEpisodeSelected("e1", "p1")
+            }
+            keeper.save()
+        }
 
-        val child = rootComponent.stack.value.active.instance
-        assertTrue(child is RootComponent.Child.PodcastDetail)
-        assertEquals(podcastId, child.podcastId)
-    }
+        val restored = createRoot(StateKeeperDispatcher(savedState))
 
-    @Test
-    fun onEpisodeSelected_should_navigate_to_EpisodeDetail_and_keep_PodcastDetail_in_stack() = runTest(testDispatcher) {
-        createRootComponent()
-        val podcastId = "test-podcast-id"
-        val episodeId = "test-episode-id"
-
-        rootComponent.onEpisodeSelected(episodeId, podcastId)
-
-        val stack = rootComponent.stack.value.items
-        assertEquals(3, stack.size)
-
-        val activeChild = rootComponent.stack.value.active.instance
-        assertTrue(activeChild is RootComponent.Child.EpisodeDetail)
-        assertEquals(episodeId, (activeChild).episodeId)
-        assertEquals(podcastId, activeChild.podcastId)
-
-        val podcastChild = stack[1].instance
-        assertTrue(podcastChild is RootComponent.Child.PodcastDetail)
-        assertEquals(podcastId, podcastChild.podcastId)
-    }
-
-    @Test
-    fun onBackClicked_should_pop_the_stack() = runTest(testDispatcher) {
-        createRootComponent()
-        rootComponent.onSearchTabClicked()
-        assertTrue(rootComponent.stack.value.active.instance is RootComponent.Child.Search)
-
-        rootComponent.onBackClicked()
-        assertTrue(rootComponent.stack.value.active.instance is RootComponent.Child.Library)
-    }
-
-    @Test
-    fun switching_tabs_should_clear_details() = runTest(testDispatcher) {
-        createRootComponent()
-        rootComponent.onEpisodeSelected("e1", "p1")
-        assertEquals(3, rootComponent.stack.value.items.size)
-
-        rootComponent.onSearchTabClicked()
-        val stack = rootComponent.stack.value.items
-        assertEquals(2, stack.size)
-        assertTrue(stack[0].instance is RootComponent.Child.Library)
-        assertTrue(stack[1].instance is RootComponent.Child.Search)
-    }
-
-    @Test
-    fun selecting_podcast_should_clear_previous_episodes() = runTest(testDispatcher) {
-        createRootComponent()
-        rootComponent.onEpisodeSelected("e1", "p1")
-        assertEquals(3, rootComponent.stack.value.items.size)
-
-        rootComponent.onPodcastSelected("p2")
-        val stack = rootComponent.stack.value.items
-        assertEquals(2, stack.size)
-        assertTrue(stack[0].instance is RootComponent.Child.Library)
-        assertTrue(stack[1].instance is RootComponent.Child.PodcastDetail)
-        assertEquals("p2", (stack[1].instance as RootComponent.Child.PodcastDetail).podcastId)
+        assertEquals(Tab.Search, restored.current.selectedTab)
+        assertEquals(Detail.Episode("e1"), restored.current.episode)
     }
 }

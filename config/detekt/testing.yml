@@ -1,0 +1,10 @@
+# Extra rules for :core:testing. Its fakes mirror whole interfaces and hold sample data, like test code,
+# which detekt does not analyse anywhere else.
+complexity:
+  TooManyFunctions:
+    active: false
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: false

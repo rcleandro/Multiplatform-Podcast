@@ -408,7 +408,7 @@ lixo no git; módulos configurados só por convention plugins.
 **Objetivo:** trocar o módulo único por módulos com fronteiras verificadas pelo build, deixar o domínio puro e
 injetar tudo que hoje é global.
 
-### 11.1 Grafo de módulos alvo ✅ — P
+### 11.1 Grafo de módulos alvo ✔ — P
 Registrado na **ADR 0003 — Grafo de módulos**:
 
 ```
@@ -433,55 +433,166 @@ Regras: uma `feature` depende só de `domain`, `core:designsystem` e `core:commo
 `data`, `database` ou `network`. `data` depende de `domain`, `core:database` e `core:network`. `domain` não depende
 de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
 
-### 11.2 Domínio puro ✅ — M
+- **Implementado:** [ADR 0003](adr/0003-grafo-de-modulos.md) com o grafo (14 módulos), a tabela de dependências
+  permitidas e quatro decisões: Firebase fica no `:shared` (onde estão os pods) e `:core:observability` só tem
+  interfaces; `PagingData` aceito no domínio (biblioteca KMP sem Android); estabilidade do Compose por arquivo de
+  configuração, não por anotação no domínio; `:core:ui` com os textos e a apresentação que várias features dividem.
+  Ajuste em relação ao rascunho acima: `:core:ui` entrou (as telas leem textos do `Res` do `:shared`, que precisa
+  ir para algum lugar comum) e `:core:observability` deixou de ter as implementações Firebase.
+
+### 11.2 Domínio puro ✔ — M
 - **Problema:** `AddPodcastFromUrlUseCase` e `RefreshPodcastUseCase` importam `data.mapper` e `data.remote.RssFeedDataSource`;
   `Episode` e `Podcast` importam `androidx.compose.runtime.Immutable`.
 - **Ação:** o domínio fala com uma interface `FeedRepository` (`fetch(url): Result<Feed>`), e o mapeamento RSS fica
   em `data`. A estabilidade dos modelos para o Compose passa a vir de um `compose-stability.conf` nos módulos de UI,
   e não de anotação no domínio.
 
-### 11.3 Extrair os módulos `core` ✅ — G
+- **Implementado:** interface `FeedSource` no domínio (`fetch(feedUrl): Result<FetchedFeed>`, com podcast e episódios
+  já como modelos de domínio) e `RssFeedSource` em `data`, que faz a leitura RSS e os mappers. Os dois casos de uso
+  passaram a depender só de `FeedSource` e `PodcastRepository`, e o domínio não importa mais nada de `data` nem do
+  Compose. `Episode` e `Podcast` perderam o `@Immutable`; `config/compose/stability.conf` declara
+  `domain.model.*` como estável e o `podcast.kmp.compose` o aplica a todo módulo de UI. Os testes dos casos de uso e
+  dos ViewModels montam `RssFeedSource(FakeRssFeedDataSource())`, então continuam cobrindo o mapeamento. O Media3 1.11
+  deprecou o construtor de `ConnectionResult.AcceptedResultBuilder` usado no `PodcastMediaService` (ver fase 13).
+
+### 11.3 Extrair os módulos `core` ✔ — G
 - **Ação:** mover `common`, `database`, `network`, `player` e `observability` nessa ordem, com o build verde a cada
   passo. O `core:testing` recebe os fakes que hoje estão em `shared/commonTest` (`FakePodcastRepository`,
   `FakeAudioPlayer`, `FakeEpisodeDownloader`…), porque eles vão ser usados por vários módulos.
+- **Implementado:** `:core:common` (AppConfig, dispatchers, `AppDirectories`, tempo), `:core:observability`
+  (interfaces e `AppLogger`), `:core:network` (HttpClient e engines), `:core:database` (Room, DAOs, schemas),
+  `:core:player` (players das quatro plataformas, `PodcastMediaService` com os textos da notificação como recursos
+  Android, sessões de áudio do iOS e da Web) e `:core:testing` (fakes de domínio e DAO, `FakeAnalytics`, banco em
+  memória). O `:domain` saiu junto, antes da 11.4, porque o player depende dele; os testes dos casos de uso
+  passaram a usar um `FakeFeedSource` em vez da camada RSS. Os pacotes não mudaram. O `:shared` perdeu Room, KSP,
+  drivers SQLite, engines Ktor, Media3 e JavaFX. O detekt passou a rodar em todos os módulos (com regras de teste
+  no `:core:testing`), e o CI roda `detekt`, `desktopTest` e `iosSimulatorArm64Test` do projeto inteiro.
 
-### 11.4 Extrair `domain`, `data` e as features ✅ — G
+### 11.4 Extrair `domain`, `data` e as features ✔ — G
 - **Ação:** cada feature leva sua tela, ViewModel, recursos de texto e módulo Koin. O `shared` fica com a navegação e
   a montagem. Os testes vão junto com o código que testam.
+- **Implementado:** `:domain` saiu na 11.3, `:data` e `:core:ui` (textos compartilhados e `EpisodeListItem`) em
+  commits próprios. Seis módulos `:feature:{library,podcast,episode,search,downloads,player}`, cada um com tela,
+  ViewModel, teste e um `xxxFeatureModule` do Koin; o `viewModelModule` do `:shared` deu lugar a eles. Convention
+  plugin `podcast.feature` aplica KMP + Compose e só as dependências que a ADR 0003 permite (`domain`, `core:common`,
+  `observability`, `designsystem`, `ui`; `core:testing` nos testes). O `ScreenContentTest` do `:shared` foi dividido
+  em `LibraryContentTest` e `PlayerContentTest`, cada um na sua feature. Os textos ficaram no `:core:ui`: várias
+  telas usam os mesmos, e dividir os três idiomas por feature não compensa agora. Verificado: Detekt, testes Desktop
+  e iOS, APK, Desktop e Wasm.
 
-### 11.5 Regra de dependência automática ✅ — P
+### 11.5 Regra de dependência automática ✔ — P
 - **Ação:** task `checkModuleDependencies` no `build-logic`, da qual o `check` depende, que falha se uma feature
   depender de outra feature ou de `data`/`database`/`network`. Verificar plantando uma dependência proibida.
+- **Implementado:** a task fica no plugin `podcast.feature`. Ela lê as dependências de projeto declaradas em
+  todas as configurações do módulo e falha se alguma for `:feature:*`, `:data`, `:core:database`, `:core:network`
+  ou `:core:player` (este último também está proibido pela ADR 0003). A mensagem lista cada configuração e a
+  dependência proibida. Verificado plantando `:data` e `:feature:search` no `:feature:library` e `:core:network`
+  no `:feature:player`: a task falhou nos dois casos e passou de novo depois de remover a dependência. O `check` das features
+  depende dela, mas já falha antes, no `checkComposeUiTestConfigurationForWasmJs` (CMP-4906: testes de UI no Wasm
+  sem `binaries.executable()`). Por isso, o CI (job `static-analysis`) e o hook chamam a task direto. O hook,
+  que cobria só `:shared` e `:core:designsystem`, passou a rodar `detekt checkModuleDependencies desktopTest` no
+  projeto inteiro. O README e o `CLAUDE.md` acompanharam essa mudança. Fora do escopo: a regra olha só dependências diretas.
+  O `:core:testing` (permitido nos testes) expõe o `:core:database` por `api`. Além disso, `:core:database` e
+  `:core:network` dependem do `:core:observability`, e a tabela da ADR não prevê isso.
 
-### 11.6 Injeção no lugar de singletons globais ✅ — M
+### 11.6 Injeção no lugar de singletons globais ✔ — M
 - **Problema:** `Analytics`, `Crashlytics`, `Performance`, `RemoteConfig`, `FileUtils` e `AppContext` são
   `expect object` chamados direto dos ViewModels e repositórios. Os testes precisam ser blindados contra o Firebase
   não inicializado (`f63370d`, `bdce2d4`, `0d9523c`), e `AppContext.context` lança exceção se for lido cedo demais.
 - **Ação:** interfaces em `core:observability` e `core:common` com a implementação Firebase/plataforma registrada
   no Koin e uma implementação no-op ou fake no `core:testing`. O `AppContext` some: o `Context` do Android vem do
   `androidContext()` do Koin.
+- **Implementado:** interfaces `Analytics` e `CrashReporter` (`core/observability`, ainda no `:shared` até a 11.3)
+  recebidas pelo construtor dos cinco ViewModels que registram eventos; nos testes entra o `FakeAnalytics`, e o
+  `LibraryViewModelTest` verifica o evento de exclusão. As implementações Firebase moram num source set
+  `firebaseMain`, compartilhado por Android e iOS, e só agem com o Firebase já configurado. Desktop e Web usam
+  `LogAnalytics`. Cada plataforma tem um `platformModule` do Koin com banco, player, `AppDirectories` (no lugar do
+  `FileUtils`, com as mesmas pastas de antes) e observabilidade. O `AppContext` saiu: o banco e o player do Android
+  recebem o `Context` do `androidContext()`. O `AppLogger` repassa os logs e as exceções ao `CrashReporter` injetado.
 
-### 11.7 Grafo do Koin verificado ✅ — P
+### 11.7 Grafo do Koin verificado ✔ — P
 - **Ação:** um teste JVM com `koin-test` (`verify()` nos módulos) que falha quando falta um binding, em vez de o
   erro aparecer só ao abrir a tela.
+- **Implementado:** `KoinGraphTest` em `shared/src/jvmCommonTest`, que roda no Desktop (`desktopTest`) e no host
+  Android (`testAndroidHostTest`). Assim, os dois `platformModule` (o do Android com Firebase) são verificados
+  junto com `commonModules`, que inclui os módulos Koin das features. Os `extraTypes` são os tipos que as lambdas recebem
+  de fora do Koin: `CoroutineDispatcher`, `HttpClientEngine`, `FileSystem` e `Path`. Verificado removendo o
+  binding de `PlayerRepository`: o teste falhou apontando o `PlayerViewModel` e voltou a passar depois de restaurar
+  o binding. Limite: `verify()` olha construtores, não chamadas `get()` dentro de lambdas que montam o objeto à mão.
+  Por isso, um `get()` sem binding numa lambda só aparece quando o objeto é criado.
 
-### 11.8 Padrão de estado e eventos ✅ — M
+### 11.8 Padrão de estado e eventos ✔ — M
 - **Problema:** cada ViewModel inventa o seu formato: erros como `String`, `snackbarMessage`, diálogos como campos
   anuláveis espalhados no estado; `SearchViewModel` expõe o `audioPlayer` como `val` público.
 - **Ação:** `State` imutável + `onIntent(intent)` + `effects: Flow<Effect>` para eventos únicos (snackbar,
   navegação). Os estados das telas usam os `EmptyState`/`ErrorState` da 9.6.
+- **Implementado:** os seis ViewModels expõem `uiState: StateFlow` e uma única entrada, `onIntent(XxxIntent)`,
+  com um `sealed interface` por tela. Os métodos públicos viraram privados. As telas continuam passando
+  `XxxActions` aos `XxxContent`: o mapeamento ação → intent fica só no `XxxScreen`, e os testes de UI e as previews
+  não mudaram. Os eventos únicos saíram do estado: `messages: Flow<StringResource>` (um `Channel`) em biblioteca,
+  detalhe do podcast e downloads, exibidos pelo `MessageEffect` do `:core:ui`. Assim, `error`, `snackbarMessage`,
+  `clearError` e `clearSnackbarMessage` deixaram de existir. Ficou `messages` em vez de `effects: Flow<Effect>`
+  porque hoje o único evento é mensagem: a navegação continua por callbacks das telas. O `Effect` selado entra
+  quando um ViewModel precisar navegar. Os diálogos continuam no estado, porque são estado (sobrevivem à rotação).
+  `SearchViewModel` expõe `playerState`, não o `AudioPlayer`. O play/pause do mini player e do player passou para
+  o ViewModel (`PlayerIntent.PlayPause`). Erros de carregamento usam `ErrorState` com "Tentar de novo" (texto
+  novo `try_again` nos três idiomas): no episódio (`loadFailed` + `Retry`) e na busca (falha do Paging com
+  `retry()`, sem passar pelo ViewModel). **Bugs corrigidos no caminho:** (1) no detalhe do podcast, o `combine`
+  do `init` substituía o estado inteiro a cada emissão de episódios, então o filtro voltava para "Todos" e os
+  diálogos fechavam ao marcar um episódio como ouvido (teste `filter survives an episode list update`, que
+  falhou no código antigo); (2) o refresh ligava `isLoading` (spinner no lugar da lista) e nunca `isRefreshing`,
+  então o indicador do pull-to-refresh não aparecia. Marcar como ouvido e apagar download também ligavam
+  `isLoading` e faziam a lista piscar; (3) o pager era recriado a cada mudança de estado, como ao abrir um
+  diálogo, e agora só é recriado quando o filtro muda. Testes novos: mensagem única na biblioteca e nos downloads,
+  `isRefreshing` no refresh, e falha + "tentar de novo" no episódio (o `FakePodcastRepository` ganhou
+  `getEpisodeError`).
 
-### 11.9 Modelo de erro ✅ — M
+### 11.9 Modelo de erro ✔ — M
 - **Problema:** `PodcastError.FetchFailed` e `ParseFailed` nunca são lançados; `RefreshPodcastUseCase` lança
   `Exception("Podcast not found")`; a UI mostra `e.message` cru ("Ocorreu um erro inesperado: …").
 - **Ação:** `AppError` selado em `core:common` (sem rede, HTTP, feed inválido, já existe, armazenamento cheio,
   desconhecido). Data converte exceções para ele e a UI converte para `StringResource`.
+- **Implementado:** `AppError` no `:core:common`, com `NoConnection`, `Http(status)`, `InvalidFeed`,
+  `AlreadyExists`, `NotFound` (o podcast sumiu antes do refresh), `StorageFull` e `Unknown(cause)`. Ele estende
+  `Exception` para trafegar em `Result.failure`. O `PodcastError` saiu. No `:data`, `toAppError()` converte o que
+  Ktor, Okio e kotlinx-io lançam, e `catchingAppError {}` substitui o `runCatching` (que engolia
+  `CancellationException`) na leitura do feed. O status HTTP vira `Http`, e uma resposta sem `<channel` (uma
+  página web, por exemplo) vira `InvalidFeed`. O downloader passa a guardar `DownloadStatus.Failed(AppError)`, no
+  lugar de um texto. Disco cheio é detectado pela mensagem do sistema (ENOSPC), porque no JVM erro de arquivo e
+  de rede são o mesmo `IOException` (comentário `ponytail:` no código). No `:core:ui`,
+  `Throwable.toMessage(fallback)` escolhe o texto, e o `fallback` nomeia a ação que falhou quando a causa não diz
+  nada. Textos novos nos três idiomas: sem conexão, erro do servidor, não é um feed e sem espaço. O
+  `error_unexpected` saiu, sem uso. O analytics recebe o tipo do erro, não `e.message`, que pode trazer a URL do
+  feed (o resto do vazamento de URL é da fase 16). **Bugs corrigidos:** o refresh do detalhe e o `refreshAll`
+  ignoravam o `Result` com falha (os `try/catch` nunca disparavam), então a mensagem de erro nunca aparecia. Além
+  disso, o `refreshAll` sempre devolvia sucesso: agora atualiza todos e devolve a primeira falha. Testes:
+  `refreshAll reports a feed that failed` (falhou no código antigo), conversão de HTTP 404, página HTML, falha
+  de rede, disco cheio e desconhecido (`RssFeedDataSourceImplTest`), mensagem de refresh sem conexão no detalhe e
+  de URL que não é feed na biblioteca.
 
-### 11.10 Navegação ✅ — M
+### 11.10 Navegação ✔ — M
 - **Problema:** `RootContent` (257 linhas) deduz a aba selecionada por heurística (`isTabSelected`), `Child.Library`
   carrega um `Unit`, e as regras de pilha ficam espalhadas entre o componente e o composable.
 - **Ação:** uma pilha por aba (`childStack` por aba ou `ChildPages` + pilhas), com a aba selecionada como estado
   explícito no componente e testada no `RootComponentTest`. O `RootContent` só desenha.
+- **Implementado:** o `RootComponent` (a interface de uma só implementação saiu, e o `RootComponentImpl` virou
+  `RootComponent`) expõe `state: Value<NavigationState>`. O estado tem `selectedTab` (`Library`, `Search`,
+  `Downloads`), `stacks` (uma pilha de `Detail.Podcast`/`Detail.Episode` por aba) e `isPlayerOpen`. No lugar de
+  `childStack` ou `ChildPages`, ficou um estado serializável simples, porque os filhos só carregam IDs e as telas
+  pegam seus ViewModels do Koin. O estado é salvo pelo `stateKeeper`, e o voltar do sistema é um `BackCallback`
+  ligado só quando há para onde voltar. Regras, todas no componente: cada aba guarda a sua pilha; tocar na aba já
+  aberta volta à raiz dela; abrir um episódio monta `[podcast, episódio]`, então voltar mostra o podcast; o voltar
+  fecha o player, depois desempilha a aba, depois volta para a biblioteca, e na biblioteca vazia deixa o sistema
+  sair. O `RootContent` (agora ~200 linhas em cinco composables) só lê o estado: aba selecionada, painel do
+  `ListDetailPaneScaffold` derivado de `podcast`/`episode` e player por `isPlayerOpen`. Saíram `isTabSelected`, os
+  filtros de `allChildren`, o `Child.Library(Unit)` e as nove entradas do `RootContent` no baseline do Detekt.
+  `RootComponentTest` reescrito, com seis casos: estado inicial, episódio sobre o podcast, pilha por aba, aba
+  repetida volta à raiz, a ordem do voltar (pelo `BackDispatcher`) e o estado restaurado após recriação. Comportamento
+  novo: antes, trocar de aba apagava os detalhes abertos; agora eles ficam na aba.
+
+**Fase 11 concluída (03/10/2026).** Critério conferido: o `:shared` ficou com navegação, montagem do Koin e
+Firebase. `checkModuleDependencies` está no `check`, e o `KoinGraphTest` roda no `desktopTest` e no
+`testAndroidHostTest`. O único `expect object` restante é o `AppDatabaseConstructor`, que o Room exige.
 
 **Critério de conclusão:** `:shared` sem código de negócio; `checkModuleDependencies` e o teste do Koin no `check`;
 nenhum `expect object` de serviço chamado direto por ViewModel ou repositório.

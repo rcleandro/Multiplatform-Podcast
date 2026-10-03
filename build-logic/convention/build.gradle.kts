@@ -6,6 +6,7 @@ dependencies {
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.compose.gradlePlugin)
+    compileOnly(libs.compose.compiler.gradlePlugin)
 }
 
 gradlePlugin {
@@ -17,6 +18,10 @@ gradlePlugin {
         register("kmpCompose") {
             id = "podcast.kmp.compose"
             implementationClass = "KmpComposeConventionPlugin"
+        }
+        register("feature") {
+            id = "podcast.feature"
+            implementationClass = "FeatureConventionPlugin"
         }
     }
 }

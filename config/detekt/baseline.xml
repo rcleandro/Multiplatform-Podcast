@@ -2,10 +2,7 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ComplexCondition:RootContent.kt$episodeChild != null &amp;&amp; activeChild !is RootComponent.Child.Library &amp;&amp; activeChild !is RootComponent.Child.Search &amp;&amp; activeChild !is RootComponent.Child.DownloadedEpisodes</ID>
-    <ID>ComplexCondition:RootContent.kt$podcastChild != null &amp;&amp; activeChild !is RootComponent.Child.Library &amp;&amp; activeChild !is RootComponent.Child.Search &amp;&amp; activeChild !is RootComponent.Child.DownloadedEpisodes</ID>
     <ID>CyclomaticComplexMethod:EpisodeListItem.kt$@OptIn(ExperimentalFoundationApi::class) @Composable fun EpisodeListItem( episode: Episode, onClick: () -&gt; Unit, onPlayClick: () -&gt; Unit, modifier: Modifier = Modifier, podcastTitle: String? = null, isBuffering: Boolean = false, isPlaying: Boolean = false, downloadStatus: DownloadStatus = DownloadStatus.Idle, onLongClick: () -&gt; Unit = {}, onDownloadClick: () -&gt; Unit = {}, onDeleteClick: () -&gt; Unit = {} )</ID>
-    <ID>CyclomaticComplexMethod:RootContent.kt$@OptIn(ExperimentalMaterial3AdaptiveApi::class) @Composable fun RootContent(component: RootComponentImpl)</ID>
     <ID>CyclomaticComplexMethod:RssMapper.kt$private fun parsePubDate(pubDate: String): Long</ID>
     <ID>EmptyFunctionBlock:KtorEpisodeDownloader.kt$KtorEpisodeDownloader${ }</ID>
     <ID>FunctionNaming:App.kt$@Composable fun App(root: RootComponentImpl)</ID>
@@ -28,7 +25,6 @@
     <ID>FunctionNaming:PodcastDetailScreen.kt$@Composable private fun FilterSection( currentFilter: EpisodeFilter, onFilterSelected: (EpisodeFilter) -&gt; Unit )</ID>
     <ID>FunctionNaming:PodcastDetailScreen.kt$@Composable private fun PodcastHeader(uiState: PodcastDetailUiState)</ID>
     <ID>FunctionNaming:PodcastDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun PodcastDetailScreen( podcastId: String, viewModel: PodcastDetailViewModel = koinViewModel(key = podcastId) { parametersOf(podcastId) }, onBackClick: () -&gt; Unit, onEpisodeClick: (String, String) -&gt; Unit )</ID>
-    <ID>FunctionNaming:RootContent.kt$@OptIn(ExperimentalMaterial3AdaptiveApi::class) @Composable fun RootContent(component: RootComponentImpl)</ID>
     <ID>FunctionNaming:SearchScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SearchScreen( viewModel: SearchViewModel = koinViewModel(), onEpisodeClick: (String, String) -&gt; Unit )</ID>
     <ID>FunctionNaming:Theme.kt$@Composable fun PodcastTheme( darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -&gt; Unit )</ID>
     <ID>LongMethod:DownloadedEpisodesScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun DownloadedEpisodesScreen( viewModel: DownloadedEpisodesViewModel = koinViewModel(), onEpisodeClick: (String, String) -&gt; Unit )</ID>
@@ -41,7 +37,6 @@
     <ID>LongMethod:PodcastDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun PodcastDetailScreen( podcastId: String, viewModel: PodcastDetailViewModel = koinViewModel(key = podcastId) { parametersOf(podcastId) }, onBackClick: () -&gt; Unit, onEpisodeClick: (String, String) -&gt; Unit )</ID>
     <ID>LongMethod:PodcastMediaService.kt$PodcastMediaService.LibraryCallback$@OptIn(UnstableApi::class) override fun onGetChildren( session: MediaLibrarySession, browser: MediaSession.ControllerInfo, parentId: String, page: Int, pageSize: Int, params: LibraryParams? ): ListenableFuture&lt;LibraryResult&lt;ImmutableList&lt;MediaItem&gt;&gt;&gt;</ID>
     <ID>LongMethod:PodcastMediaService.kt$PodcastMediaService.LibraryCallback$@OptIn(UnstableApi::class) override fun onGetItem( session: MediaLibrarySession, browser: MediaSession.ControllerInfo, mediaId: String ): ListenableFuture&lt;LibraryResult&lt;MediaItem&gt;&gt;</ID>
-    <ID>LongMethod:RootContent.kt$@OptIn(ExperimentalMaterial3AdaptiveApi::class) @Composable fun RootContent(component: RootComponentImpl)</ID>
     <ID>LongMethod:SearchScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SearchScreen( viewModel: SearchViewModel = koinViewModel(), onEpisodeClick: (String, String) -&gt; Unit )</ID>
     <ID>LongParameterList:EpisodeListItem.kt$( episode: Episode, onClick: () -&gt; Unit, onPlayClick: () -&gt; Unit, modifier: Modifier = Modifier, podcastTitle: String? = null, isBuffering: Boolean = false, isPlaying: Boolean = false, downloadStatus: DownloadStatus = DownloadStatus.Idle, onLongClick: () -&gt; Unit = {}, onDownloadClick: () -&gt; Unit = {}, onDeleteClick: () -&gt; Unit = {} )</ID>
     <ID>LongParameterList:MiniPlayer.kt$( episode: Episode, isPlaying: Boolean, isBuffering: Boolean, progress: Float, onPlayPauseClick: () -&gt; Unit, onClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
@@ -134,11 +129,6 @@
     <ID>MaxLineLength:PlayerScreen.kt$if (isTimerActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant</ID>
     <ID>MaxLineLength:PlayerViewModel.kt$PlayerViewModel$val resolvedEpisode = episode.copy(localPath = episodeDownloader.getLocalPath(episode.id))</ID>
     <ID>MaxLineLength:PodcastMediaService.kt$PodcastMediaService.LibraryCallback$.</ID>
-    <ID>MaxLineLength:RootContent.kt$Text(stringResource(Res.string.select_podcast), style = MaterialTheme.typography.bodyLarge)</ID>
-    <ID>MaxLineLength:RootContent.kt$if</ID>
-    <ID>MaxLineLength:RootContent.kt$is RootComponent.Child.Library</ID>
-    <ID>MaxLineLength:RootContent.kt$val episodeChild = allChildren.filterIsInstance&lt;RootComponent.Child.EpisodeDetail&gt;().lastOrNull()</ID>
-    <ID>MaxLineLength:RootContent.kt$val podcastChild = allChildren.filterIsInstance&lt;RootComponent.Child.PodcastDetail&gt;().lastOrNull()</ID>
     <ID>ReturnCount:RssMapper.kt$private fun parsePubDate(pubDate: String): Long</ID>
     <ID>ReturnCount:RssXmlParser.kt$RssXmlParser$private fun extractAttribute(xml: String, tagName: String, attributeName: String): String?</ID>
     <ID>ReturnCount:RssXmlParser.kt$RssXmlParser$private fun extractTag(xml: String, tagName: String): String?</ID>
@@ -188,8 +178,6 @@
     <ID>WildcardImport:PlayerViewModel.kt$import kotlinx.coroutines.flow.*</ID>
     <ID>WildcardImport:PodcastDetailViewModel.kt$import kotlinx.coroutines.flow.*</ID>
     <ID>WildcardImport:RootComponentImpl.kt$import com.arkivanov.decompose.router.stack.*</ID>
-    <ID>WildcardImport:RootContent.kt$import androidx.compose.foundation.layout.*</ID>
-    <ID>WildcardImport:RootContent.kt$import androidx.compose.material3.*</ID>
     <ID>WildcardImport:SearchViewModel.kt$import kotlinx.coroutines.flow.*</ID>
   </CurrentIssues>
 </SmellBaseline>
