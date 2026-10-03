@@ -547,11 +547,28 @@ de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
   `isRefreshing` no refresh, e falha + "tentar de novo" no episódio (o `FakePodcastRepository` ganhou
   `getEpisodeError`).
 
-### 11.9 Modelo de erro ✅ — M
+### 11.9 Modelo de erro ✔ — M
 - **Problema:** `PodcastError.FetchFailed` e `ParseFailed` nunca são lançados; `RefreshPodcastUseCase` lança
   `Exception("Podcast not found")`; a UI mostra `e.message` cru ("Ocorreu um erro inesperado: …").
 - **Ação:** `AppError` selado em `core:common` (sem rede, HTTP, feed inválido, já existe, armazenamento cheio,
   desconhecido). Data converte exceções para ele e a UI converte para `StringResource`.
+- **Implementado:** `AppError` no `:core:common`, com `NoConnection`, `Http(status)`, `InvalidFeed`,
+  `AlreadyExists`, `NotFound` (o podcast sumiu antes do refresh), `StorageFull` e `Unknown(cause)`. Ele estende
+  `Exception` para trafegar em `Result.failure`. O `PodcastError` saiu. No `:data`, `toAppError()` converte o que
+  Ktor, Okio e kotlinx-io lançam, e `catchingAppError {}` substitui o `runCatching` (que engolia
+  `CancellationException`) na leitura do feed. O status HTTP vira `Http`, e uma resposta sem `<channel` (uma
+  página web, por exemplo) vira `InvalidFeed`. O downloader passa a guardar `DownloadStatus.Failed(AppError)`, no
+  lugar de um texto. Disco cheio é detectado pela mensagem do sistema (ENOSPC), porque no JVM erro de arquivo e
+  de rede são o mesmo `IOException` (comentário `ponytail:` no código). No `:core:ui`,
+  `Throwable.toMessage(fallback)` escolhe o texto, e o `fallback` nomeia a ação que falhou quando a causa não diz
+  nada. Textos novos nos três idiomas: sem conexão, erro do servidor, não é um feed e sem espaço. O
+  `error_unexpected` saiu, sem uso. O analytics recebe o tipo do erro, não `e.message`, que pode trazer a URL do
+  feed (o resto do vazamento de URL é da fase 16). **Bugs corrigidos:** o refresh do detalhe e o `refreshAll`
+  ignoravam o `Result` com falha (os `try/catch` nunca disparavam), então a mensagem de erro nunca aparecia. Além
+  disso, o `refreshAll` sempre devolvia sucesso: agora atualiza todos e devolve a primeira falha. Testes:
+  `refreshAll reports a feed that failed` (falhou no código antigo), conversão de HTTP 404, página HTML, falha
+  de rede, disco cheio e desconhecido (`RssFeedDataSourceImplTest`), mensagem de refresh sem conexão no detalhe e
+  de URL que não é feed na biblioteca.
 
 ### 11.10 Navegação ✅ — M
 - **Problema:** `RootContent` (257 linhas) deduz a aba selecionada por heurística (`isTabSelected`), `Child.Library`
