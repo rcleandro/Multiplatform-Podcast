@@ -1,5 +1,13 @@
 package br.com.carvalho.podcast.presentation
 
+import br.com.carvalho.podcast.shared.state_on
+import br.com.carvalho.podcast.shared.library_title
+import androidx.compose.ui.test.isHeading
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasStateDescription
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -76,5 +84,29 @@ class ScreenContentTest {
         }
         onNodeWithContentDescription(text(Res.string.next)).assertIsNotEnabled()
         onNodeWithContentDescription(text(Res.string.previous)).assertIsEnabled()
+    }
+
+    @Test
+    fun screenTitlesAreHeadings() = runComposeUiTest {
+        setContent { PodcastTheme { LibraryContent(state = LibraryUiState(), actions = LibraryActions()) } }
+        onNode(isHeading() and hasText(text(Res.string.library_title))).assertExists()
+    }
+
+    @Test
+    fun activeSleepTimerIsAnnouncedNotJustColored() = runComposeUiTest {
+        val queue = listOf(episode("1"))
+        var timer by mutableStateOf<Long?>(null)
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = queue.first(), queue = queue, sleepTimerMillis = timer),
+                    actions = PlayerActions(),
+                )
+            }
+        }
+        onNode(hasStateDescription(text(Res.string.state_on))).assertDoesNotExist()
+        timer = 60_000L
+        waitForIdle()
+        onNode(hasStateDescription(text(Res.string.state_on))).assertExists()
     }
 }

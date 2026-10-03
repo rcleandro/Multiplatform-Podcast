@@ -320,11 +320,22 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   `Surface`. **Pendente:** as imagens foram gravadas no Mac só para validar a configuração e não foram commitadas;
   as de referência dependem de rodar o workflow no GitHub depois do push da branch.
 
-### 9.12 Acessibilidade ✅ — M
+### 9.12 Acessibilidade ✔ — M
 - **Ação:** alvos de toque de pelo menos 48 dp em todos os controles; `contentDescription` em todas as imagens e
   ícones que não sejam decorativos (hoje há `contentDescription = null` no play do detalhe do episódio);
   `semantics` no slider do player e no botão de download (estado + progresso); ordem de foco do teclado no Desktop e
   na Web; snapshot com fonte em 200% sem cortar texto.
+
+- **Implementado:** já estavam cobertos pelos componentes da 9.6: alvos de 48 dp em todos os controles, descrição
+  em todos os botões de ícone, `stateDescription` no slider e no botão de download, "ouvido" com ícone e texto além
+  da cor, e o play do detalhe do episódio tem texto ao lado do ícone. Nesta etapa: títulos de tela, do episódio no
+  player, do podcast e dos estados vazios marcados como cabeçalho (`heading()`), para navegar por cabeçalhos no
+  TalkBack/VoiceOver; o mini player anuncia "Abrir player" (rótulo do clique); velocidade e timer anunciam
+  "Ativado" quando ligados, em vez de só mudar de cor. A fonte em 200% está no snapshot da 9.11, e as animações
+  do Compose respeitam a escala de animação do sistema no Android. Testes: alvo de toque mínimo (play e download),
+  rótulo do mini player, título do estado vazio como cabeçalho (`ComponentsTest`), título da biblioteca como
+  cabeçalho e timer ativo anunciado (`ScreenContentTest`). Os quatro últimos falham no código anterior e passam no
+  novo. **Fica para a 21.6/21.7:** atalhos de teclado e ordem de foco entre painéis no iPad, Desktop e Web.
 
 ### 9.13 Ícone do app no novo design ✅ — M
 - **Problema:** cada plataforma tem um ícone diferente e nenhum segue a identidade da 9.1. O Android usa um ícone

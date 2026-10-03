@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -144,7 +146,11 @@ private fun EpisodeDetailBody(episode: Episode, onPlay: () -> Unit, modifier: Mo
                 episode.podcastTitle?.let {
                     Text(it, style = MaterialTheme.typography.labelLarge, color = PodcastTheme.colors.accentText)
                 }
-                Text(text = episode.title, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = episode.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.semantics { heading() },
+                )
             }
         }
         Button(onClick = onPlay, modifier = Modifier.fillMaxWidth()) {

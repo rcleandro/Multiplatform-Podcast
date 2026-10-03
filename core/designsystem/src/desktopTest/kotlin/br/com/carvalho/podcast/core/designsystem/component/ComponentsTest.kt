@@ -1,5 +1,15 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_player
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.ui.test.isHeading
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.assertWidthIsAtLeast
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -169,5 +179,43 @@ class ComponentsTest {
         onNodeWithContentDescription(runBlocking { getPluralString(Res.plurals.ds_unplayed_count, 3, 3) }).assertExists()
         onNodeWithText("Teste Podcast").performClick()
         assertEquals(true, clicked)
+    }
+
+    @Test
+    fun controlsMeetTheMinimumTouchTarget() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                androidx.compose.foundation.layout.Row {
+                    PlayPauseButton(isPlaying = false, onClick = {})
+                    DownloadButton(state = DownloadState.Idle, onDownload = {}, onCancel = {}, onRemove = {})
+                }
+            }
+        }
+        listOf(text(Res.string.ds_play), text(Res.string.ds_download)).forEach { label ->
+            onNodeWithContentDescription(label)
+                .assertWidthIsAtLeast(Sizes.touchTarget)
+                .assertHeightIsAtLeast(Sizes.touchTarget)
+        }
+    }
+
+    @Test
+    fun miniPlayerAnnouncesThatItOpensThePlayer() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                MiniPlayer(title = "Ep", subtitle = null, imageUrl = null, isPlaying = false, isLoading = false,
+                    progress = 0f, onPlayPause = {}, onClick = {})
+            }
+        }
+        val label = text(Res.string.ds_open_player)
+        onNode(SemanticsMatcher("click label is '$label'") { it.config.getOrNull(SemanticsActions.OnClick)?.label == label })
+            .assertExists()
+    }
+
+    @Test
+    fun stateMessageTitleIsAHeading() = runComposeUiTest {
+        setContent {
+            PodcastTheme { EmptyState(icon = androidx.compose.material.icons.Icons.Rounded.Mic, title = "Vazio", message = null) }
+        }
+        onNode(isHeading() and hasText("Vazio")).assertExists()
     }
 }

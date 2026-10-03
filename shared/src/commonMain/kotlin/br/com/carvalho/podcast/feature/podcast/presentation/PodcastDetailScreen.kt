@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -287,6 +289,7 @@ private fun PodcastHeader(podcast: Podcast) {
                 Text(
                     text = podcast.title,
                     style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.semantics { heading() },
                     maxLines = TITLE_MAX_LINES,
                     overflow = TextOverflow.Ellipsis
                 )

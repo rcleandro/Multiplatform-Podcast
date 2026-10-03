@@ -17,4 +17,5 @@
         <item quantity="one">%1$d episodio sin escuchar</item>
         <item quantity="other">%1$d episodios sin escuchar</item>
     </plurals>
+    <string name="ds_open_player">Abrir reproductor</string>
 </resources>

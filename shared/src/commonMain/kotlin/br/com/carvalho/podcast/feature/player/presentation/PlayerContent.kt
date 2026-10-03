@@ -1,5 +1,9 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.shared.state_on
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -114,6 +118,7 @@ private fun PlayerHeader(episode: Episode?) {
         Text(
             text = episode?.title ?: stringResource(Res.string.no_episode_selected),
             style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.semantics { heading() },
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -195,7 +200,9 @@ private fun ControlButton(icon: ImageVector, label: String, onClick: () -> Unit,
 @Composable
 private fun AuxButton(icon: ImageVector, label: String, description: String?, active: Boolean, onClick: () -> Unit) {
     val color = if (active) PodcastTheme.colors.accentText else MaterialTheme.colorScheme.onSurfaceVariant
-    TextButton(onClick = onClick) {
+    // Color alone does not tell a screen reader user that the setting is on.
+    val onLabel = stringResource(Res.string.state_on)
+    TextButton(onClick = onClick, modifier = Modifier.semantics { if (active) stateDescription = onLabel }) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(icon, contentDescription = description, tint = color, modifier = Modifier.size(Sizes.iconM))
             Text(label, style = MaterialTheme.typography.labelMedium, color = color)

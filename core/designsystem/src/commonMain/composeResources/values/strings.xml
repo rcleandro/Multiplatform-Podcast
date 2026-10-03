@@ -18,4 +18,5 @@
         <item quantity="one">%1$d unplayed episode</item>
         <item quantity="other">%1$d unplayed episodes</item>
     </plurals>
+    <string name="ds_open_player">Open player</string>
 </resources>

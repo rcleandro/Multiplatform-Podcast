@@ -90,4 +90,5 @@
     <string name="search_empty_title">No episodes found</string>
     <string name="search_empty_message">Try other words. The search looks at the episodes of the podcasts in your library.</string>
     <string name="downloads_empty_message">Downloaded episodes play without internet. Tap the download button on any episode.</string>
+    <string name="state_on">On</string>
 </resources>

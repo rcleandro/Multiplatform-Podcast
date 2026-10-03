@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -160,7 +162,13 @@ fun LibraryContent(
 @Composable
 private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, onRefresh: () -> Unit) {
     TopAppBar(
-        title = { Text(stringResource(Res.string.library_title), style = MaterialTheme.typography.headlineMedium) },
+        title = {
+            Text(
+                text = stringResource(Res.string.library_title),
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.semantics { heading() },
+            )
+        },
         actions = {
             IconButton(onClick = onRefresh) {
                 Icon(Icons.Rounded.Refresh, contentDescription = stringResource(Res.string.refresh_all))

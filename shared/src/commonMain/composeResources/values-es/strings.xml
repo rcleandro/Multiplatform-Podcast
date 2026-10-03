@@ -89,4 +89,5 @@
     <string name="search_empty_title">No se encontraron episodios</string>
     <string name="search_empty_message">Prueba otras palabras. La búsqueda mira los episodios de los podcasts de tu biblioteca.</string>
     <string name="downloads_empty_message">Los episodios descargados se reproducen sin internet. Toca el botón de descarga de cualquier episodio.</string>
+    <string name="state_on">Activado</string>
 </resources>

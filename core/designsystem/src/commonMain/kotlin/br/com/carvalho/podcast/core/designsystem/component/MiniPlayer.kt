@@ -1,5 +1,10 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
+import org.jetbrains.compose.resources.stringResource
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_player
+import br.com.carvalho.podcast.core.designsystem.generated.resources.Res
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,15 +40,17 @@ fun MiniPlayer(
 ) {
     val artworkSize = 44.dp
     val elevation = 3.dp
+    val openLabel = stringResource(Res.string.ds_open_player)
     Surface(
-        onClick = onClick,
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainer,
         shadowElevation = elevation,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Spacing.l, vertical = Spacing.s)
-            .height(Sizes.miniPlayerHeight),
+            .height(Sizes.miniPlayerHeight)
+            .clip(MaterialTheme.shapes.large)
+            .clickable(onClickLabel = openLabel, onClick = onClick),
     ) {
         Box {
             Row(
