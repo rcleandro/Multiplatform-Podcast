@@ -22,6 +22,7 @@ import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodes
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.compose.runtime.collectAsState
+import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.core.designsystem.component.MiniPlayer
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -237,10 +238,7 @@ fun RootContent(component: RootComponentImpl) {
                             isPlaying = playerState.isPlaying,
                             isLoading = playerState.isBuffering,
                             progress = progress,
-                            onPlayPause = {
-                                if (playerState.isPlaying) playerViewModel.pause()
-                                else playerViewModel.resume()
-                            },
+                            onPlayPause = { playerViewModel.onIntent(PlayerIntent.PlayPause) },
                             onClick = { component.onPlayerTabClicked() }
                         )
                     }

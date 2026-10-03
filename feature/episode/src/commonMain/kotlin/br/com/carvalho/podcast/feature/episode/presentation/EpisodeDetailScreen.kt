@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material3.Button
@@ -24,16 +25,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -41,6 +38,7 @@ import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
+import br.com.carvalho.podcast.core.designsystem.component.ErrorState
 import br.com.carvalho.podcast.core.designsystem.component.HtmlText
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastArtwork
@@ -50,9 +48,10 @@ import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.description
 import br.com.carvalho.podcast.core.ui.generated.resources.episode
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_not_found
+import br.com.carvalho.podcast.core.ui.generated.resources.error_load_episode
 import br.com.carvalho.podcast.core.ui.generated.resources.no_description
 import br.com.carvalho.podcast.core.ui.generated.resources.play
-import org.jetbrains.compose.resources.getString
+import br.com.carvalho.podcast.core.ui.generated.resources.try_again
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -64,20 +63,12 @@ fun EpisodeDetailScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(getString(it))
-            viewModel.clearError()
-        }
-    }
 
     EpisodeDetailContent(
         state = uiState,
         onBack = onBackClick,
-        onPlay = viewModel::playEpisode,
-        snackbarHostState = snackbarHostState,
+        onPlay = { viewModel.onIntent(EpisodeDetailIntent.Play) },
+        onRetry = { viewModel.onIntent(EpisodeDetailIntent.Retry) },
     )
 }
 
@@ -88,13 +79,12 @@ fun EpisodeDetailContent(
     onBack: () -> Unit,
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onRetry: () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(Res.string.episode)) },
@@ -116,6 +106,14 @@ fun EpisodeDetailContent(
         val episode = state.episode
         when {
             state.isLoading -> LoadingState(Modifier.padding(padding))
+            state.loadFailed -> ErrorState(
+                icon = Icons.Rounded.CloudOff,
+                title = stringResource(Res.string.error_load_episode),
+                message = null,
+                actionLabel = stringResource(Res.string.try_again),
+                onAction = onRetry,
+                modifier = Modifier.padding(padding),
+            )
             episode == null -> EmptyState(
                 icon = Icons.Rounded.SearchOff,
                 title = stringResource(Res.string.episode_not_found),

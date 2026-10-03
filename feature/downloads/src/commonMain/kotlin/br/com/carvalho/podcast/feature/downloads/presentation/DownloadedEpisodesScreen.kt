@@ -20,7 +20,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -32,6 +31,7 @@ import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
@@ -41,7 +41,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.delete_download_confi
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.no_downloads
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -55,12 +54,7 @@ fun DownloadedEpisodesScreen(
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(uiState.snackbarMessage) {
-        uiState.snackbarMessage?.let {
-            snackbarHostState.showSnackbar(getString(it))
-            viewModel.clearSnackbarMessage()
-        }
-    }
+    MessageEffect(viewModel.messages, snackbarHostState)
 
     DownloadedEpisodesContent(
         state = uiState,
@@ -68,10 +62,10 @@ fun DownloadedEpisodesScreen(
         activeDownloads = activeDownloads,
         snackbarHostState = snackbarHostState,
         onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
-        onPlay = viewModel::playEpisode,
-        onRemove = viewModel::showDeleteConfirmation,
-        onConfirmRemove = { viewModel.deleteDownload(it.id) },
-        onDismissRemove = viewModel::hideDeleteConfirmation,
+        onPlay = { viewModel.onIntent(DownloadsIntent.Play(it)) },
+        onRemove = { viewModel.onIntent(DownloadsIntent.RequestDelete(it)) },
+        onConfirmRemove = { viewModel.onIntent(DownloadsIntent.ConfirmDelete(it)) },
+        onDismissRemove = { viewModel.onIntent(DownloadsIntent.DismissDelete) },
     )
 }
 

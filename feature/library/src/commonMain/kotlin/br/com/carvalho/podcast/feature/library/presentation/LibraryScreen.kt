@@ -36,7 +36,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -51,6 +50,7 @@ import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastCard
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add
 import br.com.carvalho.podcast.core.ui.generated.resources.add_podcast
@@ -65,7 +65,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.podcast_options
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh_all
 import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_label
 import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_placeholder
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -78,12 +77,7 @@ fun LibraryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(getString(it))
-            viewModel.clearError()
-        }
-    }
+    MessageEffect(viewModel.messages, snackbarHostState)
 
     LibraryContent(
         state = uiState,
@@ -91,14 +85,14 @@ fun LibraryScreen(
         snackbarHostState = snackbarHostState,
         actions = LibraryActions(
             onPodcastClick = onPodcastClick,
-            onPodcastLongClick = viewModel::onDeleteClicked,
-            onRefresh = viewModel::onRefreshAll,
-            onAddClick = viewModel::onAddClicked,
-            onUrlChange = viewModel::onUrlChanged,
-            onAddConfirm = viewModel::addPodcast,
-            onAddDismiss = viewModel::onDismissAddDialog,
-            onDeleteConfirm = viewModel::confirmDelete,
-            onDeleteDismiss = viewModel::onDismissDeleteDialog,
+            onPodcastLongClick = { viewModel.onIntent(LibraryIntent.RequestDelete(it)) },
+            onRefresh = { viewModel.onIntent(LibraryIntent.RefreshAll) },
+            onAddClick = { viewModel.onIntent(LibraryIntent.OpenAddDialog) },
+            onUrlChange = { viewModel.onIntent(LibraryIntent.ChangeUrl(it)) },
+            onAddConfirm = { viewModel.onIntent(LibraryIntent.ConfirmAdd) },
+            onAddDismiss = { viewModel.onIntent(LibraryIntent.DismissAddDialog) },
+            onDeleteConfirm = { viewModel.onIntent(LibraryIntent.ConfirmDelete) },
+            onDeleteDismiss = { viewModel.onIntent(LibraryIntent.DismissDelete) },
         ),
     )
 }

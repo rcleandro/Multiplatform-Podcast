@@ -22,12 +22,12 @@ fun PlayerScreen(
         state = playerState,
         actions = PlayerActions(
             onMinimize = onBackClick,
-            onPlayPause = { if (playerState.isPlaying) viewModel.pause() else viewModel.resume() },
-            onSeek = viewModel::seekTo,
-            onSkipBackward = viewModel::skipBackward,
-            onSkipForward = viewModel::skipForward,
-            onPrevious = viewModel::playPrevious,
-            onNext = viewModel::playNext,
+            onPlayPause = { viewModel.onIntent(PlayerIntent.PlayPause) },
+            onSeek = { viewModel.onIntent(PlayerIntent.SeekTo(it)) },
+            onSkipBackward = { viewModel.onIntent(PlayerIntent.SkipBackward) },
+            onSkipForward = { viewModel.onIntent(PlayerIntent.SkipForward) },
+            onPrevious = { viewModel.onIntent(PlayerIntent.Previous) },
+            onNext = { viewModel.onIntent(PlayerIntent.Next) },
             onSpeedClick = { dialog = PlayerDialog.Speed },
             onQueueClick = { dialog = PlayerDialog.Queue },
             onSleepTimerClick = { dialog = PlayerDialog.SleepTimer },
@@ -38,7 +38,7 @@ fun PlayerScreen(
         PlayerDialog.Speed -> SpeedSelectorDialog(
             currentSpeed = playerState.speed,
             onSpeedSelected = {
-                viewModel.setSpeed(it)
+                viewModel.onIntent(PlayerIntent.SetSpeed(it))
                 dialog = null
             },
             onDismiss = { dialog = null }
@@ -46,7 +46,7 @@ fun PlayerScreen(
         PlayerDialog.SleepTimer -> SleepTimerDialog(
             playerState = playerState,
             onTimerSelected = {
-                viewModel.setSleepTimer(it)
+                viewModel.onIntent(PlayerIntent.SetSleepTimer(it))
                 dialog = null
             },
             onDismiss = { dialog = null }
@@ -55,7 +55,7 @@ fun PlayerScreen(
             queue = playerState.queue,
             currentEpisodeId = playerState.currentEpisode?.id,
             onEpisodeSelected = {
-                viewModel.play(it)
+                viewModel.onIntent(PlayerIntent.Play(it))
                 dialog = null
             },
             onDismiss = { dialog = null }

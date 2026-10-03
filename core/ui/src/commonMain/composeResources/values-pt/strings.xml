@@ -66,6 +66,7 @@
     <string name="error_unexpected">Algo deu errado. Tente de novo.</string>
     <string name="error_refresh_episodes">Não deu para atualizar os episódios.</string>
     <string name="error_load_episode">Não deu para carregar este episódio.</string>
+    <string name="try_again">Tentar de novo</string>
     <string name="download_deleted">Download excluído</string>
     <string name="time_just_now">Agora</string>
     <plurals name="time_minutes_ago">

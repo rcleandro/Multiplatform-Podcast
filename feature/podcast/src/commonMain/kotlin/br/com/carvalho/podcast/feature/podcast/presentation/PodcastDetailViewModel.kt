@@ -18,6 +18,7 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import br.com.carvalho.podcast.core.observability.Analytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -40,13 +41,18 @@ class PodcastDetailViewModel(
     private val _uiState = MutableStateFlow(PodcastDetailUiState(isLoading = true))
     val uiState: StateFlow<PodcastDetailUiState> = _uiState
 
+    private val _messages = Channel<StringResource>(Channel.BUFFERED)
+    val messages: Flow<StringResource> = _messages.receiveAsFlow()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagedEpisodes: Flow<PagingData<Episode>> = _uiState
-        .flatMapLatest { state ->
+        .map { it.filter }
+        .distinctUntilChanged()
+        .flatMapLatest { filter ->
             repository.getEpisodesPaged(podcastId)
                 .map { pagingData ->
                     pagingData.filter { episode ->
-                        when (state.filter) {
+                        when (filter) {
                             EpisodeFilter.ALL -> true
                             EpisodeFilter.UNPLAYED -> !episode.isPlayed
                             EpisodeFilter.DOWNLOADED -> episode.isDownloaded
@@ -59,19 +65,32 @@ class PodcastDetailViewModel(
         combine(
             repository.getPodcastByIdFlow(podcastId),
             repository.getEpisodes(podcastId)
-        ) { podcast, episodes ->
-            PodcastDetailUiState(podcast = podcast, episodes = episodes, isLoading = false)
-        }.onEach { newState ->
-            _uiState.update { newState }
-        }.launchIn(viewModelScope)
+        ) { podcast, episodes -> podcast to episodes }
+            .onEach { (podcast, episodes) ->
+                _uiState.update { it.copy(podcast = podcast, episodes = episodes, isLoading = false) }
+            }.launchIn(viewModelScope)
     }
 
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
+    fun onIntent(intent: PodcastDetailIntent) {
+        when (intent) {
+            PodcastDetailIntent.Refresh -> refresh()
+            is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
+            is PodcastDetailIntent.Play -> playEpisode(intent.episode)
+            is PodcastDetailIntent.Download -> downloadEpisode(intent.episode)
+            is PodcastDetailIntent.CancelDownload -> cancelDownload(intent.episode.id)
+            is PodcastDetailIntent.RequestDeleteDownload ->
+                _uiState.update { it.copy(deleteEpisodeConfirmation = intent.episode) }
+            is PodcastDetailIntent.ConfirmDeleteDownload -> deleteDownload(intent.episode.id)
+            PodcastDetailIntent.DismissDeleteDownload -> _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
+            is PodcastDetailIntent.SelectEpisode -> _uiState.update { it.copy(selectedEpisode = intent.episode) }
+            PodcastDetailIntent.DismissMarkPlayed -> _uiState.update { it.copy(selectedEpisode = null) }
+            is PodcastDetailIntent.MarkPlayed -> markAsPlayed(intent.episode.id)
+            is PodcastDetailIntent.MarkOlderPlayed -> markOlderAsPlayed(intent.episode.publishDate)
+        }
     }
 
-    fun refresh() {
-        _uiState.update { it.copy(isLoading = true) }
+    private fun refresh() {
+        _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("refresh_podcast_detail", mapOf("podcast_id" to podcastId))
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
@@ -79,19 +98,19 @@ class PodcastDetailViewModel(
                 refreshPodcastUseCase(podcastId)
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
-                _uiState.update { it.copy(error = Res.string.error_refresh_episodes) }
+                _messages.send(Res.string.error_refresh_episodes)
             } finally {
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }
 
-    fun setFilter(filter: EpisodeFilter) {
+    private fun setFilter(filter: EpisodeFilter) {
         analytics.logEvent("set_episode_filter", mapOf("filter" to filter.name))
         _uiState.update { it.copy(filter = filter) }
     }
 
-    fun playEpisode(episode: Episode) {
+    private fun playEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("play_episode_from_detail", mapOf(
                 "episode_id" to episode.id,
@@ -125,7 +144,7 @@ class PodcastDetailViewModel(
         }
     }
 
-    fun downloadEpisode(episode: Episode) {
+    private fun downloadEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("download_episode_from_detail", mapOf(
                 "episode_id" to episode.id,
@@ -136,49 +155,34 @@ class PodcastDetailViewModel(
         }
     }
 
-    fun cancelDownload(episodeId: String) {
+    private fun cancelDownload(episodeId: String) {
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.cancel(episodeId)
         }
     }
 
-    fun deleteDownload(episodeId: String) {
+    private fun deleteDownload(episodeId: String) {
         analytics.logEvent("delete_download_from_detail", mapOf("episode_id" to episodeId))
-        _uiState.update { it.copy(isLoading = true, deleteEpisodeConfirmation = null) }
+        _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
-            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
-    fun showDeleteConfirmation(episode: Episode) {
-        _uiState.update { it.copy(deleteEpisodeConfirmation = episode) }
-    }
-
-    fun hideDeleteConfirmation() {
-        _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
-    }
-
-    fun markAsPlayed(episodeId: String) {
+    private fun markAsPlayed(episodeId: String) {
         analytics.logEvent("mark_as_played", mapOf("episode_id" to episodeId))
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(selectedEpisode = null) }
         viewModelScope.launch(dispatchers.io) {
             repository.markEpisodeAsPlayed(episodeId)
-            _uiState.update { it.copy(isLoading = false, selectedEpisode = null) }
         }
     }
 
-    fun markOlderAsPlayed(publishDate: Long) {
+    private fun markOlderAsPlayed(publishDate: Long) {
         analytics.logEvent("mark_older_as_played", mapOf("podcast_id" to podcastId, "publish_date" to publishDate))
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(selectedEpisode = null) }
         viewModelScope.launch(dispatchers.io) {
             repository.markOlderEpisodesAsPlayed(podcastId, publishDate)
-            _uiState.update { it.copy(isLoading = false, selectedEpisode = null) }
         }
-    }
-
-    fun onSelectEpisode(episode: Episode? = null) {
-        _uiState.update { it.copy(selectedEpisode = episode) }
     }
 }
 
@@ -191,7 +195,21 @@ data class PodcastDetailUiState(
     val deleteEpisodeConfirmation: Episode? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-    val error: StringResource? = null
 )
+
+sealed interface PodcastDetailIntent {
+    data object Refresh : PodcastDetailIntent
+    data class SetFilter(val filter: EpisodeFilter) : PodcastDetailIntent
+    data class Play(val episode: Episode) : PodcastDetailIntent
+    data class Download(val episode: Episode) : PodcastDetailIntent
+    data class CancelDownload(val episode: Episode) : PodcastDetailIntent
+    data class RequestDeleteDownload(val episode: Episode) : PodcastDetailIntent
+    data class ConfirmDeleteDownload(val episode: Episode) : PodcastDetailIntent
+    data object DismissDeleteDownload : PodcastDetailIntent
+    data class SelectEpisode(val episode: Episode) : PodcastDetailIntent
+    data object DismissMarkPlayed : PodcastDetailIntent
+    data class MarkPlayed(val episode: Episode) : PodcastDetailIntent
+    data class MarkOlderPlayed(val episode: Episode) : PodcastDetailIntent
+}
 
 enum class EpisodeFilter { ALL, UNPLAYED, DOWNLOADED }

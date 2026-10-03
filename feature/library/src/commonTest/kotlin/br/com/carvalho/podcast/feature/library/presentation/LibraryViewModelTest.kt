@@ -66,7 +66,7 @@ class LibraryViewModelTest {
         val viewModel = createViewModel()
         viewModel.uiState.test {
             awaitItem()
-            viewModel.onAddClicked()
+            viewModel.onIntent(LibraryIntent.OpenAddDialog)
             assertTrue(awaitItem().isAddDialogOpen)
         }
     }
@@ -84,13 +84,13 @@ class LibraryViewModelTest {
         viewModel.uiState.test {
             awaitItem()
 
-            viewModel.onAddClicked()
+            viewModel.onIntent(LibraryIntent.OpenAddDialog)
             awaitItem()
 
-            viewModel.onUrlChanged("test-url")
+            viewModel.onIntent(LibraryIntent.ChangeUrl("test-url"))
             awaitItem()
 
-            viewModel.addPodcast()
+            viewModel.onIntent(LibraryIntent.ConfirmAdd)
             
             var state = awaitItem()
             while (!state.isRefreshing) {
@@ -119,10 +119,10 @@ class LibraryViewModelTest {
         viewModel.uiState.test {
             awaitItem()
             
-            viewModel.onDeleteClicked(podcast)
+            viewModel.onIntent(LibraryIntent.RequestDelete(podcast))
             awaitItem()
 
-            viewModel.confirmDelete()
+            viewModel.onIntent(LibraryIntent.ConfirmDelete)
             
             val state = awaitItem()
             assertEquals(null, state.podcastToDelete)
@@ -143,9 +143,11 @@ class LibraryViewModelTest {
         )
         val viewModel = createViewModel()
 
-        viewModel.onUrlChanged("https://feed.example/rss")
-        viewModel.addPodcast()
+        viewModel.onIntent(LibraryIntent.ChangeUrl("https://feed.example/rss"))
+        viewModel.onIntent(LibraryIntent.ConfirmAdd)
 
-        assertEquals(Res.string.error_podcast_exists, viewModel.uiState.value.error)
+        viewModel.messages.test {
+            assertEquals(Res.string.error_podcast_exists, awaitItem())
+        }
     }
 }

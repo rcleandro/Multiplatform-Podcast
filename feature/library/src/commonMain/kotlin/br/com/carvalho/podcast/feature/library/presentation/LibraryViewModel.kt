@@ -17,7 +17,10 @@ import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.observability.Analytics
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
@@ -38,6 +41,9 @@ class LibraryViewModel(
     private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true))
     val uiState: StateFlow<LibraryUiState> = _uiState
 
+    private val _messages = Channel<StringResource>(Channel.BUFFERED)
+    val messages: Flow<StringResource> = _messages.receiveAsFlow()
+
     init {
         viewModelScope.launch(dispatchers.io) {
             repository.getPodcasts().onStart { emit(emptyList()) }.collect { podcasts ->
@@ -46,19 +52,20 @@ class LibraryViewModel(
         }
     }
 
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
+    fun onIntent(intent: LibraryIntent) {
+        when (intent) {
+            is LibraryIntent.RequestDelete -> _uiState.update { it.copy(podcastToDelete = intent.podcast) }
+            LibraryIntent.DismissDelete -> _uiState.update { it.copy(podcastToDelete = null) }
+            LibraryIntent.ConfirmDelete -> confirmDelete()
+            LibraryIntent.RefreshAll -> refreshAll()
+            LibraryIntent.OpenAddDialog -> _uiState.update { it.copy(isAddDialogOpen = true) }
+            LibraryIntent.DismissAddDialog -> _uiState.update { it.copy(isAddDialogOpen = false, addUrl = "") }
+            is LibraryIntent.ChangeUrl -> _uiState.update { it.copy(addUrl = intent.url) }
+            LibraryIntent.ConfirmAdd -> addPodcast()
+        }
     }
 
-    fun onDeleteClicked(podcast: Podcast) {
-        _uiState.update { it.copy(podcastToDelete = podcast) }
-    }
-
-    fun onDismissDeleteDialog() {
-        _uiState.update { it.copy(podcastToDelete = null) }
-    }
-
-    fun confirmDelete() {
+    private fun confirmDelete() {
         val podcast = _uiState.value.podcastToDelete ?: return
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("delete_podcast", mapOf(
@@ -70,7 +77,7 @@ class LibraryViewModel(
         }
     }
 
-    fun onRefreshAll() {
+    private fun refreshAll() {
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("refresh_all_podcasts")
             _uiState.update { it.copy(isRefreshing = true) }
@@ -79,26 +86,14 @@ class LibraryViewModel(
                 refreshPodcastUseCase.refreshAll()
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error refreshing all podcasts", e)
-                _uiState.update { it.copy(error = Res.string.error_refresh_podcasts) }
+                _messages.send(Res.string.error_refresh_podcasts)
             } finally {
                 _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }
 
-    fun onAddClicked() {
-        _uiState.update { it.copy(isAddDialogOpen = true) }
-    }
-
-    fun onDismissAddDialog() {
-        _uiState.update { it.copy(isAddDialogOpen = false, addUrl = "") }
-    }
-
-    fun onUrlChanged(url: String) {
-        _uiState.update { it.copy(addUrl = url) }
-    }
-
-    fun addPodcast() {
+    private fun addPodcast() {
         val url = _uiState.value.addUrl.trim()
         if (url.isBlank()) return
 
@@ -106,7 +101,7 @@ class LibraryViewModel(
 
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("add_podcast_attempt", mapOf("url" to finalUrl))
-            _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false, error = null) }
+            _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false) }
             AppLogger.i(TAG, "Adding podcast from URL: $finalUrl")
             try {
                 addPodcastUseCase(finalUrl).onSuccess {
@@ -114,19 +109,16 @@ class LibraryViewModel(
                 }.onFailure { e ->
                     AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
                     analytics.logEvent("add_podcast_failure", mapOf("url" to finalUrl, "error" to e.message))
-                    _uiState.update {
-                        it.copy(
-                            error = if (e is PodcastError.AlreadyExists) {
-                                Res.string.error_podcast_exists
-                            } else {
-                                Res.string.error_add_podcast
-                            }
-                        )
+                    val message = if (e is PodcastError.AlreadyExists) {
+                        Res.string.error_podcast_exists
+                    } else {
+                        Res.string.error_add_podcast
                     }
+                    _messages.send(message)
                 }
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Unexpected error adding podcast", e)
-                _uiState.update { it.copy(error = Res.string.error_unexpected) }
+                _messages.send(Res.string.error_unexpected)
             } finally {
                 _uiState.update { it.copy(isRefreshing = false, addUrl = "") }
             }
@@ -141,5 +133,15 @@ data class LibraryUiState(
     val isAddDialogOpen: Boolean = false,
     val podcastToDelete: Podcast? = null,
     val addUrl: String = "",
-    val error: StringResource? = null
 )
+
+sealed interface LibraryIntent {
+    data object RefreshAll : LibraryIntent
+    data object OpenAddDialog : LibraryIntent
+    data class ChangeUrl(val url: String) : LibraryIntent
+    data object ConfirmAdd : LibraryIntent
+    data object DismissAddDialog : LibraryIntent
+    data class RequestDelete(val podcast: Podcast) : LibraryIntent
+    data object ConfirmDelete : LibraryIntent
+    data object DismissDelete : LibraryIntent
+}

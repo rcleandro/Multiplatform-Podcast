@@ -14,6 +14,9 @@ class FakePodcastRepository : PodcastRepository {
     var deletePodcastCalledWith: String? = null
         private set
 
+    /** When set, [getEpisodeById] throws it, as a failing database would. */
+    var getEpisodeError: Exception? = null
+
     override fun getPodcasts(): Flow<List<Podcast>> = podcasts
 
     override suspend fun getPodcastById(id: String): Podcast? = podcasts.value.find { it.id == id }
@@ -30,7 +33,10 @@ class FakePodcastRepository : PodcastRepository {
 
     override fun getUnplayedEpisodes(): Flow<List<Episode>> = episodes.map { list -> list.filter { !it.isPlayed } }
 
-    override suspend fun getEpisodeById(id: String): Episode? = episodes.value.find { it.id == id }
+    override suspend fun getEpisodeById(id: String): Episode? {
+        getEpisodeError?.let { throw it }
+        return episodes.value.find { it.id == id }
+    }
 
     override fun searchEpisodes(query: String): Flow<List<Episode>> = episodes.map { it.filter { e -> e.title.contains(query, ignoreCase = true) } }
 

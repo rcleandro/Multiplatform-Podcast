@@ -1,8 +1,5 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
-import br.com.carvalho.podcast.core.ui.generated.resources.error_load_episode
-import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.core.observability.Analytics
@@ -34,11 +31,15 @@ class EpisodeDetailViewModel(
         loadEpisode()
     }
 
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
+    fun onIntent(intent: EpisodeDetailIntent) {
+        when (intent) {
+            EpisodeDetailIntent.Play -> playEpisode()
+            EpisodeDetailIntent.Retry -> loadEpisode()
+        }
     }
 
     private fun loadEpisode() {
+        _uiState.update { it.copy(isLoading = true, loadFailed = false) }
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("load_episode_detail", mapOf("episode_id" to episodeId))
             AppLogger.d(TAG, "Loading episode detail for id: $episodeId")
@@ -51,15 +52,12 @@ class EpisodeDetailViewModel(
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error loading episode detail", e)
                 analytics.logEvent("load_episode_detail_error", mapOf("episode_id" to episodeId, "error" to e.message))
-                _uiState.value = EpisodeDetailUiState(
-                    isLoading = false,
-                    error = Res.string.error_load_episode
-                )
+                _uiState.value = EpisodeDetailUiState(isLoading = false, loadFailed = true)
             }
         }
     }
 
-    fun playEpisode() {
+    private fun playEpisode() {
         uiState.value.episode?.let { episode ->
             viewModelScope.launch(dispatchers.io) {
                 analytics.logEvent("play_episode_from_episode_detail", mapOf(
@@ -86,5 +84,10 @@ class EpisodeDetailViewModel(
 data class EpisodeDetailUiState(
     val episode: Episode? = null,
     val isLoading: Boolean = false,
-    val error: StringResource? = null
+    val loadFailed: Boolean = false,
 )
+
+sealed interface EpisodeDetailIntent {
+    data object Play : EpisodeDetailIntent
+    data object Retry : EpisodeDetailIntent
+}

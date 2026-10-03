@@ -55,21 +55,19 @@ class DownloadedEpisodesViewModelTest {
     fun `deleteDownload calls downloader and shows snackbar`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
-        viewModel.uiState.test {
-            awaitItem()
-            viewModel.deleteDownload("e1")
-            
-            val state = awaitItem()
-            assertEquals(Res.string.download_deleted, state.snackbarMessage)
-            assertEquals("e1", episodeDownloader.deleteCalledWith)
+        viewModel.onIntent(DownloadsIntent.ConfirmDelete(sampleEpisode))
+
+        viewModel.messages.test {
+            assertEquals(Res.string.download_deleted, awaitItem())
         }
+        assertEquals("e1", episodeDownloader.deleteCalledWith)
     }
 
     @Test
     fun `playEpisode prepares player with queue`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
-        viewModel.playEpisode(sampleEpisode)
+        viewModel.onIntent(DownloadsIntent.Play(sampleEpisode))
 
         assertEquals("e1", audioPlayer.playCalledWith?.id)
     }

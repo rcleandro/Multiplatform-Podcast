@@ -66,6 +66,7 @@
     <string name="error_unexpected">Algo salió mal. Inténtalo de nuevo.</string>
     <string name="error_refresh_episodes">No se pudieron actualizar los episodios.</string>
     <string name="error_load_episode">No se pudo cargar este episodio.</string>
+    <string name="try_again">Reintentar</string>
     <string name="download_deleted">Descarga eliminada</string>
     <string name="time_just_now">Ahora</string>
     <plurals name="time_minutes_ago">

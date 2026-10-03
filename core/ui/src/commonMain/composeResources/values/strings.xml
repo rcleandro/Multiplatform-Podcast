@@ -66,6 +66,7 @@
     <string name="error_unexpected">Something went wrong. Try again.</string>
     <string name="error_refresh_episodes">Couldn't refresh the episodes.</string>
     <string name="error_load_episode">Couldn't load this episode.</string>
+    <string name="try_again">Try again</string>
     <string name="download_deleted">Download removed</string>
     <string name="time_just_now">Just now</string>
     <plurals name="time_minutes_ago">

@@ -30,7 +30,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -54,6 +53,7 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
@@ -70,7 +70,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.only_this_one
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh
 import br.com.carvalho.podcast.core.ui.generated.resources.this_and_all_below
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -88,12 +87,7 @@ fun PodcastDetailScreen(
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(getString(it))
-            viewModel.clearError()
-        }
-    }
+    MessageEffect(viewModel.messages, snackbarHostState)
 
     PodcastDetailContent(
         state = uiState,
@@ -103,19 +97,19 @@ fun PodcastDetailScreen(
         snackbarHostState = snackbarHostState,
         actions = PodcastDetailActions(
             onBack = onBackClick,
-            onRefresh = viewModel::refresh,
-            onFilterSelected = viewModel::setFilter,
+            onRefresh = { viewModel.onIntent(PodcastDetailIntent.Refresh) },
+            onFilterSelected = { viewModel.onIntent(PodcastDetailIntent.SetFilter(it)) },
             onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
-            onEpisodeLongClick = viewModel::onSelectEpisode,
-            onPlay = viewModel::playEpisode,
-            onDownload = viewModel::downloadEpisode,
-            onCancelDownload = { viewModel.cancelDownload(it.id) },
-            onRemoveDownload = viewModel::showDeleteConfirmation,
-            onConfirmRemoveDownload = { viewModel.deleteDownload(it.id) },
-            onDismissRemoveDownload = viewModel::hideDeleteConfirmation,
-            onMarkPlayed = { viewModel.markAsPlayed(it.id) },
-            onMarkOlderPlayed = { viewModel.markOlderAsPlayed(it.publishDate) },
-            onDismissMarkPlayed = { viewModel.onSelectEpisode(null) },
+            onEpisodeLongClick = { viewModel.onIntent(PodcastDetailIntent.SelectEpisode(it)) },
+            onPlay = { viewModel.onIntent(PodcastDetailIntent.Play(it)) },
+            onDownload = { viewModel.onIntent(PodcastDetailIntent.Download(it)) },
+            onCancelDownload = { viewModel.onIntent(PodcastDetailIntent.CancelDownload(it)) },
+            onRemoveDownload = { viewModel.onIntent(PodcastDetailIntent.RequestDeleteDownload(it)) },
+            onConfirmRemoveDownload = { viewModel.onIntent(PodcastDetailIntent.ConfirmDeleteDownload(it)) },
+            onDismissRemoveDownload = { viewModel.onIntent(PodcastDetailIntent.DismissDeleteDownload) },
+            onMarkPlayed = { viewModel.onIntent(PodcastDetailIntent.MarkPlayed(it)) },
+            onMarkOlderPlayed = { viewModel.onIntent(PodcastDetailIntent.MarkOlderPlayed(it)) },
+            onDismissMarkPlayed = { viewModel.onIntent(PodcastDetailIntent.DismissMarkPlayed) },
         ),
     )
 }

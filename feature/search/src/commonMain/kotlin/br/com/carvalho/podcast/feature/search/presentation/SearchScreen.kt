@@ -12,14 +12,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -27,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +38,7 @@ import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
+import br.com.carvalho.podcast.core.designsystem.component.ErrorState
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
@@ -55,7 +54,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.search
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
-import org.jetbrains.compose.resources.getString
+import br.com.carvalho.podcast.core.ui.generated.resources.try_again
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -67,39 +66,24 @@ fun SearchScreen(
     val uiState by viewModel.uiState.collectAsState()
     val pagedResults = viewModel.pagedResults.collectAsLazyPagingItems()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
-    val playerState by viewModel.audioPlayer.playerState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val playerState by viewModel.playerState.collectAsState()
 
-    LaunchedEffect(Unit) { viewModel.refresh() }
-
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(getString(it))
-            viewModel.clearError()
-        }
-    }
-
-    LaunchedEffect(pagedResults.loadState.refresh) {
-        if (pagedResults.loadState.refresh is LoadState.Error) {
-            viewModel.setError(Res.string.error_loading_results)
-        }
-    }
+    LaunchedEffect(Unit) { viewModel.onIntent(SearchIntent.Refresh) }
 
     SearchContent(
         state = uiState,
         results = pagedResults,
         playerState = playerState,
         activeDownloads = activeDownloads,
-        snackbarHostState = snackbarHostState,
         actions = SearchActions(
-            onQueryChange = viewModel::onQueryChange,
+            onQueryChange = { viewModel.onIntent(SearchIntent.ChangeQuery(it)) },
             onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
-            onPlay = viewModel::playEpisode,
-            onDownload = viewModel::downloadEpisode,
-            onCancelDownload = { viewModel.cancelDownload(it.id) },
-            onRemoveDownload = viewModel::showDeleteConfirmation,
-            onConfirmRemoveDownload = { viewModel.deleteDownload(it.id) },
-            onDismissRemoveDownload = viewModel::hideDeleteConfirmation,
+            onPlay = { viewModel.onIntent(SearchIntent.Play(it)) },
+            onDownload = { viewModel.onIntent(SearchIntent.Download(it)) },
+            onCancelDownload = { viewModel.onIntent(SearchIntent.CancelDownload(it)) },
+            onRemoveDownload = { viewModel.onIntent(SearchIntent.RequestDeleteDownload(it)) },
+            onConfirmRemoveDownload = { viewModel.onIntent(SearchIntent.ConfirmDeleteDownload(it)) },
+            onDismissRemoveDownload = { viewModel.onIntent(SearchIntent.DismissDeleteDownload) },
         ),
     )
 }
@@ -123,25 +107,30 @@ fun SearchContent(
     activeDownloads: Map<String, DownloadStatus>,
     actions: SearchActions,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
     ) { padding ->
-        val isEmpty = results.itemCount == 0 && results.loadState.refresh is LoadState.NotLoading
-        if (isEmpty) {
-            EmptyState(
+        val refresh = results.loadState.refresh
+        when {
+            results.itemCount == 0 && refresh is LoadState.Error -> ErrorState(
+                icon = Icons.Rounded.CloudOff,
+                title = stringResource(Res.string.error_loading_results),
+                message = null,
+                actionLabel = stringResource(Res.string.try_again),
+                onAction = results::retry,
+                modifier = Modifier.padding(padding),
+            )
+            results.itemCount == 0 && refresh is LoadState.NotLoading -> EmptyState(
                 icon = Icons.Rounded.Search,
                 title = stringResource(Res.string.search_empty_title),
                 message = stringResource(Res.string.search_empty_message),
                 modifier = Modifier.padding(padding),
             )
-        } else {
-            SearchResults(results, playerState, activeDownloads, actions, Modifier.padding(padding))
+            else -> SearchResults(results, playerState, activeDownloads, actions, Modifier.padding(padding))
         }
 
         state.deleteEpisodeConfirmation?.let { episode ->

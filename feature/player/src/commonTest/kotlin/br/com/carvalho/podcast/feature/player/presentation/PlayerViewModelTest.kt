@@ -42,7 +42,7 @@ class PlayerViewModelTest {
         val viewModel = PlayerViewModel(audioPlayer, playerRepository, podcastRepository, episodeDownloader, dispatchers, FakeAnalytics())
         val episode = Episode(id = "e1", podcastId = "p1", title = "E1", description = null, audioUrl = "", imageUrl = null, duration = 100, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null)
 
-        viewModel.play(episode)
+        viewModel.onIntent(PlayerIntent.Play(episode))
 
         assertEquals("e1", audioPlayer.playCalledWith?.id)
     }

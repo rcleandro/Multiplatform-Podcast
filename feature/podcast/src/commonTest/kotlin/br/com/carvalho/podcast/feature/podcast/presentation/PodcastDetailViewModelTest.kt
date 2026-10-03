@@ -74,13 +74,14 @@ class PodcastDetailViewModelTest {
         viewModel.uiState.test {
             awaitItem()
 
-            viewModel.refresh()
-            
+            viewModel.onIntent(PodcastDetailIntent.Refresh)
+
             val refreshingState = awaitItem()
-            assertTrue(refreshingState.isLoading)
-            
+            assertTrue(refreshingState.isRefreshing)
+            assertFalse(refreshingState.isLoading)
+
             val finalState = awaitItem()
-            assertFalse(finalState.isLoading)
+            assertFalse(finalState.isRefreshing)
             
             assertEquals(podcastId, feedSource.fetchCalledWith)
         }
@@ -93,7 +94,7 @@ class PodcastDetailViewModelTest {
         
         val viewModel = createViewModel()
         
-        viewModel.playEpisode(sampleEpisode)
+        viewModel.onIntent(PodcastDetailIntent.Play(sampleEpisode))
         
         assertEquals(listOf(sampleEpisode), audioPlayer.queueSet)
         assertEquals(sampleEpisode.id, audioPlayer.playCalledWith?.id)
@@ -103,8 +104,20 @@ class PodcastDetailViewModelTest {
     fun `cancelDownload cancels the episode download`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
-        viewModel.cancelDownload("episode-1")
+        viewModel.onIntent(PodcastDetailIntent.CancelDownload(sampleEpisode.copy(id = "episode-1")))
 
         assertEquals("episode-1", episodeDownloader.cancelCalledWith)
+    }
+
+    @Test
+    fun `filter survives an episode list update`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(samplePodcast)
+        repository.episodes.value = listOf(sampleEpisode)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.SetFilter(EpisodeFilter.UNPLAYED))
+        repository.episodes.value = listOf(sampleEpisode.copy(isPlayed = true))
+
+        assertEquals(EpisodeFilter.UNPLAYED, viewModel.uiState.value.filter)
     }
 }

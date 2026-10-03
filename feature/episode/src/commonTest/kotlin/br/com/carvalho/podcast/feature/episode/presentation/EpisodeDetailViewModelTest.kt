@@ -16,6 +16,8 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EpisodeDetailViewModelTest {
@@ -59,10 +61,26 @@ class EpisodeDetailViewModelTest {
 
         viewModel.uiState.test {
             awaitItem()
-            viewModel.playEpisode()
+            viewModel.onIntent(EpisodeDetailIntent.Play)
 
             assertEquals(episodeId, audioPlayer.playCalledWith?.id)
         }
+    }
+
+    @Test
+    fun `a failed load shows the error state and retry loads the episode`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(createEpisode(episodeId, "Ep 1"))
+        repository.getEpisodeError = IllegalStateException("disk")
+        val viewModel = createViewModel()
+
+        assertTrue(viewModel.uiState.value.loadFailed)
+
+        repository.getEpisodeError = null
+        viewModel.onIntent(EpisodeDetailIntent.Retry)
+
+        val state = viewModel.uiState.value
+        assertFalse(state.loadFailed)
+        assertEquals(episodeId, state.episode?.id)
     }
 
     private fun createEpisode(id: String, title: String) = Episode(

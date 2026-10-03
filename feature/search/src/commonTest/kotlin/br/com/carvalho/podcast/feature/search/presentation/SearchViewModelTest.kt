@@ -44,7 +44,6 @@ class SearchViewModelTest {
         viewModel.uiState.test {
             val state = awaitItem()
             assertEquals("", state.searchQuery)
-            assertEquals(null, state.error)
         }
     }
 
@@ -55,7 +54,7 @@ class SearchViewModelTest {
         viewModel.uiState.test {
             awaitItem()
 
-            viewModel.onQueryChange("Title")
+            viewModel.onIntent(SearchIntent.ChangeQuery("Title"))
             
             val state = awaitItem()
             assertEquals("Title", state.searchQuery)
@@ -67,7 +66,7 @@ class SearchViewModelTest {
         val viewModel = createViewModel()
         val episode = createEpisode("1", "Title 1")
 
-        viewModel.playEpisode(episode)
+        viewModel.onIntent(SearchIntent.Play(episode))
 
         assertEquals("1", audioPlayer.playCalledWith?.id)
     }
@@ -77,7 +76,7 @@ class SearchViewModelTest {
         val viewModel = createViewModel()
         val episode = createEpisode("1", "Title 1")
 
-        viewModel.downloadEpisode(episode)
+        viewModel.onIntent(SearchIntent.Download(episode))
 
         assertEquals("1", episodeDownloader.downloadCalledWith?.id)
     }
@@ -86,7 +85,7 @@ class SearchViewModelTest {
     fun `deleteDownload calls downloader`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         
-        viewModel.deleteDownload("1")
+        viewModel.onIntent(SearchIntent.ConfirmDeleteDownload(createEpisode("1", "Title 1")))
 
         assertEquals("1", episodeDownloader.deleteCalledWith)
     }
@@ -110,7 +109,7 @@ class SearchViewModelTest {
     fun `cancelDownload cancels the episode download`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
-        viewModel.cancelDownload("episode-1")
+        viewModel.onIntent(SearchIntent.CancelDownload(createEpisode("episode-1", "Title")))
 
         assertEquals("episode-1", episodeDownloader.cancelCalledWith)
     }
