@@ -21,7 +21,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Create google-services.json
               uses: ./.github/actions/secret-file
@@ -38,7 +38,7 @@ jobs:
 
             - name: Upload reports
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: static-analysis-reports
                   path: |
@@ -50,7 +50,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Create google-services.json
               uses: ./.github/actions/secret-file
@@ -71,14 +71,14 @@ jobs:
 
             - name: Upload snapshot diffs
               if: failure()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: snapshot-diffs
                   path: core/designsystem/build/outputs/roborazzi/
 
             - name: Upload test reports
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-reports-jvm
                   path: "**/build/reports/tests/"
@@ -88,7 +88,7 @@ jobs:
         runs-on: macos-15
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             # Compose Multiplatform 1.11 links against iOS 26 SDK APIs (UIViewLayoutRegion), so the app needs
             # Xcode 26; the image's default (16.4) fails at link time, and 16.2 had no simulator runtime.
@@ -111,7 +111,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Cache Kotlin/Native
-              uses: actions/cache@v4
+              uses: actions/cache@v6
               with:
                   path: ~/.konan
                   key: ${{ runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
@@ -121,14 +121,14 @@ jobs:
 
             - name: Upload test reports
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-reports-ios
                   path: "**/build/reports/tests/"
 
             - name: Upload full build log on failure
               if: failure()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ios-test-full-log
                   path: ios-test.log
@@ -139,7 +139,7 @@ jobs:
         needs: [ static-analysis, test-jvm ]
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Create google-services.json
               uses: ./.github/actions/secret-file
@@ -155,14 +155,14 @@ jobs:
               run: ./gradlew :androidApp:assembleDebug
 
             - name: Upload Android debug APK
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: android-apk
                   path: androidApp/build/outputs/apk/debug/*.apk
 
             - name: Upload Android build reports
               if: failure()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: android-build-reports
                   path: "**/build/reports/"
@@ -173,7 +173,7 @@ jobs:
         needs: [ test-ios ]
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             # Compose Multiplatform 1.11 links against iOS 26 SDK APIs (UIViewLayoutRegion), so the app needs
             # Xcode 26; the image's default (16.4) fails at link time, and 16.2 had no simulator runtime.
@@ -196,7 +196,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Cache Kotlin/Native
-              uses: actions/cache@v4
+              uses: actions/cache@v6
               with:
                   path: ~/.konan
                   key: ${{ runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
@@ -222,7 +222,7 @@ jobs:
                     CODE_SIGNING_ALLOWED=NO
 
             - name: Upload app folder
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: iphonesimulator-app
                   path: build/Build/Products/Debug-iphonesimulator/*.app
@@ -233,7 +233,7 @@ jobs:
         needs: [ test-jvm ]
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Gradle setup
               uses: ./.github/actions/gradle-setup
@@ -242,14 +242,14 @@ jobs:
               run: ./gradlew :webApp:wasmJsBrowserDistribution
 
             - name: Upload Web artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: web-dist
                   path: webApp/build/dist/wasmJs/productionExecutable/
 
             - name: Upload Web build reports
               if: failure()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: web-build-reports
                   path: "**/build/reports/"
@@ -264,7 +264,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Gradle setup
               uses: ./.github/actions/gradle-setup
@@ -275,14 +275,14 @@ jobs:
               run: ./gradlew :desktopApp:packageDistributionForCurrentOS
 
             - name: Upload Desktop artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: desktop-dist-${{ matrix.os }}
                   path: desktopApp/build/compose/binaries/main/
 
             - name: Upload Desktop build reports
               if: failure()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: desktop-build-reports-${{ matrix.os }}
                   path: "**/build/reports/"
