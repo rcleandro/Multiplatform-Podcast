@@ -90,8 +90,13 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            # The image's default Xcode is the one with its simulator runtime installed; pinning an older
-            # Xcode failed with "iOS 18.2 is not installed".
+            # Compose Multiplatform 1.11 links against iOS 26 SDK APIs (UIViewLayoutRegion), so the app needs
+            # Xcode 26; the image's default (16.4) fails at link time, and 16.2 had no simulator runtime.
+            - name: Select Xcode 26
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: '26'
+
             - name: Show Xcode
               run: xcodebuild -version && xcrun simctl list runtimes
 
@@ -170,8 +175,13 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            # The image's default Xcode is the one with its simulator runtime installed; pinning an older
-            # Xcode failed with "iOS 18.2 is not installed".
+            # Compose Multiplatform 1.11 links against iOS 26 SDK APIs (UIViewLayoutRegion), so the app needs
+            # Xcode 26; the image's default (16.4) fails at link time, and 16.2 had no simulator runtime.
+            - name: Select Xcode 26
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: '26'
+
             - name: Show Xcode
               run: xcodebuild -version && xcrun simctl list runtimes
 
