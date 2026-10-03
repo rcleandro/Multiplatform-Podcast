@@ -468,9 +468,17 @@ de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
   drivers SQLite, engines Ktor, Media3 e JavaFX. O detekt passou a rodar em todos os módulos (com regras de teste
   no `:core:testing`), e o CI roda `detekt`, `desktopTest` e `iosSimulatorArm64Test` do projeto inteiro.
 
-### 11.4 Extrair `domain`, `data` e as features ✅ — G
+### 11.4 Extrair `domain`, `data` e as features ✔ — G
 - **Ação:** cada feature leva sua tela, ViewModel, recursos de texto e módulo Koin. O `shared` fica com a navegação e
   a montagem. Os testes vão junto com o código que testam.
+- **Implementado:** `:domain` saiu na 11.3, `:data` e `:core:ui` (textos compartilhados e `EpisodeListItem`) em
+  commits próprios. Seis módulos `:feature:{library,podcast,episode,search,downloads,player}`, cada um com tela,
+  ViewModel, teste e um `xxxFeatureModule` do Koin; o `viewModelModule` do `:shared` deu lugar a eles. Convention
+  plugin `podcast.feature` aplica KMP + Compose e só as dependências que a ADR 0003 permite (`domain`, `core:common`,
+  `observability`, `designsystem`, `ui`; `core:testing` nos testes). O `ScreenContentTest` do `:shared` foi dividido
+  em `LibraryContentTest` e `PlayerContentTest`, cada um na sua feature. Os textos ficaram no `:core:ui`: várias
+  telas usam os mesmos, e dividir os três idiomas por feature não compensa agora. Verificado: Detekt, testes Desktop
+  e iOS, APK, Desktop e Wasm.
 
 ### 11.5 Regra de dependência automática ✅ — P
 - **Ação:** task `checkModuleDependencies` no `build-logic`, da qual o `check` depende, que falha se uma feature
