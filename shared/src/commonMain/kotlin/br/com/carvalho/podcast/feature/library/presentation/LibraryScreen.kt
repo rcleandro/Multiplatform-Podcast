@@ -1,9 +1,11 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.designsystem.Spacing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -43,7 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.presentation.component.PodcastCard
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.add
@@ -107,7 +108,7 @@ fun LibraryScreen(
         contentWindowInsets = WindowInsets(),
         floatingActionButton = {
             val fabPadding by animateDpAsState(
-                if (isPlayerVisible) AppDimensions.miniPlayerHeight else AppDimensions.paddingNone
+                if (isPlayerVisible) Sizes.miniPlayerHeight else 0.dp
             )
             FloatingActionButton(
                 onClick = { viewModel.onAddClicked() },
@@ -137,23 +138,17 @@ fun LibraryScreen(
                     Text(stringResource(Res.string.no_podcasts_found))
                 }
             } else {
-                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    val columns = when {
-                        maxWidth < AppDimensions.breakpointSmall -> AppDimensions.GRID_COLUMNS_PHONE
-                        maxWidth < AppDimensions.breakpointMedium -> AppDimensions.GRID_COLUMNS_TABLET
-                        maxWidth < AppDimensions.breakpointLarge -> AppDimensions.GRID_COLUMNS_DESKTOP
-                        else -> AppDimensions.GRID_COLUMNS_LARGE_DESKTOP
-                    }
+                Box(modifier = Modifier.fillMaxSize()) {
                     LazyVerticalGrid(
-                        columns = GridCells.Fixed(columns),
+                        columns = GridCells.Adaptive(minSize = Sizes.artworkM),
                         contentPadding = PaddingValues(
-                            start = AppDimensions.paddingNormal,
-                            top = AppDimensions.paddingNormal,
-                            end = AppDimensions.paddingNormal,
-                            bottom = AppDimensions.miniPlayerHeightWithPadding
+                            start = Spacing.l,
+                            top = Spacing.l,
+                            end = Spacing.l,
+                            bottom = Sizes.listBottomInset
                         ),
-                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacingLarge),
-                        verticalArrangement = Arrangement.spacedBy(AppDimensions.spacingLarge),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.l),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(
@@ -229,7 +224,7 @@ fun AddPodcastDialog(
         text = {
             Column {
                 Text(stringResource(Res.string.rss_url_label))
-                Spacer(modifier = Modifier.height(AppDimensions.spacingMedium))
+                Spacer(modifier = Modifier.height(Spacing.s))
                 TextField(
                     value = url,
                     onValueChange = onUrlChange,

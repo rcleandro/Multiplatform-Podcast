@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
+import br.com.carvalho.podcast.core.designsystem.Spacing
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -41,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.presentation.component.HtmlText
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
@@ -64,6 +64,7 @@ fun EpisodeDetailScreen(
     viewModel: EpisodeDetailViewModel = koinViewModel(key = episodeId) { parametersOf(episodeId) },
     onBackClick: () -> Unit
 ) {
+    val artworkSize = 100.dp
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -113,13 +114,13 @@ fun EpisodeDetailScreen(
                         .fillMaxSize()
                         .padding(padding)
                         .verticalScroll(rememberScrollState())
-                        .padding(AppDimensions.paddingNormal)
+                        .padding(Spacing.l)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(AppDimensions.episodeDetailImageSize)
-                                .clip(RoundedCornerShape(AppDimensions.radiusSmall))
+                                .size(artworkSize)
+                                .clip(MaterialTheme.shapes.small)
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             AsyncImage(
@@ -131,7 +132,7 @@ fun EpisodeDetailScreen(
                                 error = painterResource(Res.drawable.app_icon)
                             )
                         }
-                        Spacer(modifier = Modifier.width(AppDimensions.spacingNormal))
+                        Spacer(modifier = Modifier.width(Spacing.m))
                         Column {
                             Text(
                                 text = episode.title,
@@ -141,25 +142,25 @@ fun EpisodeDetailScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(AppDimensions.spacingNormal))
+                    Spacer(modifier = Modifier.height(Spacing.m))
 
                     Button(
                         onClick = { viewModel.playEpisode() },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(Icons.Rounded.PlayArrow, contentDescription = null)
-                        Spacer(modifier = Modifier.width(AppDimensions.spacingMedium))
+                        Spacer(modifier = Modifier.width(Spacing.s))
                         Text(stringResource(Res.string.play))
                     }
 
-                    Spacer(modifier = Modifier.height(AppDimensions.spacingExtraLarge))
+                    Spacer(modifier = Modifier.height(Spacing.xl))
 
                     Text(
                         text = stringResource(Res.string.description),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.height(AppDimensions.spacingMedium))
+                    Spacer(modifier = Modifier.height(Spacing.s))
                     HtmlText(
                         html = episode.description ?: stringResource(Res.string.no_description)
                     )

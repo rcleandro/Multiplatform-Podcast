@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.designsystem.Spacing
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Refresh
@@ -50,7 +52,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.presentation.component.HtmlText
@@ -147,7 +148,7 @@ fun PodcastDetailScreen(
             Column(modifier = Modifier.fillMaxSize()) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = AppDimensions.miniPlayerHeightWithPadding)
+                    contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
                 ) {
                     item { PodcastHeader(uiState) }
 
@@ -171,7 +172,7 @@ fun PodcastDetailScreen(
                                 onDownloadClick = { viewModel.downloadEpisode(episode) },
                                 onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                             )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = AppDimensions.paddingNormal))
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = Spacing.l))
                         }
                     }
                 }
@@ -241,13 +242,14 @@ fun PodcastDetailScreen(
 
 @Composable
 private fun PodcastHeader(uiState: PodcastDetailUiState) {
+    val artworkSize = 100.dp
     val podcast = uiState.podcast ?: return
     Row(
-        modifier = Modifier.fillMaxWidth().padding(AppDimensions.paddingNormal),
+        modifier = Modifier.fillMaxWidth().padding(Spacing.l),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(AppDimensions.headerImageSize).clip(RoundedCornerShape(AppDimensions.radiusMedium))
+            modifier = Modifier.size(artworkSize).clip(MaterialTheme.shapes.medium)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             AsyncImage(
@@ -259,7 +261,7 @@ private fun PodcastHeader(uiState: PodcastDetailUiState) {
                 error = painterResource(Res.drawable.app_icon)
             )
         }
-        Spacer(modifier = Modifier.width(AppDimensions.spacingNormal))
+        Spacer(modifier = Modifier.width(Spacing.m))
         Column {
             Text(
                 text = podcast.title,
@@ -278,8 +280,8 @@ private fun PodcastHeader(uiState: PodcastDetailUiState) {
     HtmlText(
         html = podcast.description,
         modifier = Modifier.padding(
-            horizontal = AppDimensions.paddingNormal,
-            vertical = AppDimensions.paddingMedium
+            horizontal = Spacing.l,
+            vertical = Spacing.s
         )
     )
 }
@@ -291,7 +293,7 @@ private fun FilterSection(
 ) {
     SecondaryScrollableTabRow(
         selectedTabIndex = currentFilter.ordinal,
-        edgePadding = AppDimensions.paddingNormal,
+        edgePadding = Spacing.l,
         containerColor = MaterialTheme.colorScheme.background,
         divider = {}
     ) {

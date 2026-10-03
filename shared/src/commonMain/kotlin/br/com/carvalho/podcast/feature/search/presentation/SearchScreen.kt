@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.designsystem.Spacing
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -42,7 +44,6 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.shared.Res
@@ -98,7 +99,7 @@ fun SearchScreen(
                 title = {
                     Row(
                         modifier = Modifier.fillMaxWidth()
-                            .padding(end = AppDimensions.paddingNormal),
+                            .padding(end = Spacing.l),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextField(
@@ -155,7 +156,7 @@ fun SearchScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = AppDimensions.miniPlayerHeightWithPadding)
+            contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
         ) {
             items(
                 count = pagedResults.itemCount,
@@ -175,14 +176,14 @@ fun SearchScreen(
                         onDownloadClick = { viewModel.downloadEpisode(episode) },
                         onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                     )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = AppDimensions.paddingNormal))
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = Spacing.l))
                 }
             }
 
             if (pagedResults.loadState.append is LoadState.Loading) {
                 item {
                     Box(
-                        modifier = Modifier.fillMaxWidth().padding(AppDimensions.paddingNormal),
+                        modifier = Modifier.fillMaxWidth().padding(Spacing.l),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator()

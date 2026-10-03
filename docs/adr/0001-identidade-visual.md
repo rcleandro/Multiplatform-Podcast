@@ -102,7 +102,7 @@ nos dois temas: 4,5:1 para texto e 3:1 para ícones, bordas e formas.
   `playButtonLarge` 72 dp.
 - **Movimento:** 150 · 250 · 400 ms; curvas `standard` (0,2, 0, 0, 1) e `emphasized` (0,05, 0,7, 0,1, 1), esta só
   para elementos que mudam de lugar.
-- **Opacidade:** `disabled` 0,38 · `muted` 0,60 · `scrim` 0,32.
+- **Opacidade:** `disabled` 0,38 · `muted` 0,60 · `scrim` 0,32 · `faint` 0,12 (trilhas e tons sobre contêiner colorido).
 
 ## Consequências
 

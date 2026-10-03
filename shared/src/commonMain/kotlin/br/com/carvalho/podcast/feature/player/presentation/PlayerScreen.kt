@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.designsystem.Spacing
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
@@ -63,7 +65,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import br.com.carvalho.podcast.core.AppConfig
-import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.domain.model.Episode
@@ -135,7 +136,7 @@ fun PlayerScreen(
                             Icon(
                                 imageVector = Icons.Rounded.KeyboardArrowDown,
                                 contentDescription = stringResource(Res.string.minimize),
-                                modifier = Modifier.size(AppDimensions.iconLarge)
+                                modifier = Modifier.size(Sizes.iconL)
                             )
                         }
                     }
@@ -180,21 +181,21 @@ fun PlayerScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = AppDimensions.paddingLarge)
+                    .padding(horizontal = Spacing.xl)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(AppDimensions.spacingLarge))
+                Spacer(modifier = Modifier.height(Spacing.l))
 
                 Box(
                     modifier = Modifier
-                        .widthIn(max = AppDimensions.podcastImageSize)
+                        .widthIn(max = Sizes.artworkL)
                         .aspectRatio(1f)
                         .clip(MaterialTheme.shapes.extraLarge)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(
-                            if (episode?.imageUrl == null) AppDimensions.paddingGigantic
-                            else AppDimensions.paddingNone
+                            if (episode?.imageUrl == null) Spacing.xxxl
+                            else 0.dp
                         )
                 ) {
                     AsyncImage(
@@ -207,7 +208,7 @@ fun PlayerScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(AppDimensions.spacingGigantic))
+                Spacer(modifier = Modifier.height(Spacing.xxl))
 
                 Text(
                     text = episode?.title ?: stringResource(Res.string.no_episode_selected),
@@ -219,7 +220,7 @@ fun PlayerScreen(
                 )
 
                 episode?.podcastTitle?.let { title ->
-                    Spacer(modifier = Modifier.height(AppDimensions.spacingMedium))
+                    Spacer(modifier = Modifier.height(Spacing.s))
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium,
@@ -229,7 +230,7 @@ fun PlayerScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(AppDimensions.spacingGigantic))
+                Spacer(modifier = Modifier.height(Spacing.xxl))
 
                 PlayerProgressBar(
                     position = playerState.position,
@@ -237,7 +238,7 @@ fun PlayerScreen(
                     onSeek = { viewModel.seekTo(it) }
                 )
 
-                Spacer(modifier = Modifier.height(AppDimensions.spacingHuge))
+                Spacer(modifier = Modifier.height(Spacing.xxl))
 
                 val currentIndex = playerState.queue.indexOfFirst { it.id == episode?.id }
                 PlaybackControls(
@@ -252,7 +253,7 @@ fun PlayerScreen(
                     hasPrevious = currentIndex > 0
                 )
 
-                Spacer(modifier = Modifier.height(AppDimensions.paddingGigantic))
+                Spacer(modifier = Modifier.height(Spacing.xxxl))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -267,7 +268,7 @@ fun PlayerScreen(
                             Icon(
                                 Icons.Rounded.Speed,
                                 contentDescription = null,
-                                modifier = Modifier.size(AppDimensions.iconSmall)
+                                modifier = Modifier.size(Sizes.iconS)
                             )
                         }
                     )
@@ -294,7 +295,7 @@ fun PlayerScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(AppDimensions.paddingLarge))
+                Spacer(modifier = Modifier.height(Spacing.xl))
             }
         }
     }
@@ -345,6 +346,7 @@ private fun PlaybackControls(
     hasNext: Boolean,
     hasPrevious: Boolean
 ) {
+    val loadingStroke = 4.dp
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
@@ -353,75 +355,75 @@ private fun PlaybackControls(
         IconButton(
             onClick = onPrevious,
             enabled = hasPrevious,
-            modifier = Modifier.size(AppDimensions.touchTarget)
+            modifier = Modifier.size(Sizes.touchTarget)
         ) {
             Icon(
                 imageVector = Icons.Rounded.SkipPrevious,
                 contentDescription = stringResource(Res.string.previous),
-                modifier = Modifier.size(AppDimensions.iconLarge)
+                modifier = Modifier.size(Sizes.iconL)
             )
         }
 
         IconButton(
             onClick = onSkipBack,
-            modifier = Modifier.size(AppDimensions.touchTarget)
+            modifier = Modifier.size(Sizes.touchTarget)
         ) {
             Icon(
                 imageVector = Icons.Rounded.Replay10,
                 contentDescription = stringResource(Res.string.skip_backward),
-                modifier = Modifier.size(AppDimensions.iconLarge)
+                modifier = Modifier.size(Sizes.iconL)
             )
         }
 
-        Spacer(modifier = Modifier.width(AppDimensions.spacingLarge))
+        Spacer(modifier = Modifier.width(Spacing.l))
 
         Box(
-            modifier = Modifier.size(AppDimensions.playButtonSize),
+            modifier = Modifier.size(Sizes.playButtonLarge),
             contentAlignment = Alignment.Center
         ) {
             if (isBuffering) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(AppDimensions.paddingGigantic),
+                    modifier = Modifier.size(Spacing.xxxl),
                     color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = AppDimensions.strokeWidthNormal
+                    strokeWidth = loadingStroke
                 )
             } else {
                 FilledIconButton(
                     onClick = onPlayPause,
                     modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(AppDimensions.playButtonRadius)
+                    shape = MaterialTheme.shapes.large
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                         contentDescription = stringResource(if (isPlaying) Res.string.pause else Res.string.play),
-                        modifier = Modifier.size(AppDimensions.iconExtraLarge)
+                        modifier = Modifier.size(Sizes.iconXl)
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.width(AppDimensions.spacingLarge))
+        Spacer(modifier = Modifier.width(Spacing.l))
 
         IconButton(
             onClick = onSkipForward,
-            modifier = Modifier.size(AppDimensions.touchTarget)
+            modifier = Modifier.size(Sizes.touchTarget)
         ) {
             Icon(
                 imageVector = Icons.Rounded.Forward30,
                 contentDescription = stringResource(Res.string.skip_forward),
-                modifier = Modifier.size(AppDimensions.iconLarge)
+                modifier = Modifier.size(Sizes.iconL)
             )
         }
 
         IconButton(
             onClick = onNext,
             enabled = hasNext,
-            modifier = Modifier.size(AppDimensions.touchTarget)
+            modifier = Modifier.size(Sizes.touchTarget)
         ) {
             Icon(
                 imageVector = Icons.Rounded.SkipNext,
                 contentDescription = stringResource(Res.string.next),
-                modifier = Modifier.size(AppDimensions.iconLarge)
+                modifier = Modifier.size(Sizes.iconL)
             )
         }
     }
@@ -459,7 +461,7 @@ private fun PlaybackControls(
                             selected = speed == currentSpeed,
                             onClick = { onSpeedSelected(speed) }
                         )
-                        Spacer(modifier = Modifier.width(AppDimensions.spacingLarge))
+                        Spacer(modifier = Modifier.width(Spacing.l))
                         Text(
                             text = "${speed}x",
                             style = MaterialTheme.typography.bodyLarge
@@ -512,7 +514,7 @@ private fun SleepTimerDialog(
                             selected = isSelected,
                             onClick = { onTimerSelected(minutes) }
                         )
-                        Spacer(modifier = Modifier.width(AppDimensions.spacingLarge))
+                        Spacer(modifier = Modifier.width(Spacing.l))
                         Text(
                             text = if (isSelected && minutes != null) {
                                 "$label (${formatRemainingTime(playerState.sleepTimerMillis)})"
@@ -538,12 +540,13 @@ private fun QueueDialog(
     onEpisodeSelected: (Episode) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val maxQueueHeight = 400.dp
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.queue)) },
         text = {
             Column(
-                modifier = Modifier.fillMaxWidth().heightIn(max = AppDimensions.maxPlayerContentHeight)
+                modifier = Modifier.fillMaxWidth().heightIn(max = maxQueueHeight)
                     .verticalScroll(rememberScrollState())
             ) {
                 queue.forEach { episode ->
@@ -552,7 +555,7 @@ private fun QueueDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onEpisodeSelected(episode) }
-                            .padding(vertical = AppDimensions.paddingMedium),
+                            .padding(vertical = Spacing.s),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isCurrent) {
@@ -561,7 +564,7 @@ private fun QueueDialog(
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.width(AppDimensions.spacingMedium))
+                            Spacer(modifier = Modifier.width(Spacing.s))
                         }
                         Text(
                             text = episode.title,

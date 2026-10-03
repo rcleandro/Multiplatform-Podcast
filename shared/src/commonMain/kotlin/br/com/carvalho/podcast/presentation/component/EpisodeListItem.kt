@@ -1,5 +1,9 @@
 package br.com.carvalho.podcast.presentation.component
 
+import br.com.carvalho.podcast.core.designsystem.Alpha
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.designsystem.Spacing
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -39,7 +43,6 @@ import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import br.com.carvalho.podcast.core.AppConfig
-import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.core.extensions.toDate
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -71,8 +74,9 @@ fun EpisodeListItem(
     onDownloadClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {}
 ) {
+    val progressHeight = 3.dp
     val titleColor = if (episode.isPlayed) {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = AppDimensions.OPACITY_HALF)
+        MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.muted)
     } else {
         MaterialTheme.colorScheme.onSurface
     }
@@ -119,14 +123,14 @@ fun EpisodeListItem(
                 }
             }
             .padding(
-                horizontal = AppDimensions.paddingNormal,
-                vertical = AppDimensions.paddingNormal
+                horizontal = Spacing.l,
+                vertical = Spacing.l
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(AppDimensions.episodeImageSize)
+                .size(Sizes.artworkS)
                 .clip(MaterialTheme.shapes.small)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
@@ -135,7 +139,7 @@ fun EpisodeListItem(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
-                alpha = if (episode.isPlayed) AppDimensions.OPACITY_HALF else 1f,
+                alpha = if (episode.isPlayed) Alpha.muted else 1f,
                 placeholder = painterResource(Res.drawable.app_icon),
                 error = painterResource(Res.drawable.app_icon)
             )
@@ -143,14 +147,14 @@ fun EpisodeListItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = AppDimensions.OPACITY_MUTED)),
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = Alpha.disabled)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.CheckCircle,
                         contentDescription = stringResource(Res.string.finished),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(AppDimensions.iconMedium)
+                        modifier = Modifier.size(Sizes.iconM)
                     )
                 }
             } else if (episode.playbackPosition > 0 && episode.duration > 0) {
@@ -162,7 +166,7 @@ fun EpisodeListItem(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .height(AppDimensions.progressBarHeight)
+                        .height(progressHeight)
                         .semantics {
                             progressBarRangeInfo = ProgressBarRangeInfo(progressValue, 0f..1f)
                         },
@@ -172,7 +176,7 @@ fun EpisodeListItem(
             }
         }
 
-        Spacer(modifier = Modifier.width(AppDimensions.spacingLarge))
+        Spacer(modifier = Modifier.width(Spacing.l))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -180,35 +184,34 @@ fun EpisodeListItem(
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                color = titleColor,
-                lineHeight = AppDimensions.LINE_HEIGHT_NORMAL
+                color = titleColor
             )
 
-            Spacer(modifier = Modifier.height(AppDimensions.spacingSmall))
+            Spacer(modifier = Modifier.height(Spacing.xs))
 
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                    alpha = if (episode.isPlayed) AppDimensions.OPACITY_HALF else AppDimensions.OPACITY_HIGH
+                    alpha = if (episode.isPlayed) Alpha.muted else 1f
                 ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
 
-        Spacer(modifier = Modifier.width(AppDimensions.spacingMedium))
+        Spacer(modifier = Modifier.width(Spacing.s))
 
         Box(
-            modifier = Modifier.size(AppDimensions.spacingHuge),
+            modifier = Modifier.size(Spacing.xxl),
             contentAlignment = Alignment.Center
         ) {
             when (downloadStatus) {
                 is DownloadStatus.Downloading -> {
                     CircularProgressIndicator(
                         progress = { downloadStatus.progress },
-                        modifier = Modifier.size(AppDimensions.iconSmallish),
-                        strokeWidth = AppDimensions.strokeWidthMedium,
+                        modifier = Modifier.size(Sizes.iconS),
+                        strokeWidth = Sizes.progressStroke,
                     )
                 }
 
@@ -220,16 +223,16 @@ fun EpisodeListItem(
                         Icon(
                             imageVector = Icons.Rounded.Delete,
                             contentDescription = stringResource(Res.string.delete_download_cd),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AppDimensions.OPACITY_SUBTLE),
-                            modifier = Modifier.size(AppDimensions.iconSmall)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = Alpha.muted),
+                            modifier = Modifier.size(Sizes.iconS)
                         )
                     }
                 }
 
                 is DownloadStatus.Queued -> {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(AppDimensions.iconTiny),
-                        strokeWidth = AppDimensions.strokeWidthMedium
+                        modifier = Modifier.size(Sizes.iconS),
+                        strokeWidth = Sizes.progressStroke
                     )
                 }
 
@@ -242,8 +245,8 @@ fun EpisodeListItem(
                             Icon(
                                 imageVector = Icons.Rounded.Download,
                                 contentDescription = stringResource(Res.string.download_cd),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AppDimensions.OPACITY_SUBTLE),
-                                modifier = Modifier.size(AppDimensions.iconSmall)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = Alpha.muted),
+                                modifier = Modifier.size(Sizes.iconS)
                             )
                         }
                     } else {
@@ -254,8 +257,8 @@ fun EpisodeListItem(
                             Icon(
                                 imageVector = Icons.Rounded.Delete,
                                 contentDescription = stringResource(Res.string.delete_download_cd),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AppDimensions.OPACITY_SUBTLE),
-                                modifier = Modifier.size(AppDimensions.iconSmall)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = Alpha.muted),
+                                modifier = Modifier.size(Sizes.iconS)
                             )
                         }
                     }
@@ -264,13 +267,13 @@ fun EpisodeListItem(
         }
 
         Box(
-            modifier = Modifier.size(AppDimensions.spacingGigantic),
+            modifier = Modifier.size(Sizes.touchTarget),
             contentAlignment = Alignment.Center
         ) {
             if (isBuffering) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(AppDimensions.iconSmallish),
-                    strokeWidth = AppDimensions.strokeWidthMedium
+                    modifier = Modifier.size(Sizes.iconS),
+                    strokeWidth = Sizes.progressStroke
                 )
             } else {
                 IconButton(onClick = onPlayClick) {
@@ -278,7 +281,7 @@ fun EpisodeListItem(
                         imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                         contentDescription = stringResource(if (isPlaying) Res.string.pause else Res.string.play),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(AppDimensions.iconNormal)
+                        modifier = Modifier.size(Sizes.iconL)
                     )
                 }
             }

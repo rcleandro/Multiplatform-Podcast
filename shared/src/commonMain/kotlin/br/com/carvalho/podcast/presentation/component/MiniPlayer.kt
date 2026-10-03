@@ -1,5 +1,9 @@
 package br.com.carvalho.podcast.presentation.component
 
+import br.com.carvalho.podcast.core.designsystem.Alpha
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.designsystem.Spacing
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -32,7 +36,6 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
@@ -52,31 +55,33 @@ fun MiniPlayer(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val elevation = 4.dp
+    val progressHeight = 2.dp
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                horizontal = AppDimensions.paddingNormal,
-                vertical = AppDimensions.paddingMedium
+                horizontal = Spacing.l,
+                vertical = Spacing.s
             )
             .clip(MaterialTheme.shapes.medium)
-            .height(AppDimensions.miniPlayerHeight)
+            .height(Sizes.miniPlayerHeight)
             .clickable(onClick = onClick),
         color = MaterialTheme.colorScheme.primaryContainer,
-        tonalElevation = AppDimensions.elevationLow
+        tonalElevation = elevation
     ) {
         Column {
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = AppDimensions.spacingNormal),
+                    .padding(horizontal = Spacing.m),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(AppDimensions.iconExtraLarge)
+                        .size(Sizes.iconXl)
                         .clip(MaterialTheme.shapes.small)
-                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = AppDimensions.OPACITY_FAINT))
+                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = Alpha.faint))
                 ) {
                     AsyncImage(
                         model = episode.imageUrl,
@@ -88,7 +93,7 @@ fun MiniPlayer(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(AppDimensions.spacingNormal))
+                Spacer(modifier = Modifier.width(Spacing.m))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -102,25 +107,25 @@ fun MiniPlayer(
                         Text(
                             text = title,
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = AppDimensions.OPACITY_MEDIUM),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = Alpha.muted),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.width(AppDimensions.paddingMedium))
+                Spacer(modifier = Modifier.width(Spacing.s))
 
                 Box(
-                    modifier = Modifier.size(AppDimensions.iconExtraLarge),
+                    modifier = Modifier.size(Sizes.iconXl),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isBuffering) {
                         CircularProgressIndicator(
                             modifier = Modifier
-                                .size(AppDimensions.iconSmallish)
+                                .size(Sizes.iconS)
                                 .testTag(MiniPlayerTestTags.BUFFERING_INDICATOR),
-                            strokeWidth = AppDimensions.strokeWidthMedium,
+                            strokeWidth = Sizes.progressStroke,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     } else {
@@ -143,12 +148,12 @@ fun MiniPlayer(
                 progress = { progressValue },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(AppDimensions.miniProgressBarHeight)
+                    .height(progressHeight)
                     .semantics {
                         progressBarRangeInfo = ProgressBarRangeInfo(progressValue, 0f..1f)
                     },
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = AppDimensions.OPACITY_FAINT)
+                trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = Alpha.faint)
             )
         }
     }

@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.downloads.presentation
 
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.designsystem.Spacing
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -27,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.shared.Res
@@ -91,7 +92,7 @@ fun DownloadedEpisodesScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = AppDimensions.miniPlayerHeightWithPadding)
+            contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
         ) {
             items(uiState.episodes, key = { it.id }) { episode ->
                 EpisodeListItem(
@@ -104,7 +105,7 @@ fun DownloadedEpisodesScreen(
                     onPlayClick = { viewModel.playEpisode(episode) },
                     onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                 )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = AppDimensions.paddingNormal))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = Spacing.l))
             }
         }
 

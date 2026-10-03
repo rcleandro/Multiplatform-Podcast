@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.presentation.component
 
+import br.com.carvalho.podcast.core.designsystem.Spacing
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -22,7 +23,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import br.com.carvalho.podcast.core.designsystem.AppDimensions
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
@@ -39,7 +39,7 @@ fun PodcastCard(
 ) {
     Surface(
         modifier = modifier
-            .padding(AppDimensions.paddingSmall)
+            .padding(Spacing.xs)
             .clip(MaterialTheme.shapes.medium)
             .combinedClickable(
                 onClick = onClick,
@@ -54,7 +54,7 @@ fun PodcastCard(
         color = Color.Transparent
     ) {
         Column(
-            modifier = Modifier.padding(AppDimensions.paddingMedium)
+            modifier = Modifier.padding(Spacing.s)
         ) {
             Box(
                 modifier = Modifier
@@ -73,19 +73,18 @@ fun PodcastCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(AppDimensions.spacingNormal))
+            Spacer(modifier = Modifier.height(Spacing.m))
 
             Text(
                 text = podcast.title,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                lineHeight = AppDimensions.LINE_HEIGHT_NORMAL
+                overflow = TextOverflow.Ellipsis
             )
 
             podcast.author?.let { author ->
-                Spacer(modifier = Modifier.height(AppDimensions.spacingTiny))
+                Spacer(modifier = Modifier.height(Spacing.xxs))
                 Text(
                     text = author,
                     style = MaterialTheme.typography.labelSmall,
