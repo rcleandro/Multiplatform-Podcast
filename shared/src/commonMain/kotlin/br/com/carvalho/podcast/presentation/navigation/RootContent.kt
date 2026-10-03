@@ -21,7 +21,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.compose.runtime.collectAsState
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
-import br.com.carvalho.podcast.presentation.component.MiniPlayer
+import br.com.carvalho.podcast.core.designsystem.component.MiniPlayer
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -229,11 +229,13 @@ fun RootContent(component: RootComponentImpl) {
                         } else 0f
 
                         MiniPlayer(
-                            episode = episode,
+                            title = episode.title,
+                            subtitle = episode.podcastTitle,
+                            imageUrl = episode.imageUrl,
                             isPlaying = playerState.isPlaying,
-                            isBuffering = playerState.isBuffering,
+                            isLoading = playerState.isBuffering,
                             progress = progress,
-                            onPlayPauseClick = {
+                            onPlayPause = {
                                 if (playerState.isPlaying) playerViewModel.pause()
                                 else playerViewModel.resume()
                             },

@@ -1,4 +1,4 @@
-package br.com.carvalho.podcast.presentation.component
+package br.com.carvalho.podcast.core.designsystem.component
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,7 +20,7 @@ fun HtmlText(
     Text(
         text = annotatedString,
         modifier = modifier,
-        style = MaterialTheme.typography.bodyMedium
+        style = MaterialTheme.typography.bodyLarge
     )
 }
 
@@ -28,7 +28,7 @@ fun HtmlText(
  * Um parser simples para tags HTML básicas: <b>, <i>, <br>, <p>
  * Para um suporte completo, seria necessária uma biblioteca como Ksoup ou implementação platform-specific.
  */
-fun parseHtml(html: String): AnnotatedString {
+internal fun parseHtml(html: String): AnnotatedString {
     return buildAnnotatedString {
         val tagRegex = Regex("<[^>]+>")
         val matches = tagRegex.findAll(html)

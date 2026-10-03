@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Accessibility labels and short texts owned by design system components -->
+    <string name="ds_play">Play</string>
+    <string name="ds_pause">Pause</string>
+    <string name="ds_loading">Loading</string>
+    <string name="ds_resume_progress">Resume, %1$d%% played</string>
+    <string name="ds_download">Download</string>
+    <string name="ds_download_queued">Queued, cancel download</string>
+    <string name="ds_downloading">Downloading %1$d%%, cancel</string>
+    <string name="ds_downloaded">Downloaded, remove download</string>
+    <string name="ds_download_failed">Download failed, try again</string>
+    <string name="ds_new">New</string>
+    <string name="ds_played">Played</string>
+    <string name="ds_downloaded_label">Downloaded</string>
+    <string name="ds_position_of_duration">%1$s of %2$s</string>
+    <plurals name="ds_unplayed_count">
+        <item quantity="one">%1$d unplayed episode</item>
+        <item quantity="other">%1$d unplayed episodes</item>
+    </plurals>
+</resources>

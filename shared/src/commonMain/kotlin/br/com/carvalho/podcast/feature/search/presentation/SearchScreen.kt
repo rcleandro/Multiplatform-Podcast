@@ -174,6 +174,7 @@ fun SearchScreen(
                         onClick = { onEpisodeClick(episode.id, episode.podcastId) },
                         onPlayClick = { viewModel.playEpisode(episode) },
                         onDownloadClick = { viewModel.downloadEpisode(episode) },
+                        onCancelDownloadClick = { viewModel.cancelDownload(episode.id) },
                         onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = Spacing.l))

@@ -98,4 +98,13 @@ class PodcastDetailViewModelTest {
         assertEquals(listOf(sampleEpisode), audioPlayer.queueSet)
         assertEquals(sampleEpisode.id, audioPlayer.playCalledWith?.id)
     }
+
+    @Test
+    fun `cancelDownload cancels the episode download`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.cancelDownload("episode-1")
+
+        assertEquals("episode-1", episodeDownloader.cancelCalledWith)
+    }
 }

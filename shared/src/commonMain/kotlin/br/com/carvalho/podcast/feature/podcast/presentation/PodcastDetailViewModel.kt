@@ -138,6 +138,12 @@ class PodcastDetailViewModel(
         }
     }
 
+    fun cancelDownload(episodeId: String) {
+        viewModelScope.launch(dispatchers.io) {
+            episodeDownloader.cancel(episodeId)
+        }
+    }
+
     fun deleteDownload(episodeId: String) {
         Analytics.logEvent("delete_download_from_detail", mapOf("episode_id" to episodeId))
         _uiState.update { it.copy(isLoading = true, deleteEpisodeConfirmation = null) }

@@ -88,6 +88,12 @@ class SearchViewModel(
         }
     }
 
+    fun cancelDownload(episodeId: String) {
+        viewModelScope.launch(dispatchers.io) {
+            episodeDownloader.cancel(episodeId)
+        }
+    }
+
     fun deleteDownload(episodeId: String) {
         _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {

@@ -175,7 +175,7 @@ passam a usar só o design system.
   `muted` (0,6) e 0,8 virou opaco. Refatoração sem teste novo: verificado com os 66 + 7 testes, Detekt, os builds
   e no Razr 60 (biblioteca e player).
 
-### 9.6 Componentes ✅ — G
+### 9.6 Componentes ✔ — G
 Hoje a mesma linha de episódio é montada de formas diferentes em detalhe, busca e downloads, e play e download têm
 um visual por tela. Componentes do design system, todos sem estado e com previews nos dois temas:
 
@@ -192,6 +192,25 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
 | `ConfirmDialog` | Os diálogos de excluir podcast e excluir download |
 | `PodcastTopBar` | As top bars transparentes repetidas em player e detalhes |
 | `MiniPlayer`, `PodcastCard`, `HtmlText` | Saem de `presentation/component` para o design system, já com os tokens novos |
+
+- **Implementado:** pacote `core.designsystem.component` com `PodcastArtwork` (placeholder com o glifo do app),
+  `PlayPauseButton` (estilos `Filled` e `Tonal`, carregando e anel de progresso com "Continuar, 62% ouvido"),
+  `DownloadButton` (estado próprio `DownloadState`, uma ação por estado: baixar, cancelar, remover, tentar de novo),
+  `EpisodeProgressBar`, `PlayerSlider` (segue o dedo e só busca ao soltar; `stateDescription` "12:05 de 47:30"),
+  `FilterChipRow`, `EmptyState`/`ErrorState`/`LoadingState`, `ConfirmDialog`, `PodcastTopBar`, `MiniPlayer`,
+  `PodcastCard` (selo de não ouvidos) e `EpisodeRow` (marcadores Novo/Ouvido/Baixado). Nenhum depende de modelo
+  de domínio; os textos de acessibilidade estão nos recursos do módulo (en/pt/es). `HtmlText` foi movido com
+  `git mv` (ver 15.7). Previews claro/escuro em `Previews.kt`. No `:shared`, `PodcastCard` e `MiniPlayer` saíram
+  (a biblioteca e o `RootContent` usam os do design system) e `EpisodeListItem` virou um adaptador de `Episode` +
+  `DownloadStatus` para `EpisodeRow`. Como o botão de download agora cancela, `SearchViewModel` e
+  `PodcastDetailViewModel` ganharam `cancelDownload` (com teste). Corrigido no caminho: `remaining_min` usava `%d`,
+  que o Compose Resources não substitui (o código antigo trocava à mão); virou `%1$d` nos três idiomas. O Detekt
+  passou a entender Compose (`FunctionNaming` e `LongParameterList` ignoram `@Composable`, `TooManyFunctions`
+  ignora `@Preview`, `MagicNumber` isenta `Previews.kt`), parte do 17.1. Testes: `ComponentsTest` (desktop, 7 casos:
+  ação de cada estado do download, rótulos do play/pause e do botão começado, chips, marcadores da linha, mini
+  player e card, estes dois vindos do `:shared`) e `HtmlParserTest`. Conferido no Razr 60 (biblioteca, detalhe e
+  mini player). O mini player usa `surfaceContainer` (não `surfaceContainerLowest`, que no escuro fica mais escuro
+  que o fundo), e a referência HTML foi ajustada.
 
 ### 9.7 Movimento e formas ✅ — P
 - **Ação:** um objeto `Motion` com durações e curvas usado na transição do mini player para o player, no
@@ -480,7 +499,7 @@ de fechar e reabrir o app; a regra de reprodução tem testes em `commonTest`.
 | 15.4 Item sem áudio | ✅ | Sem `<enclosure>`, o episódio é salvo com `audioUrl = ""` | Pular o item | P |
 | 15.5 Feed que mudou de endereço | 🔎 | O id do podcast é a URL do feed; `itunes:new-feed-url` e redirecionamento permanente são ignorados | Id interno estável (não a URL); seguir `new-feed-url`/301 atualizando `feedUrl` | M |
 | 15.6 Atualização cara | ✅ | `refreshAll` baixa todos os feeds em série e inteiros toda vez | `ETag`/`If-Modified-Since` (304 não reprocessa) e concorrência limitada (ex.: 4 por vez) | M |
-| 15.7 HTML da descrição | ✅ | `HtmlText` usa um parser próprio por regex (só `b`, `i`, `br`, `p`), sem links clicáveis | `AnnotatedString.fromHtml()` do Compose (disponível em `commonMain`), com links | P |
+| 15.7 HTML da descrição | ✅ | `HtmlText` (agora no design system) usa um parser próprio por regex (só `b`, `i`, `br`, `p`), sem links clicáveis | O `AnnotatedString.fromHtml()` **não existe** no Compose Multiplatform 1.11 fora do Android (conferido no jar do Desktop na 9.6). Opções: `expect/actual` com o `fromHtml` no Android e um parser comum nos demais, ou estender o parser atual para `a href` com `LinkAnnotation.Url`, com testes de feeds reais (15.2) | P |
 | 15.8 Validação da URL | ✅ | O `LibraryViewModel` só põe `https://` na frente; `validateFeedUrl` existe e ninguém chama | Validar a URL antes do fetch, com erro específico; apagar `validateFeedUrl` | P |
 | 15.9 User-Agent | 🔎 | O Ktor manda o User-Agent padrão; alguns hosts de podcast bloqueiam ou limitam clientes sem identificação | `User-Agent: PodcastKMP/<versão> (<plataforma>)` no client comum (16.5) | P |
 

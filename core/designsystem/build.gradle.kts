@@ -30,6 +30,9 @@ kotlin {
             api(libs.material3)
             api(libs.compose.ui)
             implementation(libs.components.resources)
+            implementation(libs.composeIconsExtended)
+            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.coil.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

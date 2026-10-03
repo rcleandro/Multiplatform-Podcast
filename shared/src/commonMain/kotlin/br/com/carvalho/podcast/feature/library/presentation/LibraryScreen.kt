@@ -45,7 +45,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import br.com.carvalho.podcast.presentation.component.PodcastCard
+import br.com.carvalho.podcast.core.designsystem.component.PodcastCard
+import br.com.carvalho.podcast.shared.podcast_options
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.add
 import br.com.carvalho.podcast.shared.add_podcast
@@ -157,9 +158,12 @@ fun LibraryScreen(
                             contentType = { "podcast" }
                         ) { podcast ->
                             PodcastCard(
-                                podcast = podcast,
+                                title = podcast.title,
+                                author = podcast.author,
+                                imageUrl = podcast.imageUrl,
                                 onClick = { onPodcastClick(podcast.id) },
-                                onLongClick = { viewModel.onDeleteClicked(podcast) }
+                                onLongClick = { viewModel.onDeleteClicked(podcast) },
+                                onLongClickLabel = stringResource(Res.string.podcast_options)
                             )
                         }
                     }

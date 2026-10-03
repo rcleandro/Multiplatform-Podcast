@@ -42,7 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import br.com.carvalho.podcast.presentation.component.HtmlText
+import br.com.carvalho.podcast.core.designsystem.component.HtmlText
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
 import br.com.carvalho.podcast.shared.back

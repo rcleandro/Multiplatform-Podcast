@@ -11,6 +11,7 @@ class FakeEpisodeDownloader : EpisodeDownloader {
 
     var downloadCalledWith: Episode? = null
     var deleteCalledWith: String? = null
+    var cancelCalledWith: String? = null
 
     override suspend fun download(episode: Episode) {
         downloadCalledWith = episode
@@ -20,7 +21,9 @@ class FakeEpisodeDownloader : EpisodeDownloader {
 
     override suspend fun resume(episodeId: String) {}
 
-    override suspend fun cancel(episodeId: String) {}
+    override suspend fun cancel(episodeId: String) {
+        cancelCalledWith = episodeId
+    }
 
     override suspend fun delete(episodeId: String) {
         deleteCalledWith = episodeId

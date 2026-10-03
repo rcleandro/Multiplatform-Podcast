@@ -54,7 +54,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
-import br.com.carvalho.podcast.presentation.component.HtmlText
+import br.com.carvalho.podcast.core.designsystem.component.HtmlText
 import br.com.carvalho.podcast.shared.Res
 import br.com.carvalho.podcast.shared.app_icon
 import br.com.carvalho.podcast.shared.back
@@ -170,6 +170,7 @@ fun PodcastDetailScreen(
                                 onLongClick = { viewModel.onSelectEpisode(episode) },
                                 onPlayClick = { viewModel.playEpisode(episode) },
                                 onDownloadClick = { viewModel.downloadEpisode(episode) },
+                                onCancelDownloadClick = { viewModel.cancelDownload(episode.id) },
                                 onDeleteClick = { viewModel.showDeleteConfirmation(episode) }
                             )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = Spacing.l))

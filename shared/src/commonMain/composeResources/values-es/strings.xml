@@ -15,7 +15,7 @@
     <string name="sleep_timer">Temporizador de apagado</string>
     <string name="queue">Cola de reproducción</string>
     <string name="finished">Finalizado</string>
-    <string name="remaining_min">%d min restante</string>
+    <string name="remaining_min">%1$d min restante</string>
     <string name="play">Reproducir</string>
     <string name="pause">Pausar</string>
     <string name="next">Siguiente</string>
@@ -64,4 +64,6 @@
     <string name="date_some_days_ago">Hace unos días</string>
     <string name="duration_h_m">%dh %dm</string>
     <string name="duration_m">%dmin</string>
+    <string name="podcast_options">Opciones del podcast</string>
+    <string name="episode_options">Opciones del episodio</string>
 </resources>
