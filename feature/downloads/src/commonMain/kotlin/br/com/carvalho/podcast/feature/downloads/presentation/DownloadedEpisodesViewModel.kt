@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.feature.downloads.presentation
 import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import androidx.lifecycle.ViewModel
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
@@ -17,7 +18,8 @@ import kotlinx.coroutines.launch
 class DownloadedEpisodesViewModel(
     repository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
-    private val audioPlayer: AudioPlayer,
+    audioPlayer: AudioPlayer,
+    private val playEpisode: PlayEpisodeUseCase,
     private val dispatchers: CoroutineDispatchers
 ) : ViewModel() {
 
@@ -40,29 +42,15 @@ class DownloadedEpisodesViewModel(
 
     fun onIntent(intent: DownloadsIntent) {
         when (intent) {
-            is DownloadsIntent.Play -> playEpisode(intent.episode)
+            is DownloadsIntent.Play -> play(intent.episode)
             is DownloadsIntent.RequestDelete -> _uiState.update { it.copy(deleteEpisodeConfirmation = intent.episode) }
             is DownloadsIntent.ConfirmDelete -> deleteDownload(intent.episode.id)
             DownloadsIntent.DismissDelete -> _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         }
     }
 
-    private fun playEpisode(episode: Episode) {
-        viewModelScope.launch(dispatchers.io) {
-            val currentPlayerState = audioPlayer.playerState.value
-            if (currentPlayerState.currentEpisode?.id == episode.id) {
-                if (currentPlayerState.isPlaying) {
-                    audioPlayer.pause()
-                } else {
-                    audioPlayer.resume()
-                }
-                return@launch
-            }
-
-            val resolvedEpisode = episode.copy(localPath = episodeDownloader.getLocalPath(episode.id))
-            audioPlayer.setQueue(uiState.value.episodes)
-            audioPlayer.play(resolvedEpisode)
-        }
+    private fun play(episode: Episode) {
+        viewModelScope.launch(dispatchers.io) { playEpisode(episode, queue = uiState.value.episodes) }
     }
 
     private fun deleteDownload(episodeId: String) {

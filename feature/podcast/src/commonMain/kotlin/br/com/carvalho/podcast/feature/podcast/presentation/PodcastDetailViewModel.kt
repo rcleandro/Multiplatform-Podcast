@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.feature.podcast.presentation
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_episodes
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import androidx.lifecycle.ViewModel
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.Episode
@@ -28,7 +29,8 @@ private const val TAG = "PodcastDetailViewModel"
 @Suppress("LongParameterList") // constructor injection; the screen genuinely needs all of them
 class PodcastDetailViewModel(
     private val podcastId: String,
-    private val audioPlayer: AudioPlayer,
+    audioPlayer: AudioPlayer,
+    private val playEpisode: PlayEpisodeUseCase,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
     private val episodeDownloader: EpisodeDownloader,
     private val repository: PodcastRepository,
@@ -62,7 +64,7 @@ class PodcastDetailViewModel(
         when (intent) {
             PodcastDetailIntent.Refresh -> refresh()
             is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
-            is PodcastDetailIntent.Play -> playEpisode(intent.episode)
+            is PodcastDetailIntent.Play -> play(intent.episode)
             is PodcastDetailIntent.Download -> downloadEpisode(intent.episode)
             is PodcastDetailIntent.CancelDownload -> cancelDownload(intent.episode.id)
             is PodcastDetailIntent.RequestDeleteDownload ->
@@ -94,33 +96,13 @@ class PodcastDetailViewModel(
         _uiState.update { it.copy(filter = filter) }
     }
 
-    private fun playEpisode(episode: Episode) {
+    private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("play_episode_from_detail", mapOf(
                 "episode_id" to episode.id,
                 "episode_title" to episode.title
             ))
-            val currentPlayerState = audioPlayer.playerState.value
-            if (currentPlayerState.currentEpisode?.id == episode.id) {
-                if (currentPlayerState.isPlaying) {
-                    audioPlayer.pause()
-                } else {
-                    audioPlayer.resume()
-                }
-                return@launch
-            }
-
-            // The episode and the newer ones after it, read from the database instead of a list kept in memory.
-            val queue = repository.getEpisodesSince(podcastId, episode.publishDate).dropWhile { it.id != episode.id }
-            val selectedEpisode = queue.firstOrNull() ?: run {
-                AppLogger.e(TAG, "Episode ${episode.id} not found in podcast $podcastId")
-                return@launch
-            }
-            val resolvedEpisode = selectedEpisode.copy(localPath = episodeDownloader.getLocalPath(selectedEpisode.id))
-
-            AppLogger.i(TAG, "Playing episode: ${resolvedEpisode.title} (Local: ${resolvedEpisode.localPath != null})")
-            audioPlayer.setQueue(queue)
-            audioPlayer.play(resolvedEpisode)
+            playEpisode(episode)
         }
     }
 

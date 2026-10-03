@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
 import androidx.lifecycle.ViewModel
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
@@ -22,11 +23,13 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeSource
 
 private const val TAG = "PlayerViewModel"
+@Suppress("LongParameterList") // restoring the session needs the repositories; it moves to PlaybackController (13.5)
 class PlayerViewModel(
     private val audioPlayer: AudioPlayer,
     private val playerRepository: PlayerRepository,
     private val podcastRepository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
+    private val playEpisode: PlayEpisodeUseCase,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics
 ) : ViewModel() {
@@ -117,8 +120,8 @@ class PlayerViewModel(
             "episode_title" to episode.title,
             "podcast_title" to episode.podcastTitle
         ))
-        val resolvedEpisode = episode.copy(localPath = episodeDownloader.getLocalPath(episode.id))
-        audioPlayer.play(resolvedEpisode)
+        // Picked from the queue: keep the queue as it is.
+        playEpisode(episode, queue = playerState.value.queue)
     }
 
     private fun pause() {

@@ -24,6 +24,7 @@ import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -53,7 +54,10 @@ class PodcastDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = PodcastDetailViewModel(podcastId, audioPlayer, refreshUseCase, episodeDownloader, repository, dispatchers, FakeAnalytics())
+    private fun createViewModel() = PodcastDetailViewModel(
+        podcastId, audioPlayer, PlayEpisodeUseCase(audioPlayer, episodeDownloader, repository), refreshUseCase,
+        episodeDownloader, repository, dispatchers, FakeAnalytics()
+    )
 
     @Test
     fun `initial state loads the podcast`() = runTest(testDispatcher) {

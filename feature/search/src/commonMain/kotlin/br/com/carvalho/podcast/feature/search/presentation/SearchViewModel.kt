@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
 import androidx.lifecycle.ViewModel
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.AppConfig
@@ -23,7 +24,8 @@ private const val TAG = "SearchViewModel"
 class SearchViewModel(
     private val repository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
-    private val audioPlayer: AudioPlayer,
+    audioPlayer: AudioPlayer,
+    private val playEpisode: PlayEpisodeUseCase,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics
 ) : ViewModel() {
@@ -50,7 +52,7 @@ class SearchViewModel(
         when (intent) {
             is SearchIntent.ChangeQuery -> _uiState.update { it.copy(searchQuery = intent.query) }
             SearchIntent.Refresh -> _refreshTrigger.value += 1
-            is SearchIntent.Play -> playEpisode(intent.episode)
+            is SearchIntent.Play -> play(intent.episode)
             is SearchIntent.Download -> downloadEpisode(intent.episode)
             is SearchIntent.CancelDownload -> cancelDownload(intent.episode.id)
             is SearchIntent.RequestDeleteDownload ->
@@ -60,24 +62,13 @@ class SearchViewModel(
         }
     }
 
-    private fun playEpisode(episode: Episode) {
+    private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent("play_episode_from_search", mapOf(
                 "episode_id" to episode.id,
                 "episode_title" to episode.title
             ))
-            val currentPlayerState = audioPlayer.playerState.value
-            if (currentPlayerState.currentEpisode?.id == episode.id) {
-                if (currentPlayerState.isPlaying) {
-                    audioPlayer.pause()
-                } else {
-                    audioPlayer.resume()
-                }
-                return@launch
-            }
-
-            audioPlayer.setQueue(listOf(episode))
-            audioPlayer.play(episode)
+            playEpisode(episode)
         }
     }
 

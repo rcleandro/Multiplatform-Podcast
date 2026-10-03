@@ -14,6 +14,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -37,7 +39,10 @@ class EpisodeDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = EpisodeDetailViewModel(episodeId, repository, audioPlayer, dispatchers, FakeAnalytics())
+    private fun createViewModel() = EpisodeDetailViewModel(
+        episodeId, repository, PlayEpisodeUseCase(audioPlayer, FakeEpisodeDownloader(), repository), dispatchers,
+        FakeAnalytics()
+    )
 
     @Test
     fun `loads episode detail on init`() = runTest(testDispatcher) {

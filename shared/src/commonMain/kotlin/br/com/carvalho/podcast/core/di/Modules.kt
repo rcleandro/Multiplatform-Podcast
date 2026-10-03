@@ -17,6 +17,7 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -63,6 +64,7 @@ val useCaseModule = module {
     singleOf(::AddPodcastFromUrlUseCase)
     singleOf(::RefreshPodcastUseCase)
     singleOf(::DeletePodcastUseCase)
+    singleOf(::PlayEpisodeUseCase)
 }
 
 val commonModules = listOf(

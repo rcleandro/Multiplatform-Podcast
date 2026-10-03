@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -36,7 +37,10 @@ class SearchViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = SearchViewModel(repository, episodeDownloader, audioPlayer, dispatchers, FakeAnalytics())
+    private fun createViewModel() = SearchViewModel(
+        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer, episodeDownloader, repository),
+        dispatchers, FakeAnalytics()
+    )
 
     @Test
     fun `initial state is correct`() = runTest(testDispatcher) {
@@ -69,6 +73,17 @@ class SearchViewModelTest {
         viewModel.onIntent(SearchIntent.Play(episode))
 
         assertEquals("1", audioPlayer.playCalledWith?.id)
+    }
+
+    @Test
+    fun `a downloaded episode played from search uses the downloaded file`() = runTest(testDispatcher) {
+        val episode = createEpisode("1", "Title 1")
+        episodeDownloader.localPaths["1"] = "/downloads/1.mp3"
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(SearchIntent.Play(episode))
+
+        assertEquals("/downloads/1.mp3", audioPlayer.playCalledWith?.localPath)
     }
 
     @Test
