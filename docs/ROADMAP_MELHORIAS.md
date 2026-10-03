@@ -673,10 +673,18 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   e só aparece em aparelho. **Falta:** no Razr 60, tocar e (1) receber uma ligação: pausa e volta ao desligar;
   (2) tocar outro app de áudio: o podcast pausa; (3) tirar o fone com fio ou desligar o Bluetooth: pausa.
 
-### 13.4 Saltos diferentes na notificação e no app ✅ — P
+### 13.4 Saltos diferentes na notificação e no app ✔ — P
 - **Problema:** o serviço fixa 30 s/15 s (`setSeekForwardIncrementMs(30000)`, `setSeekBackIncrementMs(15000)`) e o
   app usa 30 s/10 s do `AppConfig`. Os ícones do player (`Forward30`, `Replay10`) também são fixos.
 - **Ação:** um valor só, lido da configuração (e depois das Configurações, na 18.5), com ícones que acompanham o valor.
+- **Implementado:** além do Android (30/15), o iOS (`MPRemoteCommandCenter`, 30/15) e a Web (Media Session, 30/15)
+  também fixavam os saltos. Os três, mais o app, usam agora `AppConfig.SKIP_FORWARD_SECONDS`/`SKIP_BACKWARD_SECONDS`
+  (30/10). No player, `skipForwardIcon`/`skipBackwardIcon` escolhem o ícone com o número (5, 10, 30) ou uma seta
+  simples para outros valores, e os textos de acessibilidade recebem os segundos (`Avançar %1$d s`, nos três
+  idiomas). Na notificação do Android, os botões usam os ícones do Media3 por valor (`ICON_SKIP_FORWARD_30`,
+  `ICON_SKIP_BACK_10`…) no lugar do `getIdentifier` de dois drawables fixos, que foram apagados, e o texto também
+  recebe os segundos. Teste do mapeamento dos ícones em `commonTest`. Quando a 18.5 levar o valor para as
+  Configurações, basta trocar a constante pela preferência nesses quatro lugares.
 
 ### 13.5 Lógica de reprodução repetida em quatro plataformas ✅ — G
 - **Problema:** fila, próximo/anterior, laço de progresso, estado do sleep timer e montagem do `PlayerState` estão
