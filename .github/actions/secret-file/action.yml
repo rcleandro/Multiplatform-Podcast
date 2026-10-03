@@ -1,11 +1,14 @@
 name: 'secret-file'
-description: 'Writes a secret to a file, decoding it from base64 when it is not already plain JSON or plist'
+description: 'Writes a secret to a file (plain JSON/plist or base64); falls back to a placeholder when it is missing or unreadable'
 inputs:
     content:
         description: 'Secret value (plain text or base64)'
         required: true
     path:
         description: 'File to create'
+        required: true
+    placeholder:
+        description: 'File copied instead when the secret cannot be used (CI only builds and tests, Firebase is not reached)'
         required: true
 runs:
     using: "composite"
@@ -15,14 +18,28 @@ runs:
             env:
                 CONTENT: ${{ inputs.content }}
                 TARGET: ${{ inputs.path }}
+                PLACEHOLDER: ${{ inputs.placeholder }}
             run: |
+                use_placeholder() {
+                    echo "::warning::$1 Using the placeholder $PLACEHOLDER for $TARGET."
+                    cp "$PLACEHOLDER" "$TARGET"
+                }
                 if [ -z "$CONTENT" ]; then
-                    echo "Secret for $TARGET is empty; skipping."
+                    use_placeholder "Secret for $TARGET is empty."
                     exit 0
                 fi
-                first=$(printf '%s' "$CONTENT" | sed -e 's/^[[:space:]]*//' | head -c 1)
+                # Leading whitespace, newlines and a UTF-8 byte order mark are ignored when looking at the format.
+                trimmed=$(printf '%s' "$CONTENT" | sed -e '1s/^\xEF\xBB\xBF//' | tr -d '\r' | sed -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//')
+                first=$(printf '%s' "$trimmed" | head -c 1)
                 if [ "$first" = "{" ] || [ "$first" = "<" ]; then
-                    printf '%s' "$CONTENT" > "$TARGET"
+                    printf '%s\n' "$trimmed" > "$TARGET"
+                elif printf '%s' "$trimmed" | tr -d '[:space:]' | base64 --decode > "$TARGET" 2>/dev/null; then
+                    echo "Decoded $TARGET from base64."
                 else
-                    printf '%s' "$CONTENT" | base64 --decode > "$TARGET"
+                    case "$first" in
+                        [A-Za-z0-9]) kind="a letter or digit" ;;
+                        '"'|"'") kind="a quote" ;;
+                        *) kind="another symbol" ;;
+                    esac
+                    use_placeholder "Secret for $TARGET is neither JSON/plist nor base64 (${#CONTENT} characters, starts with $kind)."
                 fi
