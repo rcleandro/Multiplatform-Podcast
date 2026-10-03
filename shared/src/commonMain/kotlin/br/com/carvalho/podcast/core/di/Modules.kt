@@ -17,17 +17,16 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
-import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesViewModel
-import br.com.carvalho.podcast.feature.search.presentation.SearchViewModel
-import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewModel
-import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailViewModel
-import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
-import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.module.dsl.singleOf
-import org.koin.core.module.dsl.viewModelOf
+import br.com.carvalho.podcast.feature.library.libraryFeatureModule
+import br.com.carvalho.podcast.feature.podcast.podcastFeatureModule
+import br.com.carvalho.podcast.feature.episode.episodeFeatureModule
+import br.com.carvalho.podcast.feature.search.searchFeatureModule
+import br.com.carvalho.podcast.feature.downloads.downloadsFeatureModule
+import br.com.carvalho.podcast.feature.player.playerFeatureModule
 import org.koin.dsl.module
 
 val dispatcherModule = module {
@@ -66,20 +65,16 @@ val useCaseModule = module {
     singleOf(::DeletePodcastUseCase)
 }
 
-val viewModelModule = module {
-    viewModelOf(::PlayerViewModel)
-    viewModelOf(::LibraryViewModel)
-    viewModelOf(::PodcastDetailViewModel)
-    viewModelOf(::EpisodeDetailViewModel)
-    viewModelOf(::SearchViewModel)
-    viewModelOf(::DownloadedEpisodesViewModel)
-}
-
 val commonModules = listOf(
     dispatcherModule,
     networkModule,
     databaseModule,
     repositoryModule,
     useCaseModule,
-    viewModelModule
+    libraryFeatureModule,
+    podcastFeatureModule,
+    episodeFeatureModule,
+    searchFeatureModule,
+    downloadsFeatureModule,
+    playerFeatureModule
 )

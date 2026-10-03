@@ -19,5 +19,9 @@ gradlePlugin {
             id = "podcast.kmp.compose"
             implementationClass = "KmpComposeConventionPlugin"
         }
+        register("feature") {
+            id = "podcast.feature"
+            implementationClass = "FeatureConventionPlugin"
+        }
     }
 }
