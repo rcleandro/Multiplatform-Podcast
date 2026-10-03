@@ -17,7 +17,6 @@ import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.analytics.Analytics
-import br.com.carvalho.podcast.core.performance.Performance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
@@ -73,19 +72,14 @@ class LibraryViewModel(
     fun onRefreshAll() {
         viewModelScope.launch(dispatchers.io) {
             Analytics.logEvent("refresh_all_podcasts")
-            val trace = Performance.startTrace("refresh_all_podcasts_trace")
             _uiState.update { it.copy(isRefreshing = true) }
             AppLogger.i(TAG, "Refreshing all podcasts")
             try {
                 refreshPodcastUseCase.refreshAll()
-                trace.putAttribute("status", "success")
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error refreshing all podcasts", e)
-                trace.putAttribute("status", "error")
-                trace.putAttribute("error_message", e.message ?: "unknown")
                 _uiState.update { it.copy(error = Res.string.error_refresh_podcasts) }
             } finally {
-                trace.stop()
                 _uiState.update { it.copy(isRefreshing = false) }
             }
         }
@@ -111,20 +105,14 @@ class LibraryViewModel(
 
         viewModelScope.launch(dispatchers.io) {
             Analytics.logEvent("add_podcast_attempt", mapOf("url" to finalUrl))
-            val trace = Performance.startTrace("add_podcast_trace")
-            trace.putAttribute("url", finalUrl)
-            
             _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false, error = null) }
             AppLogger.i(TAG, "Adding podcast from URL: $finalUrl")
             try {
                 addPodcastUseCase(finalUrl).onSuccess {
                     Analytics.logEvent("add_podcast_success", mapOf("url" to finalUrl))
-                    trace.putAttribute("status", "success")
                 }.onFailure { e ->
                     AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
                     Analytics.logEvent("add_podcast_failure", mapOf("url" to finalUrl, "error" to e.message))
-                    trace.putAttribute("status", "failure")
-                    trace.putAttribute("error_message", e.message ?: "unknown")
                     _uiState.update {
                         it.copy(
                             error = if (e is PodcastError.AlreadyExists) {
@@ -137,11 +125,8 @@ class LibraryViewModel(
                 }
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Unexpected error adding podcast", e)
-                trace.putAttribute("status", "error")
-                trace.putAttribute("error_message", e.message ?: "unknown")
                 _uiState.update { it.copy(error = Res.string.error_unexpected) }
             } finally {
-                trace.stop()
                 _uiState.update { it.copy(isRefreshing = false, addUrl = "") }
             }
         }

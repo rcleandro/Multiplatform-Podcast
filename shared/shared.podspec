@@ -13,7 +13,6 @@ Pod::Spec.new do |spec|
     spec.dependency 'FirebaseCore', '~> 11.0'
     spec.dependency 'FirebaseCrashlytics', '~> 11.0'
     spec.dependency 'FirebaseInstallations', '~> 11.0'
-    spec.dependency 'FirebasePerformance', '~> 11.0'
     spec.dependency 'GoogleUtilities', '~> 8.0'
     spec.dependency 'PromisesObjC', '~> 2.0'
     spec.dependency 'nanopb', '~> 3.0'

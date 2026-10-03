@@ -17,7 +17,6 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
 import br.com.carvalho.podcast.core.analytics.Analytics
-import br.com.carvalho.podcast.core.performance.Performance
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -73,19 +72,13 @@ class PodcastDetailViewModel(
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch(dispatchers.io) {
             Analytics.logEvent("refresh_podcast_detail", mapOf("podcast_id" to podcastId))
-            val trace = Performance.startTrace("refresh_podcast_detail_trace")
-            trace.putAttribute("podcast_id", podcastId)
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
             try {
                 refreshPodcastUseCase(podcastId)
-                trace.putAttribute("status", "success")
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
-                trace.putAttribute("status", "error")
-                trace.putAttribute("error_message", e.message ?: "unknown")
                 _uiState.update { it.copy(error = Res.string.error_refresh_episodes) }
             } finally {
-                trace.stop()
                 _uiState.update { it.copy(isLoading = false) }
             }
         }

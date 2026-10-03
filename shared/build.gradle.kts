@@ -45,9 +45,6 @@ kotlin {
         pod("FirebaseCrashlytics") {
             version = "~> 11.0"
         }
-        pod("FirebasePerformance") {
-            version = "~> 11.0"
-        }
         pod("FirebaseCore") {
             version = "~> 11.0"
         }
@@ -143,7 +140,6 @@ kotlin {
             implementation(libs.firebase.common)
             implementation(libs.firebase.analytics)
             implementation(libs.firebase.crashlytics)
-            implementation(libs.firebase.performance)
         }
 
         val iosMain by getting {
