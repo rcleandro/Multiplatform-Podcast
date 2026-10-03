@@ -23,7 +23,14 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
+        val nonAndroidMain by creating { dependsOn(commonMain.get()) }
+        iosMain.get().dependsOn(nonAndroidMain)
+        wasmJsMain.get().dependsOn(nonAndroidMain)
+        val desktopMain by getting { dependsOn(nonAndroidMain) }
+
         commonMain.dependencies {
             api(libs.runtime)
             api(libs.foundation)

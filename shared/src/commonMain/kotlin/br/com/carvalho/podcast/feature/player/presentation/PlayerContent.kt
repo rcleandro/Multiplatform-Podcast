@@ -23,7 +23,6 @@ import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.core.designsystem.component.ArtworkBackdrop
 import br.com.carvalho.podcast.core.designsystem.component.PlayPauseButton
 import br.com.carvalho.podcast.core.designsystem.component.PlayerSlider
 import br.com.carvalho.podcast.core.designsystem.component.PodcastArtwork
@@ -72,7 +72,7 @@ data class PlayerActions(
 /** Stateless full-screen player. */
 @Composable
 fun PlayerContent(state: PlayerState, actions: PlayerActions, modifier: Modifier = Modifier) {
-    Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    ArtworkBackdrop(imageUrl = state.currentEpisode?.imageUrl, modifier = modifier.fillMaxSize()) {
         Column {
             PodcastTopBar(
                 navigationIcon = Icons.Rounded.KeyboardArrowDown,

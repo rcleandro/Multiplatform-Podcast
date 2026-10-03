@@ -278,10 +278,22 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   (biblioteca, busca, downloads vazio e player). **Fica para a 11.10:** o `RootContent` não foi reestruturado (só
   usa `MaterialTheme`); o botão de atualizar da busca saiu (ela atualiza ao abrir).
 
-### 9.10 Cor dinâmica pela capa (opcional) 🔎 — M
+### 9.10 Cor dinâmica pela capa (opcional) ✔ — M
 - **Ação:** extrair a cor dominante da capa (amostragem dos pixels do bitmap que o Coil já carrega, sem dependência
   nova) e aplicar no fundo do player e no topo do detalhe, com fallback para a cor de marca quando o contraste não
   atingir AA. A função de extração é pura e testada.
+
+- **Implementado:** `dominantColor(pixels)` (média dos pixels com cor; cinzas, brancos e quase-pretos ficam de fora;
+  `null` se menos de 5% tiver cor) e `artworkTint(dominante, fundo, texto)` (mistura 35%, depois 20%, e desiste se o
+  texto cair abaixo de 4,5:1), ambas puras e com `ArtworkColorTest`. `rememberArtworkColor(url)` pede ao Coil a
+  mesma capa em 32×32 (aproveita o cache), desenha o `painter` num `ImageBitmap` e lê os pixels, só com APIs comuns
+  do Compose. `ArtworkBackdrop` aplica o degradê (cor da capa no topo → fundo, entrando com `Motion.LONG`) e é
+  usado pelo player, sem `Color` na tela. **Achados no aparelho:** (1) no Android o Coil entrega bitmap de hardware,
+  que não pode ser desenhado num canvas de software, e o app fechava ao abrir o player: a amostragem pede
+  `allowHardware(false)` (`expect/actual`, porque a opção só existe no Android) e roda em `runCatching`, já que a
+  cor é decorativa; (2) a primeira versão excluía pixels muito claros e descartava o ciano vivo da capa de teste, o
+  limite superior saiu (o branco já cai pelo filtro de saturação), com caso novo no teste. Conferido no Razr 60:
+  degradê azul-petróleo no player de um episódio com capa ciano. iOS, Desktop e Web só compilam aqui.
 
 ### 9.11 Snapshot tests ✅ — M
 - **Ação:** Roborazzi em `androidHostTest` do `:core:designsystem`, com cada componente em claro e escuro e com
