@@ -176,6 +176,7 @@ kotlin {
             dependencies {
                 implementation(libs.mockk)
                 implementation(libs.androidx.sqlite.bundled.jvm)
+                implementation(libs.koin.test)
             }
         }
 
