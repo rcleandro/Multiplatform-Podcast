@@ -20,8 +20,8 @@
     <string name="pause">Pausar</string>
     <string name="next">Próximo</string>
     <string name="previous">Anterior</string>
-    <string name="skip_forward">Avançar 30s</string>
-    <string name="skip_backward">Voltar 10s</string>
+    <string name="skip_forward">Avançar %1$d s</string>
+    <string name="skip_backward">Voltar %1$d s</string>
     <string name="search">Buscar</string>
     <string name="clear">Limpar</string>
     <string name="refresh">Atualizar</string>

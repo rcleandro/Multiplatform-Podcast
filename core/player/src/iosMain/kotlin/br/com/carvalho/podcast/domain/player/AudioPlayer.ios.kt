@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.player
 
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -72,16 +73,16 @@ class IosAudioPlayer : AudioPlayer {
         }
 
         remoteCommandCenter.skipForwardCommand.enabled = true
-        remoteCommandCenter.skipForwardCommand.preferredIntervals = listOf(30.0)
+        remoteCommandCenter.skipForwardCommand.preferredIntervals = listOf(AppConfig.SKIP_FORWARD_SECONDS.toDouble())
         remoteCommandCenter.skipForwardCommand.addTargetWithHandler {
-            skipForward(30)
+            skipForward(AppConfig.SKIP_FORWARD_SECONDS)
             MPRemoteCommandHandlerStatusSuccess
         }
 
         remoteCommandCenter.skipBackwardCommand.enabled = true
-        remoteCommandCenter.skipBackwardCommand.preferredIntervals = listOf(15.0)
+        remoteCommandCenter.skipBackwardCommand.preferredIntervals = listOf(AppConfig.SKIP_BACKWARD_SECONDS.toDouble())
         remoteCommandCenter.skipBackwardCommand.addTargetWithHandler {
-            skipBackward(15)
+            skipBackward(AppConfig.SKIP_BACKWARD_SECONDS)
             MPRemoteCommandHandlerStatusSuccess
         }
     }

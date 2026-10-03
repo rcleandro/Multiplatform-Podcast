@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.player
 
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.player.setupMediaSessionActions
 import br.com.carvalho.podcast.core.player.updateMediaSessionMetadata
 import br.com.carvalho.podcast.core.player.updateMediaSessionPlaybackState
@@ -49,8 +50,8 @@ class WasmAudioPlayer : AudioPlayer {
         setupMediaSessionActions(
             onPlay = { resume() },
             onPause = { pause() },
-            onSeekBackward = { skipBackward(15) },
-            onSeekForward = { skipForward(30) },
+            onSeekBackward = { skipBackward(AppConfig.SKIP_BACKWARD_SECONDS) },
+            onSeekForward = { skipForward(AppConfig.SKIP_FORWARD_SECONDS) },
             onPreviousTrack = { playPrevious() },
             onNextTrack = { playNext() }
         )

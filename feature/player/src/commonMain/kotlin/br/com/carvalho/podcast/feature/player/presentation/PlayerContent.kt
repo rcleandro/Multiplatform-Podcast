@@ -17,9 +17,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
+import androidx.compose.material.icons.rounded.Forward10
 import androidx.compose.material.icons.rounded.Forward30
+import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Replay10
+import androidx.compose.material.icons.rounded.Replay30
+import androidx.compose.material.icons.rounded.Replay5
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Speed
@@ -35,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
@@ -145,14 +152,22 @@ private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
             onClick = actions.onPrevious,
             enabled = currentIndex > 0,
         )
-        ControlButton(Icons.Rounded.Replay10, stringResource(Res.string.skip_backward), actions.onSkipBackward)
+        ControlButton(
+            icon = skipBackwardIcon(AppConfig.SKIP_BACKWARD_SECONDS),
+            label = stringResource(Res.string.skip_backward, AppConfig.SKIP_BACKWARD_SECONDS),
+            onClick = actions.onSkipBackward,
+        )
         PlayPauseButton(
             isPlaying = state.isPlaying,
             isLoading = state.isBuffering,
             onClick = actions.onPlayPause,
             size = Sizes.playButtonLarge,
         )
-        ControlButton(Icons.Rounded.Forward30, stringResource(Res.string.skip_forward), actions.onSkipForward)
+        ControlButton(
+            icon = skipForwardIcon(AppConfig.SKIP_FORWARD_SECONDS),
+            label = stringResource(Res.string.skip_forward, AppConfig.SKIP_FORWARD_SECONDS),
+            onClick = actions.onSkipForward,
+        )
         ControlButton(
             icon = Icons.Rounded.SkipNext,
             label = stringResource(Res.string.next),
@@ -209,3 +224,22 @@ private fun AuxButton(icon: ImageVector, label: String, description: String?, ac
         }
     }
 }
+
+/** The icon with the jump's number when Material has one (5, 10, 30 s); a plain arrow otherwise. */
+internal fun skipForwardIcon(seconds: Int): ImageVector = when (seconds) {
+    SHORT_JUMP -> Icons.Rounded.Forward5
+    MEDIUM_JUMP -> Icons.Rounded.Forward10
+    LONG_JUMP -> Icons.Rounded.Forward30
+    else -> Icons.Rounded.FastForward
+}
+
+internal fun skipBackwardIcon(seconds: Int): ImageVector = when (seconds) {
+    SHORT_JUMP -> Icons.Rounded.Replay5
+    MEDIUM_JUMP -> Icons.Rounded.Replay10
+    LONG_JUMP -> Icons.Rounded.Replay30
+    else -> Icons.Rounded.FastRewind
+}
+
+private const val SHORT_JUMP = 5
+private const val MEDIUM_JUMP = 10
+private const val LONG_JUMP = 30

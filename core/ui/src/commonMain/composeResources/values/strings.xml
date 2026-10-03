@@ -22,8 +22,8 @@
     <string name="pause">Pause</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
-    <string name="skip_forward">Skip 30s</string>
-    <string name="skip_backward">Skip 10s</string>
+    <string name="skip_forward">Skip forward %1$d s</string>
+    <string name="skip_backward">Skip back %1$d s</string>
     <string name="search">Search</string>
     <string name="clear">Clear</string>
     <string name="refresh">Refresh</string>
