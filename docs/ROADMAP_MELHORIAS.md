@@ -630,13 +630,22 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
 
 **Objetivo:** reprodução confiável e com o mesmo comportamento em todas as plataformas, com a lógica num lugar só.
 
-### 13.1 Progresso não é salvo durante a reprodução ✅ — P
+### 13.1 Progresso não é salvo durante a reprodução ✔ — P
 - **Problema:** `PlayerViewModel` usa `playerState.filter { it.isPlaying }.debounce(2000)`, e os quatro players
   atualizam a posição a cada 500 ms. O `debounce` só emite depois de 2 s sem mudanças, o que nunca acontece enquanto
   o áudio toca. O progresso só é salvo quando o usuário pausa; se o app morrer ou o sistema matar o processo, perde-se tudo.
 - **Ação:** `sample(intervalo)` no lugar de `debounce`, mais um salvamento ao pausar, trocar de episódio e ir para background.
 - **Teste:** com `FakeAudioPlayer` emitindo a cada 500 ms em tempo virtual, exigir pelo menos um salvamento a cada intervalo.
   **Pode ser antecipado**, junto com o 12.1.
+- **Implementado:** nem `debounce` nem `sample`. O `sample` resolvia, mas o timer dele roda para sempre no
+  `viewModelScope`, mesmo pausado, e travava todo teste que cria o ViewModel (o `runTest` avança o tempo virtual sem
+  fim). Ficou um `distinctUntilChanged` que emite quando a posição andou `PLAYBACK_SAVE_INTERVAL_MS` (5 s, no lugar
+  de `PLAYBACK_SAVE_DEBOUNCE_MS`) desde o último salvamento ou quando o episódio muda: sem relógio, salva também
+  depois de um salto e, a 2x, a cada 2,5 s de relógio. O salvamento ao pausar já existia. Não entrou um salvamento
+  extra ao ir para o background nem na troca de episódio: com o intervalo de 5 s, o máximo perdido ao matar o
+  processo é 5 s, e o `PlaybackController` (13.5) vai concentrar esses eventos. Teste com o `FakeAudioPlayer`
+  andando a cada 500 ms por um minuto de tempo virtual: pelo menos 10 salvamentos, o último a menos de 5 s do fim.
+  No código antigo, foram 0.
 
 ### 13.2 Player singleton liberado pelo ViewModel ✅ / 🔎 — M
 - **Problema:** `PlayerViewModel.onCleared()` chama `audioPlayer.release()` no player singleton do Koin. No Android,
