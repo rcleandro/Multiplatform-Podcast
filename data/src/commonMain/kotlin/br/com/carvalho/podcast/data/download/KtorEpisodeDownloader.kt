@@ -27,11 +27,10 @@ private const val TAG = "KtorEpisodeDownloader"
 open class KtorEpisodeDownloader(
     private val httpClient: HttpClient,
     private val episodeDao: EpisodeDao,
-    directories: AppDirectories,
+    private val directories: AppDirectories,
     ioDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : EpisodeDownloader {
     private val fileSystem = directories.fileSystem
-    private val baseDir = directories.baseDir
 
     private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
 
@@ -64,12 +63,8 @@ open class KtorEpisodeDownloader(
                     return@launch
                 }
 
-                val fileName = "${episode.id}.mp3"
-                val destPath = baseDir / "downloads" / fileName
-
-                if (!fileSystem.exists(baseDir / "downloads")) {
-                    fileSystem.createDirectories(baseDir / "downloads")
-                }
+                val destPath = directories.downloadPath(episode.id)
+                fileSystem.createDirectories(directories.downloadsDir)
 
                 val channel = response.bodyAsChannel()
                 val sink = fileSystem.sink(destPath).buffer()
@@ -115,8 +110,7 @@ open class KtorEpisodeDownloader(
         downloadJobs[episodeId]?.cancel()
         downloadJobs.remove(episodeId)
 
-        val fileName = "${episodeId}.mp3"
-        val destPath = baseDir / "downloads" / fileName
+        val destPath = directories.downloadPath(episodeId)
         if (fileSystem.exists(destPath)) {
             fileSystem.delete(destPath)
         }
@@ -126,8 +120,7 @@ open class KtorEpisodeDownloader(
     }
 
     override suspend fun delete(episodeId: String) {
-        val fileName = "${episodeId}.mp3"
-        val destPath = baseDir / "downloads" / fileName
+        val destPath = directories.downloadPath(episodeId)
 
         withContext(Dispatchers.Default) {
             try {
@@ -149,8 +142,7 @@ open class KtorEpisodeDownloader(
     }
 
     override fun getLocalPath(episodeId: String): String? {
-        val fileName = "${episodeId}.mp3"
-        val destPath = baseDir / "downloads" / fileName
+        val destPath = directories.downloadPath(episodeId)
         return if (fileSystem.exists(destPath)) destPath.toString() else null
     }
 

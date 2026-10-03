@@ -14,8 +14,9 @@ import br.com.carvalho.podcast.data.local.entity.PlaybackStateEntity
 
 @Database(
     entities = [PodcastEntity::class, EpisodeEntity::class, PlaybackStateEntity::class],
-    version = 3,
+    version = 4,
     // Every schema change ships a migration and a MigrationTest case; there is no destructive fallback.
+    // 3 → 4 is EpisodeIdMigration, added by each platform's createAppDatabase.
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),

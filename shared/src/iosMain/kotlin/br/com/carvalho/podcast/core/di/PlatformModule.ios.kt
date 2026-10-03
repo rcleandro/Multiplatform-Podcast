@@ -17,7 +17,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 
 actual val platformModule = module {
-    single(createdAtStart = true) { createAppDatabase() }
+    single(createdAtStart = true) { createAppDatabase(get()) }
     single<AudioPlayer> { IosAudioPlayer() }
     single { AppDirectories(FileSystem.SYSTEM, documentsDirectory()) }
     single<Analytics> { FirebaseAnalytics() }

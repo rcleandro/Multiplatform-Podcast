@@ -1,12 +1,36 @@
 package br.com.carvalho.podcast.data.mapper
 
+import br.com.carvalho.podcast.data.remote.RssXmlParser
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class RssMapperTest {
+
+    @Test
+    fun `episodes without a guid but with the same title get different ids`() {
+        val feed = RssXmlParser.parse(
+            "<rss><channel><title>P</title>" +
+                "<item><title>Trailer</title><enclosure url=\"https://a/1.mp3\"/></item>" +
+                "<item><title>Trailer</title><enclosure url=\"https://a/2.mp3\"/></item>" +
+                "</channel></rss>"
+        )
+
+        val ids = feed.episodes.map { it.toEpisode("https://feed").id }
+
+        assertNotEquals(ids[0], ids[1])
+    }
+
+    @Test
+    fun `the same guid in two feeds gives two ids`() {
+        val feed = RssXmlParser.parse("<rss><channel><item><guid>ep1</guid><title>E</title></item></channel></rss>")
+        val episode = feed.episodes.single()
+
+        assertNotEquals(episode.toEpisode("https://feed-a").id, episode.toEpisode("https://feed-b").id)
+    }
 
     @Test
     fun `RssFeed toPodcast maps correctly`() {
@@ -49,7 +73,6 @@ class RssMapperTest {
 
         val episode = rssEpisode.toEpisode("podcast_id", "Podcast Title")
 
-        assertEquals("guid_123", episode.id)
         assertEquals("podcast_id", episode.podcastId)
         assertEquals("Podcast Title", episode.podcastTitle)
         assertEquals(5400L, episode.duration)

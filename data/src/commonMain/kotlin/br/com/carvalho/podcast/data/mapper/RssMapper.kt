@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.data.mapper
 
 import io.ktor.http.Url
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.episodeId
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
@@ -30,7 +31,7 @@ fun RssFeed.toPodcast(feedUrl: String): Podcast = Podcast(
 
 
 fun RssEpisode.toEpisode(podcastId: String, podcastTitle: String? = null): Episode = Episode(
-    id = guid,
+    id = episodeId(podcastId, guid, enclosureUrl),
     podcastId = podcastId,
     podcastTitle = podcastTitle,
     title = title,

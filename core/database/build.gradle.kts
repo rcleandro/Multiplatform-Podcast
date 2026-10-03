@@ -12,7 +12,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":core:common"))
             implementation(project(":core:observability"))
+            implementation(libs.kotlinx.serialization)
             api(libs.room3.runtime)
             implementation(libs.kotlinx.coroutines.core)
         }
@@ -30,6 +32,7 @@ kotlin {
         val desktopTest by getting {
             dependencies {
                 implementation(libs.room3.testing)
+                implementation(libs.okio.fakefilesystem)
             }
         }
         wasmJsMain.dependencies {
