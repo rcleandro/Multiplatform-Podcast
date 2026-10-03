@@ -408,7 +408,7 @@ lixo no git; módulos configurados só por convention plugins.
 **Objetivo:** trocar o módulo único por módulos com fronteiras verificadas pelo build, deixar o domínio puro e
 injetar tudo que hoje é global.
 
-### 11.1 Grafo de módulos alvo ✅ — P
+### 11.1 Grafo de módulos alvo ✔ — P
 Registrado na **ADR 0003 — Grafo de módulos**:
 
 ```
@@ -432,6 +432,13 @@ androidApp  desktopApp  webApp  iosApp
 Regras: uma `feature` depende só de `domain`, `core:designsystem` e `core:common`, nunca de outra feature nem de
 `data`, `database` ou `network`. `data` depende de `domain`, `core:database` e `core:network`. `domain` não depende
 de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
+
+- **Implementado:** [ADR 0003](adr/0003-grafo-de-modulos.md) com o grafo (14 módulos), a tabela de dependências
+  permitidas e quatro decisões: Firebase fica no `:shared` (onde estão os pods) e `:core:observability` só tem
+  interfaces; `PagingData` aceito no domínio (biblioteca KMP sem Android); estabilidade do Compose por arquivo de
+  configuração, não por anotação no domínio; `:core:ui` com os textos e a apresentação que várias features dividem.
+  Ajuste em relação ao rascunho acima: `:core:ui` entrou (as telas leem textos do `Res` do `:shared`, que precisa
+  ir para algum lugar comum) e `:core:observability` deixou de ter as implementações Firebase.
 
 ### 11.2 Domínio puro ✅ — M
 - **Problema:** `AddPodcastFromUrlUseCase` e `RefreshPodcastUseCase` importam `data.mapper` e `data.remote.RssFeedDataSource`;
