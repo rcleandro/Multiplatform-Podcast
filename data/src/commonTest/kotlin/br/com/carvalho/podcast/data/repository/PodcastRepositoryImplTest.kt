@@ -5,6 +5,7 @@ import br.com.carvalho.podcast.data.local.createInMemoryDatabase
 import br.com.carvalho.podcast.data.local.isDatabaseSupported
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.data.mapper.toDomain
 import br.com.carvalho.podcast.domain.model.Podcast
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -175,6 +176,25 @@ class PodcastRepositoryImplTest {
 
         assertEquals(1, results.size)
         assertEquals("e1", results[0].id)
+    }
+
+    @Test
+    fun `saving a feed again updates the episode text but keeps what the user did`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(
+            listOf(episodeEntity.copy(isPlayed = true, playbackPosition = 500L, isDownloaded = true))
+        )
+        val fromFeed = episodeEntity.toDomain().copy(title = "Ep 1 (fixed)", audioUrl = "audio-v2")
+
+        repository.saveEpisodes(listOf(fromFeed))
+
+        val saved = database.episodeDao().getById("e1")!!
+        assertEquals("Ep 1 (fixed)", saved.title)
+        assertEquals("audio-v2", saved.audioUrl)
+        assertTrue(saved.isPlayed)
+        assertEquals(500L, saved.playbackPosition)
+        assertTrue(saved.isDownloaded)
     }
 
     private fun assertTrue(condition: Boolean) {

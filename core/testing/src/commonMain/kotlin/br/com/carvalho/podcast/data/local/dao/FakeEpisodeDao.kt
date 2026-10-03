@@ -28,7 +28,30 @@ class FakeEpisodeDao : EpisodeDao {
         episodes.value.filter { it.matches(query) }.drop(offset).take(limit)
 
     override suspend fun insertAll(episodes: List<EpisodeEntity>) {
-        this.episodes.value = this.episodes.value + episodes
+        val known = this.episodes.value.map { it.id }.toSet()
+        this.episodes.value = this.episodes.value + episodes.filter { it.id !in known }
+    }
+
+    override suspend fun updateFeedFields(
+        id: String,
+        podcastTitle: String?,
+        title: String,
+        description: String?,
+        audioUrl: String,
+        imageUrl: String?,
+        duration: Long,
+        publishDate: Long,
+    ) {
+        episodes.value = episodes.value.map {
+            if (it.id != id) {
+                it
+            } else {
+                it.copy(
+                    podcastTitle = podcastTitle, title = title, description = description, audioUrl = audioUrl,
+                    imageUrl = imageUrl, duration = duration, publishDate = publishDate,
+                )
+            }
+        }
     }
 
     override suspend fun exists(id: String): Boolean = episodes.value.any { it.id == id }

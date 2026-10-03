@@ -47,6 +47,38 @@ interface EpisodeDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(episodes: List<EpisodeEntity>)
 
+    @Query("""
+        UPDATE episodes
+        SET podcastTitle = :podcastTitle, title = :title, description = :description, audioUrl = :audioUrl,
+            imageUrl = :imageUrl, duration = :duration, publishDate = :publishDate
+        WHERE id = :id
+    """)
+    @Suppress("LongParameterList") // one parameter per column the feed owns
+    suspend fun updateFeedFields(
+        id: String,
+        podcastTitle: String?,
+        title: String,
+        description: String?,
+        audioUrl: String,
+        imageUrl: String?,
+        duration: Long,
+        publishDate: Long,
+    )
+
+    /**
+     * Saves episodes read from a feed: new ones are inserted, known ones get the feed's text, audio and dates while
+     * keeping what the user did (played, position, downloaded).
+     */
+    @Transaction
+    suspend fun saveFromFeed(episodes: List<EpisodeEntity>) {
+        insertAll(episodes)
+        episodes.forEach {
+            updateFeedFields(
+                it.id, it.podcastTitle, it.title, it.description, it.audioUrl, it.imageUrl, it.duration, it.publishDate
+            )
+        }
+    }
+
     @Query("SELECT EXISTS(SELECT 1 FROM episodes WHERE id = :id)")
     suspend fun exists(id: String): Boolean
 

@@ -94,7 +94,7 @@ class PodcastRepositoryImpl(
 
     override suspend fun saveEpisodes(episodes: List<Episode>) {
         AppLogger.d(TAG, "Saving ${episodes.size} episodes")
-        episodeDao.insertAll(episodes.map { it.toEntity() })
+        episodeDao.saveFromFeed(episodes.map { it.toEntity() })
     }
 
     override suspend fun deletePodcast(id: String) {
