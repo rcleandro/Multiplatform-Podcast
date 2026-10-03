@@ -67,6 +67,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core:common"))
             implementation(project(":core:designsystem"))
+            implementation(project(":core:observability"))
 
             // Compose
             implementation(libs.runtime)
@@ -190,6 +191,7 @@ kotlin {
         }
 
         commonTest.dependencies {
+            implementation(project(":core:testing"))
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)

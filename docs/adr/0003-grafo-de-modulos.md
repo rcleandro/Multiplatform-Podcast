@@ -44,7 +44,7 @@ Regras, verificadas no build pela 11.5:
 | `:core:player` | `:domain`, `:core:common`, `:core:observability` |
 | `:data` | `:domain`, `:core:database`, `:core:network`, `:core:common`, `:core:observability` |
 | `:feature:*` | `:domain`, `:core:ui`, `:core:designsystem`, `:core:common`, `:core:observability` — **nunca** outra feature, `:data`, `:core:database`, `:core:network` ou `:core:player` |
-| `:core:testing` | `:domain`, `:core:common` (só em `commonTest`) |
+| `:core:testing` | `:domain`, `:core:common`, `:core:observability` (só em `commonTest`) |
 | `:shared` | todos |
 
 Decisões menores:
