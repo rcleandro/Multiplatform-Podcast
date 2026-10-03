@@ -17,7 +17,7 @@ and the work plan in [docs/ROADMAP_MELHORIAS.md](docs/ROADMAP_MELHORIAS.md) (pha
 The pre-commit hook in `config/hooks` runs these; enable it once per clone with
 `git config core.hooksPath config/hooks`.
 
-`./gradlew :shared:detekt :shared:desktopTest` must pass (rule inherited from `GEMINI.md`). Do not commit with Detekt
+`./gradlew detekt checkModuleDependencies desktopTest` must pass (rule inherited from `GEMINI.md`). Do not commit with Detekt
 violations unless the user explicitly allows it. After touching platform code, also build the affected app
 (`:androidApp:assembleDebug`, `:desktopApp:compileKotlinJvm`, `:webApp:wasmJsBrowserDistribution`,
 `:shared:iosSimulatorArm64Test`).

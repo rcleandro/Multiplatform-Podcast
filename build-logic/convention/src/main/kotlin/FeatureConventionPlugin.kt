@@ -1,5 +1,7 @@
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.GradleException
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
@@ -9,9 +11,10 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 /**
  * A feature module: Compose UI plus what every screen uses. Only the modules ADR 0003 allows are added here;
  * the module still declares `kotlin { android { namespace = "…" } }`.
+ * `checkModuleDependencies` (run by `check`) fails if the module depends on another feature or on a data layer module.
  */
 class FeatureConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) = with(target) {
+    override fun apply(target: Project): Unit = with(target) {
         pluginManager.apply("podcast.kmp.library")
         pluginManager.apply("podcast.kmp.compose")
         val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
@@ -38,5 +41,33 @@ class FeatureConventionPlugin : Plugin<Project> {
                 implementation(ComposePlugin.DesktopDependencies.currentOs)
             }
         }
+
+        val forbidden = provider {
+            configurations.flatMap { configuration ->
+                configuration.dependencies.withType(ProjectDependency::class.java)
+                    .map { it.path }
+                    .filter { it.startsWith(":feature:") || it in DATA_LAYER_MODULES }
+                    .map { "${configuration.name} -> $it" }
+            }.distinct()
+        }
+        val checkModuleDependencies = tasks.register("checkModuleDependencies") {
+            group = "verification"
+            description = "Fails if this feature depends on another feature or on a data layer module (ADR 0003)."
+            val modulePath = target.path
+            inputs.property("forbidden", forbidden)
+            doLast {
+                val violations = forbidden.get()
+                if (violations.isNotEmpty()) {
+                    throw GradleException(
+                        "$modulePath breaks ADR 0003, features may not depend on:\n" + violations.joinToString("\n")
+                    )
+                }
+            }
+        }
+        tasks.named("check") { dependsOn(checkModuleDependencies) }
+    }
+
+    private companion object {
+        val DATA_LAYER_MODULES = setOf(":data", ":core:database", ":core:network", ":core:player")
     }
 }
