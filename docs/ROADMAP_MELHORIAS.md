@@ -96,7 +96,7 @@ passam a usar só o design system.
   `docs/podcast-design-system.html` mostra cores, contraste do tema atual, tipografia, medidas, movimento, os
   componentes da 9.6 com seus estados e as telas de biblioteca e player, com seletor de tema.
 
-### 9.2 Módulo `:core:designsystem` ✅ — M
+### 9.2 Módulo `:core:designsystem` ✔ — M
 - **Problema:** o design system mora dentro do `:shared`, misturado com regras de negócio, e os componentes de UI
   ficam em `presentation/component`, fora dele.
 - **Ação:** criar o módulo KMP `:core:designsystem` (Android, iOS, Desktop, Wasm) com tema, tokens, fontes, ícones,
@@ -104,6 +104,15 @@ passam a usar só o design system.
   passa a depender dele.
 - **Atenção:** a task `syncComposeResourcesForAndroid` (necessária no AGP 9) precisa valer também para o módulo novo.
   Ela vai para o convention plugin da 10.3, em vez de ser copiada.
+- **Implementado:** módulo `core/designsystem` (Android, Desktop, Wasm, iosArm64, iosSimulatorArm64) com o tema atual
+  (`Color.kt`, `Type.kt`, `Shape.kt`, `Dimensions.kt`, `Theme.kt`) movido por `git mv` no mesmo pacote, então nenhum
+  import mudou; o `:shared` depende dele com `implementation`. O módulo exporta Compose runtime, foundation, ui e
+  material3 como `api`. Sem `Res` por enquanto: o módulo ainda não tem recursos. O `Res` próprio e a cópia dos
+  recursos para o Android entram na 9.4, com as fontes, porque só dá para verificar o empacotamento no APK quando
+  existe um recurso. Item sem teste novo (só movimentação): verificado com os 66 testes de `:shared:desktopTest`,
+  `detekt` dos dois módulos, `:androidApp:assembleDebug`, `:desktopApp:compileKotlinJvm`,
+  `:webApp:compileKotlinWasmJs` e `:core:designsystem:compileKotlinIosSimulatorArm64`. O framework iOS do `:shared`
+  não foi compilado aqui porque o `pod install` local quebra (Ruby 4.0 do Homebrew); o CI cobre.
 
 ### 9.3 Cores: esquema completo e cores semânticas ✅ — P
 - **Problema:** `lightColorScheme`/`darkColorScheme` recebem só 16 papéis. Os outros (`tertiary`, `outline`,
@@ -211,6 +220,7 @@ cor, `sp` ou `dp` solto nem texto de tela nas features (garantido pelo Detekt); 
 | 10.7 Dependências instáveis | ✅ | Room 3 e sqlite-web em alpha; `force("org.jetbrains.skiko:skiko:0.9.43")` | ADR 0002 com o motivo de cada exceção e a condição de saída (Room 3 estável; Compose alinhado com o Coil) | P |
 | 10.8 Hook e template de PR | ✅ | A regra "Detekt antes do commit" só existe no `GEMINI.md` | `config/hooks/pre-commit` (Detekt + `desktopTest`) instalado por uma task Gradle; `.github/pull_request_template.md` com checklist (testes, snapshots, roadmap atualizado) | P |
 | 10.9 Documentação | ✅ | `roadmap-kmp-podcast.md` na raiz; `docs/arquitetura.md` e `docs/regras-negocio.md` ignorados pelo git e com afirmações falsas (ver CONTEXTO §8); README pede JDK 17 | Mover o roadmap original para `docs/`; apagar os dois docs locais (o que vale entra no CONTEXTO e nas ADRs); README com JDK 21, segredos, CocoaPods e links; `docs/adr/` com um template | P |
+| 10.10 Distribuição Web quebrada | ✅ | `:webApp:wasmJsBrowserDistribution` falha na `main`: com `RepositoriesMode.PREFER_SETTINGS`, o repositório do binaryen (GitHub Releases) que o plugin Kotlin adiciona é ignorado e `com.github.webassembly:binaryen:125` não é encontrado. O job `build-web` do CI deve estar falhando | Declarar no `settings.gradle.kts` um repositório `ivy` para `https://github.com/WebAssembly/binaryen/releases/download`, como já é feito para Node e Yarn | P |
 
 **Critério de conclusão:** CI com análise estática, cache e cancelamento de execuções antigas; nenhum segredo nem
 lixo no git; módulos configurados só por convention plugins.

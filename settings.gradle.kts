@@ -48,6 +48,7 @@ plugins {
 }
 
 include(":shared")
+include(":core:designsystem")
 include(":androidApp")
 include(":desktopApp")
 include(":webApp")

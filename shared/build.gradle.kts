@@ -92,6 +92,8 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":core:designsystem"))
+
             // Compose
             implementation(libs.runtime)
             implementation(libs.foundation)
