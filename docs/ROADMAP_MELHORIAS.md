@@ -480,9 +480,20 @@ de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
   telas usam os mesmos, e dividir os três idiomas por feature não compensa agora. Verificado: Detekt, testes Desktop
   e iOS, APK, Desktop e Wasm.
 
-### 11.5 Regra de dependência automática ✅ — P
+### 11.5 Regra de dependência automática ✔ — P
 - **Ação:** task `checkModuleDependencies` no `build-logic`, da qual o `check` depende, que falha se uma feature
   depender de outra feature ou de `data`/`database`/`network`. Verificar plantando uma dependência proibida.
+- **Implementado:** a task fica no plugin `podcast.feature`. Ela lê as dependências de projeto declaradas em
+  todas as configurações do módulo e falha se alguma for `:feature:*`, `:data`, `:core:database`, `:core:network`
+  ou `:core:player` (este último também está proibido pela ADR 0003). A mensagem lista cada configuração e a
+  dependência proibida. Verificado plantando `:data` e `:feature:search` no `:feature:library` e `:core:network`
+  no `:feature:player`: a task falhou nos dois casos e passou de novo depois de remover a dependência. O `check` das features
+  depende dela, mas já falha antes, no `checkComposeUiTestConfigurationForWasmJs` (CMP-4906: testes de UI no Wasm
+  sem `binaries.executable()`). Por isso, o CI (job `static-analysis`) e o hook chamam a task direto. O hook,
+  que cobria só `:shared` e `:core:designsystem`, passou a rodar `detekt checkModuleDependencies desktopTest` no
+  projeto inteiro. O README e o `CLAUDE.md` acompanharam essa mudança. Fora do escopo: a regra olha só dependências diretas.
+  O `:core:testing` (permitido nos testes) expõe o `:core:database` por `api`. Além disso, `:core:database` e
+  `:core:network` dependem do `:core:observability`, e a tabela da ADR não prevê isso.
 
 ### 11.6 Injeção no lugar de singletons globais ✔ — M
 - **Problema:** `Analytics`, `Crashlytics`, `Performance`, `RemoteConfig`, `FileUtils` e `AppContext` são
