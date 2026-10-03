@@ -30,6 +30,9 @@ iosApp/.bundle/
 
 # iOS
 **/GoogleService-Info.plist
+# Placeholder Firebase configs used by CI when the secrets are missing or unreadable
+!.github/ci/google-services.json
+!.github/ci/GoogleService-Info.plist
 
 # Kotlin/JS & Wasm
 .kotlin/
