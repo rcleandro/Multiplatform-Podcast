@@ -698,11 +698,20 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   o timer morre e o áudio não para.
 - **Ação:** o timer vai para o `PlaybackController` (13.5), com a opção "fim do episódio".
 
-### 13.7 Regra de "tocar" duplicada nos ViewModels ✅ — P
+### 13.7 Regra de "tocar" duplicada nos ViewModels ✔ — P
 - **Problema:** alternar entre play e pause, montar a fila e resolver o arquivo local está copiado em
   `PodcastDetailViewModel`, `SearchViewModel`, `EpisodeDetailViewModel` e `PlayerViewModel`. A busca nem resolve o
   arquivo local: um episódio baixado é tocado por streaming a partir dela.
 - **Ação:** um `PlayEpisodeUseCase` usado por todos.
+- **Implementado:** `PlayEpisodeUseCase(episode, queue = null)` no `:domain`: se for o episódio atual, alterna
+  pausa e retomada; senão, toca a partir do arquivo baixado (quando há) e monta a fila. Sem fila, a fila é o
+  episódio e os mais novos do mesmo podcast (`getEpisodesSince`). Os cinco ViewModels usam o caso de uso: detalhe do
+  podcast, busca e detalhe do episódio com a fila padrão, downloads com a lista de baixados e o player (escolha na
+  fila) com a fila atual. Mudanças de comportamento: a busca passou a tocar o arquivo baixado e a montar a fila do
+  podcast (antes era só o episódio, por streaming); o detalhe do episódio passou a montar a fila (antes mantinha a
+  anterior). O `EpisodeDetailViewModel` não recebe mais o `AudioPlayer`. Testes: quatro no `PlayEpisodeUseCaseTest`
+  (arquivo baixado, fila padrão, fila dada, pausa do atual) e, na busca, um episódio baixado tocado pelo arquivo
+  (falhou no código antigo). O `FakeEpisodeDownloader` ganhou `localPaths`.
 
 ### 13.8 Episódio concluído 🔎 — P
 - **Suspeita:** no fim (`STATE_ENDED`), o Android chama `playNext()` direto, e a marcação de ouvido depende de algum
