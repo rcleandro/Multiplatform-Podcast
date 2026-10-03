@@ -42,6 +42,7 @@ data class EpisodePlayback(
 /**
  * The one episode row for podcast detail, search, downloads and new episodes. [metadata] is the already
  * formatted line ("3 days · 47 min"); the row adds the "New", "Played" and "Downloaded" markers itself.
+ * A null [downloadState] leaves out the download button, for platforms without downloads.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -50,7 +51,7 @@ fun EpisodeRow(
     metadata: String,
     imageUrl: String?,
     playback: EpisodePlayback,
-    downloadState: DownloadState,
+    downloadState: DownloadState?,
     onClick: () -> Unit,
     onPlay: () -> Unit,
     onDownload: () -> Unit,
@@ -100,12 +101,14 @@ fun EpisodeRow(
                 EpisodeProgressBar(progress = playback.progress, modifier = Modifier.padding(top = Spacing.xs))
             }
         }
-        DownloadButton(
-            state = downloadState,
-            onDownload = onDownload,
-            onCancel = onCancelDownload,
-            onRemove = onRemoveDownload,
-        )
+        if (downloadState != null) {
+            DownloadButton(
+                state = downloadState,
+                onDownload = onDownload,
+                onCancel = onCancelDownload,
+                onRemove = onRemoveDownload,
+            )
+        }
         PlayPauseButton(
             isPlaying = playback.isPlaying,
             isLoading = playback.isLoading,

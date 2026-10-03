@@ -49,6 +49,7 @@ import br.com.carvalho.podcast.core.designsystem.component.FilterOption
 import br.com.carvalho.podcast.core.designsystem.component.HtmlText
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastArtwork
+import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
@@ -202,10 +203,11 @@ private fun EpisodeList(
         state.podcast?.let { podcast -> item { PodcastHeader(podcast) } }
         item {
             FilterChipRow(
-                options = listOf(
+                // "Downloaded" stays last, so the indices still match EpisodeFilter where it is left out.
+                options = listOfNotNull(
                     FilterOption(stringResource(Res.string.filter_all)),
                     FilterOption(stringResource(Res.string.filter_unplayed)),
-                    FilterOption(stringResource(Res.string.filter_downloaded)),
+                    FilterOption(stringResource(Res.string.filter_downloaded)).takeIf { supportsDownloads },
                 ),
                 selectedIndex = state.filter.ordinal,
                 onSelected = { actions.onFilterSelected(EpisodeFilter.entries[it]) },

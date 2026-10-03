@@ -50,6 +50,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.search
 import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesScreen
+import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
@@ -217,4 +218,4 @@ private val TABS: List<Triple<Tab, ImageVector, StringResource>> = listOf(
     Triple(Tab.Library, Icons.Rounded.Home, Res.string.library_title),
     Triple(Tab.Search, Icons.Rounded.Search, Res.string.search),
     Triple(Tab.Downloads, Icons.Rounded.DownloadDone, Res.string.downloads),
-)
+).filter { (tab) -> supportsDownloads || tab != Tab.Downloads }
