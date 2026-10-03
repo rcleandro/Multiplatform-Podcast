@@ -20,10 +20,6 @@ class FakeEpisodeDownloader : EpisodeDownloader {
         downloadCalledWith = episode
     }
 
-    override suspend fun pause(episodeId: String) {}
-
-    override suspend fun resume(episodeId: String) {}
-
     override suspend fun cancel(episodeId: String) {
         cancelCalledWith = episodeId
     }

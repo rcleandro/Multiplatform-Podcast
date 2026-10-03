@@ -25,16 +25,6 @@ interface EpisodeDownloader {
     suspend fun download(episode: Episode)
 
     /**
-     * Pausa um download em andamento.
-     */
-    suspend fun pause(episodeId: String)
-
-    /**
-     * Retoma um download pausado.
-     */
-    suspend fun resume(episodeId: String)
-
-    /**
      * Cancela e remove o download de um episódio em andamento.
      */
     suspend fun cancel(episodeId: String)

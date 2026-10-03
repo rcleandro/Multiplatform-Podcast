@@ -108,13 +108,6 @@ open class KtorEpisodeDownloader(
         }
     }
 
-    override suspend fun pause(episodeId: String) {
-        cancel(episodeId)
-    }
-
-    override suspend fun resume(episodeId: String) {
-    }
-
     override suspend fun cancel(episodeId: String) {
         // Wait for the job: it may be moving the finished file into place, which delete() must see.
         downloadJobs.value[episodeId]?.cancelAndJoin()
