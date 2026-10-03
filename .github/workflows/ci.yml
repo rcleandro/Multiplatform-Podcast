@@ -34,7 +34,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Detekt and Android lint
-              run: ./gradlew :shared:detekt :core:designsystem:detekt :androidApp:lintDebug
+              run: ./gradlew detekt :androidApp:lintDebug
 
             - name: Upload reports
               if: always()
@@ -63,7 +63,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Run tests
-              run: ./gradlew :shared:testAndroidHostTest :shared:desktopTest :core:designsystem:desktopTest
+              run: ./gradlew desktopTest :shared:testAndroidHostTest
 
             - name: Verify design system snapshots
               if: hashFiles('core/designsystem/snapshots/*.png') != ''
@@ -117,7 +117,7 @@ jobs:
                   key: ${{ runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
 
             - name: Run tests
-              run: ./gradlew :shared:iosSimulatorArm64Test 2>&1 | tee ios-test.log
+              run: ./gradlew iosSimulatorArm64Test 2>&1 | tee ios-test.log
 
             - name: Upload test reports
               if: always()

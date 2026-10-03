@@ -63,6 +63,7 @@ plugins {
 }
 
 include(":shared")
+include(":core:common")
 include(":core:designsystem")
 include(":androidApp")
 include(":desktopApp")
