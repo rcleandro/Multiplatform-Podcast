@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Podcast KMP Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column of token and component sections; the page itself is drawn with the app's tokens. */
+:root { --background:#F7F7F5; --surface:#F7F7F5; --surface-container-lowest:#FFFFFF; --surface-container-low:#F2F1EE; --surface-container:#ECEBE7; --surface-container-high:#E6E4DF; --surface-container-highest:#E0DDD7; --on-surface:#1C1B19; --on-surface-variant:#605C55; --outline:#8A857C; --outline-variant:#D6D2CA; --primary:#BC7300; --on-primary:#1C1B19; --primary-container:#FCE3BC; --on-primary-container:#4F2F00; --secondary:#6E6152; --on-secondary:#FFFFFF; --secondary-container:#EFE4D6; --on-secondary-container:#2A2118; --tertiary:#3F6872; --on-tertiary:#FFFFFF; --tertiary-container:#D4E6EB; --on-tertiary-container:#0E2A31; --error:#B3261E; --on-error:#FFFFFF; --error-container:#F9DEDC; --on-error-container:#410E0B; --inverse-surface:#31302D; --inverse-on-surface:#F4F2EE; --inverse-primary:#F2A93B; --accent-text:#9A5B00; --brand:#F2A93B; --on-brand:#1C1B19; --downloaded:#2B7349; --played:#8A857C;
+  --font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --s-xxs:2px; --s-xs:4px; --s-s:8px; --s-m:12px; --s-l:16px; --s-xl:24px; --s-xxl:32px; --s-xxxl:48px;
+  --r-xs:6px; --r-s:10px; --r-m:14px; --r-l:20px; --r-xl:28px;
+  --m-short:150ms; --m-medium:250ms; --m-long:400ms;
+  --e-standard:cubic-bezier(.2,0,0,1); --e-emphasized:cubic-bezier(.05,.7,.1,1);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --background:#161513; --surface:#161513; --surface-container-lowest:#110F0E; --surface-container-low:#1D1B19; --surface-container:#22201D; --surface-container-high:#2C2A26; --surface-container-highest:#37342F; --on-surface:#F1EFEA; --on-surface-variant:#A8A398; --outline:#7D776E; --outline-variant:#3A3631; --primary:#F2A93B; --on-primary:#1C1B19; --primary-container:#5A3600; --on-primary-container:#FCE3BC; --secondary:#D6C6B3; --on-secondary:#2A2118; --secondary-container:#4A3F33; --on-secondary-container:#EFE4D6; --tertiary:#A9CCD6; --on-tertiary:#0E2A31; --tertiary-container:#2E4C55; --on-tertiary-container:#D4E6EB; --error:#FFB4AB; --on-error:#690005; --error-container:#93000A; --on-error-container:#FFDAD6; --inverse-surface:#F1EFEA; --inverse-on-surface:#31302D; --inverse-primary:#9A5B00; --accent-text:#F2A93B; --brand:#F2A93B; --on-brand:#1C1B19; --downloaded:#7FD6A0; --played:#7D776E; color-scheme: dark; } }
+:root[data-theme="dark"] { --background:#161513; --surface:#161513; --surface-container-lowest:#110F0E; --surface-container-low:#1D1B19; --surface-container:#22201D; --surface-container-high:#2C2A26; --surface-container-highest:#37342F; --on-surface:#F1EFEA; --on-surface-variant:#A8A398; --outline:#7D776E; --outline-variant:#3A3631; --primary:#F2A93B; --on-primary:#1C1B19; --primary-container:#5A3600; --on-primary-container:#FCE3BC; --secondary:#D6C6B3; --on-secondary:#2A2118; --secondary-container:#4A3F33; --on-secondary-container:#EFE4D6; --tertiary:#A9CCD6; --on-tertiary:#0E2A31; --tertiary-container:#2E4C55; --on-tertiary-container:#D4E6EB; --error:#FFB4AB; --on-error:#690005; --error-container:#93000A; --on-error-container:#FFDAD6; --inverse-surface:#F1EFEA; --inverse-on-surface:#31302D; --inverse-primary:#9A5B00; --accent-text:#F2A93B; --brand:#F2A93B; --on-brand:#1C1B19; --downloaded:#7FD6A0; --played:#7D776E; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--background); color: var(--on-surface); font-family: var(--font); font-size: 15px; line-height: 1.55; }
+code, .mono { font-family: var(--mono); font-size: 12.5px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 0 72px; }
+.i { display: block; fill: currentColor; flex: none; }
+
+/* Top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--background) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--outline-variant); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 12px; flex-wrap: wrap; }
+.brandmark { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+.brandmark .logo { width: 30px; height: 30px; border-radius: 9px; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; }
+.toc { display: flex; gap: 4px; flex-wrap: wrap; }
+.toc a { color: var(--on-surface-variant); text-decoration: none; font-size: 13.5px; font-weight: 500; padding: 6px 10px; border-radius: 999px; }
+.toc a:hover { color: var(--on-surface); background: var(--surface-container); }
+.seg { display: inline-flex; background: var(--surface-container); border-radius: 999px; padding: 3px; }
+.seg button { font: inherit; font-size: 13px; font-weight: 600; color: var(--on-surface-variant); background: none; border: 0; padding: 6px 12px; border-radius: 999px; cursor: pointer; min-height: 32px; }
+.seg button[aria-pressed="true"] { background: var(--surface-container-lowest); color: var(--on-surface); box-shadow: 0 1px 2px rgb(0 0 0 / .12); }
+:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+
+/* Sections */
+.hero { padding-block: 56px 28px; display: grid; gap: 14px; }
+.eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-text); }
+.hero h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.05; letter-spacing: -0.025em; margin: 0; text-wrap: balance; max-width: 18ch; }
+.hero p { margin: 0; color: var(--on-surface-variant); max-width: 64ch; font-size: 16.5px; }
+.principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+.principles div { border-top: 2px solid var(--brand); padding-top: 12px; }
+.principles b { display: block; font-size: 15.5px; margin-bottom: 4px; }
+.principles span { color: var(--on-surface-variant); font-size: 14px; }
+section.block { padding-block: 40px; border-top: 1px solid var(--outline-variant); display: grid; gap: 20px; }
+section.block > header h2 { margin: 0 0 6px; font-size: 28px; line-height: 1.15; letter-spacing: -0.015em; }
+section.block > header p { margin: 0; color: var(--on-surface-variant); max-width: 70ch; }
+h3 { margin: 8px 0 0; font-size: 18px; }
+.rules { margin: 0; padding-left: 18px; color: var(--on-surface-variant); display: grid; gap: 6px; max-width: 76ch; }
+.rules b { color: var(--on-surface); }
+
+/* Colors */
+.sw-head, .sw { display: grid; grid-template-columns: 28px minmax(0, 1fr) 84px 84px; gap: 10px; align-items: center; }
+.sw-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--on-surface-variant); padding-bottom: 4px; }
+.sw { padding-block: 5px; border-bottom: 1px solid var(--outline-variant); }
+.sw .dot { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--outline-variant); }
+.sw .tk { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sw .hx { color: var(--on-surface-variant); font-size: 12px; }
+.sw-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 32px; }
+.sw-group h4 { margin: 14px 0 4px; font-size: 13px; color: var(--on-surface-variant); font-weight: 600; }
+.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.check { background: var(--surface-container-low); border-radius: var(--r-s); padding: 10px 12px; display: grid; gap: 2px; font-size: 13.5px; }
+.check .v { font-family: var(--mono); font-size: 12px; color: var(--on-surface-variant); font-variant-numeric: tabular-nums; }
+.check .ok { color: var(--downloaded); font-weight: 600; }
+.check .no { color: var(--error); font-weight: 600; }
+.usage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.usage > div { border-radius: var(--r-m); padding: 14px; background: var(--surface-container-low); display: grid; gap: 10px; align-content: start; }
+.usage p { margin: 0; font-size: 13.5px; color: var(--on-surface-variant); }
+
+/* Type */
+.type-row { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 18px; align-items: baseline; padding-block: 12px; border-bottom: 1px solid var(--outline-variant); }
+.type-row .meta { display: grid; gap: 2px; }
+.type-row .meta span { font-size: 12px; color: var(--on-surface-variant); font-family: var(--mono); }
+.t-headline { font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.01em; }
+.t-title-l { font-size: 22px; line-height: 28px; font-weight: 600; }
+.t-title-m { font-size: 16px; line-height: 22px; font-weight: 600; }
+.t-body-l { font-size: 16px; line-height: 24px; }
+.t-body-m { font-size: 14px; line-height: 20px; }
+.t-label-l { font-size: 14px; line-height: 20px; font-weight: 600; }
+.t-label-m { font-size: 12px; line-height: 16px; font-weight: 600; }
+.t-section { font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.t-timer { font-size: 13px; line-height: 18px; font-weight: 500; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.on-var { color: var(--on-surface-variant); }
+
+/* Spacing, shapes, motion */
+.scale { display: grid; gap: 8px; }
+.scale div { display: grid; grid-template-columns: 110px 46px minmax(0, 1fr); gap: 12px; align-items: center; font-size: 13px; }
+.scale i { display: block; height: 14px; background: var(--brand); border-radius: 3px; }
+.shapes { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
+.shape { display: grid; gap: 6px; font-size: 13px; }
+.shape i { display: block; aspect-ratio: 1.4; background: var(--surface-container-high); border: 1px solid var(--outline-variant); }
+.sizes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.sizes div { display: flex; justify-content: space-between; gap: 8px; padding: 10px 12px; background: var(--surface-container-low); border-radius: var(--r-s); font-size: 13.5px; }
+.motion { display: grid; gap: 12px; }
+.lane { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 12px; align-items: center; font-size: 13px; }
+.track { height: 28px; background: var(--surface-container); border-radius: 999px; position: relative; overflow: hidden; }
+.puck { position: absolute; left: 4px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); transition-property: left; }
+.motion.go .puck { left: calc(100% - 24px); }
+.btn { font: inherit; font-weight: 600; font-size: 14px; border: 0; border-radius: 999px; padding: 10px 18px; min-height: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.btn.primary { background: var(--primary); color: var(--on-primary); }
+.btn.tonal { background: var(--secondary-container); color: var(--on-secondary-container); }
+.btn.text { background: none; color: var(--accent-text); padding-inline: 12px; }
+.btn.outline { background: none; color: var(--on-surface); box-shadow: inset 0 0 0 1px var(--outline); }
+
+/* Components */
+.comp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.comp { background: var(--surface-container-low); border-radius: var(--r-l); padding: 18px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.comp > .name { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.comp > .name b { font-size: 15px; }
+.comp > .name code { color: var(--on-surface-variant); font-size: 11.5px; }
+.comp > p { margin: 0; font-size: 13.5px; color: var(--on-surface-variant); }
+.states { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+.state { display: grid; justify-items: center; gap: 6px; font-size: 11.5px; color: var(--on-surface-variant); text-align: center; }
+
+.art { aspect-ratio: 1; max-width: 100%; border-radius: var(--r-m); position: relative; overflow: hidden; background: var(--surface-container-high); }
+.art.a1 { background: radial-gradient(circle at 70% 28%, var(--brand) 0 18%, transparent 19%), linear-gradient(160deg, #2b2a27, #5d564b); }
+.art.a2 { background: repeating-linear-gradient(90deg, #f2a93b 0 9%, #1c1b19 9% 18%); }
+.art.a3 { background: conic-gradient(from 220deg at 40% 60%, #3f6872, #a9ccd6, #3f6872); }
+.art.a4 { background: linear-gradient(0deg, #6e6152 0 45%, #efe4d6 45% 47%, #c77c00 47%); }
+.art.ph { display: grid; place-items: center; color: var(--on-surface-variant); }
+.art .badge { position: absolute; top: 8px; right: 8px; background: var(--brand); color: var(--on-brand); font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+
+.pcard { display: grid; gap: 6px; width: 150px; }
+.pcard b { font-size: 14px; line-height: 1.25; }
+.pcard span { font-size: 12px; color: var(--on-surface-variant); }
+
+.ep { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px; border-radius: var(--r-m); background: var(--surface-container-lowest); }
+.ep .art { border-radius: var(--r-s); }
+.ep .txt { min-width: 0; display: grid; gap: 2px; }
+.ep .meta { font-size: 12px; font-weight: 600; color: var(--on-surface-variant); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.ep .meta .new { color: var(--accent-text); }
+.ep .meta .dl { color: var(--downloaded); display: inline-flex; align-items: center; gap: 2px; }
+.ep .title { font-size: 15px; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ep.played .title { color: var(--on-surface-variant); font-weight: 500; }
+.ep .bar { height: 3px; background: var(--surface-container-highest); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.ep .bar i { display: block; height: 100%; background: var(--primary); }
+.ep .acts { display: flex; gap: 4px; align-items: center; }
+.ep-list { display: grid; gap: 8px; }
+
+.iconbtn { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: var(--on-surface-variant); background: none; border: 0; padding: 0; position: relative; cursor: pointer; }
+.iconbtn.sm { width: 40px; height: 40px; }
+.iconbtn .ringsvg { position: absolute; inset: 0; margin: auto; }
+.playbtn { width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; border: 0; cursor: pointer; position: relative; }
+.playbtn.lg { width: 72px; height: 72px; }
+.playbtn.ghost { background: var(--secondary-container); color: var(--on-secondary-container); }
+.spin { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid currentColor; border-right-color: transparent; animation: spin 900ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.dl-ok { color: var(--downloaded); }
+.dl-err { color: var(--error); }
+.pct { font-size: 9.5px; font-weight: 700; position: absolute; font-variant-numeric: tabular-nums; color: var(--on-surface); }
+
+.progress { height: 4px; border-radius: 4px; background: var(--surface-container-highest); overflow: hidden; }
+.progress i { display: block; height: 100%; width: 42%; background: var(--primary); }
+.slider { display: grid; gap: 6px; }
+.slider .rail { height: 6px; border-radius: 6px; background: var(--surface-container-highest); position: relative; }
+.slider .fill { position: absolute; inset: 0 auto 0 0; width: 26%; background: var(--primary); border-radius: 6px; }
+.slider .thumb { position: absolute; left: 26%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 22%, transparent); }
+.slider .times { display: flex; justify-content: space-between; color: var(--on-surface-variant); }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font: inherit; font-size: 13.5px; font-weight: 600; padding: 0 14px; height: 34px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; border: 1px solid var(--outline-variant); background: var(--surface-container-lowest); color: var(--on-surface-variant); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+.chip .n { font-variant-numeric: tabular-nums; opacity: .8; font-weight: 500; }
+
+.stateview { display: grid; justify-items: center; text-align: center; gap: 10px; padding: 18px 8px; }
+.stateview .glyph { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--primary-container); color: var(--on-primary-container); }
+.stateview.err .glyph { background: var(--error-container); color: var(--on-error-container); }
+.stateview b { font-size: 17px; }
+.stateview p { margin: 0; font-size: 14px; color: var(--on-surface-variant); max-width: 34ch; }
+
+.dialog { background: var(--surface-container-high); border-radius: var(--r-xl); padding: 22px; display: grid; gap: 10px; max-width: 340px; box-shadow: 0 8px 28px rgb(0 0 0 / .18); }
+.dialog b { font-size: 20px; line-height: 1.25; }
+.dialog p { margin: 0; color: var(--on-surface-variant); font-size: 14px; }
+.dialog .row { display: flex; justify-content: flex-end; gap: 4px; margin-top: 6px; }
+.btn.danger { background: none; color: var(--error); padding-inline: 12px; }
+
+.mini { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 8px 8px 10px; border-radius: var(--r-l); background: var(--surface-container-lowest); box-shadow: 0 2px 10px rgb(0 0 0 / .08); position: relative; overflow: hidden; }
+.mini .art { border-radius: var(--r-s); }
+.mini b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini span { font-size: 12px; color: var(--on-surface-variant); }
+.mini .edge { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--surface-container-highest); }
+.mini .edge i { display: block; height: 100%; width: 26%; background: var(--primary); }
+
+.navbar { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface-container); border-radius: var(--r-l); padding: 8px 4px; }
+.navbar div { display: grid; justify-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--on-surface-variant); }
+.navbar .pill { width: 56px; height: 30px; border-radius: 999px; display: grid; place-items: center; }
+.navbar .on { color: var(--on-surface); }
+.navbar .on .pill { background: var(--primary-container); color: var(--on-primary-container); }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.topbar .ttl { font-size: 13px; font-weight: 600; color: var(--on-surface-variant); }
+
+/* Screens */
+.screens { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+.phone { width: 320px; max-width: 100%; border-radius: 36px; background: var(--background); border: 1px solid var(--outline-variant); padding: 18px 14px 12px; display: grid; gap: 14px; align-content: start; box-shadow: 0 10px 40px rgb(0 0 0 / .10); }
+.phone .h { display: flex; justify-content: space-between; align-items: center; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid2 .pcard { width: auto; }
+.player { display: grid; gap: 16px; }
+.player .art { width: 100%; max-width: 260px; justify-self: center; border-radius: var(--r-xl); box-shadow: 0 12px 30px rgb(0 0 0 / .22); }
+.player .ttl { display: grid; gap: 2px; }
+.player .ctrls { display: flex; justify-content: center; align-items: center; gap: 18px; }
+.player .ctrls .iconbtn { color: var(--on-surface); }
+.player .aux { display: flex; justify-content: space-around; }
+.player .aux button { display: grid; justify-items: center; gap: 2px; font: inherit; font-size: 11.5px; font-weight: 600; color: var(--on-surface-variant); background: none; border: 0; min-width: 56px; min-height: 48px; cursor: pointer; }
+.player .aux .on { color: var(--accent-text); }
+
+/* Compose map */
+.tbl { overflow-x: auto; border: 1px solid var(--outline-variant); border-radius: var(--r-m); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--outline-variant); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--on-surface-variant); background: var(--surface-container-low); }
+footer { padding-top: 32px; border-top: 1px solid var(--outline-variant); color: var(--on-surface-variant); font-size: 13px; }
+
+@media (max-width: 860px) {
+  .principles, .usage { grid-template-columns: minmax(0, 1fr); }
+  .comp-grid, .sw-grid { grid-template-columns: minmax(0, 1fr); }
+  .type-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .toc { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation-duration: 2400ms; }
+  .puck { transition-duration: 0ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="wrap">
+    <div class="brandmark"><span class="logo"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" ><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>Podcast KMP</div>
+    <nav class="toc" aria-label="Seções">
+      <a href="#cor">Cor</a><a href="#tipo">Tipografia</a><a href="#medidas">Medidas</a><a href="#movimento">Movimento</a><a href="#componentes">Componentes</a><a href="#telas">Telas</a><a href="#compose">Compose</a>
+    </nav>
+    <div class="seg" role="group" aria-label="Tema">
+      <button type="button" id="t-sys" data-t="system" aria-pressed="true">Sistema</button>
+      <button type="button" id="t-light" data-t="light" aria-pressed="false">Claro</button>
+      <button type="button" id="t-dark" data-t="dark" aria-pressed="false">Escuro</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Design system · direção Sinal · ADR 0001</div>
+    <h1>Âmbar de estúdio no ar, e as capas em primeiro plano</h1>
+    <p>Referência visual do <code>:core:designsystem</code>. Tudo nesta página usa os mesmos tokens que o app vai usar, nos dois temas. Use o seletor acima para comparar claro e escuro.</p>
+    <div class="principles">
+      <div><b>A capa é a estrela</b><span>Neutros quentes e discretos; o âmbar aparece só onde há ação ou estado: tocar, progresso, novo.</span></div>
+      <div><b>Legível de longe</b><span>Contraste AA em todos os pares, alvos de toque de 48 dp e tempos com algarismos de largura fixa.</span></div>
+      <div><b>Um jeito de cada coisa</b><span>Um botão de play, uma linha de episódio, um botão de download. As telas montam, não inventam.</span></div>
+    </div>
+  </div>
+
+  <section class="block" id="cor">
+    <header><h2>Cor</h2><p>Todos os papéis do Material 3 são definidos (nenhum cai no roxo padrão), mais cinco cores próprias do app em <code>PodcastTheme.colors</code>. O âmbar tem três tons com funções diferentes.</p></header>
+    <div class="usage">
+      <div><button class="btn primary" type="button"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" ><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg>Tocar</button><p><b>primary</b>: preenchimento de botões e progresso. No claro é um âmbar mais fechado (#BC7300) para atingir 3:1 contra o fundo; no escuro, o âmbar vivo.</p></div>
+      <div><span class="t-label-l" style="color:var(--accent-text)">Novo · Tocando agora</span><p><b>accentText</b>: o âmbar usado como texto ou ícone pequeno. No claro é âmbar escuro (#9A5B00), 5,4:1 sobre branco.</p></div>
+      <div><span class="chip" style="background:var(--brand);color:var(--on-brand);border-color:transparent;width:max-content">12 novos</span><p><b>brand</b>: o âmbar vivo (#F2A93B) nos dois temas, sempre com texto escuro por cima. Selos, logo e destaques grandes.</p></div>
+    </div>
+    <div class="sw-grid">
+      <div><div class="sw-head"><span></span><span>Token</span><span>Claro</span><span>Escuro</span></div>
+      <div class="sw-group"><h4>Superfícies</h4>
+        <div class="sw"><span class="dot" style="background:var(--background)"></span>
+          <code class="tk">colorScheme.background</code>
+          <code class="hx">#F7F7F5</code><code class="hx">#161513</code></div>
+        <div class="sw"><span class="dot" style="background:var(--surface-container-lowest)"></span>
+          <code class="tk">colorScheme.surfaceContainerLowest</code>
+          <code class="hx">#FFFFFF</code><code class="hx">#110F0E</code></div>
+        <div class="sw"><span class="dot" style="background:var(--surface-container-low)"></span>
+          <code class="tk">colorScheme.surfaceContainerLow</code>
+          <code class="hx">#F2F1EE</code><code class="hx">#1D1B19</code></div>
+        <div class="sw"><span class="dot" style="background:var(--surface-container)"></span>
+          <code class="tk">colorScheme.surfaceContainer</code>
+          <code class="hx">#ECEBE7</code><code class="hx">#22201D</code></div>
+        <div class="sw"><span class="dot" style="background:var(--surface-container-high)"></span>
+          <code class="tk">colorScheme.surfaceContainerHigh</code>
+          <code class="hx">#E6E4DF</code><code class="hx">#2C2A26</code></div>
+        <div class="sw"><span class="dot" style="background:var(--surface-container-highest)"></span>
+          <code class="tk">colorScheme.surfaceContainerHighest</code>
+          <code class="hx">#E0DDD7</code><code class="hx">#37342F</code></div>
+      </div>
+      <div class="sw-group"><h4>Conteúdo</h4>
+        <div class="sw"><span class="dot" style="background:var(--on-surface)"></span>
+          <code class="tk">colorScheme.onSurface</code>
+          <code class="hx">#1C1B19</code><code class="hx">#F1EFEA</code></div>
+        <div class="sw"><span class="dot" style="background:var(--on-surface-variant)"></span>
+          <code class="tk">colorScheme.onSurfaceVariant</code>
+          <code class="hx">#605C55</code><code class="hx">#A8A398</code></div>
+        <div class="sw"><span class="dot" style="background:var(--outline)"></span>
+          <code class="tk">colorScheme.outline</code>
+          <code class="hx">#8A857C</code><code class="hx">#7D776E</code></div>
+        <div class="sw"><span class="dot" style="background:var(--outline-variant)"></span>
+          <code class="tk">colorScheme.outlineVariant</code>
+          <code class="hx">#D6D2CA</code><code class="hx">#3A3631</code></div>
+      </div>
+      <div class="sw-group"><h4>Primária</h4>
+        <div class="sw"><span class="dot" style="background:var(--primary)"></span>
+          <code class="tk">colorScheme.primary</code>
+          <code class="hx">#BC7300</code><code class="hx">#F2A93B</code></div>
+        <div class="sw"><span class="dot" style="background:var(--on-primary)"></span>
+          <code class="tk">colorScheme.onPrimary</code>
+          <code class="hx">#1C1B19</code><code class="hx">#1C1B19</code></div>
+        <div class="sw"><span class="dot" style="background:var(--primary-container)"></span>
+          <code class="tk">colorScheme.primaryContainer</code>
+          <code class="hx">#FCE3BC</code><code class="hx">#5A3600</code></div>
+        <div class="sw"><span class="dot" style="background:var(--on-primary-container)"></span>
+          <code class="tk">colorScheme.onPrimaryContainer</code>
+          <code class="hx">#4F2F00</code><code class="hx">#FCE3BC</code></div>
+      </div></div>
+      <div><div class="sw-head"><span></span><span>Token</span><span>Claro</span><span>Escuro</span></div>
+      <div class="sw-group"><h4>Secundária e terciária</h4>
+        <div class="sw"><span class="dot" style="background:var(--secondary)"></span>
+          <code class="tk">colorScheme.secondary</code>
+          <code class="hx">#6E6152</code><code class="hx">#D6C6B3</code></div>
+        <div class="sw"><span class="dot" style="background:var(--secondary-container)"></span>
+          <code class="tk">colorScheme.secondaryContainer</code>
+          <code class="hx">#EFE4D6</code><code class="hx">#4A3F33</code></div>
+        <div class="sw"><span class="dot" style="background:var(--tertiary)"></span>
+          <code class="tk">colorScheme.tertiary</code>
+          <code class="hx">#3F6872</code><code class="hx">#A9CCD6</code></div>
+        <div class="sw"><span class="dot" style="background:var(--tertiary-container)"></span>
+          <code class="tk">colorScheme.tertiaryContainer</code>
+          <code class="hx">#D4E6EB</code><code class="hx">#2E4C55</code></div>
+      </div>
+      <div class="sw-group"><h4>Erro e inverso</h4>
+        <div class="sw"><span class="dot" style="background:var(--error)"></span>
+          <code class="tk">colorScheme.error</code>
+          <code class="hx">#B3261E</code><code class="hx">#FFB4AB</code></div>
+        <div class="sw"><span class="dot" style="background:var(--error-container)"></span>
+          <code class="tk">colorScheme.errorContainer</code>
+          <code class="hx">#F9DEDC</code><code class="hx">#93000A</code></div>
+        <div class="sw"><span class="dot" style="background:var(--inverse-surface)"></span>
+          <code class="tk">colorScheme.inverseSurface</code>
+          <code class="hx">#31302D</code><code class="hx">#F1EFEA</code></div>
+        <div class="sw"><span class="dot" style="background:var(--inverse-primary)"></span>
+          <code class="tk">colorScheme.inversePrimary</code>
+          <code class="hx">#F2A93B</code><code class="hx">#9A5B00</code></div>
+      </div>
+      <div class="sw-group"><h4>Podcast (fora do M3)</h4>
+        <div class="sw"><span class="dot" style="background:var(--accent-text)"></span>
+          <code class="tk">PodcastTheme.colors.accentText</code>
+          <code class="hx">#9A5B00</code><code class="hx">#F2A93B</code></div>
+        <div class="sw"><span class="dot" style="background:var(--brand)"></span>
+          <code class="tk">PodcastTheme.colors.brand</code>
+          <code class="hx">#F2A93B</code><code class="hx">#F2A93B</code></div>
+        <div class="sw"><span class="dot" style="background:var(--on-brand)"></span>
+          <code class="tk">PodcastTheme.colors.onBrand</code>
+          <code class="hx">#1C1B19</code><code class="hx">#1C1B19</code></div>
+        <div class="sw"><span class="dot" style="background:var(--downloaded)"></span>
+          <code class="tk">PodcastTheme.colors.downloaded</code>
+          <code class="hx">#2B7349</code><code class="hx">#7FD6A0</code></div>
+        <div class="sw"><span class="dot" style="background:var(--played)"></span>
+          <code class="tk">PodcastTheme.colors.played</code>
+          <code class="hx">#8A857C</code><code class="hx">#7D776E</code></div>
+      </div></div>
+    </div>
+    <h3>Contraste no tema atual</h3>
+    <div class="checks" id="checks"></div>
+    <ul class="rules">
+      <li><b>Nunca</b> use <code>primary</code> como cor de texto: para âmbar em texto, <code>accentText</code>.</li>
+      <li>No tema claro, botões <code>primary</code> ficam sobre <code>background</code>, <code>surfaceContainerLowest</code> ou <code>surfaceContainer</code>; sobre os contêineres mais altos o contraste cai abaixo de 3:1.</li>
+      <li>"Ouvido" não é só cor: o título perde peso e aparece o ícone de concluído (<code>played</code>).</li>
+      <li>Features não usam <code>Color(…)</code>: só <code>MaterialTheme.colorScheme</code> e <code>PodcastTheme.colors</code> (regra do Detekt na 9.9).</li>
+    </ul>
+  </section>
+
+  <section class="block" id="tipo">
+    <header><h2>Tipografia</h2><p>Onest, embarcada em <code>composeResources/font</code> nos pesos 400, 500, 600 e 700 (licença OFL). A escala tem só os estilos usados pelas telas.</p></header>
+    <div>
+      <div class="type-row"><div class="meta"><b>headlineMedium</b><span>28 / 34 · 700</span></div><div class="t-headline">Biblioteca</div></div>
+      <div class="type-row"><div class="meta"><b>titleLarge</b><span>22 / 28 · 600</span></div><div class="t-title-l">O fim das senhas, de verdade</div></div>
+      <div class="type-row"><div class="meta"><b>titleMedium</b><span>16 / 22 · 600</span></div><div class="t-title-m">Kotlin Multiplatform em produção</div></div>
+      <div class="type-row"><div class="meta"><b>bodyLarge</b><span>16 / 24 · 400</span></div><div class="t-body-l">Neste episódio, conversamos sobre como levar um app KMP para quatro plataformas sem duplicar regra de negócio.</div></div>
+      <div class="type-row"><div class="meta"><b>bodyMedium</b><span>14 / 20 · 400</span></div><div class="t-body-m on-var">Hipsters Ponto Tech · Alura</div></div>
+      <div class="type-row"><div class="meta"><b>labelLarge</b><span>14 / 20 · 600</span></div><div class="t-label-l">Marcar como ouvido</div></div>
+      <div class="type-row"><div class="meta"><b>labelMedium</b><span>12 / 16 · 600</span></div><div class="t-label-m on-var">3 dias · 47 min</div></div>
+      <div class="type-row"><div class="meta"><b>PodcastTheme.typography.section</b><span>11 / 16 · 600 · +0,06em · caixa alta</span></div><div class="t-section on-var">Continuar ouvindo</div></div>
+      <div class="type-row"><div class="meta"><b>PodcastTheme.typography.timer</b><span>13 / 18 · 500 · tnum</span></div><div class="t-timer">12:05 &nbsp;·&nbsp; −35:25 &nbsp;·&nbsp; 1:08:11</div></div>
+    </div>
+    <ul class="rules"><li>Proibido <code>.sp</code> e <code>.copy(fontSize = …)</code> nas features. Peso ou cor diferente: <code>.copy(fontWeight = …)</code> sobre um estilo da escala.</li></ul>
+  </section>
+
+  <section class="block" id="medidas">
+    <header><h2>Espaçamento, formas e tamanhos</h2><p>Uma escala de espaçamento só, no lugar dos 60 tokens do <code>AppDimensions</code>. Tamanho que pertence a um componente fica dentro dele.</p></header>
+    <div class="scale">
+      <div><code>Spacing.xxs</code><span class="mono on-var">2 dp</span><i style="width:8px"></i></div>
+      <div><code>Spacing.xs</code><span class="mono on-var">4 dp</span><i style="width:16px"></i></div>
+      <div><code>Spacing.s</code><span class="mono on-var">8 dp</span><i style="width:32px"></i></div>
+      <div><code>Spacing.m</code><span class="mono on-var">12 dp</span><i style="width:48px"></i></div>
+      <div><code>Spacing.l</code><span class="mono on-var">16 dp</span><i style="width:64px"></i></div>
+      <div><code>Spacing.xl</code><span class="mono on-var">24 dp</span><i style="width:96px"></i></div>
+      <div><code>Spacing.xxl</code><span class="mono on-var">32 dp</span><i style="width:128px"></i></div>
+      <div><code>Spacing.xxxl</code><span class="mono on-var">48 dp</span><i style="width:192px"></i></div>
+    </div>
+    <h3>Formas</h3>
+    <div class="shapes">
+      <div class="shape"><i style="border-radius:6px"></i><code>shapes.extraSmall</code><span class="on-var">6 dp · selos, campos</span></div>
+      <div class="shape"><i style="border-radius:10px"></i><code>shapes.small</code><span class="on-var">10 dp · capa na lista</span></div>
+      <div class="shape"><i style="border-radius:14px"></i><code>shapes.medium</code><span class="on-var">14 dp · capa no card, linhas</span></div>
+      <div class="shape"><i style="border-radius:20px"></i><code>shapes.large</code><span class="on-var">20 dp · mini player, cards</span></div>
+      <div class="shape"><i style="border-radius:28px"></i><code>shapes.extraLarge</code><span class="on-var">28 dp · diálogos, capa do player</span></div>
+    </div>
+    <h3>Tamanhos compartilhados</h3>
+    <div class="sizes">
+      <div><code>Sizes.touchTarget</code><b>48 dp</b></div>
+      <div><code>Sizes.artworkS</code><b>56 dp</b></div>
+      <div><code>Sizes.artworkM</code><b>140 dp</b></div>
+      <div><code>Sizes.artworkL</code><b>280 dp</b></div>
+      <div><code>Sizes.miniPlayerHeight</code><b>64 dp</b></div>
+      <div><code>Sizes.playButtonLarge</code><b>72 dp</b></div>
+    </div>
+    <ul class="rules">
+      <li>A grade da biblioteca usa <code>GridCells.Adaptive(Sizes.artworkM)</code>: o número de colunas se ajusta sozinho e os tokens <code>GRID_COLUMNS_*</code> e os breakpoints saem.</li>
+      <li>Opacidades em <code>Alpha</code>: <code>disabled</code> 0,38 · <code>muted</code> 0,60 · <code>scrim</code> 0,32.</li>
+    </ul>
+  </section>
+
+  <section class="block" id="movimento">
+    <header><h2>Movimento</h2><p>Três durações e duas curvas. A curva enfatizada é reservada para elementos que mudam de lugar na tela, como o mini player virando o player.</p></header>
+    <div class="motion" id="motion">
+      <div class="lane"><code>Motion.short · standard</code><div class="track"><span class="puck" style="transition-duration:var(--m-short);transition-timing-function:var(--e-standard)"></span></div></div>
+      <div class="lane"><code>Motion.medium · standard</code><div class="track"><span class="puck" style="transition-duration:var(--m-medium);transition-timing-function:var(--e-standard)"></span></div></div>
+      <div class="lane"><code>Motion.long · emphasized</code><div class="track"><span class="puck" style="transition-duration:var(--m-long);transition-timing-function:var(--e-emphasized)"></span></div></div>
+    </div>
+    <div><button class="btn tonal" type="button" id="motion-btn">Animar</button></div>
+    <ul class="rules">
+      <li><b>short (150 ms)</b>: estados de botão, troca de ícone play/pause, chips.</li>
+      <li><b>medium (250 ms)</b>: mini player aparecendo e sumindo, crossfade de capas.</li>
+      <li><b>long (400 ms, enfatizada)</b>: mini player → player em tela cheia e volta.</li>
+    </ul>
+  </section>
+
+  <section class="block" id="componentes">
+    <header><h2>Componentes</h2><p>Todos sem estado: recebem dados e callbacks. Cada um ganha previews nos dois temas e snapshot no Roborazzi (9.11).</p></header>
+    <div class="comp-grid">
+
+      <div class="comp">
+        <div class="name"><b>PodcastArtwork · PodcastCard</b><code>artwork, title, author, unplayedCount</code></div>
+        <div class="states">
+          <div class="pcard"><div class="art a1"><span class="badge">3</span></div><b>Hipsters Ponto Tech</b><span>Alura</span></div>
+          <div class="pcard"><div class="art ph"><svg class="i" width="40" height="40" viewBox="0 0 24 24" aria-hidden="true" ><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><b>Capa ainda carregando</b><span>Placeholder</span></div>
+        </div>
+        <p>O selo mostra os não ouvidos (some quando é zero). Sem capa, o placeholder usa <code>surfaceContainerHigh</code> e o ícone do app.</p>
+      </div>
+
+      <div class="comp">
+        <div class="name"><b>PlayPauseButton</b><code>state, progress</code></div>
+        <div class="states">
+          <div class="state"><button class="playbtn" type="button" aria-label="Tocar"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg></button>Parado</div>
+          <div class="state"><button class="playbtn" type="button" aria-label="Pausar"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button>Tocando</div>
+          <div class="state"><button class="playbtn" type="button" aria-label="Carregando"><span class="spin"></span></button>Carregando</div>
+          <div class="state"><button class="iconbtn" type="button" aria-label="Continuar, 62% ouvido"><svg class="ringsvg" width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="var(--surface-container-highest)" stroke-width="3"/><circle cx="20" cy="20" r="18" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-dasharray="70.1 113.1" transform="rotate(-90 20 20)"/></svg><span style="color:var(--primary)"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" ><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg></span></button>Começado</div>
+          <div class="state"><button class="playbtn lg" type="button" aria-label="Tocar"><svg class="i" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true" ><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg></button>Player</div>
+        </div>
+        <p>"Começado" é o botão da linha de episódio: o anel mostra quanto já foi ouvido.</p>
+      </div>
+
+      <div class="comp">
+        <div class="name"><b>DownloadButton</b><code>DownloadStatus</code></div>
+        <div class="states">
+          <div class="state"><button class="iconbtn" type="button" aria-label="Baixar"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>Inativo</div>
+          <div class="state"><button class="iconbtn" type="button" aria-label="Na fila, cancelar"><svg class="ringsvg" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="var(--surface-container-highest)" stroke-width="3"/><circle cx="20" cy="20" r="18" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-dasharray="9.0 113.1" transform="rotate(-90 20 20)"/></svg><span><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" ><rect x="8" y="8" width="8" height="8" rx="1.5"/></svg></span></button>Na fila</div>
+          <div class="state"><button class="iconbtn" type="button" aria-label="Baixando 64%, cancelar"><svg class="ringsvg" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="var(--surface-container-highest)" stroke-width="3"/><circle cx="20" cy="20" r="18" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-dasharray="72.4 113.1" transform="rotate(-90 20 20)"/></svg><span class="pct">64</span></button>Baixando</div>
+          <div class="state"><button class="iconbtn dl-ok" type="button" aria-label="Baixado, remover"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>Baixado</div>
+          <div class="state"><button class="iconbtn dl-err" type="button" aria-label="Falhou, tentar de novo"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M19 12a7 7 0 1 1-2.05-4.95M19 4v4h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>Falhou</div>
+        </div>
+        <p>Cada estado tem descrição para leitor de tela com a ação ("Baixando 64%, cancelar").</p>
+      </div>
+
+      <div class="comp">
+        <div class="name"><b>FilterChipRow</b><code>options, selected, counts</code></div>
+        <div class="chips" role="group" aria-label="Categoria">
+          <button class="chip" type="button" aria-pressed="true">Todos</button>
+          <button class="chip" type="button" aria-pressed="false">Tecnologia <span class="n">5</span></button>
+          <button class="chip" type="button" aria-pressed="false">Comédia <span class="n">3</span></button>
+          <button class="chip" type="button" aria-pressed="false">Notícias <span class="n">2</span></button>
+          <button class="chip" type="button" aria-pressed="false">True crime <span class="n">2</span></button>
+        </div>
+        <div class="chips" role="group" aria-label="Episódios">
+          <button class="chip" type="button" aria-pressed="false">Todos</button>
+          <button class="chip" type="button" aria-pressed="true">Não ouvidos</button>
+          <button class="chip" type="button" aria-pressed="false">Baixados</button>
+        </div>
+        <p>Usado nas categorias da biblioteca (18.2) e nos filtros do detalhe do podcast. Toque nos chips para testar.</p>
+      </div>
+
+      <div class="comp" style="grid-column:1/-1">
+        <div class="name"><b>EpisodeRow</b><code>episode, playback, download, onPlay, onDownload, onMore</code></div>
+        <div class="ep-list">
+          <div class="ep"><div class="art a2"></div><div class="txt"><div class="meta"><span class="new">Novo</span><span>· hoje · 52 min</span></div><div class="title">#412 · Os bastidores do Copa do Mundo de 2026</div></div><div class="acts"><button class="iconbtn" type="button" aria-label="Baixar"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="playbtn ghost" type="button" aria-label="Tocar"><svg class="i" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" ><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg></button></div></div>
+          <div class="ep"><div class="art a1"></div><div class="txt"><div class="meta"><span>3 dias</span><span class="dl">· <svg class="i" width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" ><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> baixado</span></div><div class="title">Kotlin Multiplatform em produção</div><div class="bar"><i style="width:62%"></i></div></div><div class="acts"><button class="iconbtn" type="button" aria-label="Mais opções"><svg class="i" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" ><circle cx="12" cy="5.5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="18.5" r="1.8"/></svg></button><button class="iconbtn" type="button" aria-label="Continuar, faltam 18 min"><svg class="ringsvg" width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="var(--surface-container-highest)" stroke-width="3"/><circle cx="20" cy="20" r="18" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-dasharray="70.1 113.1" transform="rotate(-90 20 20)"/></svg><span style="color:var(--primary)"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" ><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg></span></button></div></div>
+          <div class="ep played"><div class="art a3"></div><div class="txt"><div class="meta"><span style="color:var(--played)" class="dl"><svg class="i" width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" ><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Ouvido · 12 set · 1 h 08 min</span></div><div class="title">Como funciona o Pix por dentro</div></div><div class="acts"><button class="iconbtn" type="button" aria-label="Baixar"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="playbtn ghost" type="button" aria-label="Tocar de novo"><svg class="i" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" ><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg></button></div></div>
+        </div>
+        <p>Novo (rótulo em <code>accentText</code>), em andamento e baixado (barra de progresso + anel), ouvido (título em <code>onSurfaceVariant</code> e ícone). A mesma linha serve para detalhe, busca, downloads e "Novos episódios".</p>
+      </div>
+
+      <div class="comp">
+        <div class="name"><b>EpisodeProgressBar · PlayerSlider</b><code>position, duration</code></div>
+        <div class="progress" role="progressbar" aria-label="Progresso do episódio" aria-valuenow="42" aria-valuemin="0" aria-valuemax="100"><i></i></div>
+        <div class="slider" aria-label="Posição: 12:05 de 47:30"><div class="rail"><span class="fill"></span><span class="thumb"></span></div><div class="times t-timer"><span>12:05</span><span>−35:25</span></div></div>
+        <p>O slider expõe <code>stateDescription</code> "12:05 de 47:30" e aceita as setas do teclado no Desktop e na Web.</p>
+      </div>
+
+      <div class="comp">
+        <div class="name"><b>MiniPlayer</b><code>episode, isPlaying, progress</code></div>
+        <div class="mini"><div class="art a1"></div><div><b>#142 · O fim das senhas, de verdade</b><span class="t-timer">Hipsters Ponto Tech · 12:05</span></div><button class="playbtn" type="button" aria-label="Pausar"><svg class="i" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" ><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button><span class="edge"><i></i></span></div>
+        <div class="navbar"><div class="on"><span class="pill"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/></svg></span>Biblioteca</div><div><span class="pill"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>Buscar</div><div><span class="pill"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 13l2.5-8h11L20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM4 13h4.5l1 2h5l1-2H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>Novos</div><div><span class="pill"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 15h16M12 4v9m0 0l-3.5-3.5M12 13l3.5-3.5M6 19h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Baixados</div></div>
+        <p>A borda inferior do mini player é o progresso. Na barra de navegação, a aba ativa usa <code>primaryContainer</code>.</p>
+      </div>
+
+      <div class="comp">
+        <div class="name"><b>EmptyState · ErrorState</b><code>icon, title, message, action</code></div>
+        <div class="stateview"><span class="glyph"><svg class="i" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true" ><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><b>Sua biblioteca está vazia</b><p>Busque um podcast pelo nome ou escolha entre os populares da sua categoria favorita.</p><button class="btn primary" type="button"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" ><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Buscar podcasts</button></div>
+        <div class="stateview err"><span class="glyph"><svg class="i" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true" ><path d="M3 3l18 18M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5-2.7M14.5 10.4A10 10 0 0 1 19 13M2 9.5a15 15 0 0 1 5-3M11 5.1A15 15 0 0 1 22 9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="20" r="1.2"/></svg></span><b>Sem conexão</b><p>Não deu para atualizar os feeds. Os episódios baixados continuam disponíveis.</p><button class="btn outline" type="button"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" ><path d="M19 12a7 7 0 1 1-2.05-4.95M19 4v4h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Tentar de novo</button></div>
+      </div>
+
+      <div class="comp">
+        <div class="name"><b>ConfirmDialog</b><code>title, message, confirm, dismiss</code></div>
+        <div class="dialog" role="dialog" aria-label="Remover podcast"><b>Remover "Café da Manhã"?</b><p>Os 4 episódios baixados também serão apagados deste aparelho. Seu progresso nos outros podcasts não muda.</p><div class="row"><button class="btn text" type="button">Cancelar</button><button class="btn danger" type="button">Remover</button></div></div>
+        <p>Ação destrutiva em <code>error</code>, sempre dizendo o que será perdido.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="block" id="telas">
+    <header><h2>Telas</h2><p>Como os componentes se juntam. Mesmo conteúdo do app, com dados de exemplo.</p></header>
+    <div class="screens">
+      <div class="phone">
+        <div class="h"><span class="t-headline">Biblioteca</span><button class="iconbtn sm" type="button" aria-label="Ordenar e exibir"><svg class="i" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" ><circle cx="12" cy="5.5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="18.5" r="1.8"/></svg></button></div>
+        <div class="chips"><button class="chip" type="button" aria-pressed="true">Todos</button><button class="chip" type="button" aria-pressed="false">Tecnologia</button><button class="chip" type="button" aria-pressed="false">Comédia</button></div>
+        <div class="t-section on-var">Continuar ouvindo</div>
+        <div class="ep"><div class="art a1"></div><div class="txt"><div class="meta"><span>Faltam 18 min</span></div><div class="title">Kotlin Multiplatform em produção</div><div class="bar"><i style="width:62%"></i></div></div><div class="acts"><button class="iconbtn" type="button" aria-label="Continuar"><svg class="ringsvg" width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="var(--surface-container-highest)" stroke-width="3"/><circle cx="20" cy="20" r="18" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-dasharray="70.1 113.1" transform="rotate(-90 20 20)"/></svg><span style="color:var(--primary)"><svg class="i" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" ><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg></span></button></div></div>
+        <div class="grid2">
+          <div class="pcard"><div class="art a1"><span class="badge">3</span></div><b>Hipsters Ponto Tech</b><span>Alura</span></div>
+          <div class="pcard"><div class="art a2"><span class="badge">12</span></div><b>Café da Manhã</b><span>Folha de S.Paulo</span></div>
+          <div class="pcard"><div class="art a3"></div><b>Naruhodo</b><span>B9</span></div>
+          <div class="pcard"><div class="art a4"><span class="badge">1</span></div><b>Mamilos</b><span>B9</span></div>
+        </div>
+        <div class="mini"><div class="art a1"></div><div><b>#142 · O fim das senhas</b><span class="t-timer">12:05 / 47:30</span></div><button class="playbtn" type="button" aria-label="Pausar"><svg class="i" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" ><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button><span class="edge"><i></i></span></div>
+        <div class="navbar"><div class="on"><span class="pill"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/></svg></span>Biblioteca</div><div><span class="pill"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>Buscar</div><div><span class="pill"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 13l2.5-8h11L20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM4 13h4.5l1 2h5l1-2H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>Novos</div><div><span class="pill"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 15h16M12 4v9m0 0l-3.5-3.5M12 13l3.5-3.5M6 19h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Baixados</div></div>
+      </div>
+
+      <div class="phone">
+        <div class="topbar"><button class="iconbtn sm" type="button" aria-label="Minimizar"><svg class="i" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" ><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="ttl">Tocando agora</span><button class="iconbtn sm" type="button" aria-label="Mais opções"><svg class="i" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" ><circle cx="12" cy="5.5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="18.5" r="1.8"/></svg></button></div>
+        <div class="player">
+          <div class="art a1"></div>
+          <div class="ttl"><span class="t-title-l">#142 · O fim das senhas, de verdade</span><span class="t-body-m" style="color:var(--accent-text);font-weight:600">Hipsters Ponto Tech</span></div>
+          <div class="slider" aria-label="Posição: 12:05 de 47:30"><div class="rail"><span class="fill"></span><span class="thumb"></span></div><div class="times t-timer"><span>12:05</span><span>−35:25</span></div></div>
+          <div class="ctrls"><button class="iconbtn" type="button" aria-label="Voltar 10 segundos"><svg class="i" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true" ><path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/><text x="12" y="16.2" font-size="6.4" font-weight="700" text-anchor="middle" font-family="Onest, sans-serif">10</text></svg></button><button class="playbtn lg" type="button" aria-label="Pausar"><svg class="i" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true" ><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button><button class="iconbtn" type="button" aria-label="Avançar 30 segundos"><svg class="i" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true" ><path d="M12 5V2l5 4-5 4V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z"/><text x="12" y="16.2" font-size="6.4" font-weight="700" text-anchor="middle" font-family="Onest, sans-serif">30</text></svg></button></div>
+          <div class="aux"><button type="button" class="on"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M12 13l4-4M5.6 18a8 8 0 1 1 12.8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>1,5×</button><button type="button"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9.5V13l2.5 1.5M9.5 3h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Timer</button><button type="button"><svg class="i" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 6h12M4 11h12M4 16h7M16 14v6l5-3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Fila · 4</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="compose">
+    <header><h2>No código</h2><p>Como cada parte vira API no módulo <code>:core:designsystem</code>.</p></header>
+    <div class="tbl"><table>
+      <thead><tr><th>Parte</th><th>API em Compose</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td>Tema</td><td><code>PodcastTheme(darkTheme) { … }</code></td><td>Aplica <code>MaterialTheme</code> com os 3 objetos abaixo e provê <code>LocalPodcastColors</code> e <code>LocalPodcastTypography</code></td></tr>
+        <tr><td>Cores M3</td><td><code>MaterialTheme.colorScheme.*</code></td><td>Todos os papéis definidos em <code>PodcastColorSchemes.kt</code></td></tr>
+        <tr><td>Cores do app</td><td><code>PodcastTheme.colors.accentText / brand / onBrand / downloaded / played</code></td><td>Progresso usa <code>primary</code> sobre <code>surfaceContainerHighest</code></td></tr>
+        <tr><td>Tipografia</td><td><code>MaterialTheme.typography.*</code>, <code>PodcastTheme.typography.timer / section</code></td><td><code>FontFamily</code> da Onest carregada com <code>Font(Res.font.onest_*)</code></td></tr>
+        <tr><td>Espaçamento</td><td><code>Spacing.xxs … Spacing.xxxl</code></td><td>Substitui <code>paddingX</code> e <code>spacingX</code> do <code>AppDimensions</code></td></tr>
+        <tr><td>Tamanhos</td><td><code>Sizes.touchTarget, artworkS/M/L, miniPlayerHeight, playButtonLarge</code></td><td>Só o que vários componentes dividem</td></tr>
+        <tr><td>Formas</td><td><code>MaterialTheme.shapes.extraSmall … extraLarge</code></td><td>6 · 10 · 14 · 20 · 28 dp</td></tr>
+        <tr><td>Movimento</td><td><code>Motion.short / medium / long</code>, <code>Motion.standard / emphasized</code></td><td><code>tween(Motion.long, easing = Motion.emphasized)</code></td></tr>
+        <tr><td>Opacidade</td><td><code>Alpha.disabled / muted / scrim</code></td><td></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <footer>Os valores vêm da tabela de tokens da ADR 0001. Ao mudar uma cor, atualize a ADR, os blocos de variáveis CSS e o objeto <code>T</code> do script desta página, e o <code>PodcastColorSchemes.kt</code>; o <code>ColorContrastTest</code> barra qualquer par abaixo de AA.</footer>
+</main>
+
+<script>
+(function () {
+  var T = {"l":{"background":"#F7F7F5","surface":"#F7F7F5","surfaceContainerLowest":"#FFFFFF","surfaceContainerLow":"#F2F1EE","surfaceContainer":"#ECEBE7","surfaceContainerHigh":"#E6E4DF","surfaceContainerHighest":"#E0DDD7","onSurface":"#1C1B19","onSurfaceVariant":"#605C55","outline":"#8A857C","outlineVariant":"#D6D2CA","primary":"#BC7300","onPrimary":"#1C1B19","primaryContainer":"#FCE3BC","onPrimaryContainer":"#4F2F00","secondary":"#6E6152","onSecondary":"#FFFFFF","secondaryContainer":"#EFE4D6","onSecondaryContainer":"#2A2118","tertiary":"#3F6872","onTertiary":"#FFFFFF","tertiaryContainer":"#D4E6EB","onTertiaryContainer":"#0E2A31","error":"#B3261E","onError":"#FFFFFF","errorContainer":"#F9DEDC","onErrorContainer":"#410E0B","inverseSurface":"#31302D","inverseOnSurface":"#F4F2EE","inversePrimary":"#F2A93B","accentText":"#9A5B00","brand":"#F2A93B","onBrand":"#1C1B19","downloaded":"#2B7349","played":"#8A857C"},"d":{"background":"#161513","surface":"#161513","surfaceContainerLowest":"#110F0E","surfaceContainerLow":"#1D1B19","surfaceContainer":"#22201D","surfaceContainerHigh":"#2C2A26","surfaceContainerHighest":"#37342F","onSurface":"#F1EFEA","onSurfaceVariant":"#A8A398","outline":"#7D776E","outlineVariant":"#3A3631","primary":"#F2A93B","onPrimary":"#1C1B19","primaryContainer":"#5A3600","onPrimaryContainer":"#FCE3BC","secondary":"#D6C6B3","onSecondary":"#2A2118","secondaryContainer":"#4A3F33","onSecondaryContainer":"#EFE4D6","tertiary":"#A9CCD6","onTertiary":"#0E2A31","tertiaryContainer":"#2E4C55","onTertiaryContainer":"#D4E6EB","error":"#FFB4AB","onError":"#690005","errorContainer":"#93000A","onErrorContainer":"#FFDAD6","inverseSurface":"#F1EFEA","inverseOnSurface":"#31302D","inversePrimary":"#9A5B00","accentText":"#F2A93B","brand":"#F2A93B","onBrand":"#1C1B19","downloaded":"#7FD6A0","played":"#7D776E"}};
+  var checks = [["Texto principal","onSurface","background",4.5],["Texto secundário","onSurfaceVariant","surfaceContainerHighest",4.5],["Ícone no botão","onPrimary","primary",4.5],["Botão contra o fundo","primary","background",3],["Destaque como texto","accentText","surfaceContainerLowest",4.5],["Selo de marca","onBrand","brand",4.5],["Contêiner primário","onPrimaryContainer","primaryContainer",4.5],["Erro como texto","error","background",4.5],["Ícone de baixado","downloaded","background",3],["Borda de campo","outline","background",3]];
+  var root = document.documentElement;
+  var media = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function lum(hex) {
+    var c = [1, 3, 5].map(function (i) { return parseInt(hex.slice(i, i + 2), 16) / 255; })
+      .map(function (v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function ratio(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  function currentTheme() {
+    var t = root.getAttribute('data-theme');
+    if (t === 'dark') return 'd';
+    if (t === 'light') return 'l';
+    return media.matches ? 'd' : 'l';
+  }
+  function renderChecks() {
+    var t = currentTheme(), box = document.getElementById('checks');
+    box.innerHTML = checks.map(function (c) {
+      var r = ratio(T[t][c[1]], T[t][c[2]]), ok = r >= c[3];
+      return '<div class="check"><b>' + c[0] + '</b><span class="v">' + c[1] + ' / ' + c[2] + '</span><span class="v"><span class="' + (ok ? 'ok' : 'no') + '">' + r.toFixed(2) + ':1</span> · mínimo ' + c[3] + ':1</span></div>';
+    }).join('');
+  }
+  function setTheme(mode) {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    document.querySelectorAll('.seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.t === mode)); });
+    try { localStorage.setItem('ds-theme', mode); } catch (e) {}
+    renderChecks();
+  }
+  document.querySelectorAll('.seg button').forEach(function (b) { b.addEventListener('click', function () { setTheme(b.dataset.t); }); });
+  if (media.addEventListener) media.addEventListener('change', renderChecks);
+  var saved = null;
+  try { saved = localStorage.getItem('ds-theme'); } catch (e) {}
+  setTheme(saved === 'light' || saved === 'dark' ? saved : 'system');
+
+  document.querySelectorAll('.chips[role="group"]').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('.chip'); if (!b) return;
+      g.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', String(c === b)); });
+    });
+  });
+  var motion = document.getElementById('motion');
+  document.getElementById('motion-btn').addEventListener('click', function () { motion.classList.toggle('go'); });
+})();
+</script>
+</body>
+</html>
