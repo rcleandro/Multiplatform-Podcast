@@ -647,7 +647,7 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   andando a cada 500 ms por um minuto de tempo virtual: pelo menos 10 salvamentos, o último a menos de 5 s do fim.
   No código antigo, foram 0.
 
-### 13.2 Player singleton liberado pelo ViewModel ✅ / 🔎 — M
+### 13.2 Player singleton liberado pelo ViewModel ✔ (falta conferir no aparelho) — M
 - **Problema:** `PlayerViewModel.onCleared()` chama `audioPlayer.release()` no player singleton do Koin. No Android,
   `release()` cancela o `scope` e libera o `MediaController` de vez. Basta fechar a activity pelo voltar com o
   processo vivo (o serviço continua tocando) para, ao reabrir, o novo ViewModel receber um player morto. O
@@ -655,6 +655,13 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   garante isso), então aquele `release()` é código morto.
 - **Ação:** o ciclo de vida do player pertence à aplicação (ou ao serviço), não à tela; o ViewModel não libera nada.
   Reproduzir no aparelho antes e depois.
+- **Implementado:** o `onCleared` do `PlayerViewModel` saiu inteiro. Ele liberava o `AudioPlayer` singleton e
+  cancelava o job do sleep timer, mas esse job já roda no `viewModelScope`, que é cancelado de qualquer forma (o
+  timer sai da tela na 13.6). O observador de `ON_DESTROY` do `ProcessLifecycleOwner` no `PodcastApplication` também
+  saiu, porque era código morto. Nenhum código chama mais `AudioPlayer.release()`: o player vive com o processo e,
+  no Android, com o `PodcastMediaService`. O método continua na interface para o `PlaybackController` (13.5)
+  decidir. Teste: limpar o `ViewModelStore`, como ao fechar a tela, não libera o player (falhou no código antigo).
+  **Falta:** reproduzir no Razr 60 (tocar, fechar pelo voltar com o áudio tocando, reabrir e usar o player).
 
 ### 13.3 Foco de áudio e fone desconectado (Android) ✅ — P
 - **Problema:** `PodcastMediaService` cria o ExoPlayer com `setAudioAttributes(…, handleAudioFocus = false)` e sem
