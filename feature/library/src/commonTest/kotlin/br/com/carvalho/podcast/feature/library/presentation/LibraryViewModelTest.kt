@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import app.cash.turbine.test
+import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
@@ -33,7 +34,7 @@ class LibraryViewModelTest {
     private val feedSource = FakeFeedSource()
     private val addPodcastUseCase = AddPodcastFromUrlUseCase(feedSource, repository)
     private val refreshPodcastUseCase = RefreshPodcastUseCase(feedSource, repository)
-    private val deletePodcastUseCase = DeletePodcastUseCase(repository)
+    private val deletePodcastUseCase = DeletePodcastUseCase(repository, FakeEpisodeDownloader())
     private val testDispatcher = UnconfinedTestDispatcher()
     private val dispatchers = CoroutineDispatchers(main = testDispatcher, io = testDispatcher)
 

@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -7,7 +8,7 @@ import kotlin.test.assertEquals
 
 class DeletePodcastUseCaseTest {
     private val podcastRepo = FakePodcastRepository()
-    private val useCase = DeletePodcastUseCase(podcastRepo)
+    private val useCase = DeletePodcastUseCase(podcastRepo, FakeEpisodeDownloader())
 
     @Test
     fun `calls repository delete method with correct id`() = runTest {
