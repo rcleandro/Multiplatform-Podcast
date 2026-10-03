@@ -13,8 +13,8 @@ Player de podcasts multiplataforma com uma base única em Kotlin Multiplatform +
 
 O usuário adiciona podcasts **colando a URL do feed RSS**. O app baixa e interpreta o feed, guarda podcast e
 episódios num banco local e toca os episódios por streaming ou a partir de um download. Não há conta, backend próprio
-nem sincronização entre dispositivos: tudo fica no aparelho. Firebase (Analytics, Crashlytics, Performance e Remote
-Config) roda só no Android e no iOS.
+nem sincronização entre dispositivos: tudo fica no aparelho. Firebase (Analytics, Crashlytics e Performance) roda só
+no Android e no iOS; o Remote Config saiu em 03/10/2026 (roadmap 10.11).
 
 Funcionalidades que existem hoje:
 
@@ -122,12 +122,12 @@ e marca `isDownloaded` no banco. O player usa o arquivo local se `getLocalPath` 
 Os esquemas 1–3 estão exportados em `shared/schemas/`, mas **nenhuma migração existe**: todas as plataformas usam
 `fallbackToDestructiveMigration(true)`.
 
-## 6. Configuração remota (`AppConfig`)
+## 6. Constantes do app (`AppConfig`)
 
-Lidas do Remote Config com fallback local: `skip_forward_seconds` (30), `skip_backward_seconds` (10),
-`playback_save_debounce_ms` (2000), `playback_finished_threshold` (0,95), `sleep_timer_tick_ms` (1000),
-`search_debounce_ms` (300), `download_buffer_size` (8192), `millis_per_second` (1000), `playback_speeds`
-(0,5–2,5). No Desktop e na Web o Remote Config é no-op, então sempre valem os fallbacks.
+Até 03/10/2026 vinham do Firebase Remote Config com fallback local; o Remote Config saiu (10.11) e os fallbacks
+viraram constantes: avanço 30 s, retrocesso 10 s, debounce do salvamento 2000 ms, "ouvido" a 95%, tick do timer
+1000 ms, debounce da busca 300 ms, buffer de download 8192, velocidades 0,5–2,5. O SDK de Performance ainda traz o
+Remote Config como dependência indireta (usa para a própria configuração), mas o código do app não o chama.
 
 ## 7. Design system atual
 

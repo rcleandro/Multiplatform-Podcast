@@ -48,9 +48,6 @@ kotlin {
         pod("FirebasePerformance") {
             version = "~> 11.0"
         }
-        pod("FirebaseRemoteConfig") {
-            version = "~> 11.0"
-        }
         pod("FirebaseCore") {
             version = "~> 11.0"
         }
@@ -147,7 +144,6 @@ kotlin {
             implementation(libs.firebase.analytics)
             implementation(libs.firebase.crashlytics)
             implementation(libs.firebase.performance)
-            implementation(libs.firebase.config)
         }
 
         val iosMain by getting {
@@ -159,8 +155,7 @@ kotlin {
                 implementation(libs.firebase.common)
                 implementation(libs.firebase.analytics)
                 implementation(libs.firebase.crashlytics)
-                implementation(libs.firebase.config)
-            }
+                }
         }
 
         val desktopMain by getting {

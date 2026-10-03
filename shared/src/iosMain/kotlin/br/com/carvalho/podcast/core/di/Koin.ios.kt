@@ -2,7 +2,6 @@ package br.com.carvalho.podcast.core.di
 
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
-import br.com.carvalho.podcast.core.config.RemoteConfig
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.initialize
 import org.koin.core.context.startKoin
@@ -34,12 +33,9 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
         try {
             AppLogger.i(TAG, "Initializing Firebase in background...")
             Firebase.initialize()
-
-            AppLogger.i(TAG, "Firebase initialized, fetching Remote Config...")
-            RemoteConfig.fetchAndActivate()
-            AppLogger.i(TAG, "Remote Config fetched and activated")
+            AppLogger.i(TAG, "Firebase initialized")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to initialize Firebase or Remote Config", e)
+            AppLogger.e(TAG, "Failed to initialize Firebase", e)
         }
     }
 }
