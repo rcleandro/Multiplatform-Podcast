@@ -34,7 +34,9 @@ O âmbar puro (`#F2A93B`) tem só 1,9:1 contra o fundo claro e 2,0:1 contra o br
 
 ### Tokens de cor
 
-Fonte da verdade para `PodcastColorSchemes.kt` (papéis do M3) e `PodcastColors` (os 5 últimos, fora do M3).
+Fonte da verdade para `ColorSchemes.kt` (os 48 papéis do M3, com os "fixed" iguais nos dois temas, como o M3
+define) e `PodcastColors.kt` (os 5 últimos, fora do M3). Os valores ficam como primitivas com nome em
+`Palette.kt` (`AMBER_50`, `NEUTRAL_97`…, o número é o tom de 0 a 100), e os papéis apontam para elas.
 
 | Token | Claro | Escuro |
 |---|---|---|
@@ -46,6 +48,11 @@ Fonte da verdade para `PodcastColorSchemes.kt` (papéis do M3) e `PodcastColors`
 | `surfaceContainerHigh` | `#E6E4DF` | `#2C2A26` |
 | `surfaceContainerHighest` | `#E0DDD7` | `#37342F` |
 | `onSurface` | `#1C1B19` | `#F1EFEA` |
+| `onBackground` | `#1C1B19` | `#F1EFEA` |
+| `surfaceVariant` | `#E0DDD7` | `#37342F` |
+| `surfaceTint` | `#BC7300` | `#F2A93B` |
+| `surfaceBright` | `#F7F7F5` | `#3C3934` |
+| `surfaceDim` | `#DCD9D3` | `#161513` |
 | `onSurfaceVariant` | `#605C55` | `#A8A398` |
 | `outline` | `#8A857C` | `#7D776E` |
 | `outlineVariant` | `#D6D2CA` | `#3A3631` |
@@ -69,6 +76,12 @@ Fonte da verdade para `PodcastColorSchemes.kt` (papéis do M3) e `PodcastColors`
 | `inverseOnSurface` | `#F4F2EE` | `#31302D` |
 | `inversePrimary` | `#F2A93B` | `#9A5B00` |
 | `scrim` | `#000000` | `#000000` |
+| `primaryFixed` / `primaryFixedDim` | `#FCE3BC` / `#F2A93B` | iguais ao claro |
+| `onPrimaryFixed` / `onPrimaryFixedVariant` | `#2B1900` / `#5A3600` | iguais ao claro |
+| `secondaryFixed` / `secondaryFixedDim` | `#EFE4D6` / `#D6C6B3` | iguais ao claro |
+| `onSecondaryFixed` / `onSecondaryFixedVariant` | `#2A2118` / `#4A3F33` | iguais ao claro |
+| `tertiaryFixed` / `tertiaryFixedDim` | `#D4E6EB` / `#A9CCD6` | iguais ao claro |
+| `onTertiaryFixed` / `onTertiaryFixedVariant` | `#0E2A31` / `#2E4C55` | iguais ao claro |
 | `accentText` | `#9A5B00` | `#F2A93B` |
 | `brand` | `#F2A93B` | `#F2A93B` |
 | `onBrand` | `#1C1B19` | `#1C1B19` |

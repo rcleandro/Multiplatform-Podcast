@@ -114,7 +114,7 @@ passam a usar só o design system.
   `:webApp:compileKotlinWasmJs` e `:core:designsystem:compileKotlinIosSimulatorArm64`. O framework iOS do `:shared`
   não foi compilado aqui porque o `pod install` local quebra (Ruby 4.0 do Homebrew); o CI cobre.
 
-### 9.3 Cores: esquema completo e cores semânticas ✅ — P
+### 9.3 Cores: esquema completo e cores semânticas ✔ — P
 - **Problema:** `lightColorScheme`/`darkColorScheme` recebem só 16 papéis. Os outros (`tertiary`, `outline`,
   `outlineVariant`, `surfaceContainer*`, `inverseSurface`, `scrim`…) caem no **roxo padrão do Material 3**, que
   aparece em chips, divisores, sliders e no `NavigationSuiteScaffold`.
@@ -123,6 +123,15 @@ passam a usar só o design system.
   Features usam `MaterialTheme.colorScheme` ou `PodcastTheme.colors`, nunca `Color(...)`.
 - **Teste:** `ColorContrastTest` em `commonTest` calcula o contraste WCAG de cada par (`onX` sobre `X`) nos dois
   temas e falha abaixo de AA.
+- **Implementado:** os 48 papéis do M3 definidos nos dois temas (`ColorSchemes.kt`), a partir de primitivas com nome
+  em `Palette.kt` (`AMBER_50`, `NEUTRAL_97`…), o que também resolve o `MagicNumber` sem afrouxar o Detekt. As cores
+  fora do M3 ficam em `PodcastColors` (`accentText`, `brand`, `onBrand`, `downloaded`, `played`), lidas por
+  `PodcastTheme.colors` e providas pelo `PodcastTheme`. Dois testes em `core/designsystem/commonTest`:
+  `ColorContrastTest` (os 26 pares da ADR nos dois temas, com o contraste WCAG calculado por `Color.luminance()` e
+  conferido contra 21:1 de preto/branco) e `ColorSchemeCompletenessTest`, que compara cada papel com o padrão do
+  M3 e falha se algum ficou de fora (com uma lista explícita de coincidências intencionais: branco, preto e os
+  vermelhos de erro do M3 no tema claro). Rodado contra o esquema antigo, o de completude falha nos dois temas;
+  com o novo, os 5 testes passam. Conferido no Razr 60 no tema escuro.
 
 ### 9.4 Tipografia ✅ — P
 - **Problema:** `Type.kt` reescreve os 15 estilos do M3 com `FontFamily.Default` e os valores padrão, e os tempos do
@@ -200,7 +209,28 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   `semantics` no slider do player e no botão de download (estado + progresso); ordem de foco do teclado no Desktop e
   na Web; snapshot com fonte em 200% sem cortar texto.
 
-**Critério de conclusão:** referência HTML aprovada; `:core:designsystem` publicado para as 4 plataformas; nenhuma
+### 9.13 Ícone do app no novo design ✅ — M
+- **Problema:** cada plataforma tem um ícone diferente e nenhum segue a identidade da 9.1. O Android usa um ícone
+  adaptativo vetorial do template, sem camada monocromática, então não acompanha os ícones temáticos do Android 13+.
+  O iOS tem um `app-icon-1024.png` avulso, sem as variantes escura e tingida do iOS 18. O Desktop usa um `icon.png`
+  também na bandeja. A Web não declara favicon nem manifest. O player usa um `app_icon.png` de `composeResources`
+  como placeholder de capa.
+- **Ação:**
+  1. Desenhar o símbolo na referência HTML (`docs/podcast-design-system.html`): microfone (o glifo do logo da página)
+     sobre o quadrado âmbar `brand`, com versões para fundo claro e escuro e uma versão monocromática. Aprovar antes
+     de gerar os arquivos e registrar na ADR 0001.
+  2. **Android:** ícone adaptativo vetorial (`foreground` + `background` + `monochrome`) em `mipmap-anydpi-v26`, com
+     o glifo dentro da zona segura de 66 dp; apagar os PNGs `mipmap-*dpi` que o vetor dispensa (o `minSdk` é 26).
+     Splash da API `SplashScreen` com o mesmo glifo e o fundo `background` do tema.
+  3. **iOS:** `AppIcon` com as três aparências (padrão, escura e tingida) num único tamanho de 1024 px.
+  4. **Desktop:** `.icns` (macOS), `.ico` (Windows) e `.png` (Linux) no `nativeDistributions`; ícone da bandeja em
+     modelo monocromático no macOS.
+  5. **Web:** favicon SVG, `apple-touch-icon` e `manifest.webmanifest` com `theme_color` âmbar.
+  6. O placeholder de capa do player passa a ser o `PodcastArtwork` da 9.6, e o `app_icon.png` sai.
+- **Verificação:** ícone conferido no launcher do Razr (com e sem ícones temáticos, e na tela externa), no
+  simulador iOS nos três modos, no Dock/Barra de tarefas do Desktop e na aba do navegador.
+
+**Critério de conclusão:** referência HTML aprovada; `:core:designsystem` publicado para as 4 plataformas; ícone novo em todas elas; nenhuma
 cor, `sp` ou `dp` solto nem texto de tela nas features (garantido pelo Detekt); snapshots e `ColorContrastTest` no CI.
 
 ---

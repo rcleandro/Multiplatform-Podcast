@@ -29,5 +29,8 @@ kotlin {
             api(libs.material3)
             api(libs.compose.ui)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
     }
 }
