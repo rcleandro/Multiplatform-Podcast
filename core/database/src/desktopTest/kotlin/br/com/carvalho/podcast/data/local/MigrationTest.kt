@@ -23,7 +23,7 @@ import kotlin.test.assertTrue
 class MigrationTest {
     private val databaseFile: Path = Files.createTempFile("migration", ".db")
     private val directories = AppDirectories(FakeFileSystem(), "/app".toPath())
-    private val migrations = listOf(EpisodeIdMigration(directories))
+    private val migrations = listOf(EpisodeIdMigration(directories), QueueItemsMigration)
     private val helper = MigrationTestHelper(
         schemaDirectoryPath = Paths.get("schemas"),
         databasePath = databaseFile,
@@ -41,7 +41,9 @@ class MigrationTest {
     fun everyVersionMigratesToTheCurrentOneKeepingTheLibrary() = runTest {
         for (version in FIRST_VERSION until CURRENT_VERSION) {
             databaseFile.deleteIfExists()
-            helper.createDatabase(version).use { it.insertLibrary() }
+            // From version 4 on, rows already carry the feed-scoped id.
+            val episodeId = if (version >= EPISODE_ID_VERSION) E1 else "e1"
+            helper.createDatabase(version).use { it.insertLibrary(episodeId = episodeId) }
 
             helper.runMigrationsAndValidate(CURRENT_VERSION, migrations).use { connection ->
                 assertEquals("Podcast", connection.text("SELECT title FROM podcasts WHERE id = 'p1'"))
@@ -80,15 +82,28 @@ class MigrationTest {
         assertFalse(fileSystem.exists(directories.downloadPath("e1")))
     }
 
-    private fun SQLiteConnection.insertLibrary(queueJson: String = "[]") {
+    @Test
+    fun version5KeepsTheQueueAsReferencesToEpisodesInTheLibrary() = runTest {
+        helper.createDatabase(QUEUE_TABLE_VERSION - 1).use { connection ->
+            connection.insertLibrary(queueJson = """[{"id":"e1","title":"Stale copy"},{"id":"gone"}]""")
+        }
+
+        helper.runMigrationsAndValidate(QUEUE_TABLE_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM queue_items"))
+            assertEquals("0|e1", connection.text("SELECT position || '|' || episodeId FROM queue_items"))
+            assertEquals("e1", connection.text("SELECT episodeId FROM playback_state"))
+        }
+    }
+
+    private fun SQLiteConnection.insertLibrary(queueJson: String = "[]", episodeId: String = "e1") {
         execSQL(
             "INSERT INTO podcasts VALUES ('p1', 'Podcast', '', NULL, NULL, NULL, '', 'https://feed', NULL, 0, 1)"
         )
         execSQL(
             "INSERT INTO episodes VALUES " +
-                "('e1', 'p1', 'Podcast', 'Episode', NULL, 'https://audio', NULL, 60, 0, 1, 42000, 1, NULL)"
+                "('$episodeId', 'p1', 'Podcast', 'Episode', NULL, 'https://audio', NULL, 60, 0, 1, 42000, 1, NULL)"
         )
-        execSQL("INSERT INTO playback_state VALUES (0, 'e1', 42000, 1.0, '$queueJson')")
+        execSQL("INSERT INTO playback_state VALUES (0, '$episodeId', 42000, 1.0, '$queueJson')")
     }
 
     private fun SQLiteConnection.text(sql: String): String = prepare(sql).use { statement ->
@@ -99,7 +114,8 @@ class MigrationTest {
     private companion object {
         const val FIRST_VERSION = 1
         const val EPISODE_ID_VERSION = 4
-        const val CURRENT_VERSION = 4
+        const val QUEUE_TABLE_VERSION = 5
+        const val CURRENT_VERSION = 5
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

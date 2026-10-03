@@ -53,9 +53,9 @@ Decisões menores:
   (Android e iOS) moram no `:shared`, onde estão os pods, e entram pelo Koin. Desktop e Web recebem as
   implementações que só registram em log. Assim os testes de cada módulo não dependem de Firebase.
 - **`PagingData` no domínio é aceito.** É do `androidx.paging:paging-common`, uma biblioteca KMP sem Android.
-- **Log e `@Serializable` no domínio são aceitos.** Os casos de uso registram em log pelo `AppLogger` do
-  `:core:observability`, que não conhece o Firebase, e `Episode` é serializável porque a fila do player é salva
-  em JSON; as duas bibliotecas são KMP puras.
+- **Log no domínio é aceito.** Os casos de uso registram em log pelo `AppLogger` do `:core:observability`, que
+  não conhece o Firebase. (`Episode` era `@Serializable` porque a fila do player era salva em JSON; desde a 12.9 a
+  fila é a tabela `queue_items` e o domínio não depende mais de kotlinx-serialization.)
 - **Estabilidade do Compose fora do domínio.** Os modelos perdem `@Immutable`; um arquivo de configuração de
   estabilidade nos módulos de UI declara os modelos como estáveis.
 - **Um `Res` por módulo de UI.** Os textos usados por várias features ficam em `:core:ui`; texto de uma feature

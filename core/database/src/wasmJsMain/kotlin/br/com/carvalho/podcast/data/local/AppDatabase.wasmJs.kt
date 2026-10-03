@@ -13,7 +13,7 @@ fun createAppDatabase(directories: AppDirectories): AppDatabase {
     val driver = WebWorkerSQLiteDriver(createSqliteWorker())
     return Room.databaseBuilder<AppDatabase>("podcast.db")
         .setDriver(driver = driver)
-        .addMigrations(EpisodeIdMigration(directories))
+        .addAppMigrations(directories)
         .build()
 }
 

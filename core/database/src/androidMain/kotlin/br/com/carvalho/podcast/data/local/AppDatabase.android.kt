@@ -10,6 +10,6 @@ fun createAppDatabase(context: Context, directories: AppDirectories): AppDatabas
     return Room.databaseBuilder<AppDatabase>(context, "podcast.db")
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)
-        .addMigrations(EpisodeIdMigration(directories))
+        .addAppMigrations(directories)
         .build()
 }

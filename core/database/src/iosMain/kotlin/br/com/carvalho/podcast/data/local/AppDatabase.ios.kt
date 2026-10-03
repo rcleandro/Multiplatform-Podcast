@@ -11,6 +11,6 @@ fun createAppDatabase(directories: AppDirectories): AppDatabase {
     return Room.databaseBuilder<AppDatabase>(dbPath)
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.Default)
-        .addMigrations(EpisodeIdMigration(directories))
+        .addAppMigrations(directories)
         .build()
 }
