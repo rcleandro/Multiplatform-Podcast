@@ -59,8 +59,11 @@ class PodcastMediaService : MediaLibraryService() {
                     .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
                     .setUsage(C.USAGE_MEDIA)
                     .build(),
-                false
+                // Pauses for calls and other apps, and ducks or resumes as the system asks.
+                true
             )
+            // Pauses when headphones are unplugged instead of going on through the speaker.
+            .setHandleAudioBecomingNoisy(true)
             .setSeekForwardIncrementMs(30000)
             .setSeekBackIncrementMs(15000)
             .build()
