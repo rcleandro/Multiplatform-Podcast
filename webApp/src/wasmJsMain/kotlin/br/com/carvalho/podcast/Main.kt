@@ -4,7 +4,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import br.com.carvalho.podcast.core.di.initKoin
-import br.com.carvalho.podcast.presentation.navigation.RootComponentImpl
+import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 
@@ -14,7 +14,7 @@ fun main() {
 
     ComposeViewport(viewportContainerId = "compose-receiver") {
         val lifecycle = remember { LifecycleRegistry() }
-        val root = remember { RootComponentImpl(DefaultComponentContext(lifecycle = lifecycle)) }
+        val root = remember { RootComponent(DefaultComponentContext(lifecycle = lifecycle)) }
         App(root)
     }
 }

@@ -1,7 +1,7 @@
 package br.com.carvalho.podcast
 
 import androidx.compose.ui.window.ComposeUIViewController
-import br.com.carvalho.podcast.presentation.navigation.RootComponentImpl
+import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import androidx.compose.runtime.remember
@@ -14,7 +14,7 @@ fun MainViewController(): UIViewController {
     initKoin()
     return ComposeUIViewController {
         val lifecycle = remember { LifecycleRegistry() }
-        val root = remember { RootComponentImpl(DefaultComponentContext(lifecycle = lifecycle)) }
+        val root = remember { RootComponent(DefaultComponentContext(lifecycle = lifecycle)) }
         App(root)
     }
 }

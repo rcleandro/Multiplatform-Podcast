@@ -10,7 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import br.com.carvalho.podcast.core.util.AppLogger
-import br.com.carvalho.podcast.presentation.navigation.RootComponentImpl
+import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import com.arkivanov.decompose.defaultComponentContext
 
 private const val TAG = "MainActivity"
@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
 
         requestNotificationPermission()
 
-        val root = RootComponentImpl(defaultComponentContext())
+        val root = RootComponent(defaultComponentContext())
 
         setContent {
             App(root)

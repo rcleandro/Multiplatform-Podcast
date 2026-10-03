@@ -18,7 +18,7 @@ import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.rememberTrayState
 import br.com.carvalho.podcast.core.di.initKoin
 import br.com.carvalho.podcast.domain.player.AudioPlayer
-import br.com.carvalho.podcast.presentation.navigation.RootComponentImpl
+import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import androidx.compose.runtime.remember
@@ -65,7 +65,7 @@ fun main() {
             icon = painterResource(Res.drawable.app_icon),
         ) {
             val lifecycle = remember { LifecycleRegistry() }
-            val root = remember { RootComponentImpl(DefaultComponentContext(lifecycle = lifecycle)) }
+            val root = remember { RootComponent(DefaultComponentContext(lifecycle = lifecycle)) }
             App(root)
         }
     }
