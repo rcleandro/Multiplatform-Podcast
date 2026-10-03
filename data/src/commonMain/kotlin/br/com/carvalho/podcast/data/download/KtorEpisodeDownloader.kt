@@ -17,11 +17,13 @@ import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import okio.IOException
 import okio.Path
 import okio.buffer
 import okio.use
 
 private const val TAG = "KtorEpisodeDownloader"
+private const val PART_SUFFIX = ".part"
 
 /**
  * Implementação base do [EpisodeDownloader] utilizando Ktor e Okio.
@@ -48,10 +50,12 @@ open class KtorEpisodeDownloader(
         }
 
         val job = scope.launch {
+            val destPath = directories.downloadPath(episode.id)
+            // The episode only appears under its final name once it is whole; a failure leaves just the .part.
+            val partPath = destPath.parent!! / "${destPath.name}$PART_SUFFIX"
             try {
                 updateStatus(episode.id, DownloadStatus.Queued())
 
-                val destPath = directories.downloadPath(episode.id)
                 // prepareGet + execute streams the body to disk; get() would hold the whole episode in memory first.
                 val completed = httpClient.prepareGet(episode.audioUrl) {
                     // An episode takes minutes; only connecting and silence are limited, not the whole transfer.
@@ -68,7 +72,8 @@ open class KtorEpisodeDownloader(
                         return@execute false
                     }
                     fileSystem.createDirectories(directories.downloadsDir)
-                    writeBody(response.bodyAsChannel(), destPath)
+                    writeBody(response.bodyAsChannel(), partPath, response.contentLength())
+                    fileSystem.atomicMove(partPath, destPath)
                     true
                 }
                 if (!completed) return@launch
@@ -85,6 +90,7 @@ open class KtorEpisodeDownloader(
                 AppLogger.e(TAG, "Download failed for ${episode.id}", e)
                 updateStatus(episode.id, DownloadStatus.Failed(e.toAppError()))
             } finally {
+                fileSystem.delete(partPath, mustExist = false)
                 downloadJobs.remove(episode.id)
             }
         }
@@ -139,13 +145,21 @@ open class KtorEpisodeDownloader(
         return if (fileSystem.exists(destPath)) destPath.toString() else null
     }
 
-    private suspend fun writeBody(channel: ByteReadChannel, destPath: Path) {
+    private suspend fun writeBody(channel: ByteReadChannel, destPath: Path, contentLength: Long?) {
+        var written = 0L
         fileSystem.sink(destPath).buffer().use { sink ->
             val buffer = ByteArray(AppConfig.DOWNLOAD_BUFFER_SIZE)
             while (!channel.isClosedForRead) {
                 val read = channel.readAvailable(buffer)
-                if (read > 0) sink.write(buffer, 0, read)
+                if (read > 0) {
+                    sink.write(buffer, 0, read)
+                    written += read
+                }
             }
+        }
+        // A connection that drops mid-body can still end the channel normally.
+        if (contentLength != null && written != contentLength) {
+            throw IOException("Body ended at $written of $contentLength bytes")
         }
     }
 

@@ -12,6 +12,7 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -101,6 +102,31 @@ class KtorEpisodeDownloaderTest {
             withTimeout(STREAM_TIMEOUT_MS) { while (bytesOnDisk() < CHUNK) delay(POLL_MS) }
         }
         body.close()
+    }
+
+    @Test
+    fun `a body cut short does not leave a downloaded episode`() = runTest {
+        val body = ByteChannel()
+        body.writeFully(ByteArray(CHUNK))
+        body.close()
+        val engine = MockEngine {
+            respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentLength, "${CHUNK * 2}"))
+        }
+        val downloader = KtorEpisodeDownloader(
+            HttpClient(engine), episodeDao, AppDirectories(fileSystem, baseDir), Dispatchers.Default
+        )
+
+        downloader.download(sampleEpisode)
+        val status = withContext(Dispatchers.Default) {
+            withTimeout(STREAM_TIMEOUT_MS) {
+                downloader.activeDownloads.first { downloads ->
+                    downloads[sampleEpisode.id].let { it is DownloadStatus.Failed || it is DownloadStatus.Completed }
+                }
+            }
+        }[sampleEpisode.id]
+        assertTrue(status is DownloadStatus.Failed, "Should be Failed but was $status")
+        kotlin.test.assertNull(downloader.getLocalPath(sampleEpisode.id))
+        assertEquals(0, bytesOnDisk(), "No partial file should stay behind")
     }
 
     private fun bytesOnDisk(): Long = fileSystem.listOrNull(baseDir / "downloads").orEmpty()
