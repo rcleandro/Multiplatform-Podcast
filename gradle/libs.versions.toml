@@ -97,6 +97,7 @@ room3-testing = { module = "androidx.room3:room3-testing", version.ref = "room3"
 # Paging
 paging-common = { module = "androidx.paging:paging-common", version.ref = "paging" }
 paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
+paging-testing = { module = "androidx.paging:paging-testing", version.ref = "paging" }
 
 # SQLite drivers
 runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }

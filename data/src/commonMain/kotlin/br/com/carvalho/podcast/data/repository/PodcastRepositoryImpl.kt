@@ -11,6 +11,10 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.PagingSource
+import androidx.paging.map
+import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
+import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -47,12 +51,17 @@ class PodcastRepositoryImpl(
         }
     }
 
-    override fun getEpisodesPaged(podcastId: String): Flow<PagingData<Episode>> {
-        return Pager(
-            config = PagingConfig(pageSize = PAGE_SIZE),
-            pagingSourceFactory = { EpisodePagingSource(episodeDao, podcastId) }
-        ).flow
-    }
+    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> =
+        pagedEpisodes {
+            episodeDao.pagingSourceByPodcast(
+                podcastId,
+                onlyUnplayed = filter == EpisodeFilter.UNPLAYED,
+                onlyDownloaded = filter == EpisodeFilter.DOWNLOADED,
+            )
+        }
+
+    override suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode> =
+        episodeDao.getSince(podcastId, publishDate).map { it.toDomain() }
 
     override fun searchEpisodes(query: String): Flow<List<Episode>> {
         return episodeDao.search(query).map { entities ->
@@ -60,12 +69,13 @@ class PodcastRepositoryImpl(
         }
     }
 
-    override fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>> {
-        return Pager(
-            config = PagingConfig(pageSize = PAGE_SIZE),
-            pagingSourceFactory = { EpisodePagingSource(episodeDao, query = query) }
-        ).flow
-    }
+    override fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>> =
+        pagedEpisodes { episodeDao.searchPagingSource(query.orEmpty()) }
+
+    private fun pagedEpisodes(source: () -> PagingSource<Int, EpisodeEntity>): Flow<PagingData<Episode>> =
+        Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = source)
+            .flow
+            .map { page -> page.map { it.toDomain() } }
 
     override fun getDownloadedEpisodes(): Flow<List<Episode>> {
         return episodeDao.getDownloaded().map { entities ->

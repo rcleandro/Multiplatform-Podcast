@@ -1,6 +1,9 @@
 package br.com.carvalho.podcast.data.local.dao
 
+import androidx.paging.PagingSource
 import androidx.room3.Dao
+import androidx.room3.DaoReturnTypeConverters
+import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
@@ -12,15 +15,34 @@ import kotlinx.coroutines.flow.Flow
 import androidx.room3.Transaction
 
 @Dao
+@DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
 interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE podcastId = :podcastId ORDER BY publishDate DESC")
     fun getByPodcast(podcastId: String): Flow<List<EpisodeEntity>>
 
-    @Query("SELECT * FROM episodes WHERE podcastId = :podcastId ORDER BY publishDate DESC LIMIT :limit OFFSET :offset")
-    suspend fun getByPodcastPaged(podcastId: String, limit: Int, offset: Int): List<EpisodeEntity>
+    // Room's paging sources reload by themselves when the table changes (played, downloaded, refreshed).
+    @Query("""
+        SELECT * FROM episodes
+        WHERE podcastId = :podcastId
+        AND (:onlyUnplayed = 0 OR isPlayed = 0)
+        AND (:onlyDownloaded = 0 OR isDownloaded = 1)
+        ORDER BY publishDate DESC
+    """)
+    fun pagingSourceByPodcast(
+        podcastId: String,
+        onlyUnplayed: Boolean,
+        onlyDownloaded: Boolean,
+    ): PagingSource<Int, EpisodeEntity>
 
-    @Query("SELECT * FROM episodes ORDER BY publishDate DESC LIMIT :limit OFFSET :offset")
-    suspend fun getAllPaged(limit: Int, offset: Int): List<EpisodeEntity>
+    @Query("""
+        SELECT * FROM episodes
+        WHERE :query = '' OR title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%'
+        ORDER BY publishDate DESC
+    """)
+    fun searchPagingSource(query: String): PagingSource<Int, EpisodeEntity>
+
+    @Query("SELECT * FROM episodes WHERE podcastId = :podcastId AND publishDate >= :publishDate ORDER BY publishDate")
+    suspend fun getSince(podcastId: String, publishDate: Long): List<EpisodeEntity>
 
     @Query("SELECT * FROM episodes WHERE id = :id")
     suspend fun getById(id: String): EpisodeEntity?
@@ -35,15 +57,6 @@ interface EpisodeDao {
         ORDER BY publishDate DESC
     """)
     fun search(query: String): Flow<List<EpisodeEntity>>
-
-    @Query("""
-        SELECT * FROM episodes
-        WHERE title LIKE '%' || :query || '%'
-        OR description LIKE '%' || :query || '%'
-        ORDER BY publishDate DESC
-        LIMIT :limit OFFSET :offset
-    """)
-    suspend fun searchPaged(query: String, limit: Int, offset: Int): List<EpisodeEntity>
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)

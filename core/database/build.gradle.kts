@@ -16,6 +16,7 @@ kotlin {
             implementation(project(":core:observability"))
             implementation(libs.kotlinx.serialization)
             api(libs.room3.runtime)
+            api(libs.room3.paging)
             implementation(libs.kotlinx.coroutines.core)
         }
         androidMain.dependencies {

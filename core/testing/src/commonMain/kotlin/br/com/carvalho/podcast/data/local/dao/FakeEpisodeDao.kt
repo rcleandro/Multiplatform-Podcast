@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.local.dao
 
+import androidx.paging.PagingSource
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import kotlinx.coroutines.flow.Flow
@@ -13,11 +14,17 @@ class FakeEpisodeDao : EpisodeDao {
     override fun getByPodcast(podcastId: String): Flow<List<EpisodeEntity>> =
         episodes.map { it.filter { e -> e.podcastId == podcastId } }
 
-    override suspend fun getByPodcastPaged(podcastId: String, limit: Int, offset: Int): List<EpisodeEntity> =
-        episodes.value.filter { it.podcastId == podcastId }.drop(offset).take(limit)
+    override fun pagingSourceByPodcast(
+        podcastId: String,
+        onlyUnplayed: Boolean,
+        onlyDownloaded: Boolean,
+    ): PagingSource<Int, EpisodeEntity> = throw NotImplementedError("Paging is tested against the real database")
 
-    override suspend fun getAllPaged(limit: Int, offset: Int): List<EpisodeEntity> =
-        episodes.value.drop(offset).take(limit)
+    override fun searchPagingSource(query: String): PagingSource<Int, EpisodeEntity> =
+        throw NotImplementedError("Paging is tested against the real database")
+
+    override suspend fun getSince(podcastId: String, publishDate: Long): List<EpisodeEntity> =
+        episodes.value.filter { it.podcastId == podcastId && it.publishDate >= publishDate }.sortedBy { it.publishDate }
 
     override suspend fun getById(id: String): EpisodeEntity? = episodes.value.find { it.id == id }
 
@@ -25,8 +32,6 @@ class FakeEpisodeDao : EpisodeDao {
 
     override fun search(query: String): Flow<List<EpisodeEntity>> = episodes.map { it.filter { e -> e.matches(query) } }
 
-    override suspend fun searchPaged(query: String, limit: Int, offset: Int): List<EpisodeEntity> =
-        episodes.value.filter { it.matches(query) }.drop(offset).take(limit)
 
     override suspend fun insertAll(episodes: List<EpisodeEntity>) {
         val known = this.episodes.value.map { it.id }.toSet()

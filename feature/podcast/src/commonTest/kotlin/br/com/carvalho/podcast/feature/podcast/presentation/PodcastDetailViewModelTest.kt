@@ -9,6 +9,7 @@ import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
@@ -55,16 +56,14 @@ class PodcastDetailViewModelTest {
     private fun createViewModel() = PodcastDetailViewModel(podcastId, audioPlayer, refreshUseCase, episodeDownloader, repository, dispatchers, FakeAnalytics())
 
     @Test
-    fun `initial state loads podcast and episodes`() = runTest(testDispatcher) {
+    fun `initial state loads the podcast`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
-        repository.episodes.value = listOf(sampleEpisode)
 
         val viewModel = createViewModel()
         viewModel.uiState.test {
             val state = awaitItem()
             assertEquals(samplePodcast.id, state.podcast?.id)
-            assertEquals(1, state.episodes.size)
-            assertEquals(sampleEpisode.id, state.episodes[0].id)
+            assertFalse(state.isLoading)
         }
     }
 
@@ -92,6 +91,20 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
+    fun `playing an episode queues it and the newer ones oldest first`() = runTest(testDispatcher) {
+        val older = sampleEpisode.copy(id = "old", publishDate = 1)
+        val chosen = sampleEpisode.copy(id = "chosen", publishDate = 2)
+        val newer = sampleEpisode.copy(id = "new", publishDate = 3)
+        repository.episodes.value = listOf(newer, chosen, older)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.Play(chosen))
+
+        assertEquals(listOf("chosen", "new"), audioPlayer.queueSet?.map { it.id })
+        assertEquals("chosen", audioPlayer.playCalledWith?.id)
+    }
+
+    @Test
     fun `playEpisode prepares and plays via audioPlayer`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
         repository.episodes.value = listOf(sampleEpisode)
@@ -114,13 +127,12 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
-    fun `filter survives an episode list update`() = runTest(testDispatcher) {
+    fun `filter survives a podcast update`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
-        repository.episodes.value = listOf(sampleEpisode)
         val viewModel = createViewModel()
 
         viewModel.onIntent(PodcastDetailIntent.SetFilter(EpisodeFilter.UNPLAYED))
-        repository.episodes.value = listOf(sampleEpisode.copy(isPlayed = true))
+        repository.podcasts.value = listOf(samplePodcast.copy(title = "Renamed"))
 
         assertEquals(EpisodeFilter.UNPLAYED, viewModel.uiState.value.filter)
     }
