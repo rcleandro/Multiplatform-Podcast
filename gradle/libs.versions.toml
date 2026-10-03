@@ -22,6 +22,7 @@ material3-adaptive-navigation-suite = "1.9.0"
 # Room 3 — novo grupo androidx.room3 (suporte Web/Wasm)
 room3 = "3.1.0-alpha01"
 sqlite = "2.8.0-alpha01"
+kotlinxBrowser = "0.5.0"
 
 # Rede e serialização
 ktor = "3.6.0"
@@ -100,6 +101,7 @@ paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pag
 runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 sqlite-web = { module = "androidx.sqlite:sqlite-web-wasm-js", version.ref = "sqlite" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinxBrowser" }
 androidx-sqlite-bundled-jvm = { module = "androidx.sqlite:sqlite-bundled-jvm", version.ref = "sqlite" }
 
 # Ktor 3

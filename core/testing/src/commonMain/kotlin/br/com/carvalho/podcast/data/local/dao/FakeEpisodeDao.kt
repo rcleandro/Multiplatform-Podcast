@@ -5,10 +5,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
+@Suppress("TooManyFunctions") // mirrors the whole EpisodeDao interface
 class FakeEpisodeDao : EpisodeDao {
     val episodes = MutableStateFlow<List<EpisodeEntity>>(emptyList())
 
-    override fun getByPodcast(podcastId: String): Flow<List<EpisodeEntity>> = episodes.map { it.filter { e -> e.podcastId == podcastId } }
+    override fun getByPodcast(podcastId: String): Flow<List<EpisodeEntity>> =
+        episodes.map { it.filter { e -> e.podcastId == podcastId } }
 
     override suspend fun getByPodcastPaged(podcastId: String, limit: Int, offset: Int): List<EpisodeEntity> =
         episodes.value.filter { it.podcastId == podcastId }.drop(offset).take(limit)
@@ -20,10 +22,10 @@ class FakeEpisodeDao : EpisodeDao {
 
     override fun getUnplayed(): Flow<List<EpisodeEntity>> = episodes.map { it.filter { !it.isPlayed } }
 
-    override fun search(query: String): Flow<List<EpisodeEntity>> = episodes.map { it.filter { it.title.contains(query) || it.description?.contains(query) == true } }
+    override fun search(query: String): Flow<List<EpisodeEntity>> = episodes.map { it.filter { e -> e.matches(query) } }
 
     override suspend fun searchPaged(query: String, limit: Int, offset: Int): List<EpisodeEntity> =
-        episodes.value.filter { it.title.contains(query) || it.description?.contains(query) == true }.drop(offset).take(limit)
+        episodes.value.filter { it.matches(query) }.drop(offset).take(limit)
 
     override suspend fun insertAll(episodes: List<EpisodeEntity>) {
         this.episodes.value = this.episodes.value + episodes
@@ -39,7 +41,8 @@ class FakeEpisodeDao : EpisodeDao {
 
     override fun getDownloaded(): Flow<List<EpisodeEntity>> = episodes.map { it.filter { it.isDownloaded } }
 
-    override fun getUnplayedCount(podcastId: String): Flow<Int> = episodes.map { it.count { e -> e.podcastId == podcastId && !e.isPlayed } }
+    override fun getUnplayedCount(podcastId: String): Flow<Int> =
+        episodes.map { it.count { e -> e.podcastId == podcastId && !e.isPlayed } }
 
     override suspend fun deleteByPodcast(podcastId: String) {
         episodes.value = episodes.value.filter { it.podcastId != podcastId }
@@ -57,3 +60,5 @@ class FakeEpisodeDao : EpisodeDao {
         }
     }
 }
+
+private fun EpisodeEntity.matches(query: String) = title.contains(query) || description?.contains(query) == true

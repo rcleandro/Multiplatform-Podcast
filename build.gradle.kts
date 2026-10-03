@@ -24,6 +24,6 @@ subprojects {
         buildUponDefaultConfig = true
         allRules = false
         parallel = true
-        source.setFrom(files("src/commonMain/kotlin", "src/firebaseMain/kotlin", "src/androidMain/kotlin", "src/desktopMain/kotlin", "src/iosMain/kotlin", "src/wasmJsMain/kotlin"))
+        source.setFrom(files("src/commonMain/kotlin", "src/firebaseMain/kotlin", "src/jvmCommonMain/kotlin", "src/androidMain/kotlin", "src/desktopMain/kotlin", "src/iosMain/kotlin", "src/wasmJsMain/kotlin"))
     }
 }

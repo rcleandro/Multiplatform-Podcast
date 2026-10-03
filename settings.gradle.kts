@@ -64,6 +64,7 @@ plugins {
 
 include(":shared")
 include(":core:common")
+include(":core:database")
 include(":core:designsystem")
 include(":core:network")
 include(":core:observability")

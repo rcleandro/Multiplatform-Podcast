@@ -2,8 +2,6 @@ plugins {
     alias(libs.plugins.podcast.kmp.library)
     alias(libs.plugins.podcast.kmp.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.room)
     alias(libs.plugins.kover)
     alias(libs.plugins.kotlin.cocoapods)
 }
@@ -66,6 +64,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core:common"))
+            implementation(project(":core:database"))
             implementation(project(":core:designsystem"))
             implementation(project(":core:network"))
             implementation(project(":core:observability"))
@@ -234,17 +233,4 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.PodGenTask>().co
                 .replace("\"#{12}.#{0}\"", "\"#{15}.#{0}\"")
         )
     }
-}
-
-room3 {
-    schemaDirectory("$projectDir/schemas")
-}
-
-dependencies {
-    add("kspCommonMainMetadata", libs.room3.compiler)
-    add("kspAndroid", libs.room3.compiler)
-    add("kspIosArm64", libs.room3.compiler)
-    add("kspIosSimulatorArm64", libs.room3.compiler)
-    add("kspDesktop", libs.room3.compiler)
-    add("kspWasmJs", libs.room3.compiler)
 }
