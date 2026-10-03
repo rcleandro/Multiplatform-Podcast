@@ -204,5 +204,3 @@ class WasmAudioPlayer : AudioPlayer {
         progressJob = null
     }
 }
-
-actual fun createAudioPlayer(): AudioPlayer = WasmAudioPlayer()

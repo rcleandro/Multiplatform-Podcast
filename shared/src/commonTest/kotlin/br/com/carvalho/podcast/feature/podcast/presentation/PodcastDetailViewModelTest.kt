@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.data.remote.RssFeedSource
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
@@ -47,7 +48,7 @@ class PodcastDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = PodcastDetailViewModel(podcastId, audioPlayer, refreshUseCase, episodeDownloader, repository, dispatchers)
+    private fun createViewModel() = PodcastDetailViewModel(podcastId, audioPlayer, refreshUseCase, episodeDownloader, repository, dispatchers, FakeAnalytics())
 
     @Test
     fun `initial state loads podcast and episodes`() = runTest(testDispatcher) {

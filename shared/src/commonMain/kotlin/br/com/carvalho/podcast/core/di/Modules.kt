@@ -4,14 +4,12 @@ import br.com.carvalho.podcast.core.image.createImageLoader
 import br.com.carvalho.podcast.core.network.commonJson
 import br.com.carvalho.podcast.core.network.createHttpClient
 import br.com.carvalho.podcast.data.local.AppDatabase
-import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.data.remote.RssFeedDataSource
 import br.com.carvalho.podcast.data.remote.RssFeedDataSourceImpl
 import br.com.carvalho.podcast.data.remote.RssFeedSource
 import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
-import br.com.carvalho.podcast.domain.player.createAudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
@@ -50,12 +48,7 @@ val networkModule = module {
     single<FeedSource> { RssFeedSource(get()) }
 }
 
-val playerModule = module {
-    single { createAudioPlayer() }
-}
-
 val databaseModule = module {
-    single<AppDatabase>(createdAtStart = true) { createAppDatabase() }
     single { get<AppDatabase>().podcastDao() }
     single { get<AppDatabase>().episodeDao() }
     single { get<AppDatabase>().playbackStateDao() }
@@ -64,7 +57,7 @@ val databaseModule = module {
 val repositoryModule = module {
     single<PodcastRepository> { PodcastRepositoryImpl(get(), get()) }
     single<PlayerRepository> { PlayerRepositoryImpl(get()) }
-    single<EpisodeDownloader> { KtorEpisodeDownloader(get(), get()) }
+    single<EpisodeDownloader> { KtorEpisodeDownloader(get(), get(), get()) }
 }
 
 val useCaseModule = module {
@@ -85,7 +78,6 @@ val viewModelModule = module {
 val commonModules = listOf(
     dispatcherModule,
     networkModule,
-    playerModule,
     databaseModule,
     repositoryModule,
     useCaseModule,

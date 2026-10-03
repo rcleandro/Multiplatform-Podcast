@@ -5,7 +5,7 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
 import java.io.File
 
-actual fun createAppDatabase(): AppDatabase {
+fun createAppDatabase(): AppDatabase {
     val dbFile = File(System.getProperty("user.home"), ".podcast/podcast.db")
         .also { it.parentFile?.mkdirs() }
     return Room.databaseBuilder<AppDatabase>(dbFile.absolutePath)

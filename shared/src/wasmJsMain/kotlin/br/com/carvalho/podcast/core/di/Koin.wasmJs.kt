@@ -16,6 +16,6 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
     AppLogger.i(TAG, "Initializing Koin for Wasm...")
     startKoin {
         appDeclaration()
-        modules(commonModules)
+        modules(commonModules + platformModule)
     }
 }

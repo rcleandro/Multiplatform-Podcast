@@ -3,7 +3,6 @@ package br.com.carvalho.podcast.domain.player
 import android.content.ComponentName
 import android.content.Context
 import br.com.carvalho.podcast.core.player.PodcastMediaService
-import br.com.carvalho.podcast.core.util.AppContext
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import androidx.media3.common.MediaItem
@@ -21,8 +20,7 @@ import br.com.carvalho.podcast.core.util.AppLogger
 
 private const val TAG = "AudioPlayer"
 
-class AndroidAudioPlayer : AudioPlayer {
-    private val context = AppContext.context as Context
+class AndroidAudioPlayer(private val context: Context) : AudioPlayer {
     private val sessionToken = SessionToken(
         context,
         ComponentName(context, PodcastMediaService::class.java)
@@ -327,5 +325,3 @@ class AndroidAudioPlayer : AudioPlayer {
         progressJob = null
     }
 }
-
-actual fun createAudioPlayer(): AudioPlayer = AndroidAudioPlayer()

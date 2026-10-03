@@ -16,20 +16,22 @@ import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
-import br.com.carvalho.podcast.core.analytics.Analytics
+import br.com.carvalho.podcast.core.observability.Analytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 private const val TAG = "PodcastDetailViewModel"
 
+@Suppress("LongParameterList") // constructor injection; the screen genuinely needs all of them
 class PodcastDetailViewModel(
     private val podcastId: String,
     private val audioPlayer: AudioPlayer,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
     private val episodeDownloader: EpisodeDownloader,
     private val repository: PodcastRepository,
-    private val dispatchers: CoroutineDispatchers
+    private val dispatchers: CoroutineDispatchers,
+    private val analytics: Analytics
 ) : ViewModel() {
 
     val playerState = audioPlayer.playerState
@@ -71,7 +73,7 @@ class PodcastDetailViewModel(
     fun refresh() {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch(dispatchers.io) {
-            Analytics.logEvent("refresh_podcast_detail", mapOf("podcast_id" to podcastId))
+            analytics.logEvent("refresh_podcast_detail", mapOf("podcast_id" to podcastId))
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
             try {
                 refreshPodcastUseCase(podcastId)
@@ -85,13 +87,13 @@ class PodcastDetailViewModel(
     }
 
     fun setFilter(filter: EpisodeFilter) {
-        Analytics.logEvent("set_episode_filter", mapOf("filter" to filter.name))
+        analytics.logEvent("set_episode_filter", mapOf("filter" to filter.name))
         _uiState.update { it.copy(filter = filter) }
     }
 
     fun playEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            Analytics.logEvent("play_episode_from_detail", mapOf(
+            analytics.logEvent("play_episode_from_detail", mapOf(
                 "episode_id" to episode.id,
                 "episode_title" to episode.title
             ))
@@ -125,7 +127,7 @@ class PodcastDetailViewModel(
 
     fun downloadEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            Analytics.logEvent("download_episode_from_detail", mapOf(
+            analytics.logEvent("download_episode_from_detail", mapOf(
                 "episode_id" to episode.id,
                 "episode_title" to episode.title
             ))
@@ -141,7 +143,7 @@ class PodcastDetailViewModel(
     }
 
     fun deleteDownload(episodeId: String) {
-        Analytics.logEvent("delete_download_from_detail", mapOf("episode_id" to episodeId))
+        analytics.logEvent("delete_download_from_detail", mapOf("episode_id" to episodeId))
         _uiState.update { it.copy(isLoading = true, deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
@@ -158,7 +160,7 @@ class PodcastDetailViewModel(
     }
 
     fun markAsPlayed(episodeId: String) {
-        Analytics.logEvent("mark_as_played", mapOf("episode_id" to episodeId))
+        analytics.logEvent("mark_as_played", mapOf("episode_id" to episodeId))
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch(dispatchers.io) {
             repository.markEpisodeAsPlayed(episodeId)
@@ -167,7 +169,7 @@ class PodcastDetailViewModel(
     }
 
     fun markOlderAsPlayed(publishDate: Long) {
-        Analytics.logEvent("mark_older_as_played", mapOf("podcast_id" to podcastId, "publish_date" to publishDate))
+        analytics.logEvent("mark_older_as_played", mapOf("podcast_id" to podcastId, "publish_date" to publishDate))
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch(dispatchers.io) {
             repository.markOlderEpisodesAsPlayed(podcastId, publishDate)

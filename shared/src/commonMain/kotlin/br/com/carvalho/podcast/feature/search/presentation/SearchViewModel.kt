@@ -10,7 +10,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import br.com.carvalho.podcast.core.analytics.Analytics
+import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,7 +25,8 @@ class SearchViewModel(
     private val repository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
     val audioPlayer: AudioPlayer,
-    private val dispatchers: CoroutineDispatchers
+    private val dispatchers: CoroutineDispatchers,
+    private val analytics: Analytics
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -51,7 +52,7 @@ class SearchViewModel(
 
     fun playEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            Analytics.logEvent("play_episode_from_search", mapOf(
+            analytics.logEvent("play_episode_from_search", mapOf(
                 "episode_id" to episode.id,
                 "episode_title" to episode.title
             ))

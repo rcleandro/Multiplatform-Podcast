@@ -245,5 +245,3 @@ class DesktopAudioPlayer : AudioPlayer {
         progressJob = null
     }
 }
-
-actual fun createAudioPlayer(): AudioPlayer = DesktopAudioPlayer()

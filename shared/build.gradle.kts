@@ -135,23 +135,26 @@ kotlin {
             implementation(libs.media3.session)
             implementation(libs.kotlinx.coroutines.guava)
 
-            // Firebase
             implementation(project.dependencies.platform(libs.firebase.bom))
-            implementation(libs.firebase.common)
-            implementation(libs.firebase.analytics)
-            implementation(libs.firebase.crashlytics)
         }
 
-        val iosMain by getting {
+        // Firebase implementations shared by Android and iOS; Desktop and Web only log.
+        val firebaseMain by creating {
+            dependsOn(commonMain.get())
             dependencies {
-                implementation(libs.ktor.client.darwin)
-                implementation(libs.sqlite.bundled)
-
-                // Firebase
                 implementation(libs.firebase.common)
                 implementation(libs.firebase.analytics)
                 implementation(libs.firebase.crashlytics)
-                }
+            }
+        }
+        androidMain.get().dependsOn(firebaseMain)
+
+        val iosMain by getting {
+            dependsOn(firebaseMain)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+                implementation(libs.sqlite.bundled)
+            }
         }
 
         val desktopMain by getting {

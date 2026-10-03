@@ -2,7 +2,7 @@ package br.com.carvalho.podcast.data.download
 
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
-import br.com.carvalho.podcast.core.util.FileUtils
+import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
@@ -25,10 +25,11 @@ private const val TAG = "KtorEpisodeDownloader"
 open class KtorEpisodeDownloader(
     private val httpClient: HttpClient,
     private val episodeDao: EpisodeDao,
-    private val fileSystem: okio.FileSystem = FileUtils.fileSystem,
-    private val baseDir: okio.Path = FileUtils.baseDir,
+    directories: AppDirectories,
     ioDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : EpisodeDownloader {
+    private val fileSystem = directories.fileSystem
+    private val baseDir = directories.baseDir
 
     private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
 

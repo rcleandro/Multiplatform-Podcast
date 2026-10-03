@@ -8,7 +8,7 @@ import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.AppConfig
-import br.com.carvalho.podcast.core.analytics.Analytics
+import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -28,7 +28,8 @@ class PlayerViewModel(
     private val playerRepository: PlayerRepository,
     private val podcastRepository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
-    private val dispatchers: CoroutineDispatchers
+    private val dispatchers: CoroutineDispatchers,
+    private val analytics: Analytics
 ) : ViewModel() {
 
     val playerState: StateFlow<PlayerState> = audioPlayer.playerState
@@ -93,7 +94,7 @@ class PlayerViewModel(
     }
 
     fun play(episode: Episode) = viewModelScope.launch(dispatchers.io) {
-        Analytics.logEvent("play_episode", mapOf(
+        analytics.logEvent("play_episode", mapOf(
             "episode_id" to episode.id,
             "episode_title" to episode.title,
             "podcast_title" to episode.podcastTitle
@@ -103,55 +104,55 @@ class PlayerViewModel(
     }
 
     fun pause() {
-        Analytics.logEvent("pause_episode")
+        analytics.logEvent("pause_episode")
         audioPlayer.pause()
     }
 
     fun resume() {
-        Analytics.logEvent("resume_episode")
+        analytics.logEvent("resume_episode")
         audioPlayer.resume()
     }
 
     fun seekTo(positionMs: Long) {
-        Analytics.logEvent("seek_episode", mapOf("position_ms" to positionMs))
+        analytics.logEvent("seek_episode", mapOf("position_ms" to positionMs))
         audioPlayer.seekTo(positionMs)
     }
 
     fun skipForward() {
-        Analytics.logEvent("skip_forward")
+        analytics.logEvent("skip_forward")
         audioPlayer.skipForward(seconds = AppConfig.SKIP_FORWARD_SECONDS)
     }
 
     fun skipBackward() {
-        Analytics.logEvent("skip_backward")
+        analytics.logEvent("skip_backward")
         audioPlayer.skipBackward(seconds = AppConfig.SKIP_BACKWARD_SECONDS)
     }
 
     fun setSpeed(speed: Float) {
-        Analytics.logEvent("set_speed", mapOf("speed" to speed))
+        analytics.logEvent("set_speed", mapOf("speed" to speed))
         audioPlayer.setSpeed(speed)
     }
 
     fun playNext() {
-        Analytics.logEvent("play_next")
+        analytics.logEvent("play_next")
         audioPlayer.playNext()
     }
 
     fun playPrevious() {
-        Analytics.logEvent("play_previous")
+        analytics.logEvent("play_previous")
         audioPlayer.playPrevious()
     }
 
     fun setSleepTimer(minutes: Int?) {
         sleepTimerJob?.cancel()
         if (minutes == null) {
-            Analytics.logEvent("cancel_sleep_timer")
+            analytics.logEvent("cancel_sleep_timer")
             AppLogger.i(TAG, "Sleep timer cancelled")
             audioPlayer.setSleepTimer(null, null)
             return
         }
 
-        Analytics.logEvent("set_sleep_timer", mapOf("minutes" to minutes))
+        analytics.logEvent("set_sleep_timer", mapOf("minutes" to minutes))
         AppLogger.i(TAG, "Setting sleep timer for $minutes minutes")
         val totalDuration = minutes.minutes
         val timeSource = TimeSource.Monotonic

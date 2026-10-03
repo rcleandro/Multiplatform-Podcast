@@ -262,5 +262,3 @@ class IosAudioPlayer : AudioPlayer {
         progressJob = null
     }
 }
-
-actual fun createAudioPlayer(): AudioPlayer = IosAudioPlayer()

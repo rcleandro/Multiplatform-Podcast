@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -35,7 +36,7 @@ class SearchViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = SearchViewModel(repository, episodeDownloader, audioPlayer, dispatchers)
+    private fun createViewModel() = SearchViewModel(repository, episodeDownloader, audioPlayer, dispatchers, FakeAnalytics())
 
     @Test
     fun `initial state is correct`() = runTest(testDispatcher) {

@@ -5,7 +5,7 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
 import platform.Foundation.NSHomeDirectory
 
-actual fun createAppDatabase(): AppDatabase {
+fun createAppDatabase(): AppDatabase {
     val dbPath = NSHomeDirectory() + "/Documents/podcast.db"
     return Room.databaseBuilder<AppDatabase>(dbPath)
         .setDriver(BundledSQLiteDriver())

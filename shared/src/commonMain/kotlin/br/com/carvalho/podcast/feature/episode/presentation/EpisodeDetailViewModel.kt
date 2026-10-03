@@ -5,7 +5,7 @@ import br.com.carvalho.podcast.shared.Res
 import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.carvalho.podcast.core.analytics.Analytics
+import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -23,7 +23,8 @@ class EpisodeDetailViewModel(
     private val episodeId: String,
     private val repository: PodcastRepository,
     private val audioPlayer: AudioPlayer,
-    private val dispatchers: CoroutineDispatchers
+    private val dispatchers: CoroutineDispatchers,
+    private val analytics: Analytics
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EpisodeDetailUiState(isLoading = true))
@@ -39,7 +40,7 @@ class EpisodeDetailViewModel(
 
     private fun loadEpisode() {
         viewModelScope.launch(dispatchers.io) {
-            Analytics.logEvent("load_episode_detail", mapOf("episode_id" to episodeId))
+            analytics.logEvent("load_episode_detail", mapOf("episode_id" to episodeId))
             AppLogger.d(TAG, "Loading episode detail for id: $episodeId")
             try {
                 val episode = repository.getEpisodeById(episodeId)
@@ -49,7 +50,7 @@ class EpisodeDetailViewModel(
                 )
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error loading episode detail", e)
-                Analytics.logEvent("load_episode_detail_error", mapOf("episode_id" to episodeId, "error" to e.message))
+                analytics.logEvent("load_episode_detail_error", mapOf("episode_id" to episodeId, "error" to e.message))
                 _uiState.value = EpisodeDetailUiState(
                     isLoading = false,
                     error = Res.string.error_load_episode
@@ -61,7 +62,7 @@ class EpisodeDetailViewModel(
     fun playEpisode() {
         uiState.value.episode?.let { episode ->
             viewModelScope.launch(dispatchers.io) {
-                Analytics.logEvent("play_episode_from_episode_detail", mapOf(
+                analytics.logEvent("play_episode_from_episode_detail", mapOf(
                     "episode_id" to episode.id,
                     "episode_title" to episode.title
                 ))

@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.download
 
+import br.com.carvalho.podcast.core.util.AppDirectories
 import app.cash.turbine.test
 import br.com.carvalho.podcast.data.local.dao.FakeEpisodeDao
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -26,7 +27,7 @@ class KtorEpisodeDownloaderTest {
 
     private fun createDownloader(engine: MockEngine): KtorEpisodeDownloader {
         val client = HttpClient(engine)
-        return KtorEpisodeDownloader(client, episodeDao, fileSystem, baseDir, testDispatcher)
+        return KtorEpisodeDownloader(client, episodeDao, AppDirectories(fileSystem, baseDir), testDispatcher)
     }
 
     private val sampleEpisode = Episode(

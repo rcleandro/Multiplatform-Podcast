@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.core.di
 
+import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import dev.gitlive.firebase.Firebase
@@ -23,10 +24,11 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
 
     val koinApp = startKoin {
         appDeclaration()
-        modules(commonModules)
+        modules(commonModules + platformModule)
     }
 
     val koin = koinApp.koin
+    AppLogger.crashReporter = koin.getOrNull<CrashReporter>()
     val context = koin.get<Context>()
     val dispatchers = koin.get<CoroutineDispatchers>()
 

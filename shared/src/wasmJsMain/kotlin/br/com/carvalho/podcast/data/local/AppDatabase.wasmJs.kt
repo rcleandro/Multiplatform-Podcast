@@ -7,7 +7,7 @@ import org.w3c.dom.Worker
 
 private const val TAG = "AppDatabase"
 
-actual fun createAppDatabase(): AppDatabase {
+fun createAppDatabase(): AppDatabase {
     AppLogger.d(TAG, "Initializing database for Wasm with WebWorkerSQLiteDriver...")
     val driver = WebWorkerSQLiteDriver(createSqliteWorker())
     return Room.databaseBuilder<AppDatabase>("podcast.db")

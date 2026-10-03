@@ -23,4 +23,3 @@ interface AudioPlayer {
     fun release()
 }
 
-expect fun createAudioPlayer(): AudioPlayer

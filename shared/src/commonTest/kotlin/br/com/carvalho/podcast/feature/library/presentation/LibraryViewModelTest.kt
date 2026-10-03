@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.data.remote.RssFeedSource
 import br.com.carvalho.podcast.shared.error_podcast_exists
 import br.com.carvalho.podcast.shared.Res
@@ -45,8 +46,10 @@ class LibraryViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private val analytics = FakeAnalytics()
+
     private fun createViewModel(): LibraryViewModel {
-        return LibraryViewModel(repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, dispatchers)
+        return LibraryViewModel(repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, dispatchers, analytics)
     }
 
     @Test
@@ -124,6 +127,7 @@ class LibraryViewModelTest {
             assertEquals(null, state.podcastToDelete)
             
             assertEquals("1", repository.deletePodcastCalledWith)
+            assertEquals(listOf("delete_podcast"), analytics.events)
         }
     }
 

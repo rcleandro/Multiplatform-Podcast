@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakePlayerRepository
@@ -38,7 +39,7 @@ class PlayerViewModelTest {
 
     @Test
     fun `play calls audioPlayer`() = runTest(testDispatcher) {
-        val viewModel = PlayerViewModel(audioPlayer, playerRepository, podcastRepository, episodeDownloader, dispatchers)
+        val viewModel = PlayerViewModel(audioPlayer, playerRepository, podcastRepository, episodeDownloader, dispatchers, FakeAnalytics())
         val episode = Episode(id = "e1", podcastId = "p1", title = "E1", description = null, audioUrl = "", imageUrl = null, duration = 100, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null)
 
         viewModel.play(episode)

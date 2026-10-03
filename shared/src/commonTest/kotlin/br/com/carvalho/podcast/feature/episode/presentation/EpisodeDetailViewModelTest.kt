@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
+import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
@@ -34,7 +35,7 @@ class EpisodeDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = EpisodeDetailViewModel(episodeId, repository, audioPlayer, dispatchers)
+    private fun createViewModel() = EpisodeDetailViewModel(episodeId, repository, audioPlayer, dispatchers, FakeAnalytics())
 
     @Test
     fun `loads episode detail on init`() = runTest(testDispatcher) {

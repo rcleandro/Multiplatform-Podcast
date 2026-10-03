@@ -26,4 +26,3 @@ expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
     override fun initialize(): AppDatabase
 }
 
-expect fun createAppDatabase(): AppDatabase

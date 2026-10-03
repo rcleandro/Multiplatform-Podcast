@@ -468,13 +468,20 @@ de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
 - **Ação:** task `checkModuleDependencies` no `build-logic`, da qual o `check` depende, que falha se uma feature
   depender de outra feature ou de `data`/`database`/`network`. Verificar plantando uma dependência proibida.
 
-### 11.6 Injeção no lugar de singletons globais ✅ — M
+### 11.6 Injeção no lugar de singletons globais ✔ — M
 - **Problema:** `Analytics`, `Crashlytics`, `Performance`, `RemoteConfig`, `FileUtils` e `AppContext` são
   `expect object` chamados direto dos ViewModels e repositórios. Os testes precisam ser blindados contra o Firebase
   não inicializado (`f63370d`, `bdce2d4`, `0d9523c`), e `AppContext.context` lança exceção se for lido cedo demais.
 - **Ação:** interfaces em `core:observability` e `core:common` com a implementação Firebase/plataforma registrada
   no Koin e uma implementação no-op ou fake no `core:testing`. O `AppContext` some: o `Context` do Android vem do
   `androidContext()` do Koin.
+- **Implementado:** interfaces `Analytics` e `CrashReporter` (`core/observability`, ainda no `:shared` até a 11.3)
+  recebidas pelo construtor dos cinco ViewModels que registram eventos; nos testes entra o `FakeAnalytics`, e o
+  `LibraryViewModelTest` verifica o evento de exclusão. As implementações Firebase moram num source set
+  `firebaseMain`, compartilhado por Android e iOS, e só agem com o Firebase já configurado. Desktop e Web usam
+  `LogAnalytics`. Cada plataforma tem um `platformModule` do Koin com banco, player, `AppDirectories` (no lugar do
+  `FileUtils`, com as mesmas pastas de antes) e observabilidade. O `AppContext` saiu: o banco e o player do Android
+  recebem o `Context` do `androidContext()`. O `AppLogger` repassa os logs e as exceções ao `CrashReporter` injetado.
 
 ### 11.7 Grafo do Koin verificado ✅ — P
 - **Ação:** um teste JVM com `koin-test` (`verify()` nos módulos) que falha quando falta um binding, em vez de o
