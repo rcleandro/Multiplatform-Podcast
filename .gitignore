@@ -40,3 +40,6 @@ package-lock.json
 yarn.lock
 *.wasm
 *.js.map
+
+# Logs
+*.log
