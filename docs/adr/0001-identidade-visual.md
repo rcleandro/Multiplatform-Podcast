@@ -104,6 +104,14 @@ nos dois temas: 4,5:1 para texto e 3:1 para ícones, bordas e formas.
   para elementos que mudam de lugar.
 - **Opacidade:** `disabled` 0,38 · `muted` 0,60 · `scrim` 0,32 · `faint` 0,12 (trilhas e tons sobre contêiner colorido).
 
+### Ícone
+
+Opção **B · No ar** (escolhida entre três): microfone com duas ondas de cada lado, em tinta escura (`#1C1B19`)
+sobre o âmbar da marca (`#F2A93B`), 8,6:1. Fontes vetoriais em [`docs/brand/`](../brand/): `icon.svg` (padrão),
+`icon-dark.svg` (glifo âmbar sobre `#1C1B19`), `icon-tinted.svg` (glifo branco sobre preto, que o iOS tinge) e
+`favicon.svg`. O glifo ocupa 75% do quadro de 108 para as ondas ficarem dentro da zona segura de 66 do ícone
+adaptativo do Android. `docs/brand/generate-icons.sh` regenera os PNG, `.icns` e `.ico`; o Android usa vetores.
+
 ## Consequências
 
 - No tema claro, um botão `primary` só pode ficar sobre `background`, `surfaceContainerLowest` ou `surfaceContainer`.

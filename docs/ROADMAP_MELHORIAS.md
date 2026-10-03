@@ -337,7 +337,7 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   cabeçalho e timer ativo anunciado (`ScreenContentTest`). Os quatro últimos falham no código anterior e passam no
   novo. **Fica para a 21.6/21.7:** atalhos de teclado e ordem de foco entre painéis no iPad, Desktop e Web.
 
-### 9.13 Ícone do app no novo design ✅ — M
+### 9.13 Ícone do app no novo design ✔ (falta conferir no launcher) — M
 - **Problema:** cada plataforma tem um ícone diferente e nenhum segue a identidade da 9.1. O Android usa um ícone
   adaptativo vetorial do template, sem camada monocromática, então não acompanha os ícones temáticos do Android 13+.
   O iOS tem um `app-icon-1024.png` avulso, sem as variantes escura e tingida do iOS 18. O Desktop usa um `icon.png`
@@ -357,6 +357,23 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   6. O placeholder de capa do player passa a ser o `PodcastArtwork` da 9.6, e o `app_icon.png` sai.
 - **Verificação:** ícone conferido no launcher do Razr (com e sem ícones temáticos, e na tela externa), no
   simulador iOS nos três modos, no Dock/Barra de tarefas do Desktop e na aba do navegador.
+
+- **Implementado:** escolhida a opção **B · No ar** entre três (comparadas nas máscaras do Android e do iOS, nos
+  modos escuro, tingido e temático, e em 24–48 px); registrada na ADR 0001. O glifo foi reduzido a 75% do quadro
+  de 108 porque, como desenhado no comparativo, as ondas externas sairiam da zona segura de 66 do ícone adaptativo
+  e seriam cortadas pela máscara. Fontes SVG em `docs/brand/` e `generate-icons.sh` (Chrome headless para
+  renderizar o SVG, porque o renderizador embutido do ImageMagick desenhava sem metade dos traços; ImageMagick para
+  máscara e tamanhos; `iconutil` para o `.icns`). **Android:** ícone adaptativo só em vetor (`ic_launcher_background`
+  âmbar, `ic_launcher_foreground` com o glifo) com camada `monochrome` para os ícones temáticos; os 15 PNG/WebP de
+  `mipmap-*dpi` e o `drawable-v24` saíram (o `minSdk` é 26). Tema `Theme.Podcast` com `windowBackground` claro/escuro,
+  que também é o fundo da splash do Android 12+ (antes era o tema claro do framework, com flash branco no modo
+  escuro). **iOS:** `AppIcon` com padrão, escuro e tingido em 1024 px. **Desktop:** `.icns`, `.ico` e `.png` no
+  `nativeDistributions`; janela e bandeja usam o `app_icon` dos recursos do Compose (o `painterResource("icon.png")`
+  deprecado saiu). **Web:** `favicon.svg`, `apple-touch-icon`, `manifest.webmanifest` com `theme_color` âmbar e o
+  título "Podcast KMP". O `app_icon.png` deixou de ser placeholder de capa na 9.9 e agora é o ícone de janela e
+  bandeja. **Pendente:** conferir o ícone no launcher do Razr (com e sem ícones temáticos), no simulador iOS e no
+  Dock — o aparelho estava bloqueado na hora da verificação; o APK instalou e abriu sem erro. Ícone da bandeja em
+  modelo monocromático no macOS fica para a 20.5.
 
 **Critério de conclusão:** referência HTML aprovada; `:core:designsystem` publicado para as 4 plataformas; ícone novo em todas elas; nenhuma
 cor, `sp` ou `dp` solto nem texto de tela nas features (garantido pelo Detekt); snapshots e `ColorContrastTest` no CI.

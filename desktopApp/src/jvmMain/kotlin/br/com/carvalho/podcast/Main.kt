@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast
 
+import org.jetbrains.compose.resources.painterResource
+import br.com.carvalho.podcast.shared.app_icon
 import org.jetbrains.compose.resources.stringResource
 import br.com.carvalho.podcast.shared.tray_quit
 import br.com.carvalho.podcast.shared.tray_previous
@@ -14,7 +16,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.rememberTrayState
-import androidx.compose.ui.res.painterResource
 import br.com.carvalho.podcast.core.di.initKoin
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.presentation.navigation.RootComponentImpl
@@ -33,7 +34,7 @@ fun main() {
 
         Tray(
             state = trayState,
-            icon = painterResource("icon.png"),
+            icon = painterResource(Res.drawable.app_icon),
             menu = {
                 val isPlaying = playerState.isPlaying
                 Item(
@@ -61,6 +62,7 @@ fun main() {
         Window(
             onCloseRequest = ::exitApplication,
             title = stringResource(Res.string.app_name),
+            icon = painterResource(Res.drawable.app_icon),
         ) {
             val lifecycle = remember { LifecycleRegistry() }
             val root = remember { RootComponentImpl(DefaultComponentContext(lifecycle = lifecycle)) }
