@@ -12,17 +12,16 @@ import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlin.math.abs
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeSource
 
 private const val TAG = "PlayerViewModel"
-@OptIn(FlowPreview::class)
 class PlayerViewModel(
     private val audioPlayer: AudioPlayer,
     private val playerRepository: PlayerRepository,
@@ -64,9 +63,14 @@ class PlayerViewModel(
                 }
         }
 
+        // Saves whenever playback moved one interval past the last save, or the episode changed. A debounce never
+        // fired here (the position changes every 500 ms), and a timer would tick even with nothing to save.
         playerState
             .filter { it.isPlaying }
-            .debounce(AppConfig.PLAYBACK_SAVE_DEBOUNCE_MS)
+            .distinctUntilChanged { saved, now ->
+                now.currentEpisode?.id == saved.currentEpisode?.id &&
+                    abs(now.position - saved.position) < AppConfig.PLAYBACK_SAVE_INTERVAL_MS
+            }
             .onEach { saveState(it) }
             .launchIn(viewModelScope)
 

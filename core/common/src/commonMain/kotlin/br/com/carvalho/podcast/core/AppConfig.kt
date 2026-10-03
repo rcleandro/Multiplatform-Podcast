@@ -4,7 +4,8 @@ package br.com.carvalho.podcast.core
 object AppConfig {
     const val SKIP_FORWARD_SECONDS = 30
     const val SKIP_BACKWARD_SECONDS = 10
-    const val PLAYBACK_SAVE_DEBOUNCE_MS = 2000L
+    /** How often the progress is saved while playing: at most this much is lost if the process dies. */
+    const val PLAYBACK_SAVE_INTERVAL_MS = 5000L
     const val PLAYBACK_FINISHED_THRESHOLD = 0.95f
     const val SLEEP_TIMER_TICK_MS = 1000L
     const val SEARCH_DEBOUNCE_MS = 300L

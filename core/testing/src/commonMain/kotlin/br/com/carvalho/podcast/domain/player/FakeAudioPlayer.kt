@@ -20,6 +20,11 @@ class FakeAudioPlayer : AudioPlayer {
     var seekToCalledWith: Long? = null
     var queueSet: List<Episode>? = null
 
+    /** Moves the playback position, as the real players do every 500 ms while playing. */
+    fun advanceTo(positionMs: Long) {
+        _playerState.value = _playerState.value.copy(position = positionMs)
+    }
+
     override suspend fun play(episode: Episode) {
         playCalledWith = episode
         _playerState.value = _playerState.value.copy(currentEpisode = episode, isPlaying = true)
