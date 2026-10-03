@@ -521,11 +521,31 @@ de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
   o binding. Limite: `verify()` olha construtores, não chamadas `get()` dentro de lambdas que montam o objeto à mão.
   Por isso, um `get()` sem binding numa lambda só aparece quando o objeto é criado.
 
-### 11.8 Padrão de estado e eventos ✅ — M
+### 11.8 Padrão de estado e eventos ✔ — M
 - **Problema:** cada ViewModel inventa o seu formato: erros como `String`, `snackbarMessage`, diálogos como campos
   anuláveis espalhados no estado; `SearchViewModel` expõe o `audioPlayer` como `val` público.
 - **Ação:** `State` imutável + `onIntent(intent)` + `effects: Flow<Effect>` para eventos únicos (snackbar,
   navegação). Os estados das telas usam os `EmptyState`/`ErrorState` da 9.6.
+- **Implementado:** os seis ViewModels expõem `uiState: StateFlow` e uma única entrada, `onIntent(XxxIntent)`,
+  com um `sealed interface` por tela. Os métodos públicos viraram privados. As telas continuam passando
+  `XxxActions` aos `XxxContent`: o mapeamento ação → intent fica só no `XxxScreen`, e os testes de UI e as previews
+  não mudaram. Os eventos únicos saíram do estado: `messages: Flow<StringResource>` (um `Channel`) em biblioteca,
+  detalhe do podcast e downloads, exibidos pelo `MessageEffect` do `:core:ui`. Assim, `error`, `snackbarMessage`,
+  `clearError` e `clearSnackbarMessage` deixaram de existir. Ficou `messages` em vez de `effects: Flow<Effect>`
+  porque hoje o único evento é mensagem: a navegação continua por callbacks das telas. O `Effect` selado entra
+  quando um ViewModel precisar navegar. Os diálogos continuam no estado, porque são estado (sobrevivem à rotação).
+  `SearchViewModel` expõe `playerState`, não o `AudioPlayer`. O play/pause do mini player e do player passou para
+  o ViewModel (`PlayerIntent.PlayPause`). Erros de carregamento usam `ErrorState` com "Tentar de novo" (texto
+  novo `try_again` nos três idiomas): no episódio (`loadFailed` + `Retry`) e na busca (falha do Paging com
+  `retry()`, sem passar pelo ViewModel). **Bugs corrigidos no caminho:** (1) no detalhe do podcast, o `combine`
+  do `init` substituía o estado inteiro a cada emissão de episódios, então o filtro voltava para "Todos" e os
+  diálogos fechavam ao marcar um episódio como ouvido (teste `filter survives an episode list update`, que
+  falhou no código antigo); (2) o refresh ligava `isLoading` (spinner no lugar da lista) e nunca `isRefreshing`,
+  então o indicador do pull-to-refresh não aparecia. Marcar como ouvido e apagar download também ligavam
+  `isLoading` e faziam a lista piscar; (3) o pager era recriado a cada mudança de estado, como ao abrir um
+  diálogo, e agora só é recriado quando o filtro muda. Testes novos: mensagem única na biblioteca e nos downloads,
+  `isRefreshing` no refresh, e falha + "tentar de novo" no episódio (o `FakePodcastRepository` ganhou
+  `getEpisodeError`).
 
 ### 11.9 Modelo de erro ✅ — M
 - **Problema:** `PodcastError.FetchFailed` e `ParseFailed` nunca são lançados; `RefreshPodcastUseCase` lança
