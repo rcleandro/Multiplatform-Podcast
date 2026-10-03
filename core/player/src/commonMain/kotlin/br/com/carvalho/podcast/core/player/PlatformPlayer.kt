@@ -12,6 +12,12 @@ interface PlatformPlayer {
     /** `null` until the media says how long it is. */
     val durationMs: Long?
 
+    /**
+     * The episode the platform is already playing when the app starts (Android's media service can outlive the app's
+     * screens, or be started by Android Auto); the controller adopts it instead of restoring the saved session.
+     */
+    val loadedEpisodeId: String? get() = null
+
     /** Receives what the platform reports; set once by the controller. */
     fun setListener(listener: (PlatformEvent) -> Unit)
 

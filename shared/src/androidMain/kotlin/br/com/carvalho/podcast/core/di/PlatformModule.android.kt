@@ -6,8 +6,8 @@ import br.com.carvalho.podcast.core.observability.FirebaseAnalytics
 import br.com.carvalho.podcast.core.observability.FirebaseCrashReporter
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.createAppDatabase
-import br.com.carvalho.podcast.domain.player.AndroidAudioPlayer
-import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.core.player.AndroidPlatformPlayer
+import br.com.carvalho.podcast.core.player.PlatformPlayer
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
@@ -15,7 +15,7 @@ import org.koin.dsl.module
 
 actual val platformModule = module {
     single(createdAtStart = true) { createAppDatabase(androidContext(), get()) }
-    single<AudioPlayer> { AndroidAudioPlayer(androidContext()) }
+    single<PlatformPlayer> { AndroidPlatformPlayer(androidContext()) }
     single { AppDirectories(FileSystem.SYSTEM, androidContext().filesDir.absolutePath.toPath()) }
     single<Analytics> { FirebaseAnalytics() }
     single<CrashReporter> { FirebaseCrashReporter() }

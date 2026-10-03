@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -39,9 +40,9 @@ class PlaybackController(
     private val dispatchers: CoroutineDispatchers,
     /** Where the progress loop and the sleep timer run; tests pass one they can end. */
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + dispatchers.main),
-) {
+) : AudioPlayer {
     private val _playerState = MutableStateFlow(PlayerState())
-    val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
+    override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
@@ -55,7 +56,7 @@ class PlaybackController(
         }
     }
 
-    suspend fun play(episode: Episode) {
+    override suspend fun play(episode: Episode) {
         val playable = withLocalFile(episode)
         _playerState.update { it.copy(currentEpisode = playable, position = 0, duration = null, isBuffering = true) }
         lastSavedPosition = null
@@ -65,12 +66,12 @@ class PlaybackController(
         }
     }
 
-    fun pause() {
+    override fun pause() {
         _playerState.update { it.copy(isPlaying = false) }
         onMain { engine.pause() }
     }
 
-    fun resume() {
+    override fun resume() {
         if (_playerState.value.currentEpisode == null) return
         _playerState.update { it.copy(isPlaying = true) }
         onMain {
@@ -79,28 +80,30 @@ class PlaybackController(
         }
     }
 
-    fun seekTo(positionMs: Long) {
+    override fun seekTo(positionMs: Long) {
         val duration = _playerState.value.duration
         val target = if (duration != null) positionMs.coerceIn(0, duration) else positionMs.coerceAtLeast(0)
         _playerState.update { it.copy(position = target) }
         onMain { engine.seekTo(target) }
     }
 
-    fun skipForward(seconds: Int) = seekTo(_playerState.value.position + seconds * AppConfig.MILLIS_PER_SECOND)
+    override fun skipForward(seconds: Int) = seekBy(seconds * AppConfig.MILLIS_PER_SECOND)
 
-    fun skipBackward(seconds: Int) = seekTo(_playerState.value.position - seconds * AppConfig.MILLIS_PER_SECOND)
+    override fun skipBackward(seconds: Int) = seekBy(-seconds * AppConfig.MILLIS_PER_SECOND)
+
+    private fun seekBy(deltaMs: Long) = seekTo(_playerState.value.position + deltaMs)
 
     /** Kept across pauses and episodes; the platforms used to reset it to 1x on pause. */
-    fun setSpeed(speed: Float) {
+    override fun setSpeed(speed: Float) {
         _playerState.update { it.copy(speed = speed) }
         onMain { engine.setSpeed(speed) }
     }
 
-    fun setQueue(episodes: List<Episode>) {
+    override fun setQueue(episodes: List<Episode>) {
         _playerState.update { it.copy(queue = episodes) }
     }
 
-    fun playNext() {
+    override fun playNext() {
         val next = neighbour(offset = 1)
         if (next == null) {
             pause()
@@ -109,12 +112,12 @@ class PlaybackController(
         scope.launch { play(next) }
     }
 
-    fun playPrevious() {
+    override fun playPrevious() {
         val previous = neighbour(offset = -1)
         if (previous == null) seekTo(0) else scope.launch { play(previous) }
     }
 
-    fun setSleepTimer(timer: SleepTimer?) {
+    override fun setSleepTimer(timer: SleepTimer?) {
         sleepTimerJob?.cancel()
         _playerState.update { it.copy(sleepTimer = timer, sleepTimerMillis = null) }
         if (timer !is SleepTimer.Minutes) return
@@ -211,17 +214,32 @@ class PlaybackController(
         }
     }
 
+    /**
+     * Once per process: the saved queue and speed, and the saved episode loaded paused where it stopped. If the
+     * platform is already playing something (Android's service outlived the screens), that episode is adopted as it is.
+     */
     private suspend fun restoreSession() {
-        val saved = withContext(dispatchers.io) { playerRepository.getSavedPlaybackState() } ?: return
-        val episode = saved.episodeId?.let { withContext(dispatchers.io) { podcastRepository.getEpisodeById(it) } }
-        _playerState.update { it.copy(speed = saved.speed, queue = saved.queue) }
-        engine.setSpeed(saved.speed)
+        val saved = withContext(dispatchers.io) { playerRepository.getSavedPlaybackState() }
+        val adopted = engine.loadedEpisodeId
+        val episodeId = adopted ?: saved?.episodeId
+        val episode = episodeId?.let { withContext(dispatchers.io) { podcastRepository.getEpisodeById(it) } }
+        if (saved != null) {
+            _playerState.update { it.copy(speed = saved.speed, queue = saved.queue) }
+            if (adopted == null) engine.setSpeed(saved.speed)
+        }
         if (episode == null || _playerState.value.currentEpisode != null) return
-        AppLogger.i(TAG, "Restoring ${episode.id} at ${saved.position} ms")
         val playable = withLocalFile(episode)
-        _playerState.update { it.copy(currentEpisode = playable, position = saved.position) }
-        lastSavedPosition = saved.position
-        engine.load(playable, saved.position, playWhenReady = false)
+        if (adopted != null) {
+            AppLogger.i(TAG, "Adopting ${episode.id}, already loaded by the platform")
+            _playerState.update { it.copy(currentEpisode = playable) }
+            readProgress()
+            return
+        }
+        val position = saved?.position ?: 0
+        AppLogger.i(TAG, "Restoring ${episode.id} at $position ms")
+        _playerState.update { it.copy(currentEpisode = playable, position = position) }
+        lastSavedPosition = position
+        engine.load(playable, position, playWhenReady = false)
     }
 
     /** Queue items and saved sessions do not carry the downloaded file; look it up every time. */

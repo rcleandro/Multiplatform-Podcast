@@ -42,7 +42,7 @@ class DownloadedEpisodesViewModelTest {
     }
 
     private fun createViewModel() = DownloadedEpisodesViewModel(
-        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer, episodeDownloader, repository), dispatchers
+        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer, repository), dispatchers
     )
 
     @Test

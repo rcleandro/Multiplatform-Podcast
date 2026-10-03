@@ -198,7 +198,7 @@ private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
             icon = Icons.Rounded.Timer,
             label = stringResource(Res.string.sleep_timer),
             description = null,
-            active = state.sleepTimerMillis != null,
+            active = state.sleepTimer != null,
             onClick = actions.onSleepTimerClick,
         )
     }

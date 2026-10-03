@@ -137,6 +137,17 @@ class PlaybackControllerTest {
     }
 
     @Test
+    fun aDownloadedEpisodePlaysFromItsFile() = runTest(dispatcher) {
+        downloader.localPaths["first"] = "/downloads/first.mp3"
+        val controller = controller()
+
+        controller.play(first)
+        runCurrent()
+
+        assertEquals("/downloads/first.mp3", engine.loaded?.localPath)
+    }
+
+    @Test
     fun theNextEpisodeInTheQueuePlaysFromItsDownloadedFile() = runTest(dispatcher) {
         downloader.localPaths["second"] = "/downloads/second.mp3"
         val controller = controller()

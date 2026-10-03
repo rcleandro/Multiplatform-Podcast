@@ -38,7 +38,7 @@ class SearchViewModelTest {
     }
 
     private fun createViewModel() = SearchViewModel(
-        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer, episodeDownloader, repository),
+        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer, repository),
         dispatchers, FakeAnalytics()
     )
 
@@ -73,17 +73,6 @@ class SearchViewModelTest {
         viewModel.onIntent(SearchIntent.Play(episode))
 
         assertEquals("1", audioPlayer.playCalledWith?.id)
-    }
-
-    @Test
-    fun `a downloaded episode played from search uses the downloaded file`() = runTest(testDispatcher) {
-        val episode = createEpisode("1", "Title 1")
-        episodeDownloader.localPaths["1"] = "/downloads/1.mp3"
-        val viewModel = createViewModel()
-
-        viewModel.onIntent(SearchIntent.Play(episode))
-
-        assertEquals("/downloads/1.mp3", audioPlayer.playCalledWith?.localPath)
     }
 
     @Test

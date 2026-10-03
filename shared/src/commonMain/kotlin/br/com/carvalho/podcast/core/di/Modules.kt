@@ -28,6 +28,8 @@ import br.com.carvalho.podcast.feature.episode.episodeFeatureModule
 import br.com.carvalho.podcast.feature.search.searchFeatureModule
 import br.com.carvalho.podcast.feature.downloads.downloadsFeatureModule
 import br.com.carvalho.podcast.feature.player.playerFeatureModule
+import br.com.carvalho.podcast.core.player.PlaybackController
+import br.com.carvalho.podcast.domain.player.AudioPlayer
 import org.koin.dsl.module
 
 val dispatcherModule = module {
@@ -54,6 +56,10 @@ val databaseModule = module {
     single { get<AppDatabase>().playbackStateDao() }
 }
 
+val playerModule = module {
+    single<AudioPlayer> { PlaybackController(get(), get(), get(), get(), get()) }
+}
+
 val repositoryModule = module {
     single<PodcastRepository> { PodcastRepositoryImpl(get(), get()) }
     single<PlayerRepository> { PlayerRepositoryImpl(get()) }
@@ -72,6 +78,7 @@ val commonModules = listOf(
     networkModule,
     databaseModule,
     repositoryModule,
+    playerModule,
     useCaseModule,
     libraryFeatureModule,
     podcastFeatureModule,

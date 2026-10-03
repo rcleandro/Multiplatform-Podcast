@@ -33,6 +33,7 @@
     <string name="timer_30_min">30 minutos</string>
     <string name="timer_45_min">45 minutos</string>
     <string name="timer_60_min">60 minutos</string>
+    <string name="timer_end_of_episode">Fim do episódio</string>
     <string name="no_episode_selected">Nenhum episódio selecionado</string>
     <string name="close">Fechar</string>
     <string name="podcast">Podcast</string>

@@ -10,7 +10,7 @@ data class PlayerState(
     val speed: Float = 1f,
     val isBuffering: Boolean = false,
     val queue: List<Episode> = emptyList(),
-    val sleepTimerMillis: Long? = null,
-    val selectedSleepTimerMinutes: Int? = null,
     val sleepTimer: SleepTimer? = null,
+    /** Time left on a [SleepTimer.Minutes] timer. */
+    val sleepTimerMillis: Long? = null,
 )
