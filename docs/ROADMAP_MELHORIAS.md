@@ -31,6 +31,9 @@
 | 12 | Não dá para encontrar podcasts: só colando a URL do RSS (a busca procura só no que já foi salvo); faltam recursos que todo app de podcast tem, como categorias, fila editável e "Novos episódios" | Produto | 18 / 19 |
 | 13 | A Web não consegue ler a maioria dos feeds (CORS) | Plataforma | 20 |
 | 14 | CI não roda Detekt nem cobra cobertura; o `GoogleService-Info.plist` está versionado | Qualidade / segurança | 10 / 17 |
+| 15 | Qualquer app instalado pode navegar na biblioteca e controlar o player (serviço de mídia exportado sem filtro) | Segurança | 22 |
+| 16 | A navegação inteira recompõe a cada 500 ms enquanto toca | Desempenho | 23 |
+| 17 | Layout de celular esticado em tablet, Desktop e dobráveis; nada reage à dobra | Produto | 21 |
 
 ## Sequência
 
@@ -50,6 +53,9 @@ graph LR
     F17 --> F18[18 Funcionalidades essenciais]
     F18 --> F19[19 Funcionalidades avançadas]
     F17 --> F20[20 Plataformas e release]
+    F11 --> F21[21 Layout responsivo e dobráveis]
+    F16 --> F22[22 Segurança]
+    F17 --> F23[23 Desempenho]
 ```
 
 - **A fase 9 vem primeiro** a pedido: é ela que define a cara do app e cria o primeiro módulo separado
@@ -61,6 +67,8 @@ graph LR
 - 12 e 13 podem rodar em paralelo, e 14, 15 e 16 também, desde que não toquem os mesmos arquivos.
 - As fases 18 e 19 (funcionalidades novas) só começam com os gates da 17 ligados, para que o código novo já nasça
   cobrado. A 20 (release) pode andar em paralelo com elas.
+- A 21 (layout responsivo) depende da modularização (11) e dos componentes da 9; a 22 (segurança) vem depois da 16,
+  que já trata de privacidade; a 23 (desempenho) precisa das medições da 17.6 e pode rodar junto com as 18–20.
 
 **Regra de toda fase:** uma branch por fase a partir da `main` (`feature/phase-09-design-system`), um commit por
 subitem com o teste correspondente e a nota "Implementado" na seção do roadmap, e uma merge request no fim. Cada
@@ -697,6 +705,82 @@ envolver serviço externo ou dependência nova.
 | 20.5 Desktop | ✅ | Empacota só para o SO do runner; textos da bandeja em inglês no código; sem assinatura | Matriz de SO no CI (10.5); textos nos recursos (9.8); assinatura e notarização no macOS | M |
 | 20.6 Pipeline de release | ✅ | Não existe | Tag `vX.Y.Z` → CI gera APK/AAB, `.app`/IPA, DMG/MSI/DEB e o bundle Web, cria o GitHub Release com changelog gerado dos Conventional Commits | M |
 | 20.7 Android Auto | 🔎 | Árvore de navegação existe, sem testes | Validar no Desktop Head Unit; testes da árvore do `MediaLibraryService` | P |
+
+---
+
+## Fase 21 — Layout responsivo e dobráveis (Android e iOS)
+
+**Objetivo:** o app aproveita qualquer janela, do celular deitado ao tablet, das telas externa e interna dos
+dobráveis Android (Razr, Flip, Fold) ao iPad em Split View e à janela redimensionável do Desktop e da Web. A
+decisão de layout vem do **tamanho da janela**, não do modelo do aparelho, e por isso vale também para
+dispositivos que ainda não existem.
+
+**Hoje:** o `RootContent` troca barra por rail a partir de 600 dp (`NavigationSuiteScaffold`) e usa
+`ListDetailPaneScaffold`; as telas não têm largura máxima de leitura, o player é sempre uma coluna e nada reage à
+dobra.
+
+| Item | Status | Ação | Esforço |
+|---|---|---|---|
+| 21.1 Faixas de largura | ✅ | Três faixas pelo `WindowSizeClass` que já é usado (< 600 / 600–840 / > 840 dp), decididas por uma função pura (`PaneLayout.from(windowSizeClass)`) testada. Acima de 600 dp, listas e formulários ficam com largura máxima de leitura (`Modifier.readableWidth()` no design system) e o fundo continua ocupando a janela; acima de 840 dp, biblioteca e detalhe lado a lado e o player em duas colunas (capa \| informações e controles) | M |
+| 21.2 Altura compacta | ✅ | Celular deitado e janelas baixas (< 480 dp de altura): player em duas colunas e capa limitada pela altura, mini player sem quebrar; nada exige rolagem para chegar ao botão de play | P |
+| 21.3 Postura mesa | ✅ | Dobrável meio aberto com a dobra na horizontal (Razr, Flip, Fold deitado): `WindowInfoTracker`/`FoldingFeature` do `androidx.window` preenche um `LocalTabletopFold` no design system (nulo por padrão, então iOS, Desktop e Web não mudam), e o player põe capa e título acima da dobra e slider e controles abaixo. Teste com `window-testing` + Robolectric e conferência no Razr 60 meio aberto | M |
+| 21.4 Postura livro e dobradiça | 🔎 | Fold aberto com a dobra na vertical: os painéis do `ListDetailPaneScaffold` não podem ficar em cima da dobradiça (`calculatePaneScaffoldDirective` com política de dobradiça); conferir no emulador do Pixel Fold | P |
+| 21.5 Tela externa e continuidade | 🔎 | Razr/Flip: o app roda na tela externa com o layout compacto, e abrir ou fechar o aparelho não pode perder tela, posição de rolagem nem reprodução (o estado do Decompose e do player sobrevive à troca de configuração); conferir no Razr 60 abrindo e fechando durante a reprodução | P |
+| 21.6 iPad e iPhone | ✅ | Split View, Slide Over e Stage Manager mudam o tamanho da janela, e as faixas da 21.1 cobrem isso sem código de plataforma; iPhone deitado usa a 21.2; teclado físico no iPad (atalhos de play/pause e avanço, como no Desktop) | M |
+| 21.7 Desktop e Web | ✅ | Tamanho mínimo de janela, as mesmas faixas ao redimensionar e navegação por teclado entre painéis | P |
+| 21.8 Snapshots por tamanho | ✅ | O `DesignSystemSnapshotTest` e os previews ganham as telas principais em compacto, médio, expandido e postura mesa (qualificadores do Robolectric), gravadas no Linux como na 9.11 | M |
+
+**Critério de conclusão:** nenhuma tela esticada de ponta a ponta em tablet ou Desktop; o player usável sem rolagem
+no celular deitado e na postura mesa; abrir e fechar um dobrável durante a reprodução não perde nada.
+
+---
+
+## Fase 22 — Segurança
+
+**Objetivo:** proteger o que o app guarda e o que ele recebe de fora. O app não tem conta nem backend, mas lê
+feeds arbitrários da internet, guarda URLs de feeds pagos (que trazem token de acesso) e expõe um serviço de
+mídia para outros apps. Complementa a 16 (privacidade e telemetria).
+
+| Item | Status | Evidência | Ação | Esforço |
+|---|---|---|---|---|
+| 22.1 Modelo de ameaças | ✅ | Não existe | ADR com os ativos (URLs com token, banco local, downloads), as entradas não confiáveis (feed, HTML da descrição, URLs de áudio e capa) e os atacantes considerados (feed malicioso, rede, outros apps no aparelho); cada item abaixo aponta para uma ameaça | P |
+| 22.2 Serviço de mídia aberto | ✅ | `PodcastMediaService` é `exported="true"` e o `onConnect` aceita qualquer controlador: qualquer app instalado navega na biblioteca (inclusive títulos de feeds pagos) e controla o player | Aceitar só o próprio app, a interface do sistema (notificação e tela de bloqueio), o Android Auto e controladores com assinatura conhecida (`MediaSession.ControllerInfo.packageName` + verificação de assinatura); os outros recebem só os comandos de transporte, sem a árvore da biblioteca | M |
+| 22.3 Feed como entrada hostil | ✅ | O feed é lido inteiro na memória, sem limite de tamanho; URLs de enclosure, capa e link são usadas como vierem | Limite de tamanho do feed (ex.: 10 MB) e de tempo; só `https`/`http` em feed, áudio e capa (rejeitar `file:`, `content:`, `javascript:` e similares); se o parser da 15.1 trocar para `xmlutil`, DTD e entidades externas desligados (bomba de entidades, XXE). Fixtures maliciosos em teste | M |
+| 22.4 HTML das descrições | ✅ | Hoje o `HtmlText` só desenha texto; quando os links entrarem (15.7) abrem o que estiver no `href` | Links só `https`, `http` e `mailto`; nada de carregar imagem ou recurso remoto a partir da descrição | P |
+| 22.5 Arquivos baixados | ✅ | O nome do arquivo vem do `guid` (14.3), que é controlado pelo feed | Nome por hash (14.3) fecha a travessia de diretório; conferir tipo e tamanho declarados e cota de disco (14.8) | P |
+| 22.6 Credenciais de feeds pagos | ✅ | A URL com token fica em texto puro no banco, que vai para o backup | Feeds com token ou autenticação básica: o segredo vai para o Keystore (Android) e o Keychain (iOS) e o banco guarda só uma referência; suporte a feed com usuário e senha (comum em podcasts pagos) nasce assim | G |
+| 22.7 Backup | ✅ | `android:allowBackup="true"` sem regras: banco (com as URLs) e downloads vão para o backup do Google; no iOS os downloads entram no backup do iCloud | Regras de backup (`dataExtractionRules`) que levam a biblioteca sem segredos e excluem downloads; no iOS, `isExcludedFromBackup` na pasta de downloads | P |
+| 22.8 Rede | 🔎 | Ver 16.7 (texto claro) | Só TLS por padrão (network security config e ATS), exceção documentada para mídia se a ADR 0005 decidir; **sem** pinning de certificado, porque os hosts são arbitrários (decisão registrada na ADR da 22.1). O proxy da Web (20.4), se existir, só repassa respostas de feed (tipo e tamanho limitados), com limite de taxa, para não virar proxy aberto | P |
+| 22.9 Release endurecido | ✅ | Sem R8 (20.1); logs de debug também na release (16.2) | R8 com ofuscação, logs de debug fora da release, revisão de todo componente `exported` no manifest, `debuggable` só no debug | P |
+| 22.10 Varredura no CI | ✅ | Nada roda hoje | Alertas de dependência (Dependabot/Renovate, 10.6), CodeQL para Kotlin e varredura de segredos (gitleaks) no CI e no pre-commit (10.8) | P |
+
+**Critério de conclusão:** um app de terceiros não lê a biblioteca; um feed malicioso não trava, não esgota memória
+nem abre links perigosos (com fixtures em teste); nenhum segredo em texto puro no banco nem no backup.
+
+---
+
+## Fase 23 — Otimização de desempenho
+
+**Objetivo:** abrir rápido, rolar sem travar, gastar pouca bateria e pouca memória, com números medidos antes e
+depois de cada mudança. A 17.6 cria as medições; esta fase usa as medições para otimizar. Nada é otimizado sem
+um número que mostre o ganho.
+
+| Item | Status | Evidência | Ação | Esforço |
+|---|---|---|---|---|
+| 23.1 Metas | ✅ | Não há metas | Orçamentos documentados e medidos no Razr 60 e num iPhone: início a frio até a biblioteca, abertura do player, quadros perdidos na rolagem da lista de episódios, memória com 50 podcasts. Macrobenchmark (Android), Instruments (iOS), rastreamento de composição do Compose | P |
+| 23.2 Recomposição a cada 500 ms | ✅ | O `RootContent` coleta o `PlayerState` inteiro (`collectAsState`) e os quatro players publicam a posição a cada 500 ms: a navegação, o scaffold e o mini player recompõem duas vezes por segundo enquanto toca | Separar posição do resto do estado (fluxo próprio, lido só pelo slider e pela barra do mini player, com `progress: () -> Float`); conferir a contagem de recomposições no Layout Inspector antes e depois | M |
+| 23.3 Estabilidade no Compose | ✅ | Modelos de domínio com `@Immutable` (sai na 11.2); listas como `List` | Arquivo de configuração de estabilidade nos módulos de UI, `key` e `contentType` em todas as listas preguiçosas, relatório do compilador do Compose no CI para pegar classes instáveis | P |
+| 23.4 Busca e banco | ✅ | A busca usa `LIKE '%termo%'` em título e descrição, que lê a tabela inteira; o detalhe carrega todos os episódios sem paginar (12.8) | Tabela FTS (FTS4/FTS5 do SQLite) para a busca, com o índice atualizado nas gravações; consultas paginadas; inserções em lote numa transação (12.4) | M |
+| 23.5 Início do app | 🔎 | Banco criado no início (`createdAtStart`), Koin inteiro na inicialização | Medir antes; adiar o que não é preciso na primeira tela; baseline e startup profile no Android (20.1); conferir que nada de I/O roda na thread principal (StrictMode no debug) | M |
+| 23.6 Rede e feeds | ✅ | Feeds baixados inteiros e em série; `gzip` só no Android e no iOS | GET condicional e concorrência limitada (15.6), `gzip` em todos os engines (16.5), leitura do XML em fluxo em vez de manter o documento inteiro em memória | M |
+| 23.7 Imagens | ✅ | Cache de disco do Coil na pasta temporária do sistema (o iOS esvazia); a amostragem de cor da 9.10 faz um pedido extra | Cache de disco na pasta de cache da plataforma, com limite; tamanhos pedidos proporcionais ao uso (56 dp na lista não decodifica a capa de 3000 px); a amostragem reaproveita o pedido da capa quando possível | P |
+| 23.8 Bateria e reprodução | ✅ / 🔎 | Os players fazem polling da posição a cada 500 ms mesmo sem ninguém olhando; o ExoPlayer não define `setWakeMode` | Atualizar a posição só com a UI visível (e na frequência que a UI precisa); `setWakeMode(C.WAKE_MODE_NETWORK)` no streaming para o áudio não engasgar com a tela apagada (reproduzir antes num aparelho com economia de bateria agressiva) | M |
+| 23.9 Tamanho do app | ✅ | `material-icons-extended` inteiro como dependência: no Android o R8 corta (quando ligado), mas iOS, Desktop e Web levam a biblioteca toda | Copiar os ~30 ícones usados como vetores no design system e remover a dependência; R8 e encolhimento de recursos no Android; medir APK, IPA e bundle Wasm antes e depois | M |
+| 23.10 Vazamentos de memória | 🔎 | Ver "A confirmar" (ViewModel por podcast aberto) | LeakCanary no debug do Android, Instruments no iOS; teste de abrir 30 podcasts e voltar | P |
+| 23.11 Regressão de desempenho | ✅ | — | Resultados do Macrobenchmark e do teste de parsing (17.6) guardados por versão; o CI avisa quando um passa do orçamento | M |
+
+**Critério de conclusão:** os orçamentos da 23.1 cumpridos e medidos; nenhuma recomposição periódica fora dos
+componentes que mostram o tempo; busca rápida com milhares de episódios; app menor nas quatro plataformas.
 
 ---
 
