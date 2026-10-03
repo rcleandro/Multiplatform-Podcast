@@ -1,11 +1,5 @@
 package br.com.carvalho.podcast.core.player
 
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.getString
-import br.com.carvalho.podcast.shared.skip_forward
-import br.com.carvalho.podcast.shared.skip_backward
-import br.com.carvalho.podcast.shared.library_title
-import br.com.carvalho.podcast.shared.Res
 import android.content.Intent
 import android.os.Bundle
 import androidx.annotation.OptIn
@@ -111,10 +105,8 @@ class PodcastMediaService : MediaLibraryService() {
             val skipBackwardIcon = resources.getIdentifier("ic_replay_10", "drawable", packageName)
             val skipForwardIcon = resources.getIdentifier("ic_forward_30", "drawable", packageName)
 
-            // Media3 builds the layout synchronously here; reading two strings from resources is cheap.
-            val (skipForwardLabel, skipBackwardLabel) = runBlocking {
-                getString(Res.string.skip_forward) to getString(Res.string.skip_backward)
-            }
+            val skipForwardLabel = getString(R.string.skip_forward)
+            val skipBackwardLabel = getString(R.string.skip_backward)
             val customLayout = listOf(
                 CommandButton.Builder(CommandButton.ICON_UNDEFINED)
                     .setSessionCommand(skipForwardCommand)
@@ -191,7 +183,7 @@ class PodcastMediaService : MediaLibraryService() {
                                     .setMediaId("library_node")
                                     .setMediaMetadata(
                                         MediaMetadata.Builder()
-                                            .setTitle(getString(Res.string.library_title))
+                                            .setTitle(getString(R.string.library_title))
                                             .setIsBrowsable(true)
                                             .setIsPlayable(false)
                                             .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS)
@@ -283,7 +275,7 @@ class PodcastMediaService : MediaLibraryService() {
                                 .setMediaId("library_node")
                                 .setMediaMetadata(
                                     MediaMetadata.Builder()
-                                        .setTitle(getString(Res.string.library_title))
+                                        .setTitle(getString(R.string.library_title))
                                         .setIsBrowsable(true)
                                         .setIsPlayable(false)
                                         .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS)

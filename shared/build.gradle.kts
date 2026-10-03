@@ -68,6 +68,7 @@ kotlin {
             implementation(project(":core:database"))
             implementation(project(":core:designsystem"))
             implementation(project(":core:network"))
+            implementation(project(":core:player"))
             implementation(project(":core:observability"))
 
             // Compose
@@ -130,14 +131,7 @@ kotlin {
         }
 
         androidMain.dependencies {
-            implementation(libs.ktor.client.android)
             implementation(libs.koin.android)
-            implementation(libs.sqlite.bundled)
-
-            implementation(libs.media3.exoplayer)
-            implementation(libs.media3.session)
-            implementation(libs.kotlinx.coroutines.guava)
-
             implementation(project.dependencies.platform(libs.firebase.bom))
         }
 
@@ -151,43 +145,16 @@ kotlin {
             }
         }
         androidMain.get().dependsOn(firebaseMain)
-
-        val iosMain by getting {
-            dependsOn(firebaseMain)
-            dependencies {
-                implementation(libs.ktor.client.darwin)
-                implementation(libs.sqlite.bundled)
-            }
-        }
+        iosMain.get().dependsOn(firebaseMain)
 
         val desktopMain by getting {
             dependencies {
-                implementation(libs.ktor.client.cio)
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(compose.desktop.currentOs)
-                implementation(libs.sqlite.bundled)
-
-                val javafxVersion = libs.versions.javafx.get()
-
-                val os = org.gradle.internal.os.OperatingSystem.current()
-                val arch = System.getProperty("os.arch").lowercase()
-                val classifier = when {
-                    os.isMacOsX -> if (arch.contains("aarch64") || arch.contains("arm64")) "mac-aarch64" else "mac"
-                    os.isWindows -> "win"
-                    os.isLinux -> "linux"
-                    else -> "mac"
-                }
-
-                // JavaFX ships per-OS jars; the classifier picks the one for the machine that builds.
-                listOf(libs.javafx.media, libs.javafx.graphics, libs.javafx.base).forEach {
-                    implementation("${it.get().module}:$javafxVersion:$classifier")
-                }
             }
         }
 
         wasmJsMain.dependencies {
-            implementation(libs.ktor.client.js)
-            implementation(libs.sqlite.web)
             implementation(libs.okio.fakefilesystem)
         }
 
