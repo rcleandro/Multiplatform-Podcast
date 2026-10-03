@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import org.jetbrains.compose.resources.getString
 import br.com.carvalho.podcast.core.designsystem.Motion
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.unit.dp
@@ -77,7 +78,7 @@ fun LibraryScreen(
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
-            snackbarHostState.showSnackbar(it)
+            snackbarHostState.showSnackbar(getString(it))
             viewModel.clearError()
         }
     }

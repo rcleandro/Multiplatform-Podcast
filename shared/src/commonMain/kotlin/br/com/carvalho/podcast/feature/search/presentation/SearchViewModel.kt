@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -77,7 +78,7 @@ class SearchViewModel(
         _uiState.update { it.copy(error = null) }
     }
 
-    fun setError(message: String) {
+    fun setError(message: StringResource) {
         _uiState.update { it.copy(error = message) }
     }
 
@@ -112,6 +113,6 @@ class SearchViewModel(
 
 data class SearchUiState(
     val searchQuery: String = "",
-    val error: String? = null,
+    val error: StringResource? = null,
     val deleteEpisodeConfirmation: Episode? = null
 )

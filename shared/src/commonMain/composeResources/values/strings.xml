@@ -68,4 +68,30 @@
     <string name="duration_m">%dmin</string>
     <string name="podcast_options">Podcast options</string>
     <string name="episode_options">Episode options</string>
+    <string name="error_refresh_podcasts">Couldn't refresh your podcasts. Check your connection.</string>
+    <string name="error_add_podcast">Couldn't add the podcast. Check the URL and your connection.</string>
+    <string name="error_podcast_exists">This podcast is already in your library.</string>
+    <string name="error_unexpected">Something went wrong. Try again.</string>
+    <string name="error_refresh_episodes">Couldn't refresh the episodes.</string>
+    <string name="error_load_episode">Couldn't load this episode.</string>
+    <string name="download_deleted">Download removed</string>
+    <string name="time_just_now">Just now</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="one">%1$d min ago</item>
+        <item quantity="other">%1$d min ago</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%1$d h ago</item>
+        <item quantity="other">%1$d h ago</item>
+    </plurals>
+    <string name="time_yesterday">Yesterday</string>
+    <plurals name="time_days_ago">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
+    <!-- Arguments: day, month, year -->
+    <string name="date_short">%2$d/%1$d/%3$d</string>
+    <string name="tray_next">Next episode</string>
+    <string name="tray_previous">Previous episode</string>
+    <string name="tray_quit">Quit</string>
 </resources>

@@ -11,10 +11,10 @@ object RssXmlParser {
         val firstItemPos = xml.indexOf("<item>")
         val channelXml = if (firstItemPos != -1) xml.substring(0, firstItemPos) else xml
 
-        val channelTitle = extractTag(channelXml, "title") ?: "Podcast Desconhecido"
+        val channelTitle = extractTag(channelXml, "title").orEmpty()
         val channelDescription = extractTag(channelXml, "description") ?: ""
         val channelImage = extractChannelImage(channelXml)
-        val channelAuthor = extractTag(channelXml, "itunes:author") ?: "Autor Desconhecido"
+        val channelAuthor = extractTag(channelXml, "itunes:author")
 
         val episodes = parseEpisodes(xml, firstItemPos, channelImage)
 
@@ -38,6 +38,7 @@ object RssXmlParser {
     }
 
     private const val ITEM_TAG_LENGTH = 7
+    private const val TITLE_FALLBACK_LENGTH = 80
 
     private fun parseEpisodes(xml: String, firstItemPos: Int, defaultImage: String?): List<RssEpisode> {
         val episodes = mutableListOf<RssEpisode>()
@@ -59,9 +60,14 @@ object RssXmlParser {
     }
 
     private fun parseEpisodeItem(itemXml: String, defaultImage: String?): RssEpisode {
-        val title = extractTag(itemXml, "title") ?: "Sem título"
-        val guid = extractTag(itemXml, "guid") ?: title.hashCode().toString()
+        val rawTitle = extractTag(itemXml, "title")
+        val description = extractTag(itemXml, "description")
         val enclosureUrl = extractAttribute(itemXml, "enclosure", "url") ?: ""
+        val guid = extractTag(itemXml, "guid") ?: (rawTitle ?: enclosureUrl).hashCode().toString()
+        // Without a title, fall back to the feed's own data instead of a fixed text.
+        val title = rawTitle
+            ?: description?.take(TITLE_FALLBACK_LENGTH)
+            ?: enclosureUrl.substringAfterLast('/').substringBefore('?')
         val imageUrl = extractAttribute(itemXml, "itunes:image", "href") ?: defaultImage
         val duration = extractTag(itemXml, "itunes:duration")
         val pubDate = extractTag(itemXml, "pubDate") ?: ""
@@ -69,7 +75,7 @@ object RssXmlParser {
         return RssEpisode(
             guid = guid,
             title = title,
-            description = extractTag(itemXml, "description"),
+            description = description,
             enclosureUrl = enclosureUrl,
             enclosureType = "audio/mpeg",
             duration = duration,

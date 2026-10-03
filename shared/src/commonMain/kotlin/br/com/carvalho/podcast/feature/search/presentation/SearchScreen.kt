@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import org.jetbrains.compose.resources.getString
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import androidx.compose.foundation.layout.Box
@@ -78,16 +79,15 @@ fun SearchScreen(
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
-            snackbarHostState.showSnackbar(it)
+            snackbarHostState.showSnackbar(getString(it))
             viewModel.clearError()
         }
     }
 
-    val errorLoadingResults = stringResource(Res.string.error_loading_results)
     LaunchedEffect(pagedResults.loadState.refresh) {
         val refreshState = pagedResults.loadState.refresh
         if (refreshState is LoadState.Error) {
-            viewModel.setError(errorLoadingResults)
+            viewModel.setError(Res.string.error_loading_results)
         }
     }
 

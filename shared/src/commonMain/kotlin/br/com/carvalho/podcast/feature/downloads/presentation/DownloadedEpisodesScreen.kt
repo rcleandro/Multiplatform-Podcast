@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.downloads.presentation
 
+import org.jetbrains.compose.resources.getString
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import androidx.compose.foundation.layout.Box
@@ -56,7 +57,7 @@ fun DownloadedEpisodesScreen(
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
+            snackbarHostState.showSnackbar(getString(it))
             viewModel.clearSnackbarMessage()
         }
     }

@@ -1,5 +1,13 @@
 package br.com.carvalho.podcast
 
+import org.jetbrains.compose.resources.stringResource
+import br.com.carvalho.podcast.shared.tray_quit
+import br.com.carvalho.podcast.shared.tray_previous
+import br.com.carvalho.podcast.shared.tray_next
+import br.com.carvalho.podcast.shared.play
+import br.com.carvalho.podcast.shared.pause
+import br.com.carvalho.podcast.shared.app_name
+import br.com.carvalho.podcast.shared.Res
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.Window
@@ -29,22 +37,22 @@ fun main() {
             menu = {
                 val isPlaying = playerState.isPlaying
                 Item(
-                    text = if (isPlaying) "Pause" else "Play",
+                    text = stringResource(if (isPlaying) Res.string.pause else Res.string.play),
                     onClick = {
                         if (isPlaying) audioPlayer.pause() else audioPlayer.resume()
                     }
                 )
                 Item(
-                    text = "Next Track",
+                    text = stringResource(Res.string.tray_next),
                     onClick = { audioPlayer.playNext() }
                 )
                 Item(
-                    text = "Previous Track",
+                    text = stringResource(Res.string.tray_previous),
                     onClick = { audioPlayer.playPrevious() }
                 )
                 Separator()
                 Item(
-                    text = "Exit",
+                    text = stringResource(Res.string.tray_quit),
                     onClick = ::exitApplication
                 )
             }
@@ -52,7 +60,7 @@ fun main() {
 
         Window(
             onCloseRequest = ::exitApplication,
-            title = "Podcast",
+            title = stringResource(Res.string.app_name),
         ) {
             val lifecycle = remember { LifecycleRegistry() }
             val root = remember { RootComponentImpl(DefaultComponentContext(lifecycle = lifecycle)) }

@@ -6,7 +6,9 @@ import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.component.DownloadState
 import br.com.carvalho.podcast.core.designsystem.component.EpisodePlayback
 import br.com.carvalho.podcast.core.designsystem.component.EpisodeRow
-import br.com.carvalho.podcast.core.extensions.toDate
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.presentation.format.relativeTime
+import br.com.carvalho.podcast.presentation.format.text
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
@@ -40,7 +42,8 @@ fun EpisodeListItem(
     } else {
         null
     }
-    val metadata = listOfNotNull(podcastTitle, episode.publishDate.toDate(), remaining ?: episode.duration.toDuration())
+    val published = relativeTime(episode.publishDate, getCurrentTimestamp())?.text()
+    val metadata = listOfNotNull(podcastTitle, published, remaining ?: episode.duration.toDuration())
         .joinToString(" · ")
 
     EpisodeRow(

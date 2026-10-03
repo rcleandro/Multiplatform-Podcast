@@ -15,6 +15,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.decompose)
+            implementation(libs.components.resources)
         }
     }
 }

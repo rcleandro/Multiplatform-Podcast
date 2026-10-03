@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
+import org.jetbrains.compose.resources.getString
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
@@ -71,7 +72,7 @@ fun EpisodeDetailScreen(
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
-            snackbarHostState.showSnackbar(it)
+            snackbarHostState.showSnackbar(getString(it))
             viewModel.clearError()
         }
     }

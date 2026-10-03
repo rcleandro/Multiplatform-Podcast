@@ -66,4 +66,31 @@
     <string name="duration_m">%dmin</string>
     <string name="podcast_options">Opções do podcast</string>
     <string name="episode_options">Opções do episódio</string>
+    <string name="app_name">Podcast KMP</string>
+    <string name="rss_url_placeholder">https://...</string>
+    <string name="error_refresh_podcasts">Não deu para atualizar os podcasts. Verifique a conexão.</string>
+    <string name="error_add_podcast">Não deu para adicionar o podcast. Verifique a URL e a conexão.</string>
+    <string name="error_podcast_exists">Este podcast já está na sua biblioteca.</string>
+    <string name="error_unexpected">Algo deu errado. Tente de novo.</string>
+    <string name="error_refresh_episodes">Não deu para atualizar os episódios.</string>
+    <string name="error_load_episode">Não deu para carregar este episódio.</string>
+    <string name="download_deleted">Download excluído</string>
+    <string name="time_just_now">Agora</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="one">Há %1$d min</item>
+        <item quantity="other">Há %1$d min</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">Há %1$d h</item>
+        <item quantity="other">Há %1$d h</item>
+    </plurals>
+    <string name="time_yesterday">Ontem</string>
+    <plurals name="time_days_ago">
+        <item quantity="one">Há %1$d dia</item>
+        <item quantity="other">Há %1$d dias</item>
+    </plurals>
+    <string name="date_short">%1$d/%2$d/%3$d</string>
+    <string name="tray_next">Próximo episódio</string>
+    <string name="tray_previous">Episódio anterior</string>
+    <string name="tray_quit">Sair</string>
 </resources>

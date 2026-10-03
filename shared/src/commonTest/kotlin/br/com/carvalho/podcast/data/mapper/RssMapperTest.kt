@@ -96,4 +96,14 @@ class RssMapperTest {
         season = null,
         episode = null
     )
+
+    @Test
+    fun `podcast without a title is named after the feed host`() {
+        val feed = RssFeed(
+            title = "", description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), link = null, ttl = null, episodes = emptyList()
+        )
+
+        assertEquals("feeds.example.com", feed.toPodcast("https://feeds.example.com/show.xml").title)
+    }
 }

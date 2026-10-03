@@ -224,7 +224,7 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   Sem teste novo (só valores de animação): verificado com os testes, o Detekt, os builds e no Razr 60, com uma
   captura no meio da abertura do player.
 
-### 9.8 Textos fora do código ✅ — M
+### 9.8 Textos fora do código ✔ — M
 - **Problema:** a fase 6 foi marcada como feita, mas há texto em pt-BR nos ViewModels, em `LongExtensions.toDate()`,
   no `RssXmlParser`, no `PodcastCard` e na bandeja do Desktop; `app_name` e `rss_url_placeholder` faltam no `values-pt`.
 - **Ação:**
@@ -233,6 +233,18 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   - Data absoluta formatada pelo locale.
   - Defaults do parser viram `null`; a UI decide o rótulo.
   - Teste que compara as chaves de `values`, `values-pt` e `values-es` e falha se faltar alguma.
+
+- **Implementado:** os erros e o snackbar dos 5 ViewModels viraram `StringResource` (a tela resolve com
+  `getString`); "já existe" ganhou mensagem própria (`error_podcast_exists`, com teste no `LibraryViewModelTest`) e a
+  mensagem crua da exceção saiu da tela. `toDate()` deu lugar a `relativeTime()` (cálculo puro, `RelativeTimeTest`)
+  + `RelativeTime.text()` com plurais; a data absoluta usa `date_short` com argumentos posicionais (dia/mês/ano em
+  pt e es, mês/dia/ano em en); feed sem data não mostra texto. O parser não inventa mais texto: canal sem título vira
+  o host do feed no mapper, autor ausente fica `null`, episódio sem título usa a descrição ou o nome do arquivo (com
+  testes). Bandeja e título da janela do Desktop, e os rótulos do Android Auto e da notificação, vêm dos recursos.
+  `app_name` e `rss_url_placeholder` entraram em pt e es. `StringResourcesTest` (nos dois módulos) compara as chaves
+  dos três idiomas: falhou no `:shared` antes da correção e passa depois. Conferido no Razr 60 (datas na lista).
+  **Exceção mantida:** `DownloadStatus.Failed` ainda carrega a mensagem crua da exceção, mas ela não chega à tela
+  (o `DownloadState.Failed` do design system não tem texto); o tipo do erro fica para a 14.9.
 
 ### 9.9 Migração das telas ✅ — G
 - **Ação:** as 6 telas e o `RootContent` passam a usar só tokens e componentes do design system. Cada tela vira
