@@ -570,11 +570,29 @@ de nenhum outro módulo do projeto. Só o `shared` e os apps conhecem todos.
   de rede, disco cheio e desconhecido (`RssFeedDataSourceImplTest`), mensagem de refresh sem conexão no detalhe e
   de URL que não é feed na biblioteca.
 
-### 11.10 Navegação ✅ — M
+### 11.10 Navegação ✔ — M
 - **Problema:** `RootContent` (257 linhas) deduz a aba selecionada por heurística (`isTabSelected`), `Child.Library`
   carrega um `Unit`, e as regras de pilha ficam espalhadas entre o componente e o composable.
 - **Ação:** uma pilha por aba (`childStack` por aba ou `ChildPages` + pilhas), com a aba selecionada como estado
   explícito no componente e testada no `RootComponentTest`. O `RootContent` só desenha.
+- **Implementado:** o `RootComponent` (a interface de uma só implementação saiu, e o `RootComponentImpl` virou
+  `RootComponent`) expõe `state: Value<NavigationState>`. O estado tem `selectedTab` (`Library`, `Search`,
+  `Downloads`), `stacks` (uma pilha de `Detail.Podcast`/`Detail.Episode` por aba) e `isPlayerOpen`. No lugar de
+  `childStack` ou `ChildPages`, ficou um estado serializável simples, porque os filhos só carregam IDs e as telas
+  pegam seus ViewModels do Koin. O estado é salvo pelo `stateKeeper`, e o voltar do sistema é um `BackCallback`
+  ligado só quando há para onde voltar. Regras, todas no componente: cada aba guarda a sua pilha; tocar na aba já
+  aberta volta à raiz dela; abrir um episódio monta `[podcast, episódio]`, então voltar mostra o podcast; o voltar
+  fecha o player, depois desempilha a aba, depois volta para a biblioteca, e na biblioteca vazia deixa o sistema
+  sair. O `RootContent` (agora ~200 linhas em cinco composables) só lê o estado: aba selecionada, painel do
+  `ListDetailPaneScaffold` derivado de `podcast`/`episode` e player por `isPlayerOpen`. Saíram `isTabSelected`, os
+  filtros de `allChildren`, o `Child.Library(Unit)` e as nove entradas do `RootContent` no baseline do Detekt.
+  `RootComponentTest` reescrito, com seis casos: estado inicial, episódio sobre o podcast, pilha por aba, aba
+  repetida volta à raiz, a ordem do voltar (pelo `BackDispatcher`) e o estado restaurado após recriação. Comportamento
+  novo: antes, trocar de aba apagava os detalhes abertos; agora eles ficam na aba.
+
+**Fase 11 concluída (03/10/2026).** Critério conferido: o `:shared` ficou com navegação, montagem do Koin e
+Firebase. `checkModuleDependencies` está no `check`, e o `KoinGraphTest` roda no `desktopTest` e no
+`testAndroidHostTest`. O único `expect object` restante é o `AppDatabaseConstructor`, que o Room exige.
 
 **Critério de conclusão:** `:shared` sem código de negócio; `checkModuleDependencies` e o teste do Koin no `check`;
 nenhum `expect object` de serviço chamado direto por ViewModel ou repositório.
