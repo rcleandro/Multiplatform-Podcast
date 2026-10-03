@@ -67,6 +67,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core:common"))
             implementation(project(":core:designsystem"))
+            implementation(project(":core:network"))
             implementation(project(":core:observability"))
 
             // Compose

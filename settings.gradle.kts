@@ -65,6 +65,7 @@ plugins {
 include(":shared")
 include(":core:common")
 include(":core:designsystem")
+include(":core:network")
 include(":core:observability")
 include(":core:testing")
 include(":androidApp")
