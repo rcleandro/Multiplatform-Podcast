@@ -12,7 +12,6 @@ fun createAppDatabase(): AppDatabase {
     val driver = WebWorkerSQLiteDriver(createSqliteWorker())
     return Room.databaseBuilder<AppDatabase>("podcast.db")
         .setDriver(driver = driver)
-        .fallbackToDestructiveMigration(true)
         .build()
 }
 

@@ -9,6 +9,5 @@ fun createAppDatabase(context: Context): AppDatabase {
     return Room.databaseBuilder<AppDatabase>(context, "podcast.db")
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)
-        .fallbackToDestructiveMigration(true)
         .build()
 }

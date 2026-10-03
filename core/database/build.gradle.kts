@@ -27,6 +27,11 @@ kotlin {
                 implementation(libs.sqlite.bundled)
             }
         }
+        val desktopTest by getting {
+            dependencies {
+                implementation(libs.room3.testing)
+            }
+        }
         wasmJsMain.dependencies {
             implementation(libs.sqlite.web)
             implementation(libs.kotlinx.browser)
