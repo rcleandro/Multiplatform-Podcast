@@ -21,10 +21,9 @@ captures
 # iOS / CocoaPods
 iosApp/Pods/
 iosApp/.bundle/
-iosApp/Podfile.lock
 !iosApp/Podfile
-!shared/shared.podspec
 *.podspec
+!shared/shared.podspec
 
 # Android
 **/google-services.json
@@ -34,10 +33,8 @@ iosApp/Podfile.lock
 
 # Kotlin/JS & Wasm
 .kotlin/
-kotlin-js-store/
 node_modules/
 package-lock.json
-yarn.lock
 *.wasm
 *.js.map
 
