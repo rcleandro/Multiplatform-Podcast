@@ -1,9 +1,7 @@
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.podcast.kmp.library)
+    alias(libs.plugins.podcast.kmp.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.android.kotlin.multiplatform.library)
-    alias(libs.plugins.compose.multiplatform)
-    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
     alias(libs.plugins.kover)
@@ -26,27 +24,10 @@ compose.resources {
 }
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
-
     android {
         namespace = "br.com.carvalho.podcast.shared"
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
-        minSdk = libs.versions.android.minSdk.get().toInt()
-
         withHostTest {}
     }
-
-    jvm("desktop")
-
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
-
-    iosArm64()
-    iosSimulatorArm64()
 
     cocoapods {
         version = "1.0"
@@ -87,8 +68,6 @@ kotlin {
             moduleName = "FBLPromises"
         }
     }
-
-    applyDefaultHierarchyTemplate()
 
     sourceSets {
         commonMain.dependencies {
@@ -202,9 +181,10 @@ kotlin {
                     else -> "mac"
                 }
 
-                implementation("org.openjfx:javafx-media:$javafxVersion:$classifier")
-                implementation("org.openjfx:javafx-graphics:$javafxVersion:$classifier")
-                implementation("org.openjfx:javafx-base:$javafxVersion:$classifier")
+                // JavaFX ships per-OS jars; the classifier picks the one for the machine that builds.
+                listOf(libs.javafx.media, libs.javafx.graphics, libs.javafx.base).forEach {
+                    implementation("${it.get().module}:$javafxVersion:$classifier")
+                }
             }
         }
 
@@ -276,22 +256,3 @@ configurations.all {
         force("org.jetbrains.skiko:skiko:0.9.43")
     }
 }
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
-}
-
-// Custom task to sync Compose resources for Android assets (AGP 9.x compatibility)
-val syncComposeResourcesForAndroid = tasks.register<Copy>("syncComposeResourcesForAndroid") {
-    dependsOn("prepareComposeResourcesTaskForCommonMain")
-    val sourceDir = layout.buildDirectory.dir("generated/compose/resourceGenerator/preparedResources/commonMain/composeResources")
-    from(sourceDir)
-    into(layout.buildDirectory.dir("generated/compose/androidAssets/composeResources/br.com.carvalho.podcast.shared"))
-    inputs.dir(sourceDir)
-}
-
-kotlin.sourceSets.getByName("androidMain").resources.srcDirs(
-    syncComposeResourcesForAndroid.map { it.destinationDir.parentFile.parentFile }
-)
