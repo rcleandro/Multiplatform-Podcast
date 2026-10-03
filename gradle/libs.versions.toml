@@ -49,10 +49,10 @@ kermit = "2.1.0"
 detekt = "1.23.8"
 
 # Firebase
-firebase-bom = "34.13.0"
-firebase-gitlive = "2.4.0"
-google-services = "4.4.4"
-firebase-crashlytics-plugin = "3.0.7"
+firebase-bom = "34.19.0"
+firebase-gitlive = "2.7.0"
+google-services = "4.5.0"
+firebase-crashlytics-plugin = "3.0.8"
 
 # Testes
 turbine = "1.2.1"
