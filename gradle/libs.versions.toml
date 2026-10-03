@@ -56,7 +56,7 @@ firebase-crashlytics-plugin = "3.0.7"
 
 # Testes
 turbine = "1.2.1"
-mockk = "1.14.9"
+mockk = "1.14.11"
 uiTest = "1.11.0"
 kover = "0.9.8"
 roborazzi = "1.76.0"
