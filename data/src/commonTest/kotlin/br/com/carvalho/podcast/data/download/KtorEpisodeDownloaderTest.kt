@@ -8,6 +8,12 @@ import br.com.carvalho.podcast.domain.model.Episode
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.writeFully
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -77,6 +83,30 @@ class KtorEpisodeDownloaderTest {
     }
 
     @Test
+    fun `the file is written while the episode is still downloading`() = runTest {
+        val body = ByteChannel()
+        val engine = MockEngine {
+            respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentLength, "${CHUNK * 2}"))
+        }
+        val downloader = KtorEpisodeDownloader(
+            HttpClient(engine), episodeDao, AppDirectories(fileSystem, baseDir), Dispatchers.Default
+        )
+
+        downloader.download(sampleEpisode)
+        body.writeFully(ByteArray(CHUNK))
+        body.flush()
+
+        // Only half of the body has arrived: a streamed download has already written it, a buffered one has not.
+        withContext(Dispatchers.Default) {
+            withTimeout(STREAM_TIMEOUT_MS) { while (bytesOnDisk() < CHUNK) delay(POLL_MS) }
+        }
+        body.close()
+    }
+
+    private fun bytesOnDisk(): Long = fileSystem.listOrNull(baseDir / "downloads").orEmpty()
+        .sumOf { fileSystem.metadata(it).size ?: 0 }
+
+    @Test
     fun `download flow handles http error`() = runTest(testDispatcher) {
         val mockEngine = MockEngine {
             respond(
@@ -112,5 +142,11 @@ class KtorEpisodeDownloaderTest {
 
         kotlin.test.assertNull(downloader.getLocalPath("e1"))
         assertTrue(!fileSystem.exists(path))
+    }
+
+    private companion object {
+        const val CHUNK = 64 * 1024
+        const val STREAM_TIMEOUT_MS = 5_000L
+        const val POLL_MS = 10L
     }
 }

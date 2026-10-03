@@ -17,7 +17,9 @@ import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import okio.Path
 import okio.buffer
+import okio.use
 
 private const val TAG = "KtorEpisodeDownloader"
 
@@ -49,36 +51,27 @@ open class KtorEpisodeDownloader(
             try {
                 updateStatus(episode.id, DownloadStatus.Queued())
 
-                val response = httpClient.get(episode.audioUrl) {
+                val destPath = directories.downloadPath(episode.id)
+                // prepareGet + execute streams the body to disk; get() would hold the whole episode in memory first.
+                val completed = httpClient.prepareGet(episode.audioUrl) {
+                    // An episode takes minutes; only connecting and silence are limited, not the whole transfer.
+                    timeout { requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS }
                     onDownload { bytesSentTotal, contentLength ->
                         if (contentLength != null && contentLength > 0) {
                             val progress = bytesSentTotal.toFloat() / contentLength.toFloat()
                             updateStatus(episode.id, DownloadStatus.Downloading(progress, bytesSentTotal, contentLength))
                         }
                     }
-                }
-
-                if (!response.status.isSuccess()) {
-                    updateStatus(episode.id, DownloadStatus.Failed(AppError.Http(response.status.value)))
-                    return@launch
-                }
-
-                val destPath = directories.downloadPath(episode.id)
-                fileSystem.createDirectories(directories.downloadsDir)
-
-                val channel = response.bodyAsChannel()
-                val sink = fileSystem.sink(destPath).buffer()
-                try {
-                    val buffer = ByteArray(AppConfig.DOWNLOAD_BUFFER_SIZE)
-                    while (!channel.isClosedForRead) {
-                        val read = channel.readAvailable(buffer)
-                        if (read > 0) {
-                            sink.write(buffer, 0, read)
-                        }
+                }.execute { response ->
+                    if (!response.status.isSuccess()) {
+                        updateStatus(episode.id, DownloadStatus.Failed(AppError.Http(response.status.value)))
+                        return@execute false
                     }
-                } finally {
-                    sink.close()
+                    fileSystem.createDirectories(directories.downloadsDir)
+                    writeBody(response.bodyAsChannel(), destPath)
+                    true
                 }
+                if (!completed) return@launch
 
                 episodeDao.updateDownloadStatus(episode.id, true)
 
@@ -144,6 +137,16 @@ open class KtorEpisodeDownloader(
     override fun getLocalPath(episodeId: String): String? {
         val destPath = directories.downloadPath(episodeId)
         return if (fileSystem.exists(destPath)) destPath.toString() else null
+    }
+
+    private suspend fun writeBody(channel: ByteReadChannel, destPath: Path) {
+        fileSystem.sink(destPath).buffer().use { sink ->
+            val buffer = ByteArray(AppConfig.DOWNLOAD_BUFFER_SIZE)
+            while (!channel.isClosedForRead) {
+                val read = channel.readAvailable(buffer)
+                if (read > 0) sink.write(buffer, 0, read)
+            }
+        }
     }
 
     private fun updateStatus(episodeId: String, status: DownloadStatus) {
