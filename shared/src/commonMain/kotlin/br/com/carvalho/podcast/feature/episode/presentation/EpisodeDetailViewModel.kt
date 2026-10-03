@@ -1,7 +1,7 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
-import br.com.carvalho.podcast.shared.error_load_episode
-import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.error_load_episode
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

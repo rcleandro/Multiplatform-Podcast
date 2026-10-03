@@ -29,18 +29,18 @@ import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
-import br.com.carvalho.podcast.shared.Res
-import br.com.carvalho.podcast.shared.cancel
-import br.com.carvalho.podcast.shared.close
-import br.com.carvalho.podcast.shared.playback_speed
-import br.com.carvalho.podcast.shared.queue
-import br.com.carvalho.podcast.shared.sleep_timer
-import br.com.carvalho.podcast.shared.timer_15_min
-import br.com.carvalho.podcast.shared.timer_30_min
-import br.com.carvalho.podcast.shared.timer_45_min
-import br.com.carvalho.podcast.shared.timer_5_min
-import br.com.carvalho.podcast.shared.timer_60_min
-import br.com.carvalho.podcast.shared.timer_disabled
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.cancel
+import br.com.carvalho.podcast.core.ui.generated.resources.close
+import br.com.carvalho.podcast.core.ui.generated.resources.playback_speed
+import br.com.carvalho.podcast.core.ui.generated.resources.queue
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
+import br.com.carvalho.podcast.core.ui.generated.resources.timer_15_min
+import br.com.carvalho.podcast.core.ui.generated.resources.timer_30_min
+import br.com.carvalho.podcast.core.ui.generated.resources.timer_45_min
+import br.com.carvalho.podcast.core.ui.generated.resources.timer_5_min
+import br.com.carvalho.podcast.core.ui.generated.resources.timer_60_min
+import br.com.carvalho.podcast.core.ui.generated.resources.timer_disabled
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

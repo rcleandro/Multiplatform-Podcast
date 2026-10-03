@@ -1,13 +1,13 @@
 package br.com.carvalho.podcast.presentation.format
 
 import androidx.compose.runtime.Composable
-import br.com.carvalho.podcast.shared.Res
-import br.com.carvalho.podcast.shared.date_short
-import br.com.carvalho.podcast.shared.time_days_ago
-import br.com.carvalho.podcast.shared.time_hours_ago
-import br.com.carvalho.podcast.shared.time_just_now
-import br.com.carvalho.podcast.shared.time_minutes_ago
-import br.com.carvalho.podcast.shared.time_yesterday
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.date_short
+import br.com.carvalho.podcast.core.ui.generated.resources.time_days_ago
+import br.com.carvalho.podcast.core.ui.generated.resources.time_hours_ago
+import br.com.carvalho.podcast.core.ui.generated.resources.time_just_now
+import br.com.carvalho.podcast.core.ui.generated.resources.time_minutes_ago
+import br.com.carvalho.podcast.core.ui.generated.resources.time_yesterday
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime

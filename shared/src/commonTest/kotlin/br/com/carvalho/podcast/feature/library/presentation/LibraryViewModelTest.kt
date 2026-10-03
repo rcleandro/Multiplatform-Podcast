@@ -3,8 +3,8 @@ package br.com.carvalho.podcast.feature.library.presentation
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
-import br.com.carvalho.podcast.shared.error_podcast_exists
-import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository

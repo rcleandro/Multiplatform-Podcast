@@ -44,12 +44,12 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.window.core.layout.WindowSizeClass
-import br.com.carvalho.podcast.shared.Res
-import br.com.carvalho.podcast.shared.downloads
-import br.com.carvalho.podcast.shared.library_title
-import br.com.carvalho.podcast.shared.player
-import br.com.carvalho.podcast.shared.search
-import br.com.carvalho.podcast.shared.select_podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.downloads
+import br.com.carvalho.podcast.core.ui.generated.resources.library_title
+import br.com.carvalho.podcast.core.ui.generated.resources.player
+import br.com.carvalho.podcast.core.ui.generated.resources.search
+import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)

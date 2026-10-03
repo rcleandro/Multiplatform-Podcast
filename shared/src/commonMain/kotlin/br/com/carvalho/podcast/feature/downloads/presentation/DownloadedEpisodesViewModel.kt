@@ -1,7 +1,7 @@
 package br.com.carvalho.podcast.feature.downloads.presentation
 
-import br.com.carvalho.podcast.shared.download_deleted
-import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -1,11 +1,11 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
 import br.com.carvalho.podcast.domain.model.PodcastError
-import br.com.carvalho.podcast.shared.error_unexpected
-import br.com.carvalho.podcast.shared.error_add_podcast
-import br.com.carvalho.podcast.shared.error_podcast_exists
-import br.com.carvalho.podcast.shared.error_refresh_podcasts
-import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.error_unexpected
+import br.com.carvalho.podcast.core.ui.generated.resources.error_add_podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
+import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_podcasts
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import org.jetbrains.compose.resources.StringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

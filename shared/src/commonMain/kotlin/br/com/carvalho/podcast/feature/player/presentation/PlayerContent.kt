@@ -1,6 +1,6 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
-import br.com.carvalho.podcast.shared.state_on
+import br.com.carvalho.podcast.core.ui.generated.resources.state_on
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
@@ -46,17 +46,17 @@ import br.com.carvalho.podcast.core.designsystem.component.PodcastTopBar
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
-import br.com.carvalho.podcast.shared.Res
-import br.com.carvalho.podcast.shared.minimize
-import br.com.carvalho.podcast.shared.next
-import br.com.carvalho.podcast.shared.no_episode_selected
-import br.com.carvalho.podcast.shared.now_playing
-import br.com.carvalho.podcast.shared.playback_speed
-import br.com.carvalho.podcast.shared.previous
-import br.com.carvalho.podcast.shared.queue
-import br.com.carvalho.podcast.shared.skip_backward
-import br.com.carvalho.podcast.shared.skip_forward
-import br.com.carvalho.podcast.shared.sleep_timer
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.minimize
+import br.com.carvalho.podcast.core.ui.generated.resources.next
+import br.com.carvalho.podcast.core.ui.generated.resources.no_episode_selected
+import br.com.carvalho.podcast.core.ui.generated.resources.now_playing
+import br.com.carvalho.podcast.core.ui.generated.resources.playback_speed
+import br.com.carvalho.podcast.core.ui.generated.resources.previous
+import br.com.carvalho.podcast.core.ui.generated.resources.queue
+import br.com.carvalho.podcast.core.ui.generated.resources.skip_backward
+import br.com.carvalho.podcast.core.ui.generated.resources.skip_forward
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
 import org.jetbrains.compose.resources.stringResource
 
 /** Everything the player can ask for; the screen wires these to the view model and its dialogs. */

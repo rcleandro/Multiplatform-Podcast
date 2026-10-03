@@ -16,11 +16,6 @@ kover {
     }
 }
 
-compose.resources {
-    publicResClass = true
-    packageOfResClass = "br.com.carvalho.podcast.shared"
-}
-
 kotlin {
     android {
         namespace = "br.com.carvalho.podcast.shared"
@@ -70,6 +65,7 @@ kotlin {
             implementation(project(":core:designsystem"))
             implementation(project(":core:network"))
             implementation(project(":core:player"))
+            implementation(project(":core:ui"))
             implementation(project(":core:observability"))
 
             // Compose

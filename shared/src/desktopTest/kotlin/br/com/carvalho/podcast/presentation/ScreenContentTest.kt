@@ -1,7 +1,7 @@
 package br.com.carvalho.podcast.presentation
 
-import br.com.carvalho.podcast.shared.state_on
-import br.com.carvalho.podcast.shared.library_title
+import br.com.carvalho.podcast.core.ui.generated.resources.state_on
+import br.com.carvalho.podcast.core.ui.generated.resources.library_title
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasStateDescription
@@ -24,11 +24,11 @@ import br.com.carvalho.podcast.feature.library.presentation.LibraryContent
 import br.com.carvalho.podcast.feature.library.presentation.LibraryUiState
 import br.com.carvalho.podcast.feature.player.presentation.PlayerActions
 import br.com.carvalho.podcast.feature.player.presentation.PlayerContent
-import br.com.carvalho.podcast.shared.Res
-import br.com.carvalho.podcast.shared.add_podcast
-import br.com.carvalho.podcast.shared.next
-import br.com.carvalho.podcast.shared.no_podcasts_found
-import br.com.carvalho.podcast.shared.previous
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.add_podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.next
+import br.com.carvalho.podcast.core.ui.generated.resources.no_podcasts_found
+import br.com.carvalho.podcast.core.ui.generated.resources.previous
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString

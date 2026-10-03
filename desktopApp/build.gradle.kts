@@ -13,6 +13,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(project(":shared"))
             implementation(project(":domain"))
+            implementation(project(":core:ui"))
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.decompose)

@@ -1,7 +1,7 @@
 package br.com.carvalho.podcast.feature.downloads.presentation
 
-import br.com.carvalho.podcast.shared.download_deleted
-import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode

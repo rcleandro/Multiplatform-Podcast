@@ -1,15 +1,15 @@
 package br.com.carvalho.podcast
 
 import org.jetbrains.compose.resources.painterResource
-import br.com.carvalho.podcast.shared.app_icon
+import br.com.carvalho.podcast.core.ui.generated.resources.app_icon
 import org.jetbrains.compose.resources.stringResource
-import br.com.carvalho.podcast.shared.tray_quit
-import br.com.carvalho.podcast.shared.tray_previous
-import br.com.carvalho.podcast.shared.tray_next
-import br.com.carvalho.podcast.shared.play
-import br.com.carvalho.podcast.shared.pause
-import br.com.carvalho.podcast.shared.app_name
-import br.com.carvalho.podcast.shared.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.tray_quit
+import br.com.carvalho.podcast.core.ui.generated.resources.tray_previous
+import br.com.carvalho.podcast.core.ui.generated.resources.tray_next
+import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.pause
+import br.com.carvalho.podcast.core.ui.generated.resources.app_name
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.Window

@@ -12,9 +12,9 @@ import br.com.carvalho.podcast.presentation.format.text
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.shared.Res
-import br.com.carvalho.podcast.shared.episode_options
-import br.com.carvalho.podcast.shared.remaining_min
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
+import br.com.carvalho.podcast.core.ui.generated.resources.remaining_min
 import org.jetbrains.compose.resources.stringResource
 
 /** Maps an [Episode] and its download status to the design system [EpisodeRow]. */
