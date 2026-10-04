@@ -4,7 +4,7 @@
     <string name="add_podcast">Añadir podcast</string>
     <string name="search_placeholder">Buscar en tus episodios…</string>
     <string name="delete_podcast">Eliminar podcast</string>
-    <string name="delete_podcast_confirmation">¿Estás seguro de que quieres eliminar el podcast \"%1$s\" y todos sus episodios?</string>
+    <string name="delete_podcast_confirmation">¿Estás seguro de que quieres eliminar el podcast “%1$s” y todos sus episodios?</string>
     <string name="cancel">Cancelar</string>
     <string name="delete">Eliminar</string>
     <string name="add">Añadir</string>
@@ -26,7 +26,7 @@
     <string name="clear">Limpiar</string>
     <string name="refresh">Actualizar</string>
     <string name="delete_download">Eliminar descarga</string>
-    <string name="delete_download_confirmation">¿Realmente quieres eliminar la descarga del episodio \"%1$s\"?</string>
+    <string name="delete_download_confirmation">¿Realmente quieres eliminar la descarga del episodio “%1$s”?</string>
     <string name="timer_disabled">Desactivado</string>
     <string name="timer_5_min">5 minutos</string>
     <string name="timer_15_min">15 minutos</string>
@@ -39,7 +39,7 @@
     <string name="podcast">Podcast</string>
     <string name="back">Volver</string>
     <string name="mark_as_played">Marcar como escuchado</string>
-    <string name="mark_as_played_description">Elige una opción para el episodio \"%1$s\"</string>
+    <string name="mark_as_played_description">Elige una opción para el episodio “%1$s”</string>
     <string name="only_this_one">Solo este</string>
     <string name="this_and_all_below">Este y todos los de abajo</string>
     <string name="filter_all">Todos</string>
