@@ -32,4 +32,13 @@ class StringResourcesTest {
             assertEquals(emptyList(), offending, "Non-positional placeholders in $locale")
         }
     }
+
+    /** Compose resources keep the backslash of \" (Android resources drop it), so the user saw it on screen. */
+    @Test
+    fun quotesAreNotEscaped() {
+        listOf("values", "values-pt", "values-es").forEach { locale ->
+            val offending = File(root, "$locale/strings.xml").readLines().filter { "\\\"" in it }
+            assertEquals(emptyList(), offending, "Escaped quotes in $locale")
+        }
+    }
 }

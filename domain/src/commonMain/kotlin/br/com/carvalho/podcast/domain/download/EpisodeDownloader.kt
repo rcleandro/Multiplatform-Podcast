@@ -25,16 +25,6 @@ interface EpisodeDownloader {
     suspend fun download(episode: Episode)
 
     /**
-     * Pausa um download em andamento.
-     */
-    suspend fun pause(episodeId: String)
-
-    /**
-     * Retoma um download pausado.
-     */
-    suspend fun resume(episodeId: String)
-
-    /**
      * Cancela e remove o download de um episódio em andamento.
      */
     suspend fun cancel(episodeId: String)
@@ -57,5 +47,8 @@ interface EpisodeDownloader {
     /**
      * Verifica se um episódio está disponível localmente e retorna o caminho se sim.
      */
-    fun getLocalPath(episodeId: String): String?
+    suspend fun getLocalPath(episodeId: String): String?
+
+    /** Bytes the downloaded episodes take on disk. */
+    suspend fun usedBytes(): Long
 }

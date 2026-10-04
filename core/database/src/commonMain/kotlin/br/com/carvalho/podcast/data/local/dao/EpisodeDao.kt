@@ -125,8 +125,9 @@ interface EpisodeDao {
     @Query("SELECT COUNT(*) FROM episodes WHERE podcastId = :podcastId AND isPlayed = 0")
     fun getUnplayedCount(podcastId: String): Flow<Int>
 
-    @Query("UPDATE episodes SET isDownloaded = :downloaded WHERE id = :id")
-    suspend fun updateDownloadStatus(id: String, downloaded: Boolean)
+    /** Records the downloaded file of an episode, or that it has none ([fileName] null). */
+    @Query("UPDATE episodes SET downloadFile = :fileName, isDownloaded = (:fileName IS NOT NULL) WHERE id = :id")
+    suspend fun updateDownloadFile(id: String, fileName: String?)
 
     @Transaction
     @Query("""

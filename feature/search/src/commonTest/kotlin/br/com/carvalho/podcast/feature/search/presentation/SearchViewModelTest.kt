@@ -2,7 +2,12 @@ package br.com.carvalho.podcast.feature.search.presentation
 
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import app.cash.turbine.test
+import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.error_storage_full
+import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
+import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
@@ -62,6 +67,23 @@ class SearchViewModelTest {
             
             val state = awaitItem()
             assertEquals("Title", state.searchQuery)
+        }
+    }
+
+    @Test
+    fun `a download that fails tells why, once, and not for failures from before`() = runTest(testDispatcher) {
+        val old = DownloadStatus.Failed(AppError.NoConnection)
+        episodeDownloader.activeDownloads.value = mapOf("old" to old)
+        val viewModel = createViewModel()
+
+        viewModel.messages.test {
+            episodeDownloader.activeDownloads.value = mapOf("old" to old, "e1" to DownloadStatus.Downloading(0.5f, 1, 2))
+            episodeDownloader.activeDownloads.value =
+                mapOf("old" to old, "e1" to DownloadStatus.Failed(AppError.StorageFull))
+            assertEquals(UiMessage(Res.string.error_storage_full), awaitItem())
+            episodeDownloader.activeDownloads.value =
+                mapOf("old" to old, "e1" to DownloadStatus.Failed(AppError.StorageFull), "e2" to DownloadStatus.Idle)
+            expectNoEvents()
         }
     }
 

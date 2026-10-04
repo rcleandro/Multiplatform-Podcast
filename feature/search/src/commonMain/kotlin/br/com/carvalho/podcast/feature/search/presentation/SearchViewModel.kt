@@ -8,6 +8,8 @@ import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.presentation.failureMessages
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import br.com.carvalho.podcast.core.observability.Analytics
@@ -36,6 +38,9 @@ class SearchViewModel(
     private val _refreshTrigger = MutableStateFlow(0)
 
     val activeDownloads = episodeDownloader.activeDownloads
+
+    /** Why a download failed, shown as a snackbar. */
+    val messages: Flow<UiMessage> = episodeDownloader.failureMessages()
     val playerState = audioPlayer.playerState
 
     val pagedResults: Flow<PagingData<Episode>> = _uiState.map { it.searchQuery }

@@ -15,6 +15,7 @@ compose-multiplatform = "1.12.1"
 androidx-activity = "1.13.0"
 androidx-appcompat = "1.8.0"
 androidx-lifecycle = "2.10.0"
+androidx-work = "2.12.0"
 material-icons-extended = "1.7.3"
 material3-adaptive = "1.2.0"
 material3-adaptive-navigation-suite = "1.9.0"
@@ -108,7 +109,7 @@ androidx-sqlite-bundled-jvm = { module = "androidx.sqlite:sqlite-bundled-jvm", v
 
 # Ktor 3
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
@@ -157,6 +158,7 @@ firebase-crashlytics = { module = "dev.gitlive:firebase-crashlytics", version.re
 
 # Lifecycle
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
+androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidx-work" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }

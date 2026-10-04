@@ -243,7 +243,7 @@ class PlaybackController(
     }
 
     /** Queue items and saved sessions do not carry the downloaded file; look it up every time. */
-    private fun withLocalFile(episode: Episode) =
+    private suspend fun withLocalFile(episode: Episode) =
         episode.copy(localPath = episodeDownloader.getLocalPath(episode.id) ?: episode.localPath)
 
     private fun neighbour(offset: Int): Episode? {

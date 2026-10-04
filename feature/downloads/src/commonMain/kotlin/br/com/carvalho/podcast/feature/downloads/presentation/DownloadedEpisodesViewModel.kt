@@ -35,7 +35,9 @@ class DownloadedEpisodesViewModel(
     init {
         repository.getDownloadedEpisodes()
             .onEach { episodes ->
-                _uiState.update { it.copy(episodes = episodes) }
+                // The list changes when a download ends or is deleted, which is when the space changes too.
+                val usedBytes = episodeDownloader.usedBytes()
+                _uiState.update { it.copy(episodes = episodes, usedBytes = usedBytes) }
             }
             .launchIn(viewModelScope)
     }
@@ -65,6 +67,8 @@ class DownloadedEpisodesViewModel(
 data class DownloadedEpisodesUiState(
     val episodes: List<Episode> = emptyList(),
     val deleteEpisodeConfirmation: Episode? = null,
+    /** Disk space the downloads take. */
+    val usedBytes: Long = 0,
 )
 
 sealed interface DownloadsIntent {

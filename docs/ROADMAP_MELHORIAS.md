@@ -647,7 +647,7 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   andando a cada 500 ms por um minuto de tempo virtual: pelo menos 10 salvamentos, o último a menos de 5 s do fim.
   No código antigo, foram 0.
 
-### 13.2 Player singleton liberado pelo ViewModel ✔ (falta conferir no aparelho) — M
+### 13.2 Player singleton liberado pelo ViewModel ✔ — M
 - **Problema:** `PlayerViewModel.onCleared()` chama `audioPlayer.release()` no player singleton do Koin. No Android,
   `release()` cancela o `scope` e libera o `MediaController` de vez. Basta fechar a activity pelo voltar com o
   processo vivo (o serviço continua tocando) para, ao reabrir, o novo ViewModel receber um player morto. O
@@ -661,17 +661,21 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   saiu, porque era código morto. Nenhum código chama mais `AudioPlayer.release()`: o player vive com o processo e,
   no Android, com o `PodcastMediaService`. O método continua na interface para o `PlaybackController` (13.5)
   decidir. Teste: limpar o `ViewModelStore`, como ao fechar a tela, não libera o player (falhou no código antigo).
-  **Falta:** reproduzir no Razr 60 (tocar, fechar pelo voltar com o áudio tocando, reabrir e usar o player).
+  **Conferido no Razr 60 (03/10/2026):** com o áudio tocando, o voltar destruiu a activity e o áudio continuou;
+  ao reabrir, o mini player pausou e retomou normalmente.
 
-### 13.3 Foco de áudio e fone desconectado (Android) ✔ (falta conferir no aparelho) — P
+### 13.3 Foco de áudio e fone desconectado (Android) ✔ — P
 - **Problema:** `PodcastMediaService` cria o ExoPlayer com `setAudioAttributes(…, handleAudioFocus = false)` e sem
   `setHandleAudioBecomingNoisy(true)`. O podcast toca por cima de ligações e de outros apps, e continua no
   alto-falante quando o fone é desconectado.
 - **Ação:** `handleAudioFocus = true` e `setHandleAudioBecomingNoisy(true)`. Validar com uma ligação e tirando o fone.
 - **Implementado:** as duas opções ligadas no `ExoPlayer.Builder` do `PodcastMediaService`. Sem teste
   automatizado: o comportamento é do ExoPlayer com o sistema (foco de áudio, broadcast `ACTION_AUDIO_BECOMING_NOISY`)
-  e só aparece em aparelho. **Falta:** no Razr 60, tocar e (1) receber uma ligação: pausa e volta ao desligar;
-  (2) tocar outro app de áudio: o podcast pausa; (3) tirar o fone com fio ou desligar o Bluetooth: pausa.
+  e só aparece em aparelho. **Conferido no Razr 60 (03/10/2026), pelo log do sistema:** (1) numa ligação, o app
+  recebeu `onAudioFocusChange(-2)` e pausou em 50 ms; ao desligar, recebeu o foco de volta e retomou do mesmo ponto;
+  (2) com o YouTube pedindo foco, recebeu `onAudioFocusChange(-1)` e pausou, sem retomar depois (perda permanente);
+  (3) ao desconectar o fone Bluetooth, pausou junto com a desconexão. Os botões do fone (inclusive 3 toques) chegam
+  ao podcast quando ele foi o último app a tocar; antes disso, o Android os entrega ao último app de mídia.
 
 ### 13.4 Saltos diferentes na notificação e no app ✔ — P
 - **Problema:** o serviço fixa 30 s/15 s (`setSeekForwardIncrementMs(30000)`, `setSeekBackIncrementMs(15000)`) e o
@@ -686,7 +690,7 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
   recebe os segundos. Teste do mapeamento dos ícones em `commonTest`. Quando a 18.5 levar o valor para as
   Configurações, basta trocar a constante pela preferência nesses quatro lugares.
 
-### 13.5 Lógica de reprodução repetida em quatro plataformas ✔ (falta conferir em cada plataforma) — G
+### 13.5 Lógica de reprodução repetida em quatro plataformas ✔ (falta conferir iOS, Desktop, Web e Android Auto) — G
 - **Problema:** fila, próximo/anterior, laço de progresso, estado do sleep timer e montagem do `PlayerState` estão
   reimplementados em `AudioPlayer.android/ios/desktop/wasmJs.kt` (206 a 331 linhas cada), sem testes.
 - **Ação:** um `PlaybackController` em `commonMain` com toda a regra (fila, próximo, fim do episódio, sleep timer,
@@ -713,9 +717,15 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
     avança, último episódio para, sleep timer por minutos e por fim do episódio, velocidade após pausa, salvamento
     durante a reprodução, restauração pausada com arquivo baixado, próximo pelo arquivo baixado, anterior no
     primeiro, arquivo baixado no play). O controller aceita o escopo por parâmetro para os testes não travarem.
-  - **Falta conferir em cada plataforma:** Android (tocar, notificação, fechar e reabrir com o áudio tocando, Android
-    Auto), iOS (tela de bloqueio, próximo/anterior pelo controle remoto), Desktop e Web (teclas de mídia). Não há
-    `buffering` no iOS (o AVPlayer não informa sem KVO), como antes.
+  - **Conferido no Razr 60 (03/10/2026)**, instalando por cima da versão de antes da fase 11, com dados reais: as
+    migrações 3→4→5 (7 podcasts, 14.719 episódios com o id novo, os 3 com progresso preservados, sessão e fila
+    convertidas); a sessão restaurada no episódio migrado; o progresso restaurado a 2 s de onde parou depois de
+    `force-stop` (13.1); saltos de 30/10 s na notificação (13.4); 1,5x mantido entre pausas; fim do episódio marcado
+    como ouvido e reprodução parada no último da fila (13.8).
+  - **Falta conferir:** iOS (tela de bloqueio, próximo/anterior pelo controle remoto), Desktop e Web (teclas de
+    mídia) e Android Auto. Não há `buffering` no iOS (o AVPlayer não informa sem KVO), como antes.
+  - **Observado:** quando o último episódio da fila termina, a sessão fica salva na posição final, e o mini player
+    mostra o episódio já terminado ao reabrir o app (antes, o Android limpava o episódio atual). Ver "A confirmar".
 
 ### 13.6 Sleep timer preso à tela ✔ — P
 - **Problema:** o timer é um laço no `viewModelScope`; se a activity for destruída com o áudio tocando em background,
@@ -753,6 +763,10 @@ a 11.9 e a 12.6 avisam toda falha de atualização.
 **Critério de conclusão:** o progresso sobrevive a matar o processo durante a reprodução; o player funciona depois
 de fechar e reabrir o app; a regra de reprodução tem testes em `commonTest`.
 
+**Fase 13 concluída (03/10/2026).** Critério conferido no Razr 60 (13.1, 13.2) e pelos 10 testes do
+`PlaybackControllerTest`. Ficam para conferir, sem bloquear a fase: o comportamento do 13.5 no iOS, no Desktop, na
+Web e no Android Auto.
+
 ---
 
 ## Fase 14 — Downloads
@@ -761,18 +775,59 @@ de fechar e reabrir o app; a regra de reprodução tem testes em `commonTest`.
 
 | Item | Status | Evidência | Ação | Esforço |
 |---|---|---|---|---|
-| 14.1 Corpo inteiro na memória | ✅ | `httpClient.get(url)` lê e guarda a resposta inteira antes de devolver; o laço de `readAvailable` copia de um buffer que já está todo na RAM (um episódio tem 50–150 MB). Somado a isso, `HttpCache` com armazenamento em memória sem limite no Android e no iOS | `prepareGet(url).execute { it.bodyAsChannel().copyTo(sink) }`; o client de mídia sem `HttpCache` | P |
-| 14.2 Arquivo parcial vira "baixado" | ✅ | Grava direto no caminho final; numa falha o arquivo fica, e o `getLocalPath` só testa se ele existe | Gravar em `.part` e fazer `atomicMove` no fim; conferir `Content-Length`; apagar o `.part` na falha | P |
-| 14.3 Nome de arquivo inválido | ✅ | `"${episode.id}.mp3"`; o guid costuma ser uma URL (`https://…/123?x=y`), o que gera um caminho com `/` e `:`; a extensão é sempre `.mp3`, mesmo para `audio/mp4` | Nome = hash do id + extensão pelo tipo do enclosure; caminho guardado no banco (coluna `localPath`), sem ser deduzido | P |
-| 14.4 Concorrência e cancelamento | ✅ | `downloadJobs` é um `mutableMapOf` acessado de várias coroutines sem sincronização; `CancellationException` é capturada e não relançada; `cancel()` apaga o arquivo enquanto o job ainda pode estar gravando | Estado confinado (`limitedParallelism(1)` ou `Mutex`); relançar o cancelamento; `cancelAndJoin` antes de apagar | P |
-| 14.5 API que promete o que não faz | ✅ | `pause()` cancela e apaga; `resume()` é vazio | Tirar `pause`/`resume` da interface (download com `Range` pode voltar como item próprio, se houver necessidade) | P |
-| 14.6 Downloads morrem com o app | ✅ | O escopo é do processo | Android: `WorkManager` com restrição de rede (só Wi-Fi como opção); iOS: `URLSession` em background; Desktop: segue no processo. Interface comum, `actual` por plataforma | G |
-| 14.7 Downloads na Web | ✅ | `FakeFileSystem` em memória: o download some ao recarregar a página e ocupa RAM | Esconder downloads na Web (capacidade da plataforma) até existir armazenamento persistente (OPFS) | P |
-| 14.8 Gestão de espaço | ✅ | Nada controla o espaço ocupado | Total ocupado nas Configurações; apagar ao terminar de ouvir (opcional); erro claro de disco cheio (`AppError.StorageFull`) | M |
-| 14.9 Erro como texto | ✅ | `DownloadStatus.Failed(error: String)` com mensagem crua | `Failed(reason: AppError)` | P |
+| 14.1 Corpo inteiro na memória | ✔ feito | `httpClient.get(url)` lê e guarda a resposta inteira antes de devolver; o laço de `readAvailable` copia de um buffer que já está todo na RAM (um episódio tem 50–150 MB). Somado a isso, `HttpCache` com armazenamento em memória sem limite no Android e no iOS | `prepareGet(url).execute { }` grava o corpo no disco enquanto ele chega (`writeBody`, buffer de 8 KB). Achado junto: o cliente tinha `requestTimeoutMillis = 30_000` para tudo, então todo download de mais de 30 s era cancelado; o download agora usa `timeout { requestTimeoutMillis = INFINITE_TIMEOUT_MS }` e mantém os limites de conexão e de silêncio do socket. O `HttpCache` saiu dos clientes do Android e do iOS: guardava respostas na memória sem limite (inclusive episódios) e, para os feeds, só ajudava dentro do mesmo processo. Teste com o servidor falso mandando metade do corpo e segurando o resto: o arquivo precisa ter essa metade antes do fim (no código antigo, nada era gravado em 5 s) | P |
+| 14.2 Arquivo parcial vira "baixado" | ✔ feito | Grava direto no caminho final; numa falha o arquivo fica, e o `getLocalPath` só testa se ele existe | O corpo vai para `<id>.mp3.part` e só vira `<id>.mp3` por `atomicMove` depois de inteiro. Se o servidor mandou `Content-Length` e o total gravado for diferente, o download falha com `IOException` (vira `AppError.NoConnection`): uma conexão que cai no meio pode encerrar o canal sem erro. O `finally` apaga o `.part` em qualquer saída (falha, erro HTTP, cancelamento). Teste com o servidor falso prometendo o dobro do que manda: o código antigo marcava `Completed` com o arquivo pela metade; agora fica `Failed`, sem arquivo final nem `.part` | P |
+| 14.3 Nome de arquivo inválido | ✔ feito | `"${episode.id}.mp3"`; o guid costuma ser uma URL (`https://…/123?x=y`), o que gera um caminho com `/` e `:`; a extensão é sempre `.mp3`, mesmo para `audio/mp4` | O id já é um hash desde a 12 (`episodeId`), então o `/` e o `:` não chegavam mais ao caminho. Falta a extensão: vem do `Content-Type` da resposta (o tipo real, sem esperar o parser da 15.1), senão da URL (muitos hosts respondem `application/octet-stream`), senão `mp3`; o AVPlayer só usa a extensão para saber o formato de um arquivo local. O nome fica na coluna `downloadFile` (banco v6, `DownloadFileMigration` preenche `<id>.mp3` para quem já tinha baixado): só o nome, não o caminho absoluto, porque a pasta do app no iOS muda entre atualizações. `updateDownloadFile` grava o nome e o `isDownloaded` juntos; `getLocalPath` e `delete` leem do banco, e `getLocalPath` virou `suspend`. O `.part` passou a ser `<id>.part`, já que a extensão só se sabe com a resposta. Teste: resposta `audio/mp4` gera `e1.m4a` gravado no banco (forçando `mp3` no código, o teste falha) e um caso de migração 5 → 6 | P |
+| 14.4 Concorrência e cancelamento | ✔ feito | `downloadJobs` é um `mutableMapOf` acessado de várias coroutines sem sincronização; `CancellationException` é capturada e não relançada; `cancel()` apaga o arquivo enquanto o job ainda pode estar gravando | O mapa de jobs virou `MutableStateFlow<Map<String, Job>>` e muda só por `update {}`: conferir e incluir é atômico em todas as plataformas e o `finally` não precisa suspender (um `Mutex` ali exigiria `NonCancellable`). O job nasce `LAZY` e só começa se entrou no mapa; no `finally` ele se tira do mapa só se ainda for o dono da chave. A `CancellationException` volta a ser relançada no download e no `delete`. `cancel()` faz `cancelAndJoin` antes do `delete`, então vê o arquivo final caso o job já o tenha movido. Teste com metade do corpo no disco: no código antigo o `.part` (64 KB) ainda estava lá quando `cancel()` voltava (5 de 5 execuções); agora some antes. O teste usa `Dispatchers.Default`, porque no dispatcher de teste o `withContext` do `delete` antigo deixava o job terminar primeiro e escondia a corrida | P |
+| 14.5 API que promete o que não faz | ✔ feito | `pause()` cancela e apaga; `resume()` é vazio | `pause`/`resume` saíram do `EpisodeDownloader`, do `KtorEpisodeDownloader` e do `FakeEpisodeDownloader`. Ninguém os chamava (nem no Kotlin nem no Swift), então a UI não muda; cancelar continua sendo `cancel()`. Retomar com `Range` volta como item próprio se fizer falta. Sem teste novo: é remoção de API sem chamador, e a compilação é a checagem | P |
+| 14.6 Downloads morrem com o app | ✔ feito | O escopo é do processo | O `KtorEpisodeDownloader` ganhou `transfer(id, url)`, que baixa **na coroutine de quem chama** e se registra no mapa de jobs: quem chama decide quanto ele vive. Desktop e Web usam `download()` = `launch(UNDISPATCHED) { transfer }`, como antes. **Android** (`WorkManagerEpisodeDownloader`, em `shared/androidMain` porque o worker precisa do Koin): delega tudo ao Ktor e troca `download`/`cancel` por trabalho único por episódio (`KEEP`), com `NetworkType.CONNECTED`; o `DownloadWorker` chama `transfer` e roda com `setForeground` (serviço `dataSync`, permissão `FOREGROUND_SERVICE_DATA_SYNC`, notificação com o título do episódio e o texto `downloads` que já existia), para passar dos 10 min do WorkManager; se o Android 12+ recusar o foreground em background, o download segue sem ele. `markQueued` mostra o episódio na fila enquanto espera rede. **iOS** (`UrlSessionEpisodeDownloader`, em `data/iosMain`): `NSURLSession` em background com o id do episódio em `taskDescription`; o delegate atualiza o progresso, move o arquivo (extensão pelo `MIMEType`) e grava o banco antes de devolver o controle; o `AppDelegate` em Swift repassa `handleEventsForBackgroundURLSession` para `handleBackgroundDownloadEvents`, que inicia o Koin (o app pode ter sido relançado sem tela) e chama o `completionHandler` quando os eventos acabam. O downloader do iOS nasce com o app (`createdAtStart`) para se religar à sessão. A opção "só Wi-Fi" fica para a tela de Configurações (18.5). Teste comum: cancelar a coroutine que roda o `transfer` (o que o WorkManager faz ao parar o worker) para o download e apaga o `.part`; não existe no código antigo, que não tinha `transfer`. Builds conferidos: Android, Desktop, Web, testes iOS e o app iOS no `xcodebuild` | G |
+| 14.7 Downloads na Web | ✔ feito | `FakeFileSystem` em memória: o download some ao recarregar a página e ocupa RAM | `expect val supportsDownloads` em `core:common` (`false` só no Wasm). Onde é `false`: o `EpisodeListItem` passa `downloadState = null` e o `EpisodeRow` deixa de mostrar o botão (e a marca "Baixado"); a aba Downloads sai da barra; o filtro "Baixados" sai do detalhe do podcast (é o último chip, então os índices continuam batendo com `EpisodeFilter`). Para ligar, basta trocar o `actual` do Wasm quando houver armazenamento persistente (OPFS). Teste de UI: `EpisodeRow` sem estado de download não tem o botão (com o botão sempre desenhado, como antes, o teste falha) | P |
+| 14.8 Gestão de espaço | ✔ feito (parcial: "apagar ao terminar" vai para a 18.19) | Nada controla o espaço ocupado | **Disco cheio:** o `AppError.StorageFull`, o mapeamento de "ENOSPC"/"No space left" e o texto `error_storage_full` já existiam, mas o motivo da falha nunca chegava à tela (o `Failed` virava só o ícone de falha). `EpisodeDownloader.failureMessages()` (em `core:ui`) emite um `UiMessage` com a causa a cada download que falha enquanto a tela está aberta (falhas anteriores não contam); o detalhe do podcast faz `merge` com as mensagens que já tinha, e a busca ganhou snackbar. No iOS, `NSURLErrorCannotWriteToFile` vira `StorageFull`. **Total ocupado:** `usedBytes()` no downloader (soma dos arquivos da pasta de downloads) e uma linha "1,2 GB em uso" no topo da tela Downloads, já que a tela de Configurações só chega na 18.5; `StorageSize` segue o padrão do `RelativeTime` (valor + `text()`, com o separador decimal vindo do idioma; MB arredonda para cima, GB para o décimo mais próximo). **Apagar ao terminar de ouvir:** é uma preferência, então fica com a 18.5/18.19 (que já prevê "apagar depois de ouvido"). Testes: mensagem de disco cheio uma vez só e não para falhas antigas (busca), tamanhos (`StorageSizeTest`, que pegou um truncamento: 1,1999 GB aparecia como 1,1), espaço na tela Downloads e soma dos arquivos no downloader | M |
+| 14.9 Erro como texto | ✔ feito na 11.9 | `DownloadStatus.Failed(error: String)` com mensagem crua | O `Failed(val error: AppError)` veio com o modelo de erro da 11.9 (`949b239`), e a 14.8 passou a mostrar esse motivo na tela. Aqui só o teste de erro HTTP do downloader ficou mais estrito: conferia apenas `is Failed` e agora exige `Failed(AppError.Http(404))` | P |
 
 **Critério de conclusão:** download de um arquivo grande sem pico de memória; falha no meio não deixa episódio
 "baixado"; download continua com o app em background no Android e no iOS.
+
+**Conferido no Razr 60 (03/10/2026)**, instalando por cima da fase 13, com dados reais:
+- **Migração 5→6:** o app abriu normalmente e os episódios baixados continuam marcados depois de reiniciar (agora
+  pelo `downloadFile` no banco).
+- **14.1–14.3:** episódio de 2h53m (168 MB) gravado em `<id>.part` enquanto chegava e movido para `<id>.mp3` no fim
+  (a extensão veio do `Content-Type`), sem sobra de `.part`.
+- **14.6, app removido dos recentes:** com o download começado, o app saiu dos recentes; o processo seguiu vivo pelo
+  serviço em primeiro plano (notificação "Downloads", canal `downloads`, aparece em até 10 s, o adiamento padrão do
+  Android) e o worker terminou com `SUCCESS` (127 MB).
+- **14.6, sem rede:** com Wi-Fi e dados desligados, o episódio ficou "na fila" (`Constraints not met`, nenhum `.part`);
+  ao religar o Wi-Fi, baixou sozinho (113 MB, `SUCCESS`).
+- **14.8:** a tela Downloads mostra "470 MB em uso" para quatro arquivos que somam 469,2 MiB.
+- **Achado — cancelar derrubava o app:** cancelar no meio apagava o `.part`, mas o app fechava com
+  `IllegalStateException: Unbalanced enter/exit`. O engine `Android` do Ktor usa `HttpURLConnection`, que não é
+  thread-safe: no cancelamento, o Ktor fechava o stream na thread que cancelava enquanto outra lia. O Android passou
+  a usar o engine `OkHttp` (`c9d20a4`), que cancela com segurança de qualquer thread. Conferido: com o engine antigo,
+  caiu no primeiro de seis ciclos de baixar e cancelar; com o OkHttp, seis de seis sem queda e sem `.part`, e o
+  download em background e a atualização do feed (200, 1.482 episódios) seguem funcionando. Não há teste
+  automatizado: a falha é do engine do Android e só aparece no aparelho.
+
+**Conferido no simulador do iOS (iPhone 17, iOS 26.5, 03/10/2026)**, com os 10 feeds reais do Android:
+- **Feeds:** os 10 lidos pelo engine Darwin (de 50 a 2.399 episódios), com capas e títulos.
+- **14.6, app em background:** com o app na tela inicial, o `nsurlsessiond` baixou o episódio de 168 MB em 12 s; o
+  arquivo chegou como `<id>.mp3` (extensão pelo `MIMEType`) e o banco registrou o `downloadFile`.
+- **14.6, app encerrado:** com o processo morto logo depois de começar, o `nsurlsessiond` terminou a transferência,
+  acordou o app ("Waking up the client app"), que moveu o arquivo e gravou o banco antes de ser suspenso de novo: o
+  caminho do `AppDelegate` → `handleBackgroundDownloadEvents` funciona.
+- **Cancelar:** o anel de progresso avança pelo `didWriteData`; cancelar encerra a tarefa (`-999`), sem arquivo, sem
+  registro e sem queda do app.
+- **14.8 e excluir:** "277 MB em uso" para 276,4 MiB de arquivos; excluir apaga o arquivo e o registro e o total cai
+  para "269 MB em uso". O episódio baixado toca do arquivo local, sem conexão com o host do áudio.
+- **Para testar:** o `URLSession` em background recusa um app sem assinatura ("does not have a bundle ID"); um build
+  com `CODE_SIGNING_ALLOWED=NO` não serve para esse teste, o build normal do Xcode (assinatura ad hoc) serve.
+- **Achado — aspas com barra:** os diálogos mostravam `\"GRAM 289…\"`, porque o Compose Resources mantém a barra de
+  `\"` (os recursos do Android a tiram). Os três textos com aspas, nos três idiomas, passaram a usar “ ” (`82101b2`),
+  e o `StringResourcesTest` agora falha se aparecer `\"`.
+- **Não conferido no iOS:** a fila sem rede (o simulador não desliga a rede) e a mensagem de disco cheio.
+
+**Fase 14 concluída (03/10/2026).** Critério conferido no Razr 60 e no simulador do iOS: download grande gravado em
+partes, falha ou cancelamento sem episódio "baixado" e download que continua com o app em background e encerrado.
+Fica para depois, sem bloquear a fase: "apagar ao terminar de ouvir" (18.19) e a opção "só Wi-Fi" (18.5).
 
 ---
 
@@ -1004,7 +1059,8 @@ componentes que mostram o tempo; busca rápida com milhares de episódios; app m
 | Suspeita | Onde | Como verificar |
 |---|---|---|
 | Disk cache do Coil na Web | `ImageLoaderFactory.kt` usa `FileSystem.SYSTEM_TEMPORARY_DIRECTORY`, que não existe no Wasm | Abrir a Web com o console aberto e procurar erro do Coil ao carregar capas |
-| Observador de tempo do `AVPlayer` | `AudioPlayer.ios.kt` faz polling a cada 500 ms numa coroutine; conferir se `release()` cancela tudo e remove os observadores do `NSNotificationCenter` | Instruments (Leaks) trocando de episódio várias vezes |
+| Observadores do `AVPlayer` | Desde a 13.5, o polling é do `PlaybackController` e o `IosPlatformPlayer` vive com o processo (não há mais `release()`); o observador de fim no `NSNotificationCenter` usa `object = null` e recebe o fim de qualquer item | Instruments (Leaks) trocando de episódio várias vezes e conferindo que o fim de outro item não dispara `Ended` |
+| Episódio terminado no mini player | Quando o último episódio da fila termina, `PlaybackController` deixa a sessão salva na posição final; ao reabrir, o mini player mostra o episódio já ouvido (visto no Razr 60 em 03/10/2026) | Decidir se a sessão deve ser limpa ou ir para o próximo não ouvido; reproduzir deixando o último episódio da fila terminar |
 | `PodcastDetailViewModel` com `key = podcastId` | Cada podcast aberto cria um ViewModel guardado no `ViewModelStore` da activity, que nunca é limpo enquanto a activity vive | Abrir 30 podcasts e olhar o heap |
 | Firebase acessado antes de configurar no iOS | Ao abrir no simulador aparece "I-COR000003: The default Firebase app has not yet been configured": o `Firebase.initialize()` roda numa coroutine em segundo plano (`Koin.ios.kt`) e algum SDK (provavelmente o Crashlytics, via `AppLogger`) é acessado antes. Eventos e logs dos primeiros instantes podem se perder | Conferir no log se algum evento antes da inicialização some; se sim, configurar o Firebase de forma síncrona no início do app (no `iOSApp.swift` ou antes do `initKoin`), como o SDK recomenda |
 | Texto invisível na Web | Num Chrome headless (10.10), a interface Web apareceu com ícones e botões, mas sem texto. Pode ser só o print antes de a Onest carregar (as fontes do Compose carregam de forma assíncrona no Wasm) ou falha real de fonte | `./gradlew :webApp:wasmJsBrowserDevelopmentRun` num navegador comum; se o texto não aparecer, olhar o console e a aba de rede pelos `.ttf` |

@@ -10,6 +10,7 @@ import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
 import br.com.carvalho.podcast.core.extensions.toDuration
+import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -56,7 +57,7 @@ fun EpisodeListItem(
             progress = progress,
             isPlayed = episode.isPlayed,
         ),
-        downloadState = downloadStatus.toDownloadState(episode.isDownloaded),
+        downloadState = downloadStatus.toDownloadState(episode.isDownloaded).takeIf { supportsDownloads },
         onClick = onClick,
         onPlay = onPlayClick,
         onDownload = onDownloadClick,

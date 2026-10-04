@@ -143,6 +143,24 @@ class ComponentsTest {
     }
 
     @Test
+    fun episodeRowWithoutDownloadStateHasNoDownloadButton() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                EpisodeRow(
+                    title = "Como funciona o Pix",
+                    metadata = "12 set · 1 h 08 min",
+                    imageUrl = null,
+                    playback = EpisodePlayback(),
+                    downloadState = null,
+                    onClick = {}, onPlay = {}, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+                )
+            }
+        }
+        onNodeWithContentDescription(text(Res.string.ds_download)).assertDoesNotExist()
+        onNodeWithContentDescription(text(Res.string.ds_play)).assertExists()
+    }
+
+    @Test
     fun miniPlayerShowsTheEpisodeAndTogglesPlayback() = runComposeUiTest {
         var toggles = 0
         var opened = 0

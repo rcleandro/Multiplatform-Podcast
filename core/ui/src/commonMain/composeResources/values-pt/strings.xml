@@ -4,7 +4,7 @@
     <string name="add_podcast">Adicionar Podcast</string>
     <string name="search_placeholder">Buscar nos seus episódios…</string>
     <string name="delete_podcast">Excluir Podcast</string>
-    <string name="delete_podcast_confirmation">Tem certeza que deseja excluir o podcast \"%1$s\" e todos os seus episódios?</string>
+    <string name="delete_podcast_confirmation">Tem certeza que deseja excluir o podcast “%1$s” e todos os seus episódios?</string>
     <string name="cancel">Cancelar</string>
     <string name="delete">Excluir</string>
     <string name="add">Adicionar</string>
@@ -26,7 +26,7 @@
     <string name="clear">Limpar</string>
     <string name="refresh">Atualizar</string>
     <string name="delete_download">Excluir download</string>
-    <string name="delete_download_confirmation">Deseja realmente excluir o download do episódio \"%1$s\"?</string>
+    <string name="delete_download_confirmation">Deseja realmente excluir o download do episódio “%1$s”?</string>
     <string name="timer_disabled">Desativado</string>
     <string name="timer_5_min">5 minutos</string>
     <string name="timer_15_min">15 minutos</string>
@@ -39,7 +39,7 @@
     <string name="podcast">Podcast</string>
     <string name="back">Voltar</string>
     <string name="mark_as_played">Marcar como ouvido</string>
-    <string name="mark_as_played_description">Escolha uma opção para o episódio \"%1$s\"</string>
+    <string name="mark_as_played_description">Escolha uma opção para o episódio “%1$s”</string>
     <string name="only_this_one">Apenas este</string>
     <string name="this_and_all_below">Este e todos abaixo</string>
     <string name="filter_all">Todos</string>
@@ -96,4 +96,8 @@
     <string name="search_empty_message">Tente outras palavras. A busca procura nos episódios dos podcasts da sua biblioteca.</string>
     <string name="downloads_empty_message">Episódios baixados tocam sem internet. Toque no botão de download de qualquer episódio.</string>
     <string name="state_on">Ativado</string>
+    <string name="error_download">Não foi possível baixar o episódio</string>
+    <string name="downloads_storage_used">%1$s em uso</string>
+    <string name="size_megabytes">%1$d MB</string>
+    <string name="size_gigabytes">%1$d,%2$d GB</string>
 </resources>

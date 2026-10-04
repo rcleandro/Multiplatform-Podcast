@@ -17,14 +17,21 @@ import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CancellationException
+import okio.IOException
+import okio.Path
 import okio.buffer
+import okio.use
 
 private const val TAG = "KtorEpisodeDownloader"
+private const val PART_SUFFIX = ".part"
 
 /**
- * Implementação base do [EpisodeDownloader] utilizando Ktor e Okio.
+ * Downloads episodes with Ktor and Okio and keeps their state. Android and iOS wrap it to keep downloads going in
+ * the background; Desktop and Web use it as is, in the app's process.
  */
-open class KtorEpisodeDownloader(
+@Suppress("TooManyFunctions") // the EpisodeDownloader interface plus the hooks Android and iOS use
+class KtorEpisodeDownloader(
     private val httpClient: HttpClient,
     private val episodeDao: EpisodeDao,
     private val directories: AppDirectories,
@@ -37,99 +44,99 @@ open class KtorEpisodeDownloader(
     private val _activeDownloads = MutableStateFlow<Map<String, DownloadStatus>>(emptyMap())
     override val activeDownloads: StateFlow<Map<String, DownloadStatus>> = _activeDownloads.asStateFlow()
 
-    private val downloadJobs = mutableMapOf<String, Job>()
+    // Updated from several coroutines at once; update {} makes check-and-add atomic on every platform.
+    private val downloadJobs = MutableStateFlow<Map<String, Job>>(emptyMap())
 
     override suspend fun download(episode: Episode) {
-        if (downloadJobs.containsKey(episode.id)) {
-            AppLogger.d(TAG, "Download already in progress for ${episode.id}")
+        // Undispatched: the job is registered before download() returns, so an immediate cancel() finds it.
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { transfer(episode.id, episode.audioUrl) }
+    }
+
+    /**
+     * Downloads in the caller's coroutine, so the caller decides how long it lives: this process ([download]) or an
+     * Android worker that outlives the app. Cancelling the caller stops it and removes the partial file.
+     */
+    suspend fun transfer(episodeId: String, audioUrl: String) {
+        val self = currentCoroutineContext().job
+        var added = false
+        downloadJobs.update { jobs ->
+            added = episodeId !in jobs
+            if (added) jobs + (episodeId to self) else jobs
+        }
+        if (!added) {
+            AppLogger.d(TAG, "Download already in progress for $episodeId")
             return
         }
 
-        val job = scope.launch {
-            try {
-                updateStatus(episode.id, DownloadStatus.Queued())
+        // The episode only appears under its final name once it is whole; a failure leaves just the .part.
+        val partPath = directories.downloadPath("$episodeId$PART_SUFFIX")
+        try {
+            updateStatus(episodeId, DownloadStatus.Queued())
 
-                val response = httpClient.get(episode.audioUrl) {
-                    onDownload { bytesSentTotal, contentLength ->
-                        if (contentLength != null && contentLength > 0) {
-                            val progress = bytesSentTotal.toFloat() / contentLength.toFloat()
-                            updateStatus(episode.id, DownloadStatus.Downloading(progress, bytesSentTotal, contentLength))
-                        }
+            // prepareGet + execute streams the body to disk; get() would hold the whole episode in memory first.
+            val fileName = httpClient.prepareGet(audioUrl) {
+                // An episode takes minutes; only connecting and silence are limited, not the whole transfer.
+                timeout { requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS }
+                onDownload { bytesSentTotal, contentLength ->
+                    if (contentLength != null && contentLength > 0) {
+                        val progress = bytesSentTotal.toFloat() / contentLength.toFloat()
+                        updateStatus(episodeId, DownloadStatus.Downloading(progress, bytesSentTotal, contentLength))
                     }
                 }
-
+            }.execute { response ->
                 if (!response.status.isSuccess()) {
-                    updateStatus(episode.id, DownloadStatus.Failed(AppError.Http(response.status.value)))
-                    return@launch
+                    updateStatus(episodeId, DownloadStatus.Failed(AppError.Http(response.status.value)))
+                    return@execute null
                 }
-
-                val destPath = directories.downloadPath(episode.id)
                 fileSystem.createDirectories(directories.downloadsDir)
-
-                val channel = response.bodyAsChannel()
-                val sink = fileSystem.sink(destPath).buffer()
-                try {
-                    val buffer = ByteArray(AppConfig.DOWNLOAD_BUFFER_SIZE)
-                    while (!channel.isClosedForRead) {
-                        val read = channel.readAvailable(buffer)
-                        if (read > 0) {
-                            sink.write(buffer, 0, read)
-                        }
-                    }
-                } finally {
-                    sink.close()
+                writeBody(response.bodyAsChannel(), partPath, response.contentLength())
+                fileName(episodeId, response.contentType(), audioUrl).also {
+                    fileSystem.atomicMove(partPath, directories.downloadPath(it))
                 }
+            } ?: return
 
-                episodeDao.updateDownloadStatus(episode.id, true)
-
-                updateStatus(episode.id, DownloadStatus.Completed(destPath.toString()))
-                AppLogger.d(TAG, "Download completed for ${episode.id}: $destPath")
-
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                AppLogger.e(TAG, "Download canceled for ${episode.id}", e)
-                updateStatus(episode.id, DownloadStatus.Idle)
-            } catch (e: Exception) {
-                AppLogger.e(TAG, "Download failed for ${episode.id}", e)
-                updateStatus(episode.id, DownloadStatus.Failed(e.toAppError()))
-            } finally {
-                downloadJobs.remove(episode.id)
-            }
+            markDownloaded(episodeId, fileName)
+        } catch (e: CancellationException) {
+            AppLogger.d(TAG, "Download canceled for $episodeId")
+            updateStatus(episodeId, DownloadStatus.Idle)
+            throw e
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Download failed for $episodeId", e)
+            updateStatus(episodeId, DownloadStatus.Failed(e.toAppError()))
+        } finally {
+            fileSystem.delete(partPath, mustExist = false)
+            downloadJobs.update { jobs -> if (jobs[episodeId] === self) jobs - episodeId else jobs }
         }
-
-        downloadJobs[episode.id] = job
     }
 
-    override suspend fun pause(episodeId: String) {
-        cancel(episodeId)
-    }
+    /** Shows the episode as waiting while a platform scheduler holds it (no network yet, for instance). */
+    fun markQueued(episodeId: String) = updateStatus(episodeId, DownloadStatus.Queued())
 
-    override suspend fun resume(episodeId: String) {
+    /** Records a file already in the downloads folder as the episode's download. */
+    internal suspend fun markDownloaded(episodeId: String, fileName: String) {
+        episodeDao.updateDownloadFile(episodeId, fileName)
+        val destPath = directories.downloadPath(fileName)
+        updateStatus(episodeId, DownloadStatus.Completed(destPath.toString()))
+        AppLogger.d(TAG, "Download completed for $episodeId: $destPath")
     }
 
     override suspend fun cancel(episodeId: String) {
-        downloadJobs[episodeId]?.cancel()
-        downloadJobs.remove(episodeId)
-
-        val destPath = directories.downloadPath(episodeId)
-        if (fileSystem.exists(destPath)) {
-            fileSystem.delete(destPath)
-        }
-
-        episodeDao.updateDownloadStatus(episodeId, false)
-        updateStatus(episodeId, DownloadStatus.Idle)
+        // Wait for the job: it may be moving the finished file into place, which delete() must see.
+        downloadJobs.value[episodeId]?.cancelAndJoin()
+        delete(episodeId)
     }
 
     override suspend fun delete(episodeId: String) {
-        val destPath = directories.downloadPath(episodeId)
-
         withContext(Dispatchers.Default) {
             try {
-                if (fileSystem.exists(destPath)) {
-                    fileSystem.delete(destPath)
+                episodeDao.getById(episodeId)?.downloadFile?.let {
+                    fileSystem.delete(directories.downloadPath(it), mustExist = false)
                 }
-                episodeDao.updateDownloadStatus(episodeId, false)
+                episodeDao.updateDownloadFile(episodeId, null)
                 updateStatus(episodeId, DownloadStatus.Idle)
                 AppLogger.d(TAG, "Deleted local file for episode: $episodeId")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Failed to delete episode: $episodeId", e)
             }
@@ -141,12 +148,63 @@ open class KtorEpisodeDownloader(
             .stateIn(scope, SharingStarted.WhileSubscribed(), DownloadStatus.Idle)
     }
 
-    override fun getLocalPath(episodeId: String): String? {
-        val destPath = directories.downloadPath(episodeId)
-        return if (fileSystem.exists(destPath)) destPath.toString() else null
+    override suspend fun getLocalPath(episodeId: String): String? {
+        val fileName = episodeDao.getById(episodeId)?.downloadFile ?: return null
+        return directories.downloadPath(fileName).takeIf { fileSystem.exists(it) }?.toString()
     }
 
-    private fun updateStatus(episodeId: String, status: DownloadStatus) {
+    override suspend fun usedBytes(): Long = withContext(Dispatchers.Default) {
+        fileSystem.listOrNull(directories.downloadsDir).orEmpty().sumOf { fileSystem.metadataOrNull(it)?.size ?: 0L }
+    }
+
+    private suspend fun writeBody(channel: ByteReadChannel, destPath: Path, contentLength: Long?) {
+        var written = 0L
+        fileSystem.sink(destPath).buffer().use { sink ->
+            val buffer = ByteArray(AppConfig.DOWNLOAD_BUFFER_SIZE)
+            while (!channel.isClosedForRead) {
+                val read = channel.readAvailable(buffer)
+                if (read > 0) {
+                    sink.write(buffer, 0, read)
+                    written += read
+                }
+            }
+        }
+        // A connection that drops mid-body can still end the channel normally.
+        if (contentLength != null && written != contentLength) {
+            throw IOException("Body ended at $written of $contentLength bytes")
+        }
+    }
+
+    internal fun updateStatus(episodeId: String, status: DownloadStatus) {
         _activeDownloads.value += (episodeId to status)
     }
 }
+
+private const val DEFAULT_EXTENSION = "mp3"
+
+private val EXTENSIONS_BY_TYPE = mapOf(
+    "audio/mpeg" to "mp3",
+    "audio/mp3" to "mp3",
+    "audio/mp4" to "m4a",
+    "audio/x-m4a" to "m4a",
+    "audio/m4a" to "m4a",
+    "audio/aac" to "aac",
+    "audio/ogg" to "ogg",
+    "audio/opus" to "opus",
+    "audio/wav" to "wav",
+    "video/mp4" to "mp4",
+)
+
+/** The downloaded file's name; the extension tells the platform player the format (AVPlayer reads nothing else). */
+internal fun fileName(episodeId: String, contentType: ContentType?, audioUrl: String): String =
+    "$episodeId.${audioExtension(contentType, audioUrl)}"
+
+/**
+ * The downloaded file's extension: from the response type, else from the URL (many hosts answer with
+ * `application/octet-stream`), else mp3.
+ */
+internal fun audioExtension(contentType: ContentType?, audioUrl: String): String =
+    EXTENSIONS_BY_TYPE[contentType?.withoutParameters()?.toString()?.lowercase()]
+        ?: Url(audioUrl).encodedPath.substringAfterLast('/').substringAfterLast('.', "").lowercase()
+            .takeIf { it in EXTENSIONS_BY_TYPE.values }
+        ?: DEFAULT_EXTENSION

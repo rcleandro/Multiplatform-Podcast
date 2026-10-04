@@ -56,6 +56,16 @@ class DownloadedEpisodesViewModelTest {
     }
 
     @Test
+    fun `shows the space the downloads take`() = runTest(testDispatcher) {
+        episodeDownloader.usedBytes = USED_BYTES
+        repository.episodes.value = listOf(sampleEpisode)
+
+        val viewModel = createViewModel()
+
+        assertEquals(USED_BYTES, viewModel.uiState.value.usedBytes)
+    }
+
+    @Test
     fun `deleteDownload calls downloader and shows snackbar`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
@@ -74,5 +84,9 @@ class DownloadedEpisodesViewModelTest {
         viewModel.onIntent(DownloadsIntent.Play(sampleEpisode))
 
         assertEquals("e1", audioPlayer.playCalledWith?.id)
+    }
+
+    private companion object {
+        const val USED_BYTES = 52_428_800L
     }
 }

@@ -8,6 +8,8 @@ import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.core.player.PlatformPlayer
 import br.com.carvalho.podcast.core.player.IosPlatformPlayer
+import br.com.carvalho.podcast.data.download.UrlSessionEpisodeDownloader
+import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.koin.dsl.module
@@ -22,6 +24,8 @@ actual val platformModule = module {
     single { AppDirectories(FileSystem.SYSTEM, documentsDirectory()) }
     single<Analytics> { FirebaseAnalytics() }
     single<CrashReporter> { FirebaseCrashReporter() }
+    single(createdAtStart = true) { UrlSessionEpisodeDownloader(get(), get()) }
+    single<EpisodeDownloader> { get<UrlSessionEpisodeDownloader>() }
 }
 
 private fun documentsDirectory() =

@@ -14,6 +14,7 @@ import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import br.com.carvalho.podcast.presentation.failureMessages
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import androidx.paging.PagingData
@@ -45,7 +46,7 @@ class PodcastDetailViewModel(
     val uiState: StateFlow<PodcastDetailUiState> = _uiState
 
     private val _messages = Channel<UiMessage>(Channel.BUFFERED)
-    val messages: Flow<UiMessage> = _messages.receiveAsFlow()
+    val messages: Flow<UiMessage> = merge(_messages.receiveAsFlow(), episodeDownloader.failureMessages())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagedEpisodes: Flow<PagingData<Episode>> = _uiState
