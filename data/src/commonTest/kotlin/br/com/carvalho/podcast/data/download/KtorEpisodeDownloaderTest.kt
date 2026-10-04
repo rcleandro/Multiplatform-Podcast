@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.download
 
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.util.AppDirectories
 import app.cash.turbine.test
 import br.com.carvalho.podcast.data.local.dao.FakeEpisodeDao
@@ -241,8 +242,8 @@ class KtorEpisodeDownloaderTest {
 
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val finalStatus = awaitItem()[sampleEpisode.id]
-            assertTrue(finalStatus is DownloadStatus.Failed)
+            // The reason is typed, so the screen can name it; not raw text.
+            assertEquals(DownloadStatus.Failed(AppError.Http(HttpStatusCode.NotFound.value)), awaitItem()[sampleEpisode.id])
         }
     }
 
