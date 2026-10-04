@@ -6,8 +6,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class FakeEpisodeDownloader : EpisodeDownloader {
-    private val _activeDownloads = MutableStateFlow<Map<String, DownloadStatus>>(emptyMap())
-    override val activeDownloads: StateFlow<Map<String, DownloadStatus>> = _activeDownloads.asStateFlow()
+    override val activeDownloads = MutableStateFlow<Map<String, DownloadStatus>>(emptyMap())
+
+    var usedBytes = 0L
 
     var downloadCalledWith: Episode? = null
     var deleteCalledWith: String? = null
@@ -33,4 +34,6 @@ class FakeEpisodeDownloader : EpisodeDownloader {
     }
 
     override suspend fun getLocalPath(episodeId: String): String? = localPaths[episodeId]
+
+    override suspend fun usedBytes(): Long = usedBytes
 }

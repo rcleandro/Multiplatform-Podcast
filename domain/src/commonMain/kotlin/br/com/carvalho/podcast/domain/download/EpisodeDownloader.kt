@@ -48,4 +48,7 @@ interface EpisodeDownloader {
      * Verifica se um episódio está disponível localmente e retorna o caminho se sim.
      */
     suspend fun getLocalPath(episodeId: String): String?
+
+    /** Bytes the downloaded episodes take on disk. */
+    suspend fun usedBytes(): Long
 }

@@ -96,4 +96,8 @@
     <string name="search_empty_message">Tente outras palavras. A busca procura nos episódios dos podcasts da sua biblioteca.</string>
     <string name="downloads_empty_message">Episódios baixados tocam sem internet. Toque no botão de download de qualquer episódio.</string>
     <string name="state_on">Ativado</string>
+    <string name="error_download">Não foi possível baixar o episódio</string>
+    <string name="downloads_storage_used">%1$s em uso</string>
+    <string name="size_megabytes">%1$d MB</string>
+    <string name="size_gigabytes">%1$d,%2$d GB</string>
 </resources>

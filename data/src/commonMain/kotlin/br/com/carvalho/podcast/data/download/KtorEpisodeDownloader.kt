@@ -30,6 +30,7 @@ private const val PART_SUFFIX = ".part"
  * Downloads episodes with Ktor and Okio and keeps their state. Android and iOS wrap it to keep downloads going in
  * the background; Desktop and Web use it as is, in the app's process.
  */
+@Suppress("TooManyFunctions") // the EpisodeDownloader interface plus the hooks Android and iOS use
 class KtorEpisodeDownloader(
     private val httpClient: HttpClient,
     private val episodeDao: EpisodeDao,
@@ -150,6 +151,10 @@ class KtorEpisodeDownloader(
     override suspend fun getLocalPath(episodeId: String): String? {
         val fileName = episodeDao.getById(episodeId)?.downloadFile ?: return null
         return directories.downloadPath(fileName).takeIf { fileSystem.exists(it) }?.toString()
+    }
+
+    override suspend fun usedBytes(): Long = withContext(Dispatchers.Default) {
+        fileSystem.listOrNull(directories.downloadsDir).orEmpty().sumOf { fileSystem.metadataOrNull(it)?.size ?: 0L }
     }
 
     private suspend fun writeBody(channel: ByteReadChannel, destPath: Path, contentLength: Long?) {

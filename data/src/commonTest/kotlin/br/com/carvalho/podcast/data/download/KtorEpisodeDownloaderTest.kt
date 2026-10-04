@@ -208,6 +208,17 @@ class KtorEpisodeDownloaderTest {
         body.close()
     }
 
+    @Test
+    fun `used space is the size of the files in the downloads folder`() = runTest(testDispatcher) {
+        val downloader = createDownloader(MockEngine { respondOk() })
+        assertEquals(0, downloader.usedBytes())
+        fileSystem.createDirectories(baseDir / "downloads")
+        fileSystem.write(baseDir / "downloads" / "e1.mp3") { write(ByteArray(CHUNK)) }
+        fileSystem.write(baseDir / "downloads" / "e2.m4a") { write(ByteArray(CHUNK)) }
+
+        assertEquals(CHUNK * 2L, downloader.usedBytes())
+    }
+
     private fun bytesOnDisk(): Long = fileSystem.listOrNull(baseDir / "downloads").orEmpty()
         .sumOf { fileSystem.metadata(it).size ?: 0 }
 

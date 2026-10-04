@@ -34,6 +34,10 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
+import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.presentation.format.storageSize
+import br.com.carvalho.podcast.presentation.format.text
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
@@ -104,6 +108,14 @@ fun DownloadedEpisodesContent(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
             ) {
+                item {
+                    Text(
+                        text = stringResource(Res.string.downloads_storage_used, storageSize(state.usedBytes).text()),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.s),
+                    )
+                }
                 items(state.episodes, key = { it.id }) { episode ->
                     val isCurrent = playerState.currentEpisode?.id == episode.id
                     EpisodeListItem(

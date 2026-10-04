@@ -17,6 +17,7 @@ import platform.Foundation.NSError
 import platform.Foundation.NSHTTPURLResponse
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLErrorCancelled
+import platform.Foundation.NSURLErrorCannotWriteToFile
 import platform.Foundation.NSURLErrorDomain
 import platform.Foundation.NSURLSession
 import platform.Foundation.NSURLSessionConfiguration
@@ -151,7 +152,12 @@ class UrlSessionEpisodeDownloader(
             val cancelled = error?.domain == NSURLErrorDomain && error?.code == NSURLErrorCancelled
             if (episodeId == null || error == null || cancelled) return
             AppLogger.e(TAG, "Download failed for $episodeId: ${error.domain} ${error.code}")
-            val reason = if (error.domain == NSURLErrorDomain) AppError.NoConnection else AppError.Unknown(null)
+            val reason = when {
+                error.domain != NSURLErrorDomain -> AppError.Unknown(null)
+                // ponytail: "could not write the file" is read as a full disk, the usual cause; no finer code.
+                error.code == NSURLErrorCannotWriteToFile -> AppError.StorageFull
+                else -> AppError.NoConnection
+            }
             downloader.updateStatus(episodeId, DownloadStatus.Failed(reason))
         }
 

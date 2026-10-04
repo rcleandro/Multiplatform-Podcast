@@ -40,6 +40,10 @@ import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.ErrorState
 import br.com.carvalho.podcast.domain.download.DownloadStatus
+import br.com.carvalho.podcast.presentation.MessageEffect
+import androidx.compose.runtime.remember
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarHost
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
@@ -67,8 +71,10 @@ fun SearchScreen(
     val pagedResults = viewModel.pagedResults.collectAsLazyPagingItems()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) { viewModel.onIntent(SearchIntent.Refresh) }
+    MessageEffect(viewModel.messages, snackbarHostState)
 
     SearchContent(
         state = uiState,
@@ -85,6 +91,7 @@ fun SearchScreen(
             onConfirmRemoveDownload = { viewModel.onIntent(SearchIntent.ConfirmDeleteDownload(it)) },
             onDismissRemoveDownload = { viewModel.onIntent(SearchIntent.DismissDeleteDownload) },
         ),
+        snackbarHostState = snackbarHostState,
     )
 }
 
@@ -107,10 +114,12 @@ fun SearchContent(
     activeDownloads: Map<String, DownloadStatus>,
     actions: SearchActions,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier,
         topBar = { SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
     ) { padding ->

@@ -97,4 +97,8 @@
     <string name="search_empty_message">Try other words. The search looks at the episodes of the podcasts in your library.</string>
     <string name="downloads_empty_message">Downloaded episodes play without internet. Tap the download button on any episode.</string>
     <string name="state_on">On</string>
+    <string name="error_download">Could not download the episode</string>
+    <string name="downloads_storage_used">%1$s used</string>
+    <string name="size_megabytes">%1$d MB</string>
+    <string name="size_gigabytes">%1$d.%2$d GB</string>
 </resources>
