@@ -13,5 +13,6 @@ data class Podcast(
     val siteUrl: String?,
     val lastUpdated: Long,
     val isSubscribed: Boolean,
-    val episodeCount: Int = 0
+    val episodeCount: Int = 0,
+    val feedVersion: FeedVersion? = null,
 )

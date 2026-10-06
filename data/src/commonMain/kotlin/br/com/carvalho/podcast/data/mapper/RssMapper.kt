@@ -29,7 +29,8 @@ fun RssFeed.toPodcast(feedUrl: String): Podcast = Podcast(
     siteUrl = link,
     lastUpdated = getCurrentTimestamp(),
     isSubscribed = true,
-    episodeCount = episodes.size
+    episodeCount = episodes.size,
+    feedVersion = version,
 )
 
 

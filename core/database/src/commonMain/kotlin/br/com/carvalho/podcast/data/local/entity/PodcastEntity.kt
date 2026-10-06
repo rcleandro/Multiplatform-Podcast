@@ -15,5 +15,8 @@ data class PodcastEntity(
     val feedUrl: String,
     val siteUrl: String?,
     val lastUpdated: Long,
-    val isSubscribed: Boolean
+    val isSubscribed: Boolean,
+    /** `ETag` and `Last-Modified` of the copy saved last (FeedVersion). */
+    val etag: String? = null,
+    val lastModified: String? = null,
 )

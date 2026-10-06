@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.data.local.isDatabaseSupported
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.data.mapper.toDomain
+import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
@@ -205,6 +206,16 @@ class PodcastRepositoryImplTest {
         assertTrue(saved.isPlayed)
         assertEquals(500L, saved.playbackPosition)
         assertTrue(saved.isDownloaded)
+    }
+
+    @Test
+    fun `saving a feed keeps the version the server sent`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val version = FeedVersion(etag = "\"v2\"", lastModified = null)
+
+        repository.saveFeed(podcastEntity.toDomain().copy(feedVersion = version), emptyList())
+
+        assertEquals(version, repository.getPodcastById(podcastId)?.feedVersion)
     }
 
     @Test

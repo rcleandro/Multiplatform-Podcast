@@ -112,12 +112,25 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version7StartsEveryPodcastWithoutAFeedVersion() = runTest {
+        helper.createDatabase(FEED_VERSION_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(FEED_VERSION_VERSION, migrations).use { connection ->
+            assertEquals(
+                "1", connection.text("SELECT COUNT(*) FROM podcasts WHERE etag IS NULL AND lastModified IS NULL")
+            )
+        }
+    }
+
     private fun SQLiteConnection.insertLibrary(queueJson: String? = "[]", episodeId: String = "e1") {
         execSQL(
             "INSERT INTO podcasts VALUES ('p1', 'Podcast', '', NULL, NULL, NULL, '', 'https://feed', NULL, 0, 1)"
         )
         execSQL(
-            "INSERT INTO episodes VALUES " +
+            // Named columns: later versions add more (downloadFile in 6).
+            "INSERT INTO episodes (id, podcastId, podcastTitle, title, description, audioUrl, imageUrl, duration, " +
+                "publishDate, isPlayed, playbackPosition, isDownloaded, fileSize) VALUES " +
                 "('$episodeId', 'p1', 'Podcast', 'Episode', NULL, 'https://audio', NULL, 60, 0, 1, 42000, 1, NULL)"
         )
         // Before version 5 the queue was a JSON column.
@@ -135,7 +148,8 @@ class MigrationTest {
         const val EPISODE_ID_VERSION = 4
         const val QUEUE_TABLE_VERSION = 5
         const val DOWNLOAD_FILE_VERSION = 6
-        const val CURRENT_VERSION = 6
+        const val FEED_VERSION_VERSION = 7
+        const val CURRENT_VERSION = 7
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

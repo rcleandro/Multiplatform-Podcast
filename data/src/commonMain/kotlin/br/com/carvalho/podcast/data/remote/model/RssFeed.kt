@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.data.remote.model
 
+import br.com.carvalho.podcast.domain.model.FeedVersion
+
 data class RssFeed(
     val title: String,
     val description: String,
@@ -14,6 +16,8 @@ data class RssFeed(
     val selfUrl: String? = null,
     /** `itunes:new-feed-url`: where the feed moved to. */
     val newFeedUrl: String? = null,
+    /** The server's `ETag`/`Last-Modified` for this copy; set by the data source, not the parser. */
+    val version: FeedVersion? = null,
 )
 
 data class RssEpisode(
