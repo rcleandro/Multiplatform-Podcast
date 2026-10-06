@@ -20,15 +20,13 @@ class RealFeedFixturesTest {
         assertEquals(EXPECTED.map { it.fixture }.sorted(), FeedFixtures.all.keys.sorted())
     }
 
-    // 15.1: entities (&amp;) are not decoded.
     @Test
-    fun channelTitles() = check(knownBroken = setOf(SYNTHETIC)) { expected, feed, _ ->
+    fun channelTitles() = check { expected, feed, _ ->
         listOf(Triple("title", expected.title, feed.title))
     }
 
-    // 15.1: <item id="…"> is not found.
     @Test
-    fun episodeCounts() = check(knownBroken = setOf(SYNTHETIC)) { expected, _, episodes ->
+    fun episodeCounts() = check { expected, _, episodes ->
         listOf(Triple("episodes", expected.episodes.size, episodes.count { it.audioUrl.isNotEmpty() }))
     }
 
@@ -38,22 +36,18 @@ class RealFeedFixturesTest {
         listOf(Triple("episodes without audio", 0, episodes.count { it.audioUrl.isEmpty() }))
     }
 
-    // 15.1, for this and the next ones: the synthetic feed is shifted by the item the parser misses.
     @Test
-    fun episodeTitles() = checkEpisodes(knownBroken = setOf(SYNTHETIC)) { expected, actual ->
+    fun episodeTitles() = checkEpisodes { expected, actual ->
         Triple("title", expected.title, actual.title)
     }
 
     @Test
-    fun guids() = checkEpisodes(knownBroken = setOf(SYNTHETIC)) { expected, actual ->
+    fun guids() = checkEpisodes { expected, actual ->
         Triple("id from guid ${expected.guid}", episodeId(PODCAST_ID, expected.guid, expected.audioUrl), actual.id)
     }
 
-    // 15.1: &amp; stays encoded in the enclosure URL.
     @Test
-    fun audioUrls() = checkEpisodes(
-        knownBroken = setOf(SYNTHETIC, "npr-planet-money", "simplecast-the-daily"),
-    ) { expected, actual -> Triple("audio", expected.audioUrl, actual.audioUrl) }
+    fun audioUrls() = checkEpisodes { expected, actual -> Triple("audio", expected.audioUrl, actual.audioUrl) }
 
     // 15.3: the time zone is ignored and every date is read as UTC.
     @Test
@@ -62,7 +56,7 @@ class RealFeedFixturesTest {
     }
 
     @Test
-    fun durations() = checkEpisodes(knownBroken = setOf(SYNTHETIC)) { expected, actual ->
+    fun durations() = checkEpisodes { expected, actual ->
         Triple("duration", expected.duration, actual.duration)
     }
 

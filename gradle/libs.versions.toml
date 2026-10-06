@@ -31,6 +31,7 @@ kotlinx-serialization = "1.11.0"
 kotlinx-coroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
 okio = "3.17.0"
+xmlutil = "1.0.2"
 
 # DI
 koin = "4.2.1"
@@ -138,6 +139,7 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 # Okio
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
+xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil" }
 
 # DI
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }

@@ -21,6 +21,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.paging.common)
             implementation(libs.okio)
+            implementation(libs.xmlutil.core)
         }
         commonTest.dependencies {
             implementation(project(":core:testing"))
