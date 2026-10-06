@@ -34,6 +34,8 @@
 | 15 | Qualquer app instalado pode navegar na biblioteca e controlar o player (serviço de mídia exportado sem filtro) | Segurança | 22 |
 | 16 | A navegação inteira recompõe a cada 500 ms enquanto toca | Desempenho | 23 |
 | 17 | Layout de celular esticado em tablet, Desktop e dobráveis; nada reage à dobra | Produto | 21 |
+| 18 | O mesmo feed entra duas vezes se a URL vier escrita de outro jeito (`http`/`https`, `/` no fim, caractere sobrando) | Integridade | 15 |
+| 19 | Barra de navegação com abas que repetem outros caminhos (Downloads, Player), nome "Buscar" para uma lista de episódios e layout sem modernização desde a 9 | Produto | 24 |
 
 ## Sequência
 
@@ -56,6 +58,11 @@ graph LR
     F11 --> F21[21 Layout responsivo e dobráveis]
     F16 --> F22[22 Segurança]
     F17 --> F23[23 Desempenho]
+    F15 --> F24[24 Navegação, UX e visual]
+    F24 --> F21
+    F21 --> F17
+    F24 --> F17
+    F21 --> F18
 ```
 
 - **A fase 9 vem primeiro** a pedido: é ela que define a cara do app e cria o primeiro módulo separado
@@ -69,6 +76,22 @@ graph LR
   cobrado. A 20 (release) pode andar em paralelo com elas.
 - A 21 (layout responsivo) depende da modularização (11) e dos componentes da 9; a 22 (segurança) vem depois da 16,
   que já trata de privacidade; a 23 (desempenho) precisa das medições da 17.6 e pode rodar junto com as 18–20.
+
+**Ordem a partir da fase 15** (revista em 03/10/2026, com a fase 14 concluída):
+
+1. **15 — Feed RSS**, com a **16.1** (URL de feed privado vazando) antecipada: é um vazamento que acontece hoje e
+   também é sobre feeds. A 15 vem antes da 24 porque corrige o que as telas mostram (datas, itens sem áudio, HTML,
+   links, feeds duplicados); revisar a UX com conteúdo errado desperdiça a revisão.
+2. **24 — Navegação, UX e visual.** Antes da 18 para que as telas novas (busca de podcasts, Configurações, fila,
+   novos episódios) já nasçam no layout e na navegação decididos, em vez de serem refeitas. A ADR de navegação já
+   diz onde entram 18.1, 18.5, 18.6 e 18.7.
+3. **21 — Layout responsivo**, logo depois da 24: adapta a cada tamanho o layout novo, não o que vai ser trocado.
+4. **16 — Observabilidade e privacidade** (o resto; a 15.9 sai junto com a 16.5, de que depende). Antes da 17,
+   que usa as métricas da 16.8.
+5. **17 — Gates de qualidade**, depois da 24 e da 21: os testes de tela e snapshots da 17.4 já cobrem o visual
+   final. Continua antes da 18, para o código novo nascer cobrado.
+6. **18 — Funcionalidades essenciais**, depois **19**.
+7. **20 (release), 22 (segurança) e 23 (desempenho)** depois da 17, em paralelo com a 18 e a 19, como antes.
 
 **Regra de toda fase:** uma branch por fase a partir da `main` (`feature/phase-09-design-system`), um commit por
 subitem com o teste correspondente e a nota "Implementado" na seção do roadmap, e uma merge request no fim. Cada
@@ -846,6 +869,7 @@ Fica para depois, sem bloquear a fase: "apagar ao terminar de ouvir" (18.19) e a
 | 15.7 HTML da descrição | ✅ | `HtmlText` (agora no design system) usa um parser próprio por regex (só `b`, `i`, `br`, `p`), sem links clicáveis | O `AnnotatedString.fromHtml()` **não existe** no Compose Multiplatform 1.11 fora do Android (conferido no jar do Desktop na 9.6). Opções: `expect/actual` com o `fromHtml` no Android e um parser comum nos demais, ou estender o parser atual para `a href` com `LinkAnnotation.Url`, com testes de feeds reais (15.2) | P |
 | 15.8 Validação da URL | ✅ | O `LibraryViewModel` só põe `https://` na frente; `validateFeedUrl` existe e ninguém chama | Validar a URL antes do fetch, com erro específico; apagar `validateFeedUrl` | P |
 | 15.9 User-Agent | 🔎 | O Ktor manda o User-Agent padrão; alguns hosts de podcast bloqueiam ou limitam clientes sem identificação | `User-Agent: PodcastKMP/<versão> (<plataforma>)` no client comum (16.5) | P |
+| 15.10 Feed duplicado com outra URL | ✅ | O `AddPodcastFromUrlUseCase` só recusa com `AppError.AlreadyExists` quando a URL é **idêntica** à de um podcast salvo (`getPodcastById(url)`): `http` e `https`, `/` no fim, host com maiúsculas, espaços ou um caractere sobrando (`…/feed-nerdcast\|`, colado de uma lista) viram um segundo podcast com os mesmos episódios | Normalizar a URL antes de conferir e de salvar (sem espaços, host em minúsculas, sem `/` final nem fragmento), numa função pura testada; depois do fetch, comparar também o endereço canônico que o próprio feed declara (`atom:link rel="self"`, `itunes:new-feed-url`) com os já salvos. Junto da 15.5 (id estável) e da 15.8 (validação da URL) | P |
 
 **Critério de conclusão:** todos os fixtures reais são lidos com título, áudio, data e duração corretos; atualizar
 um feed que não mudou não reprocessa nada.
@@ -858,7 +882,7 @@ um feed que não mudou não reprocessa nada.
 
 | Item | Status | Evidência | Ação | Esforço |
 |---|---|---|---|---|
-| 16.1 URL de feed privado vazando | ✅ | `LibraryViewModel` manda a URL do feed para o Analytics (`add_podcast_attempt`), para atributos de trace e para os logs, que também vão para o Crashlytics. Feeds pagos (Patreon, Supercast, Apple) trazem o token de acesso na URL | Nunca registrar URL: no máximo o host. Títulos de episódio também saem dos eventos (ficam só os ids) | P |
+| 16.1 URL de feed privado vazando (antecipado para junto da 15) | ✅ | `LibraryViewModel` manda a URL do feed para o Analytics (`add_podcast_attempt`), para atributos de trace e para os logs, que também vão para o Crashlytics. Feeds pagos (Patreon, Supercast, Apple) trazem o token de acesso na URL | Nunca registrar URL: no máximo o host. Títulos de episódio também saem dos eventos (ficam só os ids) | P |
 | 16.2 Logs demais no Crashlytics | ✅ | `AppLogger.d` grava toda linha de debug como breadcrumb do Crashlytics, inclusive cada linha de log HTTP | Só `i`/`e` vão para o Crashlytics; nível mínimo do Kermit por tipo de build; HTTP em `LogLevel.HEADERS` só no debug | P |
 | 16.3 Catálogo de eventos | ✅ | Nomes de evento em string espalhados pelos ViewModels | `sealed interface AnalyticsEvent` com os parâmetros tipados, e um teste de que todos os nomes seguem o limite do Firebase (40 caracteres, `snake_case`) | M |
 | 16.4 Consentimento | ✅ | Analytics e Crashlytics ligados sem opção | Opção de desligar nas Configurações (18.5, LGPD), respeitada antes do primeiro evento; `PrivacyInfo.xcprivacy` no iOS e formulário de segurança de dados da Play Store coerentes com isso | M |
@@ -912,11 +936,11 @@ catálogo da 16.3.
 
 | Item | O que entrega | Depende de | Esforço |
 |---|---|---|---|
-| 18.5 Configurações | Tela nova com tema (sistema/claro/escuro), saltos, velocidade padrão, download automático, só Wi-Fi, limite de armazenamento, conteúdo explícito e telemetria (16.4). Persistência com `multiplatform-settings` ou DataStore KMP, decidida em ADR | 11 | M |
-| 18.6 Fila editável | Arrastar para reordenar, remover, "tocar a seguir" e "adicionar ao fim" a partir de qualquer episódio; a fila deixa de ser montada sozinha a partir da lista do podcast | 12.9, 13.5 | M |
+| 18.5 Configurações | Tela nova com tema (sistema/claro/escuro), saltos, velocidade padrão, download automático, só Wi-Fi, limite de armazenamento, conteúdo explícito e telemetria (16.4). Usa a persistência de preferências criada na 24.4 | 11 | M |
+| 18.6 Tela da fila de reprodução | Hoje a fila é um `AlertDialog` (`QueueDialog`) com só os títulos, até 400 dp de altura, em que só dá para tocar num episódio. Vira uma **tela própria**, aberta pelo player e pelo mini player: o episódio atual no topo e os próximos com capa, podcast, duração restante e estado do download; **arrastar para reordenar**; **remover** deslizando, com "desfazer" no snackbar; tocar para pular para um episódio; tempo total restante da fila; "limpar fila" com confirmação; "tocar a seguir" e "adicionar ao fim" a partir de qualquer episódio (menu do episódio e do detalhe); opção de tirar da fila o episódio terminado. Reordenar também sem arrastar (ações de acessibilidade "mover para cima/baixo" no TalkBack/VoiceOver e teclado no Desktop). A fila deixa de ser montada sozinha a partir da lista do podcast | 12.9, 13.5 | G |
 | 18.7 Novos episódios | Aba ou seção cronológica com os episódios novos de todos os podcasts desde a última visita, com ações rápidas (tocar, enfileirar, baixar, dispensar) | 12.3 | M |
 | 18.8 Continuar ouvindo | Seção "Em andamento" no topo da biblioteca com os episódios começados e o tempo que falta | 13.1 | P |
-| 18.9 Ordenação e visualização da biblioteca | Ordenar por nome, episódio mais recente, mais não ouvidos ou data em que foi assinado; alternar entre grade e lista; contador de não ouvidos no card (a query `getUnplayedCount` já existe e não é usada) | 9.6 | P |
+| 18.9 Ordenação e visualização da biblioteca | Movida para a 24.4 | — | — |
 | 18.10 Episódios do podcast | Ordenar do mais novo ao mais antigo e o contrário; agrupar por temporada (`itunes:season`); destacar trailer e bônus (`itunes:episodeType`); "marcar como não ouvido" (hoje só existe o contrário); filtros combináveis com os atuais | 15.1 | M |
 | 18.11 Ações rápidas na lista | Deslizar para baixar, enfileirar ou marcar como ouvido; seleção múltipla para fazer isso em vários episódios de uma vez | 9.6 | M |
 | 18.12 Salvos e histórico | Marcar episódios como favoritos ("Salvos") e uma tela de histórico do que foi ouvido, com data | 12.1 | M |
@@ -955,10 +979,12 @@ envolver serviço externo ou dependência nova.
 | 19.6 Recomendações | "Ouvintes também assinam" e "parecidos com este" a partir das categorias e do autor (sem backend: lookup do iTunes por gênero) | 18.2 | M |
 | 19.7 Widgets e atalhos | Widget de "tocando agora" e "continuar ouvindo" (Glance no Android, WidgetKit no iOS); atalhos do launcher | 18.8 | G |
 | 19.8 CarPlay | Navegação por biblioteca e fila no CarPlay, equivalente ao Android Auto que já existe | 13.5 | G |
-| 19.9 Relógio | Controles e downloads no Wear OS e no Apple Watch | 13.5, 14.6 | G |
+| 19.9a Wear OS standalone | Módulo `:wearApp` (Compose for Wear OS, Media3 no relógio) com banco próprio, reaproveitando `:domain`, `:data`, `:core:database` e o parser de RSS: atualiza feeds, baixa e toca pelo LTE/Wi-Fi do relógio, sem celular por perto. `com.google.android.wearable.standalone=true` (funciona pareado com iPhone ou sem celular); assinaturas vêm do celular (19.9b) ou de OPML (18.13). Mesmo application ID do app do celular; o empacotamento e a publicação entram na 20 | 13.5, 14.6, 18.6 | G |
+| 19.9b Sincronização celular ↔ relógio | Data Layer API (Bluetooth ou nuvem do Google, sem backend próprio) quando os dois se encontram. Assinaturas: união, com remoções guardadas como tombstone datada; progresso e "ouvido": vale o `updatedAt` mais recente por episódio; fila: vale a última alterada; downloads não sincronizam (cada aparelho baixa os seus). Pede colunas `updatedAt` e tombstones (migração e caso no `MigrationTest`, regra da 12.1). O merge é Kotlin puro testado em `commonTest` e é o mesmo que a 19.12 vai usar, trocando só o transporte. URLs de feeds privados vão para o relógio: a Data Layer é criptografada, e a regra de nunca logar a URL vale lá também | 19.9a, 12.1 | G |
+| 19.9c Apple Watch (investigar) | O Kotlin compila para watchOS, mas o Compose não; confirmar se o Room KMP tem target watchOS. UI em SwiftUI e, se o Room não servir, persistência própria; sincronização pela WatchConnectivity com o mesmo merge da 19.9b. Entra só depois da ADR com o resultado da investigação | 19.9b | G |
 | 19.10 Podcasts em vídeo | Reproduzir enclosures de vídeo (hoje só áudio), com picture-in-picture | 13.5 | G |
 | 19.11 Backup completo | Exportar e importar biblioteca + progresso + fila + configurações num arquivo (o OPML da 18.13 só leva as assinaturas) | 12 | M |
-| 19.12 Sincronização entre aparelhos | Fora de escopo até uma ADR escolher o caminho (gpodder.net, backend próprio ou iCloud/Drive) | 19.11 | — |
+| 19.12 Sincronização entre aparelhos | Fora de escopo até uma ADR escolher o caminho (gpodder.net, backend próprio ou iCloud/Drive). Reaproveita o merge da 19.9b | 19.11, 19.9b | — |
 
 ---
 
@@ -1051,6 +1077,38 @@ um número que mostre o ganho.
 
 **Critério de conclusão:** os orçamentos da 23.1 cumpridos e medidos; nenhuma recomposição periódica fora dos
 componentes que mostram o tempo; busca rápida com milhares de episódios; app menor nas quatro plataformas.
+
+---
+
+## Fase 24 — Navegação, UX e visual
+
+**Objetivo:** uma navegação com só as abas que se justificam, nomes que dizem o que a tela mostra e um visual
+atual nas quatro plataformas. A adaptação a cada tamanho de tela (celular, tablet, dobráveis, Desktop) já é a
+fase 21; aqui entra o que a 21 não cobre: o que cada tela mostra, como se navega e a cara do app.
+
+**Quando:** logo depois da 15 e antes da 21 e da 18 (ver "Sequência"). O número 24 é só a ordem em que a fase
+entrou no roadmap.
+
+**Hoje:** a barra tem Biblioteca, Buscar, Downloads e Player. "Buscar" lista e procura episódios já salvos; Downloads
+repete o filtro "Baixados" do detalhe; o Player também abre pelo mini player e fica vazio quando nada toca; a
+biblioteca só tem grade.
+
+| Item | Status | Ação | Esforço |
+|---|---|---|---|
+| 24.1 Revisão de UX tela a tela | 🔎 | Percorrer biblioteca, detalhe do podcast, episódio, busca, downloads, player e diálogos no Razr, num iPhone e no Desktop, listando por tela o que atrapalha (hierarquia, alvos de toque, estados vazios e de erro, textos, gestos); cada achado vira item desta fase ou da 21 | M |
+| 24.2 Modernização do layout | 🔎 | Atualizar a referência visual da 9.1 e a ADR 0001 antes do código: hierarquia mais forte, capas maiores, componentes do Material 3 Expressive onde couber, transições com elemento compartilhado (capa da lista → player) e movimento consistente. Snapshots da 9.13 atualizados | G |
+| 24.3 Liquid Glass no iOS | 🔎 | Estudo, com ADR. O Compose desenha os próprios pixels, então o material do iOS 26 só aparece em componentes nativos: barra de abas e barras de ferramentas em SwiftUI/UIKit com as telas em Compose dentro, ou uma imitação com desfoque no Compose (ex.: Haze). Pesar o custo de manter dois sistemas de navegação, o visual no iOS anterior ao 26 e o que muda no Android | M |
+| 24.4 Visualização da biblioteca (era a 18.9) | ✅ | Alternância entre grade (a de hoje) e lista (capa pequena, título, autor, episódios não ouvidos e data do último); ordenar por nome, episódio mais recente, mais não ouvidos ou data da assinatura; contador de não ouvidos no card (a query `getUnplayedCount` já existe e não é usada). A escolha fica salva: a persistência de preferências (`multiplatform-settings` ou DataStore KMP, em ADR) entra aqui, e a 18.5 depois só monta a tela de Configurações em cima dela | M |
+| 24.5 Downloads na barra | 🔎 | Estudar se a aba se justifica ou se vira um filtro "Baixados" na lista de episódios (24.6), como já existe no detalhe. Pesar o uso sem rede (abrir direto nos baixados), o espaço ocupado (14.8) e o que os dados de uso mostrarem (16) | P |
+| 24.6 "Buscar" vira "Episódios" | ✅ | A aba lista e procura episódios já salvos, não podcasts: trocar nome, ícone e textos nos três idiomas. Decidir junto com a 18.1, que planeja buscar podcasts novos nessa mesma aba; se a descoberta ficar em outro lugar (o "+" da biblioteca, por exemplo), a aba vira "Episódios" | P |
+| 24.7 Player na barra | 🔎 | Estudar se a aba se justifica: o mini player já abre o player, e a aba fica vazia quando nada toca. Opções: tirar a aba e deixar o mini player e a tela cheia; ou manter só no rail de telas largas (21.1) | P |
+
+As decisões de 24.5–24.7 saem juntas numa ADR de navegação, com protótipo das opções antes de mexer no código.
+A ADR também já diz onde entram as telas da 18: busca de podcasts (18.1), Configurações (18.5), fila (18.6) e
+novos episódios (18.7).
+
+**Critério de conclusão:** a barra só com abas que não repetem outro caminho; cada tela revisada na 24.1 sem
+achado aberto; o visual novo nos snapshots dos dois temas; decisão do Liquid Glass registrada.
 
 ---
 
