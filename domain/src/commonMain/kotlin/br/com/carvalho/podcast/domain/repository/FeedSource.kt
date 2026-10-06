@@ -8,4 +8,5 @@ interface FeedSource {
     suspend fun fetch(feedUrl: String): Result<FetchedFeed>
 }
 
-data class FetchedFeed(val podcast: Podcast, val episodes: List<Episode>)
+/** [declaredUrls]: addresses the feed gives for itself (its canonical and its new address), used to spot duplicates. */
+data class FetchedFeed(val podcast: Podcast, val episodes: List<Episode>, val declaredUrls: List<String> = emptyList())

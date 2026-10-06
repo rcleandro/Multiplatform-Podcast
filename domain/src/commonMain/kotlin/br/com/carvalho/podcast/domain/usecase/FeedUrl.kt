@@ -22,3 +22,16 @@ fun validFeedUrl(input: String): String? {
         port.all { it.isDigit() }
     return url.takeIf { valid }
 }
+
+/**
+ * What two addresses of the same feed have in common: no scheme (http and https serve the same feed), lowercase host
+ * without `www.`, no fragment and no trailing slash. Path and query keep their case: servers may tell them apart.
+ */
+fun feedUrlKey(url: String): String {
+    val withoutScheme = url.trim().substringAfter("://").substringBefore('#')
+    val authority = withoutScheme.takeWhile { it !in "/?" }
+    val path = withoutScheme.drop(authority.length).substringBefore('?').trimEnd('/')
+    val query = withoutScheme.substringAfter('?', missingDelimiterValue = "")
+    val host = authority.lowercase().removePrefix("www.")
+    return host + path + if (query.isEmpty()) "" else "?$query"
+}

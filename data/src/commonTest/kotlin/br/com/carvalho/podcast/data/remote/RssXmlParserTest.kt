@@ -123,6 +123,26 @@ class RssXmlParserFieldsTest {
     }
 
     @Test
+    fun `reads the addresses the feed declares for itself`() {
+        val feed = RssXmlParser.parse(
+            """
+            <rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+              <channel>
+                <link xmlns="http://www.w3.org/2005/Atom" rel="hub" href="https://hub.example.com"/>
+                <link xmlns="http://www.w3.org/2005/Atom" rel="self" href="https://feeds.example.com/rss"/>
+                <link>https://example.com</link>
+                <itunes:new-feed-url> https://new.example.com/rss </itunes:new-feed-url>
+              </channel>
+            </rss>
+            """.trimIndent()
+        )
+
+        assertEquals("https://feeds.example.com/rss", feed.selfUrl)
+        assertEquals("https://new.example.com/rss", feed.newFeedUrl)
+        assertEquals("https://example.com", feed.link)
+    }
+
+    @Test
     fun `items without an enclosure are skipped`() {
         val feed = RssXmlParser.parse(
             "<rss><channel><item><title>Post</title></item><item><title>Ep</title>" +

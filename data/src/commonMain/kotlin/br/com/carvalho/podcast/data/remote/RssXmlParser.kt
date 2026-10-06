@@ -9,6 +9,7 @@ import nl.adaptivity.xmlutil.core.KtXmlReader
 private const val TAG = "RssXmlParser"
 private const val ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
 private const val CONTENT_NS = "http://purl.org/rss/1.0/modules/content/"
+private const val ATOM_NS = "http://www.w3.org/2005/Atom"
 private const val TITLE_FALLBACK_LENGTH = 80
 private val EXPLICIT_VALUES = setOf("yes", "true", "explicit")
 
@@ -34,6 +35,9 @@ object RssXmlParser {
             link = channel.text("link"),
             ttl = channel.text("ttl")?.toIntOrNull(),
             episodes = episodes,
+            selfUrl = channel.children("atom:link").firstOrNull { it.attributes["rel"] == "self" }
+                ?.attributes?.get("href"),
+            newFeedUrl = channel.text("itunes:new-feed-url"),
         )
     }
 
@@ -93,10 +97,11 @@ object RssXmlParser {
         return root
     }
 
-    // The prefix comes from the namespace, so a feed that binds iTunes to another prefix still matches.
+    // The prefix comes from the namespace: a feed may bind iTunes to another prefix, or write Atom's link unprefixed.
     private fun KtXmlReader.qualifiedName(): String = when (namespaceURI) {
         ITUNES_NS -> "itunes:$localName"
         CONTENT_NS -> "content:$localName"
+        ATOM_NS -> "atom:$localName"
         else -> if (prefix.isEmpty()) localName else "$prefix:$localName"
     }
 

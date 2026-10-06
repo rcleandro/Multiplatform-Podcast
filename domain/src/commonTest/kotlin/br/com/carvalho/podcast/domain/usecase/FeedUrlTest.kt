@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.domain.usecase
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
 class FeedUrlTest {
@@ -32,5 +33,26 @@ class FeedUrlTest {
             "https://feeds.example.com:port/rss",
             "https://-.example..com/rss",
         ).forEach { assertNull(validFeedUrl(it), it) }
+    }
+
+    @Test
+    fun `addresses of the same feed share a key`() {
+        val key = feedUrlKey("https://www.hipsters.tech/feed/podcast/")
+        listOf(
+            "http://hipsters.tech/feed/podcast",
+            "https://WWW.Hipsters.Tech/feed/podcast/",
+            "https://hipsters.tech/feed/podcast/#latest",
+            "HTTPS://hipsters.tech/feed/podcast//",
+        ).forEach { assertEquals(key, feedUrlKey(it), it) }
+    }
+
+    @Test
+    fun `different feeds keep different keys`() {
+        listOf(
+            "https://feeds.example.com/rss" to "https://feeds.example.com/RSS",
+            "https://feeds.example.com/rss?show=1" to "https://feeds.example.com/rss?show=2",
+            "https://feeds.example.com/rss" to "https://other.example.com/rss",
+            "https://feeds.example.com/a/rss" to "https://feeds.example.com/b/rss",
+        ).forEach { (a, b) -> assertNotEquals(feedUrlKey(a), feedUrlKey(b), "$a vs $b") }
     }
 }

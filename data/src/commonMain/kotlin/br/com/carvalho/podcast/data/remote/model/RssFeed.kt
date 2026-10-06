@@ -9,7 +9,11 @@ data class RssFeed(
     val categories: List<String>,
     val link: String?,
     val ttl: Int?,
-    val episodes: List<RssEpisode>
+    val episodes: List<RssEpisode>,
+    /** `atom:link rel="self"`: the address the feed gives for itself. */
+    val selfUrl: String? = null,
+    /** `itunes:new-feed-url`: where the feed moved to. */
+    val newFeedUrl: String? = null,
 )
 
 data class RssEpisode(

@@ -42,6 +42,32 @@ class AddPodcastFromUrlUseCaseTest {
     }
 
     @Test
+    fun `the same feed written another way is already in the library`() = runTest {
+        podcastRepo.podcasts.value = listOf(podcast("https://www.hipsters.tech/feed/podcast/"))
+
+        val result = useCase("hipsters.tech/feed/podcast")
+
+        assertEquals(AppError.AlreadyExists, result.exceptionOrNull())
+        assertEquals(null, feedSource.fetchCalledWith)
+    }
+
+    @Test
+    fun `a feed that declares the address of a saved one is already in the library`() = runTest {
+        podcastRepo.podcasts.value = listOf(podcast("https://feeds.simplecast.com/54nAGcIl"))
+        feedSource.result = Result.success(
+            FetchedFeed(
+                podcast("https://old-host.example.com/daily"), emptyList(),
+                declaredUrls = listOf("https://feeds.simplecast.com/54nAGcIl"),
+            )
+        )
+
+        val result = useCase("https://old-host.example.com/daily")
+
+        assertEquals(AppError.AlreadyExists, result.exceptionOrNull())
+        assertEquals(0, podcastRepo.saveFeedCalledCount)
+    }
+
+    @Test
     fun `an invalid address fails without fetching`() = runTest {
         val result = useCase("not a feed")
 
@@ -66,6 +92,11 @@ class AddPodcastFromUrlUseCaseTest {
         assertEquals(1, podcastRepo.saveFeedCalledCount)
         assertEquals("New Podcast", podcastRepo.podcasts.value.find { it.feedUrl == url }?.title)
     }
+
+    private fun podcast(feedUrl: String) = Podcast(
+        id = feedUrl, title = "P", description = "", imageUrl = null, author = null, language = null,
+        categories = emptyList(), feedUrl = feedUrl, siteUrl = null, lastUpdated = 0, isSubscribed = true
+    )
 
     private companion object {
         const val FEED_URL = "https://feeds.example.com/rss"

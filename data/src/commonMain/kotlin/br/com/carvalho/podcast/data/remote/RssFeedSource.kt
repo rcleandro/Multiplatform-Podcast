@@ -13,6 +13,7 @@ class RssFeedSource(private val dataSource: RssFeedDataSource) : FeedSource {
             FetchedFeed(
                 podcast = podcast,
                 episodes = feed.episodes.map { it.toEpisode(podcastId = podcast.id, podcastTitle = podcast.title) },
+                declaredUrls = listOfNotNull(feed.selfUrl, feed.newFeedUrl),
             )
         }
 }

@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import kotlinx.coroutines.flow.first
 
 class AddPodcastFromUrlUseCase(
     private val feedSource: FeedSource,
@@ -11,10 +12,14 @@ class AddPodcastFromUrlUseCase(
 ) {
     suspend operator fun invoke(input: String): Result<Podcast> {
         val url = validFeedUrl(input)
+        // The same feed may be saved under another spelling (http, www., a trailing slash): compare keys.
+        val saved = podcastRepository.getPodcasts().first().map { feedUrlKey(it.feedUrl) }.toSet()
         return when {
             url == null -> Result.failure(AppError.InvalidUrl)
-            podcastRepository.getPodcastById(url) != null -> Result.failure(AppError.AlreadyExists)
+            feedUrlKey(url) in saved -> Result.failure(AppError.AlreadyExists)
             else -> feedSource.fetch(url).mapCatching { feed ->
+                // An old or mirror address of a saved feed: the feed itself says where it lives.
+                if (feed.declaredUrls.any { feedUrlKey(it) in saved }) throw AppError.AlreadyExists
                 podcastRepository.saveFeed(feed.podcast, feed.episodes)
                 feed.podcast
             }
