@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:media="http://search.yahoo.com/mrss/" xmlns:podcast="https://podcastindex.org/namespace/1.0">
+  <channel>
+    <atom:link href="https://feeds.simplecast.com/54nAGcIl" rel="self" title="MP3 Audio" type="application/atom+xml"/>
+    <atom:link href="https://simplecast.superfeedr.com" rel="hub" xmlns="http://www.w3.org/2005/Atom"/>
+    <generator>https://simplecast.com</generator>
+    <title>The Daily</title>
+    <description>This is what the news should sound like. The biggest stories of our time, told by the best journalists in the world. Hosted by Michael Barbaro, Rachel Abrams and Natalie Kitroeff. Twenty minutes a day, six days a week, ready by 6 a.m. 
+
+Subscribe today at nytimes.com/podcasts or on Apple Podcasts, Spotify and Amazon Music. You can also subscribe via your favorite podcast app here https://www.nytimes.com/activate-access/audio?source=podcatcher.</description>
+    <copyright>© 2020-2021 THE NEW YORK TIMES COMPANY; The New York Times encourages the use of RSS feeds for personal use in a news reader or as part of a non-commercial blog, subject to your agreement to our Terms of Service.</copyright>
+    <language>en</language>
+    <pubDate>Tue, 6 Oct 2026 09:46:21 +0000</pubDate>
+    <lastBuildDate>Tue, 6 Oct 2026 09:47:26 +0000</lastBuildDate>
+    <image>
+      <link>https://www.nytimes.com/the-daily</link>
+      <title>The Daily</title>
+      <url>https://image.simplecastcdn.com/images/7f2f4c05-9c2f-4deb-82b7-b538062bc22d/73549bf1-94b3-40ff-8aeb-b4054848ec1b/3000x3000/the-daily-album-art-original.jpg?aid=rss_feed</url>
+    </image>
+    <link>https://www.nytimes.com/the-daily</link>
+    <itunes:type>episodic</itunes:type>
+    <itunes:summary>This is what the news should sound like. The biggest stories of our time, told by the best journalists in the world. Hosted by Michael Barbaro, Rachel Abrams and Natalie Kitroeff. Twenty minutes a day, six days a week, ready by 6 a.m. 
+
+Subscribe today at nytimes.com/podcasts or on Apple Podcasts, Spotify and Amazon Music. You can also subscribe via your favorite podcast app here https://www.nytimes.com/activate-access/audio?source=podcatcher.</itunes:summary>
+    <itunes:author>The New York Times</itunes:author>
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:image href="https://image.simplecastcdn.com/images/7f2f4c05-9c2f-4deb-82b7-b538062bc22d/73549bf1-94b3-40ff-8aeb-b4054848ec1b/3000x3000/the-daily-album-art-original.jpg?aid=rss_feed"/>
+    <itunes:new-feed-url>https://feeds.simplecast.com/54nAGcIl</itunes:new-feed-url>
+    <itunes:owner>
+      <itunes:name>The New York Times</itunes:name>
+      <itunes:email>podcast@example.com</itunes:email>
+    </itunes:owner>
+    <itunes:category text="News">
+      <itunes:category text="Daily News"/>
+    </itunes:category>
+    <item>
+      <guid isPermaLink="false">33dce268-3492-41c6-bc48-1ea528cd2b51</guid>
+      <title>Call My A.I. Agent</title>
+      <description><![CDATA[<p>Over the past few weeks, millions of people have rushed to download a new type of artificial intelligence app — agents. They are useful, kind of cute and need your most sensitive personal information to work.</p><p>Eli Tan, a reporter who covers technology for The New York Times, opened up his life to Muse, Meta’s A.I. agent. He explained what happened next.</p><p>Guest: <a href="https://www.nytimes.com/by/eli-tan" target="_blank" rel="noopener noreferrer"><strong>Eli Tan</strong></a>, a reporter covering the technology industry for The New York Times.</p><p>Background reading:&nbsp;</p><ul><li><a href="https://www.nytimes.com/2026/09/08/technology/meta-muse-ai-agent.html" target="_blank" rel="noopener noreferrer">Muse, Meta’s new A.I. agent</a>, can send your emails and book your travel.</li><li>Eli Tan said he <a href="https://www.nytimes.com/2026/09/22/technology/meta-muse-ai-agent.html" target="_blank" rel="noopener noreferrer">“was blown away” by Muse</a> after using it to perform dozens of day-to-day tasks.</li></ul><p>Photo: Gabriela Bhaskar/The New York Times</p>
+<p><p>For more information on today’s episode, visit <a href="http://nytimes.com/thedaily?smid=pc-thedaily"><strong>nytimes.com/thedaily</strong></a>. Transcripts of each episode will be made available by the next workday. </p><p> </p><p>Subscribe today at <a href="http://nytimes.com/podcasts">nytimes.com/podcasts</a> or on Apple Podcasts, Spotify and Amazon Music. You can also subscribe via your favorite podcast app here <a href="https://www.nytimes.com/activate-access/audio?source=podcatcher">https://www.nytimes.com/activate-access/audio?source=podcatcher</a>. For more podcasts and narrated articles, download The New York Times app at nytimes.com/app.</p></p><br/> <p>Hosted by Simplecast, an AdsWizz company. See <a href="https://pcm.adswizz.com">pcm.adswizz.com</a> for information about our collection and use of personal data for advertising.</p>]]></description>
+      <pubDate>Tue, 6 Oct 2026 09:46:21 +0000</pubDate>
+      <author>podcast@example.com (The New York Times)</author>
+      <link>https://www.nytimes.com/the-daily</link>
+      <media:thumbnail height="720" url="https://image.simplecastcdn.com/images/34e5431c-f7f7-4edd-9b5d-0277e197a71b/7c8f0573-ed73-4c45-acaf-aff3201b4561/06thedaily_youtube_4.jpg" width="1280"/>
+      <content:encoded><![CDATA[<p>Over the past few weeks, millions of people have rushed to download a new type of artificial intelligence app — agents. They are useful, kind of cute and need your most sensitive personal information to work.</p><p>Eli Tan, a reporter who covers technology for The New York Times, opened up his life to Muse, Meta’s A.I. agent. He explained what happened next.</p><p>Guest: <a href="https://www.nytimes.com/by/eli-tan" target="_blank" rel="noopener noreferrer"><strong>Eli Tan</strong></a>, a reporter covering the technology industry for The New York Times.</p><p>Background reading:&nbsp;</p><ul><li><a href="https://www.nytimes.com/2026/09/08/technology/meta-muse-ai-agent.html" target="_blank" rel="noopener noreferrer">Muse, Meta’s new A.I. agent</a>, can send your emails and book your travel.</li><li>Eli Tan said he <a href="https://www.nytimes.com/2026/09/22/technology/meta-muse-ai-agent.html" target="_blank" rel="noopener noreferrer">“was blown away” by Muse</a> after using it to perform dozens of day-to-day tasks.</li></ul><p>Photo: Gabriela Bhaskar/The New York Times</p>
+<p><p>For more information on today’s episode, visit <a href="http://nytimes.com/thedaily?smid=pc-thedaily"><strong>nytimes.com/thedaily</strong></a>. Transcripts of each episode will be made available by the next workday. </p><p> </p><p>Subscribe today at <a href="http://nytimes.com/podcasts">nytimes.com/podcasts</a> or on Apple Podcasts, Spotify and Amazon Music. You can also subscribe via your favorite podcast app here <a href="https://www.nytimes.com/activate-access/audio?source=podcatcher">https://www.nytimes.com/activate-access/audio?source=podcatcher</a>. For more podcasts and narrated articles, download The New York Times app at nytimes.com/app.</p></p><br/> <p>Hosted by Simplecast, an AdsWizz company. See <a href="https://pcm.adswizz.com">pcm.adswizz.com</a> for information about our collection and use of personal data for advertising.</p>]]></content:encoded>
+      <enclosure length="26722791" type="audio/mpeg" url="https://dts.podtrac.com/redirect.mp3/pdst.fm/e/pfx.vpixl.com/6qj4J/pscrb.fm/rss/p/nyt.simplecastaudio.com/03d8b493-87fc-4bd1-931f-8a8e9b945d8a/episodes/367aa3e9-2eaa-435f-867a-f172c3ef67cf/audio/128/default.mp3?aid=rss_feed&amp;awCollectionId=03d8b493-87fc-4bd1-931f-8a8e9b945d8a&amp;awEpisodeId=367aa3e9-2eaa-435f-867a-f172c3ef67cf&amp;feed=54nAGcIl"/>
+      <itunes:title>Call My A.I. Agent</itunes:title>
+      <itunes:author>The New York Times</itunes:author>
+      <itunes:image href="https://image.simplecastcdn.com/images/34e5431c-f7f7-4edd-9b5d-0277e197a71b/8feced6a-8242-40a7-b96e-67ac7f879511/3000x3000/cropped_1791278086628.jpg?aid=rss_feed"/>
+      <itunes:duration>00:27:50</itunes:duration>
+      <itunes:summary>Muse, Meta’s A.I. agent, helped a Times reporter with dental insurance, dinner reservations and more. It also required his trust.</itunes:summary>
+      <itunes:subtitle>Muse, Meta’s A.I. agent, helped a Times reporter with dental insurance, dinner reservations and more. It also required his trust.</itunes:subtitle>
+      <itunes:explicit>false</itunes:explicit>
+      <itunes:episodeType>full</itunes:episodeType>
+    </item>
+<item>
+      <guid isPermaLink="false">659a39f7-9763-4d45-bd48-825f1167e5ee</guid>
+      <title>Midterm Surprise: Democrats Are Surging in Red America</title>
+      <description><![CDATA[<p>A new set of polls from The New York Times finds that Democratic candidates are doing remarkably well in the Republican-leaning states that they need to win to gain control of the U.S. Senate in next month’s midterm elections.</p><p>They are doing less well in the blue states that, in theory, should be easier to win.</p><p>Nate Cohn, the chief political analyst for The Times, offers his idea of what is behind the numbers.</p><p>Guest: <strong>Nate Cohn</strong>, The New York Times’s chief political analyst.</p><p>Background reading:&nbsp;</p><ul><li>Polls suggested that Hispanic voters, whose support helped propel President Trump to the White House in 2024, <a href="https://www.nytimes.com/2026/09/22/upshot/hispanic-voters-midterm-elections.html" target="_blank" rel="noopener noreferrer">would largely support the Democratic Party this time</a>.</li><li>Senator Susan Collins of Maine <a href="https://www.nytimes.com/2026/09/24/upshot/maine-poll-times-siena.html" target="_blank" rel="noopener noreferrer">led polls for the first time</a> since Graham Platner dropped out of the race in July.</li></ul><p>Photo: Ash Adams for The New York Times</p>
+<p><p>For more information on today’s episode, visit <a href="http://nytimes.com/thedaily?smid=pc-thedaily"><strong>nytimes.com/thedaily</strong></a>. Transcripts of each episode will be made available by the next workday. </p><p> </p><p>Subscribe today at <a href="http://nytimes.com/podcasts">nytimes.com/podcasts</a> or on Apple Podcasts, Spotify and Amazon Music. You can also subscribe via your favorite podcast app here <a href="https://www.nytimes.com/activate-access/audio?source=podcatcher">https://www.nytimes.com/activate-access/audio?source=podcatcher</a>. For more podcasts and narrated articles, download The New York Times app at nytimes.com/app.</p></p><br/> <p>Hosted by Simplecast, an AdsWizz company. See <a href="https://pcm.adswizz.com">pcm.adswizz.com</a> for information about our collection and use of personal data for advertising.</p>]]></description>
+      <pubDate>Mon, 5 Oct 2026 09:45:00 +0000</pubDate>
+      <author>podcast@example.com (The New York Times)</author>
+      <link>https://www.nytimes.com/the-daily</link>
+      <media:thumbnail height="720" url="https://image.simplecastcdn.com/images/34e5431c-f7f7-4edd-9b5d-0277e197a71b/05d1034c-1266-446d-93e6-9bcebe3f3cc2/05thedaily_youtube_9.jpg" width="1280"/>
+      <content:encoded><![CDATA[<p>A new set of polls from The New York Times finds that Democratic candidates are doing remarkably well in the Republican-leaning states that they need to win to gain control of the U.S. Senate in next month’s midterm elections.</p><p>They are doing less well in the blue states that, in theory, should be easier to win.</p><p>Nate Cohn, the chief political analyst for The Times, offers his idea of what is behind the numbers.</p><p>Guest: <strong>Nate Cohn</strong>, The New York Times’s chief political analyst.</p><p>Background reading:&nbsp;</p><ul><li>Polls suggested that Hispanic voters, whose support helped propel President Trump to the White House in 2024, <a href="https://www.nytimes.com/2026/09/22/upshot/hispanic-voters-midterm-elections.html" target="_blank" rel="noopener noreferrer">would largely support the Democratic Party this time</a>.</li><li>Senator Susan Collins of Maine <a href="https://www.nytimes.com/2026/09/24/upshot/maine-poll-times-siena.html" target="_blank" rel="noopener noreferrer">led polls for the first time</a> since Graham Platner dropped out of the race in July.</li></ul><p>Photo: Ash Adams for The New York Times</p>
+<p><p>For more information on today’s episode, visit <a href="http://nytimes.com/thedaily?smid=pc-thedaily"><strong>nytimes.com/thedaily</strong></a>. Transcripts of each episode will be made available by the next workday. </p><p> </p><p>Subscribe today at <a href="http://nytimes.com/podcasts">nytimes.com/podcasts</a> or on Apple Podcasts, Spotify and Amazon Music. You can also subscribe via your favorite podcast app here <a href="https://www.nytimes.com/activate-access/audio?source=podcatcher">https://www.nytimes.com/activate-access/audio?source=podcatcher</a>. For more podcasts and narrated articles, download The New York Times app at nytimes.com/app.</p></p><br/> <p>Hosted by Simplecast, an AdsWizz company. See <a href="https://pcm.adswizz.com">pcm.adswizz.com</a> for information about our collection and use of personal data for advertising.</p>]]></content:encoded>
+      <enclosure length="26504628" type="audio/mpeg" url="https://dts.podtrac.com/redirect.mp3/pdst.fm/e/pfx.vpixl.com/6qj4J/pscrb.fm/rss/p/nyt.simplecastaudio.com/03d8b493-87fc-4bd1-931f-8a8e9b945d8a/episodes/717e8887-4828-4b69-8249-f58831811f43/audio/128/default.mp3?aid=rss_feed&amp;awCollectionId=03d8b493-87fc-4bd1-931f-8a8e9b945d8a&amp;awEpisodeId=717e8887-4828-4b69-8249-f58831811f43&amp;feed=54nAGcIl"/>
+      <itunes:title>Midterm Surprise: Democrats Are Surging in Red America</itunes:title>
+      <itunes:author>The New York Times</itunes:author>
+      <itunes:image href="https://image.simplecastcdn.com/images/34e5431c-f7f7-4edd-9b5d-0277e197a71b/54eb8682-a6f8-4584-ae61-9130ccbf086b/3000x3000/cropped_1791205549304.jpg?aid=rss_feed"/>
+      <itunes:duration>00:27:36</itunes:duration>
+      <itunes:summary>Our chief political analyst breaks down the latest polling before next month’s elections.</itunes:summary>
+      <itunes:subtitle>Our chief political analyst breaks down the latest polling before next month’s elections.</itunes:subtitle>
+      <itunes:explicit>false</itunes:explicit>
+      <itunes:episodeType>full</itunes:episodeType>
+    </item>
+  </channel>
+</rss>

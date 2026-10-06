@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic: the cases no real fixture has (item attributes, no guid, no enclosure, PDT, seconds). -->
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>Edge Cases &amp; Friends</title>
+    <link>https://example.com</link>
+    <language>pt-BR</language>
+    <description>Feed made up for the parser tests.</description>
+    <itunes:category text="Technology">
+      <itunes:category text="Software How-To"/>
+    </itunes:category>
+    <item id="first">
+      <title>Rock &amp; Roll &#8211; part 1</title>
+      <guid isPermaLink="false">edge-1</guid>
+      <enclosure url="https://cdn.example.com/ep1.mp3?a=1&amp;b=2" length="1234" type="audio/mpeg"/>
+      <pubDate>Mon, 05 Oct 2026 08:30:00 PDT</pubDate>
+      <itunes:duration>3725</itunes:duration>
+    </item>
+    <item>
+      <title>No guid</title>
+      <enclosure url="https://cdn.example.com/ep2.m4a" length="99" type="audio/x-m4a"/>
+      <pubDate>Sun, 4 Oct 2026 23:00:00 -0300</pubDate>
+      <itunes:duration>45:07</itunes:duration>
+    </item>
+    <item>
+      <title>Blog post without audio</title>
+      <guid>edge-3</guid>
+      <pubDate>Sat, 03 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
