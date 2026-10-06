@@ -138,6 +138,27 @@ class LibraryViewModelTest {
     }
 
     @Test
+    fun `events never carry the feed URL or titles`() = runTest(testDispatcher) {
+        val feedUrl = "https://feeds.example.com/private/rss?token=s3cr3t"
+        val podcast = Podcast(
+            id = feedUrl, title = "Paid show", description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), feedUrl = feedUrl, siteUrl = null, lastUpdated = 0, isSubscribed = true
+        )
+        feedSource.result = Result.success(FetchedFeed(podcast, emptyList()))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ChangeUrl(feedUrl))
+        viewModel.onIntent(LibraryIntent.ConfirmAdd)
+        viewModel.onIntent(LibraryIntent.RequestDelete(podcast))
+        viewModel.onIntent(LibraryIntent.ConfirmDelete)
+
+        assertEquals(listOf("add_podcast_attempt", "add_podcast_success", "delete_podcast"), analytics.events)
+        analytics.params.forEach { params ->
+            assertEquals(mapOf<String, Any?>("host" to "feeds.example.com"), params)
+        }
+    }
+
+    @Test
     fun `adding a podcast already in the library shows a specific message`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(
             Podcast(

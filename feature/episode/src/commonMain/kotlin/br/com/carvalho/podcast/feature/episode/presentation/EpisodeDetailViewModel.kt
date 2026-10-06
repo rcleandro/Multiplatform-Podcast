@@ -63,10 +63,7 @@ class EpisodeDetailViewModel(
     private fun play() {
         uiState.value.episode?.let { episode ->
             viewModelScope.launch(dispatchers.io) {
-                analytics.logEvent("play_episode_from_episode_detail", mapOf(
-                    "episode_id" to episode.id,
-                    "episode_title" to episode.title
-                ))
+                analytics.logEvent("play_episode_from_episode_detail", mapOf("episode_id" to episode.id))
                 playEpisode(episode)
             }
         }

@@ -69,10 +69,7 @@ class SearchViewModel(
 
     private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("play_episode_from_search", mapOf(
-                "episode_id" to episode.id,
-                "episode_title" to episode.title
-            ))
+            analytics.logEvent("play_episode_from_search", mapOf("episode_id" to episode.id))
             playEpisode(episode)
         }
     }
