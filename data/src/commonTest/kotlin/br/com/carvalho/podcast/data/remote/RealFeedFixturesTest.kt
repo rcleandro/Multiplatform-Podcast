@@ -49,9 +49,8 @@ class RealFeedFixturesTest {
     @Test
     fun audioUrls() = checkEpisodes { expected, actual -> Triple("audio", expected.audioUrl, actual.audioUrl) }
 
-    // 15.3: the time zone is ignored and every date is read as UTC.
     @Test
-    fun publishDates() = checkEpisodes(knownBroken = setOf(SYNTHETIC, "buzzsprout-buzzcast")) { expected, actual ->
+    fun publishDates() = checkEpisodes { expected, actual ->
         Triple("date", expected.publishDate, actual.publishDate)
     }
 

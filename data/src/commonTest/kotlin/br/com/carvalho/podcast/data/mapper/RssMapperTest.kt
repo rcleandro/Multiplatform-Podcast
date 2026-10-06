@@ -106,6 +106,32 @@ class RssMapperTest {
         assertEquals(1777975200000L, ep3.toEpisode("p").publishDate)
     }
 
+    @Test
+    fun `parsePubDate applies the time zone`() {
+        val utc = 1778839200000L // 15 May 2026 10:00:00 UTC
+        mapOf(
+            "Fri, 15 May 2026 10:00:00 +0000" to utc,
+            "Fri, 15 May 2026 10:00:00 -0000" to utc,
+            "Fri, 15 May 2026 07:00:00 -0300" to utc,
+            "Fri, 15 May 2026 12:00:00 +0200" to utc,
+            "Fri, 15 May 2026 03:00:00 PDT" to utc,
+            "Fri, 15 May 2026 05:00:00 EST" to utc,
+            "Fri, 15 May 2026 10:00:00 UT" to utc,
+            "Fri, 15 May 2026 10:00:00 Z" to utc,
+            "Thu, 15 May 2026 10:00:00 GMT" to utc, // wrong weekday, common in real feeds
+            "Fri, 15 May 2026 10:00 GMT" to utc,
+            "Fri,  15 May 2026  11:00:00 +0100" to utc,
+            "Fri, 15 May 2026 10:00:00" to utc, // no zone: UTC
+        ).forEach { (pubDate, expected) ->
+            assertEquals(expected, createRssEpisode(pubDate = pubDate).toEpisode("p").publishDate, pubDate)
+        }
+    }
+
+    @Test
+    fun `an unreadable pubDate becomes zero`() {
+        assertEquals(0L, createRssEpisode(pubDate = "yesterday").toEpisode("p").publishDate)
+    }
+
     private fun createRssEpisode(duration: String? = null, pubDate: String = "") = RssEpisode(
         guid = "id",
         title = "Title",

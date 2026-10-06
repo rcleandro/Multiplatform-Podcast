@@ -8,9 +8,12 @@ import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
+import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.format.DateTimeComponents
+import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.Padding
+import kotlinx.datetime.format.char
+import kotlinx.datetime.format.optional
 
 private const val TAG = "RssMapper"
 
@@ -46,41 +49,42 @@ fun RssEpisode.toEpisode(podcastId: String, podcastTitle: String? = null): Episo
     fileSize = null
 )
 
+// RFC 822 dates as feeds write them: weekday optional (and often wrong, so it is dropped), seconds optional.
+private val PUB_DATE_FORMAT = DateTimeComponents.Format {
+    day(Padding.NONE)
+    char(' ')
+    monthName(MonthNames.ENGLISH_ABBREVIATED)
+    char(' ')
+    year()
+    char(' ')
+    hour()
+    char(':')
+    minute()
+    optional {
+        char(':')
+        second()
+    }
+    char(' ')
+    offset(UtcOffset.Formats.FOUR_DIGITS)
+}
+
+// RFC 822 zone names; anything else must be a numeric offset. No zone at all is read as UTC.
+private val ZONE_OFFSETS = mapOf(
+    "GMT" to "+0000", "UT" to "+0000", "UTC" to "+0000", "Z" to "+0000",
+    "EST" to "-0500", "EDT" to "-0400", "CST" to "-0600", "CDT" to "-0500",
+    "MST" to "-0700", "MDT" to "-0600", "PST" to "-0800", "PDT" to "-0700",
+)
+private const val PARTS_WITHOUT_ZONE = 4
+
 private fun parsePubDate(pubDate: String): Long {
+    if (pubDate.isBlank()) return 0L
     return try {
-        val parts = pubDate.split(" ").filter { it.isNotEmpty() }
-        if (parts.size < 4) return 0L
-
-        val dayIdx = if (parts[0].toIntOrNull() != null) 0 else 1
-        if (parts.size <= dayIdx + 3) return 0L
-
-        val day = parts[dayIdx].toInt()
-        val monthStr = parts[dayIdx + 1]
-        val year = parts[dayIdx + 2].toInt()
-        val timeParts = parts[dayIdx + 3].split(":")
-        val hour = timeParts[0].toInt()
-        val minute = timeParts[1].toInt()
-        val second = if (timeParts.size > 2) timeParts[2].toInt() else 0
-
-        val month = when (monthStr.uppercase()) {
-            "JAN" -> 1
-            "FEB" -> 2
-            "MAR" -> 3
-            "APR" -> 4
-            "MAY" -> 5
-            "JUN" -> 6
-            "JUL" -> 7
-            "AUG" -> 8
-            "SEP" -> 9
-            "OCT" -> 10
-            "NOV" -> 11
-            "DEC" -> 12
-            else -> 1
-        }
-
-        val localDateTime = LocalDateTime(year, month, day, hour, minute, second)
-        localDateTime.toInstant(TimeZone.UTC).toEpochMilliseconds()
-    } catch (e: Exception) {
+        val parts = pubDate.substringAfter(',').trim().split(Regex("\\s+"))
+        val zone = parts.getOrNull(PARTS_WITHOUT_ZONE)
+        val offset = zone?.let { ZONE_OFFSETS[it.uppercase()] ?: it } ?: "+0000"
+        val normalized = (parts.take(PARTS_WITHOUT_ZONE) + offset).joinToString(" ")
+        PUB_DATE_FORMAT.parse(normalized).toInstantUsingOffset().toEpochMilliseconds()
+    } catch (e: IllegalArgumentException) {
         AppLogger.e(TAG, "Failed to parse pubDate: '$pubDate'", e)
         0L
     }
