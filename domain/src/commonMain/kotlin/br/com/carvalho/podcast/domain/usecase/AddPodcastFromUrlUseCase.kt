@@ -9,15 +9,15 @@ class AddPodcastFromUrlUseCase(
     private val feedSource: FeedSource,
     private val podcastRepository: PodcastRepository
 ) {
-    suspend operator fun invoke(url: String): Result<Podcast> {
-        if (podcastRepository.getPodcastById(url) != null) {
-            return Result.failure(AppError.AlreadyExists)
-        }
-
-        return feedSource.fetch(url)
-            .mapCatching { feed ->
+    suspend operator fun invoke(input: String): Result<Podcast> {
+        val url = validFeedUrl(input)
+        return when {
+            url == null -> Result.failure(AppError.InvalidUrl)
+            podcastRepository.getPodcastById(url) != null -> Result.failure(AppError.AlreadyExists)
+            else -> feedSource.fetch(url).mapCatching { feed ->
                 podcastRepository.saveFeed(feed.podcast, feed.episodes)
                 feed.podcast
             }
+        }
     }
 }

@@ -19,14 +19,14 @@ class AddPodcastFromUrlUseCaseTest {
     @Test
     fun `returns AlreadyExists if podcast is already in database`() = runTest {
         val existingPodcast = Podcast(
-            id = "test-url",
+            id = FEED_URL,
             title = "Existing",
             description = "",
             imageUrl = null,
             author = null,
             language = null,
             categories = emptyList(),
-            feedUrl = "test-url",
+            feedUrl = FEED_URL,
             siteUrl = null,
             lastUpdated = 0,
             isSubscribed = true,
@@ -35,10 +35,18 @@ class AddPodcastFromUrlUseCaseTest {
 
         podcastRepo.podcasts.value = listOf(existingPodcast)
 
-        val result = useCase("test-url")
+        val result = useCase(FEED_URL)
 
         assertTrue(result.isFailure)
         assertIs<AppError.AlreadyExists>(result.exceptionOrNull())
+    }
+
+    @Test
+    fun `an invalid address fails without fetching`() = runTest {
+        val result = useCase("not a feed")
+
+        assertEquals(AppError.InvalidUrl, result.exceptionOrNull())
+        assertEquals(null, feedSource.fetchCalledWith)
     }
 
     @Test
@@ -57,5 +65,9 @@ class AddPodcastFromUrlUseCaseTest {
         assertEquals("New Podcast", result.getOrNull()?.title)
         assertEquals(1, podcastRepo.saveFeedCalledCount)
         assertEquals("New Podcast", podcastRepo.podcasts.value.find { it.feedUrl == url }?.title)
+    }
+
+    private companion object {
+        const val FEED_URL = "https://feeds.example.com/rss"
     }
 }

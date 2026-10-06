@@ -6,9 +6,7 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-import io.ktor.client.request.head
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.withContext
 
@@ -35,12 +33,4 @@ class RssFeedDataSourceImpl(
         }
     }
 
-    override suspend fun validateFeedUrl(url: String): Result<Boolean> = runCatching {
-        AppLogger.d(TAG, "Validating feed URL: $url")
-        val response = client.head(url)
-        val contentType = response.contentType()?.toString() ?: ""
-        val isValid = contentType.contains("xml") || contentType.contains("rss")
-        AppLogger.d(TAG, "Validation result for $url: $isValid (ContentType: $contentType)")
-        isValid
-    }
 }

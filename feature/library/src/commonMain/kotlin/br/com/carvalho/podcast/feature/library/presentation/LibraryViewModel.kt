@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.toMessage
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.validFeedUrl
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -98,17 +99,15 @@ class LibraryViewModel(
         val url = _uiState.value.addUrl.trim()
         if (url.isBlank()) return
 
-        val finalUrl = if (!url.startsWith("http")) "https://$url" else url
-
         viewModelScope.launch(dispatchers.io) {
-            val host = mapOf("host" to urlHost(finalUrl))
+            val host = mapOf("host" to urlHost(validFeedUrl(url) ?: url))
             analytics.logEvent("add_podcast_attempt", host)
             _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false) }
-            AppLogger.i(TAG, "Adding podcast from URL: $finalUrl")
-            addPodcastUseCase(finalUrl).onSuccess {
+            AppLogger.i(TAG, "Adding podcast from URL: $url")
+            addPodcastUseCase(url).onSuccess {
                 analytics.logEvent("add_podcast_success", host)
             }.onFailure { e ->
-                AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
+                AppLogger.e(TAG, "Failed to add podcast from URL: $url", e)
                 analytics.logEvent("add_podcast_failure", host + ("error" to e::class.simpleName))
                 _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_add_podcast)))
             }

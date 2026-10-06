@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.feature.library.presentation
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_feed
+import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_url
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
@@ -80,8 +81,8 @@ class LibraryViewModelTest {
     fun `addPodcast calls use case and closes dialog`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         val podcast = Podcast(
-            id = "https://test-url", title = "New", description = "", imageUrl = null, author = null, language = null,
-            categories = emptyList(), feedUrl = "https://test-url", siteUrl = null, lastUpdated = 0, isSubscribed = true
+            id = "https://feeds.example.com/rss", title = "New", description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), feedUrl = "https://feeds.example.com/rss", siteUrl = null, lastUpdated = 0, isSubscribed = true
         )
         feedSource.result = Result.success(FetchedFeed(podcast, emptyList()))
         feedSource.delayMs = 10
@@ -92,7 +93,7 @@ class LibraryViewModelTest {
             viewModel.onIntent(LibraryIntent.OpenAddDialog)
             awaitItem()
 
-            viewModel.onIntent(LibraryIntent.ChangeUrl("test-url"))
+            viewModel.onIntent(LibraryIntent.ChangeUrl("feeds.example.com/rss"))
             awaitItem()
 
             viewModel.onIntent(LibraryIntent.ConfirmAdd)
@@ -111,7 +112,7 @@ class LibraryViewModelTest {
             assertFalse(state.isRefreshing)
             assertEquals("", state.addUrl)
             
-            assertEquals("https://test-url", feedSource.fetchCalledWith)
+            assertEquals("https://feeds.example.com/rss", feedSource.fetchCalledWith)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -175,6 +176,19 @@ class LibraryViewModelTest {
         viewModel.messages.test {
             assertEquals(UiMessage(Res.string.error_podcast_exists), awaitItem())
         }
+    }
+
+    @Test
+    fun `an address that is not a URL says so without fetching`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ChangeUrl("https://jovemnerd.com.br/feed-nerdcast|"))
+        viewModel.onIntent(LibraryIntent.ConfirmAdd)
+
+        viewModel.messages.test {
+            assertEquals(UiMessage(Res.string.error_invalid_url), awaitItem())
+        }
+        assertEquals(null, feedSource.fetchCalledWith)
     }
 
     @Test

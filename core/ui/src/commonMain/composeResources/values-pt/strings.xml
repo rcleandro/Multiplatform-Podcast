@@ -71,6 +71,7 @@
     <string name="error_no_connection">Sem conexão com a internet. Verifique a rede e tente de novo.</string>
     <string name="error_server">O servidor do feed respondeu com erro. Tente mais tarde.</string>
     <string name="error_invalid_feed">Este endereço não é um feed de podcast. Use o link do RSS.</string>
+    <string name="error_invalid_url">Este endereço não é válido. Confira e cole o link do feed de novo.</string>
     <string name="error_storage_full">Sem espaço no armazenamento. Libere espaço e tente de novo.</string>
     <string name="download_deleted">Download excluído</string>
     <string name="time_just_now">Agora</string>
