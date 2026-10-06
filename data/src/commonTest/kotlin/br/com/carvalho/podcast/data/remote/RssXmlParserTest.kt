@@ -40,6 +40,7 @@ class RssXmlParserTest {
                     <item>
                         <title>Episode 1</title>
                         <guid isPermaLink="false">ep1-guid</guid>
+                        <enclosure url="https://example.com/audio.mp3" />
                     </item>
                 </channel>
             </rss>
@@ -119,6 +120,17 @@ class RssXmlParserFieldsTest {
         assertEquals(true, episode.explicit)
         assertEquals(2, episode.season)
         assertEquals(7, episode.episode)
+    }
+
+    @Test
+    fun `items without an enclosure are skipped`() {
+        val feed = RssXmlParser.parse(
+            "<rss><channel><item><title>Post</title></item><item><title>Ep</title>" +
+                "<enclosure url=\"https://cdn.example.com/1.mp3\"/></item><item><enclosure url=\" \"/></item>" +
+                "</channel></rss>"
+        )
+
+        assertEquals(listOf("Ep"), feed.episodes.map { it.title })
     }
 
     @Test

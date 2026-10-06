@@ -26,7 +26,9 @@ class RssMapperTest {
 
     @Test
     fun `the same guid in two feeds gives two ids`() {
-        val feed = RssXmlParser.parse("<rss><channel><item><guid>ep1</guid><title>E</title></item></channel></rss>")
+        val feed = RssXmlParser.parse(
+            "<rss><channel><item><guid>ep1</guid><title>E</title><enclosure url=\"https://a/1.mp3\"/></item></channel></rss>"
+        )
         val episode = feed.episodes.single()
 
         assertNotEquals(episode.toEpisode("https://feed-a").id, episode.toEpisode("https://feed-b").id)

@@ -92,8 +92,13 @@ interface EpisodeDao {
     @Transaction
     suspend fun saveFeed(podcast: PodcastEntity, episodes: List<EpisodeEntity>) {
         if (insertPodcastIfNew(podcast) == NOT_INSERTED) updatePodcast(podcast)
+        deleteWithoutAudio(podcast.id)
         saveFromFeed(episodes)
     }
+
+    // Before 15.4 the parser saved items without audio (blog posts) as episodes.
+    @Query("DELETE FROM episodes WHERE podcastId = :podcastId AND audioUrl = ''")
+    suspend fun deleteWithoutAudio(podcastId: String)
 
     /**
      * Saves episodes read from a feed: new ones are inserted, known ones get the feed's text, audio and dates while

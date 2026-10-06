@@ -30,9 +30,8 @@ class RealFeedFixturesTest {
         listOf(Triple("episodes", expected.episodes.size, episodes.count { it.audioUrl.isNotEmpty() }))
     }
 
-    // 15.4: an item without <enclosure> becomes an episode with an empty audio URL.
     @Test
-    fun itemsWithoutAudioAreSkipped() = check(knownBroken = setOf(SYNTHETIC)) { _, _, episodes ->
+    fun itemsWithoutAudioAreSkipped() = check { _, _, episodes ->
         listOf(Triple("episodes without audio", 0, episodes.count { it.audioUrl.isEmpty() }))
     }
 
@@ -59,12 +58,8 @@ class RealFeedFixturesTest {
         Triple("duration", expected.duration, actual.duration)
     }
 
-    // knownBroken: fixtures a later roadmap item fixes; that item removes them from here, so its test fails first.
-    private fun check(
-        knownBroken: Set<String> = emptySet(),
-        compare: (Expected, RssFeed, List<Episode>) -> List<Triple<String, Any?, Any?>>,
-    ) {
-        val mismatches = EXPECTED.filter { it.fixture !in knownBroken }.flatMap { expected ->
+    private fun check(compare: (Expected, RssFeed, List<Episode>) -> List<Triple<String, Any?, Any?>>) {
+        val mismatches = EXPECTED.flatMap { expected ->
             val feed = RssXmlParser.parse(FeedFixtures.all.getValue(expected.fixture))
             compare(expected, feed, feed.episodes.map { it.toEpisode(PODCAST_ID) })
                 .filter { (_, want, got) -> want != got }
@@ -74,10 +69,7 @@ class RealFeedFixturesTest {
     }
 
     // Episodes are paired in order, ignoring the ones without audio (that is itemsWithoutAudioAreSkipped's job).
-    private fun checkEpisodes(
-        knownBroken: Set<String> = emptySet(),
-        compare: (Ep, Episode) -> Triple<String, Any?, Any?>,
-    ) = check(knownBroken) { expected, _, episodes ->
+    private fun checkEpisodes(compare: (Ep, Episode) -> Triple<String, Any?, Any?>) = check { expected, _, episodes ->
         expected.episodes.zip(episodes.filter { it.audioUrl.isNotEmpty() }).mapIndexed { index, (want, got) ->
             compare(want, got).let { (field, a, b) -> Triple("#$index $field", a, b) }
         }

@@ -21,7 +21,7 @@ object RssXmlParser {
         AppLogger.d(TAG, "Starting XML parse (length: ${xml.length})")
         val channel = readTree(xml).find("channel") ?: Node("channel")
         val channelImage = channel.child("itunes:image")?.attributes?.get("href") ?: channel.child("image")?.text("url")
-        val episodes = channel.children("item").map { it.toEpisode(channelImage) }
+        val episodes = channel.children("item").mapNotNull { it.toEpisode(channelImage) }
         AppLogger.d(TAG, "Finished XML parse. Total episodes: ${episodes.size}")
 
         return RssFeed(
@@ -37,10 +37,11 @@ object RssXmlParser {
         )
     }
 
-    private fun Node.toEpisode(defaultImage: String?): RssEpisode {
-        val description = text("description") ?: text("content:encoded") ?: text("itunes:summary")
+    // An item without audio (a blog post in the same feed) is not an episode.
+    private fun Node.toEpisode(defaultImage: String?): RssEpisode? {
         val enclosure = child("enclosure")?.attributes
-        val enclosureUrl = enclosure?.get("url").orEmpty()
+        val enclosureUrl = enclosure?.get("url")?.trim().orEmpty().ifEmpty { return null }
+        val description = text("description") ?: text("content:encoded") ?: text("itunes:summary")
         // Without a title, fall back to the feed's own data instead of a fixed text.
         val title = text("title")
             ?: description?.take(TITLE_FALLBACK_LENGTH)
