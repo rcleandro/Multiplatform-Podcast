@@ -55,4 +55,12 @@ class FeedUrlTest {
             "https://feeds.example.com/a/rss" to "https://feeds.example.com/b/rss",
         ).forEach { (a, b) -> assertNotEquals(feedUrlKey(a), feedUrlKey(b), "$a vs $b") }
     }
+
+    @Test
+    fun `a moved feed takes the declared address only when it is valid and really new`() {
+        assertEquals("https://new.example.com/rss", movedFeedUrl("https://old.example.com/rss", "https://new.example.com/rss"))
+        assertNull(movedFeedUrl("https://old.example.com/rss", null))
+        assertNull(movedFeedUrl("https://old.example.com/rss", "not a url"))
+        assertNull(movedFeedUrl("https://www.old.example.com/rss/", "http://old.example.com/rss"))
+    }
 }

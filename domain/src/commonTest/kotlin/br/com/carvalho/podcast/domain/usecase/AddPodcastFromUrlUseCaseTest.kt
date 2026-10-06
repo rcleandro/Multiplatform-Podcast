@@ -68,6 +68,18 @@ class AddPodcastFromUrlUseCaseTest {
     }
 
     @Test
+    fun `a feed that moved is saved at its new address`() = runTest {
+        feedSource.result = Result.success(
+            FetchedFeed(podcast(FEED_URL), emptyList(), movedTo = "https://new.example.com/rss")
+        )
+
+        val saved = useCase(FEED_URL).getOrThrow()
+
+        assertEquals("https://new.example.com/rss", saved.feedUrl)
+        assertEquals("https://new.example.com/rss", podcastRepo.podcasts.value.single().feedUrl)
+    }
+
+    @Test
     fun `an invalid address fails without fetching`() = runTest {
         val result = useCase("not a feed")
 

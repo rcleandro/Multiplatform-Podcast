@@ -14,12 +14,14 @@ class FakeFeedSource : FeedSource {
     /** When true, [fetchIfChanged] answers "not modified". */
     var notModified = false
     var versionAskedFor: FeedVersion? = null
+    var podcastIdAskedFor: String? = null
     var maxConcurrentFetches = 0
         private set
     private var concurrentFetches = 0
 
-    override suspend fun fetch(feedUrl: String): Result<FetchedFeed> {
+    override suspend fun fetch(feedUrl: String, podcastId: String): Result<FetchedFeed> {
         fetchCalledWith = feedUrl
+        podcastIdAskedFor = podcastId
         concurrentFetches++
         maxConcurrentFetches = maxOf(maxConcurrentFetches, concurrentFetches)
         delay(delayMs)
@@ -27,9 +29,9 @@ class FakeFeedSource : FeedSource {
         return resultsByUrl[feedUrl] ?: result
     }
 
-    override suspend fun fetchIfChanged(feedUrl: String, version: FeedVersion?): Result<FetchedFeed?> {
+    override suspend fun fetchIfChanged(feedUrl: String, version: FeedVersion?, podcastId: String): Result<FetchedFeed?> {
         versionAskedFor = version
-        val fetched = fetch(feedUrl)
+        val fetched = fetch(feedUrl, podcastId)
         return if (notModified) Result.success(null) else fetched
     }
 }

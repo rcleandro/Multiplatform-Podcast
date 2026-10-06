@@ -102,4 +102,31 @@ class RefreshPodcastUseCaseTest {
         assertEquals(10, summary.total)
         assertEquals(4, feedSource.maxConcurrentFetches)
     }
+
+    @Test
+    fun `a feed that moved keeps its id and episodes and gets the new address`() = runTest {
+        val original = samplePodcast.copy(id = "https://old.example.com/rss", feedUrl = "https://old.example.com/rss")
+        podcastRepo.podcasts.value = listOf(original)
+        feedSource.result = Result.success(sampleFeed.copy(movedTo = "https://new.example.com/rss"))
+
+        useCase(original.id)
+
+        assertEquals(original.id, feedSource.podcastIdAskedFor)
+        val saved = podcastRepo.podcasts.value.single()
+        assertEquals(original.id, saved.id)
+        assertEquals("https://new.example.com/rss", saved.feedUrl)
+    }
+
+    @Test
+    fun `a podcast whose address moved before is fetched at the new one under its old id`() = runTest {
+        val moved = samplePodcast.copy(id = "https://old.example.com/rss", feedUrl = "https://new.example.com/rss")
+        podcastRepo.podcasts.value = listOf(moved)
+        feedSource.result = Result.success(sampleFeed)
+
+        useCase(moved.id)
+
+        assertEquals("https://new.example.com/rss", feedSource.fetchCalledWith)
+        assertEquals(moved.id, feedSource.podcastIdAskedFor)
+        assertEquals(moved, podcastRepo.podcasts.value.single().copy(lastUpdated = moved.lastUpdated))
+    }
 }

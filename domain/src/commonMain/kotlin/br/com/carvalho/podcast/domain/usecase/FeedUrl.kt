@@ -35,3 +35,10 @@ fun feedUrlKey(url: String): String {
     val host = authority.lowercase().removePrefix("www.")
     return host + path + if (query.isEmpty()) "" else "?$query"
 }
+
+/**
+ * The address a feed moved to ([declared]: a permanent redirect or `itunes:new-feed-url`), when it is valid and not
+ * just [current] written another way.
+ */
+fun movedFeedUrl(current: String, declared: String?): String? =
+    declared?.let(::validFeedUrl)?.takeIf { feedUrlKey(it) != feedUrlKey(current) }

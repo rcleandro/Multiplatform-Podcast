@@ -25,12 +25,14 @@ class RefreshPodcastUseCase(
             ?: return Result.failure(AppError.NotFound)
 
         AppLogger.i(TAG, "Refreshing podcast: ${podcast.title}")
-        return feedSource.fetchIfChanged(podcast.feedUrl, podcast.feedVersion)
+        return feedSource.fetchIfChanged(podcast.feedUrl, podcast.feedVersion, podcast.id)
             .mapCatching { feed ->
                 if (feed == null) {
                     AppLogger.d(TAG, "Podcast ${podcast.title} has not changed")
                 } else {
-                    podcastRepository.saveFeed(feed.podcast, feed.episodes)
+                    // The id never changes; the address follows the feed when it moves.
+                    val feedUrl = movedFeedUrl(podcast.feedUrl, feed.movedTo) ?: podcast.feedUrl
+                    podcastRepository.saveFeed(feed.podcast.copy(id = podcast.id, feedUrl = feedUrl), feed.episodes)
                     AppLogger.d(TAG, "Podcast ${podcast.title} updated with ${feed.episodes.size} episodes")
                 }
             }.onFailure { e ->

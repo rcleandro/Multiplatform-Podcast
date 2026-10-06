@@ -18,6 +18,8 @@ data class RssFeed(
     val newFeedUrl: String? = null,
     /** The server's `ETag`/`Last-Modified` for this copy; set by the data source, not the parser. */
     val version: FeedVersion? = null,
+    /** Where a chain of permanent redirects (301/308) ended; set by the data source. */
+    val permanentRedirect: String? = null,
 )
 
 data class RssEpisode(
