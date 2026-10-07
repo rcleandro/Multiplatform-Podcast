@@ -10,12 +10,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
+import androidx.compose.ui.unit.dp
 
 /** Library row: small cover, title, author and a line such as "2 days ago · 3 unplayed"; [dragHandle] at the end. */
 @OptIn(ExperimentalFoundationApi::class)
@@ -27,17 +32,26 @@ fun PodcastListItem(
     supportingText: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    onLongClick: (() -> Unit)? = null,
-    onLongClickLabel: String? = null,
+    actions: List<ItemAction> = emptyList(),
+    actionsLabel: String? = null,
     dragHandle: (@Composable () -> Unit)? = null,
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
+    val openMenu = { menuOpen = true }.takeIf { actions.isNotEmpty() }
     Row(
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .clip(MaterialTheme.shapes.medium)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = onLongClickLabel)
-            .padding(Spacing.s),
+            .then(if (openMenu != null) Modifier.onSecondaryClick(openMenu) else Modifier)
+            .combinedClickable(onClick = onClick, onLongClick = openMenu, onLongClickLabel = actionsLabel)
+            // With a "⋮", the button's own touch area is the right margin, as in the episode rows.
+            .padding(
+                start = Spacing.s,
+                top = Spacing.s,
+                bottom = Spacing.s,
+                end = if (actions.isEmpty()) Spacing.s else 0.dp,
+            ),
     ) {
         PodcastArtwork(imageUrl = imageUrl, contentDescription = null, modifier = Modifier.size(Sizes.artworkS))
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs), modifier = Modifier.weight(1f)) {
@@ -57,6 +71,11 @@ fun PodcastListItem(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+        }
+        if (actions.isNotEmpty()) {
+            ItemActionsButton(
+                actions, actionsLabel.orEmpty(), expanded = menuOpen, onExpandedChange = { menuOpen = it },
+            )
         }
         dragHandle?.invoke()
     }

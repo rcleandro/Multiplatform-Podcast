@@ -38,6 +38,10 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getPluralString
 import org.jetbrains.compose.resources.getString
 import kotlin.test.Test
+import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.rightClick
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
@@ -122,42 +126,66 @@ class ComponentsTest {
 
     @Test
     fun episodeRowShowsPlayedAndDownloadedMarkers() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                EpisodeRow(
+                    title = "Como funciona o Pix",
+                    metadata = "12 set · 1h 8min",
+                    imageUrl = null,
+                    playback = EpisodePlayback(isPlayed = true, progress = 0.5f),
+                    downloadState = DownloadState.Downloaded,
+                    onClick = {}, actions = emptyList(), actionsLabel = "Options",
+                )
+            }
+        }
+        // Played wins over downloaded: one marker, the most useful.
+        onNodeWithText(text(Res.string.ds_played)).assertExists()
+    }
+
+    @Test
+    fun episodeRowHasNoButtonsOtherThanItsMenu() = runComposeUiTest {
         var plays = 0
         setContent {
             PodcastTheme {
                 EpisodeRow(
                     title = "Como funciona o Pix",
-                    metadata = "12 set · 1 h 08 min",
+                    metadata = "12 set · 1h 8min",
                     imageUrl = null,
-                    playback = EpisodePlayback(isPlayed = true, progress = 0.5f),
-                    downloadState = DownloadState.Downloaded,
-                    onClick = {}, onPlay = { plays++ }, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+                    playback = EpisodePlayback(),
+                    downloadState = DownloadState.Idle,
+                    onClick = {}, actions = listOf(ItemAction("Play") { plays++ }), actionsLabel = "Options",
                 )
             }
         }
-        onNodeWithText(text(Res.string.ds_played)).assertExists()
-        onNodeWithText(text(Res.string.ds_downloaded_label)).assertExists()
-        // A played episode offers a plain replay, not "resume at 50%".
-        onNodeWithContentDescription(text(Res.string.ds_play)).performClick()
+        onNodeWithContentDescription(text(Res.string.ds_play)).assertDoesNotExist()
+        onNodeWithContentDescription(text(Res.string.ds_download)).assertDoesNotExist()
+
+        onNodeWithContentDescription("Options").performClick()
+        onNodeWithText("Play").performClick()
+
         assertEquals(1, plays)
     }
 
     @Test
-    fun episodeRowWithoutDownloadStateHasNoDownloadButton() = runComposeUiTest {
+    fun aLongPressOrARightClickOpensTheSameMenu() = runComposeUiTest {
         setContent {
             PodcastTheme {
                 EpisodeRow(
                     title = "Como funciona o Pix",
-                    metadata = "12 set · 1 h 08 min",
+                    metadata = "12 set · 1h 8min",
                     imageUrl = null,
                     playback = EpisodePlayback(),
                     downloadState = null,
-                    onClick = {}, onPlay = {}, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+                    onClick = {}, actions = listOf(ItemAction("Play") {}), actionsLabel = "Options",
                 )
             }
         }
-        onNodeWithContentDescription(text(Res.string.ds_download)).assertDoesNotExist()
-        onNodeWithContentDescription(text(Res.string.ds_play)).assertExists()
+        onNodeWithText("Como funciona o Pix").performTouchInput { longClick() }
+        onNodeWithText("Play").assertExists()
+        onNodeWithText("Play").performClick()
+
+        onNodeWithText("Como funciona o Pix").performMouseInput { rightClick() }
+        onNodeWithText("Play").assertExists()
     }
 
     @Test

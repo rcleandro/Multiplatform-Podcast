@@ -111,6 +111,10 @@ class PodcastRepositoryImpl(
         episodeDao.updatePlayback(id, true, 0L)
     }
 
+    override suspend fun markEpisodeAsUnplayed(id: String) {
+        episodeDao.updatePlayback(id, false, 0L)
+    }
+
     override suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>) {
         AppLogger.d(TAG, "Saving podcast ${podcast.title} with ${episodes.size} episodes")
         episodeDao.saveFeed(podcast.toEntity(), episodes.map { it.toEntity() })

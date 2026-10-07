@@ -15,13 +15,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.core.designsystem.component.ItemAction
 import br.com.carvalho.podcast.core.designsystem.component.PodcastCard
 import br.com.carvalho.podcast.core.designsystem.component.PodcastListItem
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.library_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.delete_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_options
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.domain.model.LibraryEntry
+import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
 import org.jetbrains.compose.resources.pluralStringResource
@@ -53,8 +56,8 @@ internal fun LibraryGrid(entries: List<LibraryEntry>, actions: LibraryActions, s
                 imageUrl = podcast.imageUrl,
                 unplayedCount = entry.unplayedCount,
                 onClick = { actions.onPodcastClick(podcast.id) },
-                onLongClick = { actions.onPodcastLongClick(podcast) },
-                onLongClickLabel = stringResource(Res.string.podcast_options),
+                actions = podcastActions(podcast, actions),
+                actionsLabel = stringResource(Res.string.podcast_options),
             )
         }
     }
@@ -64,7 +67,12 @@ internal fun LibraryGrid(entries: List<LibraryEntry>, actions: LibraryActions, s
 internal fun LibraryList(entries: List<LibraryEntry>, actions: LibraryActions, state: LazyListState) {
     LazyColumn(
         state = state,
-        contentPadding = libraryPadding,
+        // No right margin: each row's "⋮" sits at the edge, like the episode rows.
+        contentPadding = PaddingValues(
+            start = Spacing.l,
+            top = Spacing.l,
+            bottom = Sizes.listBottomInset + Sizes.fabClearance,
+        ),
         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         modifier = Modifier.fillMaxSize()
     ) {
@@ -76,13 +84,17 @@ internal fun LibraryList(entries: List<LibraryEntry>, actions: LibraryActions, s
                 imageUrl = podcast.imageUrl,
                 supportingText = entry.summary(),
                 onClick = { actions.onPodcastClick(podcast.id) },
-                onLongClick = { actions.onPodcastLongClick(podcast) },
-                onLongClickLabel = stringResource(Res.string.podcast_options),
+                actions = podcastActions(podcast, actions),
+                actionsLabel = stringResource(Res.string.podcast_options),
                 modifier = Modifier.fillMaxWidth(),
             )
         }
     }
 }
+
+@Composable
+private fun podcastActions(podcast: Podcast, actions: LibraryActions) =
+    listOf(ItemAction(stringResource(Res.string.delete_podcast)) { actions.onPodcastLongClick(podcast) })
 
 /** "2 days ago · 3 unplayed", like the episode rows; each half is left out when there is nothing to say. */
 @Composable

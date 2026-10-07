@@ -24,6 +24,14 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import androidx.compose.ui.test.onNodeWithContentDescription
+import br.com.carvalho.podcast.core.ui.generated.resources.cancel
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -100,5 +108,72 @@ class PodcastDetailContentTest {
         onNodeWithText(text(Res.string.show_more)).performClick()
 
         onNodeWithText(text(Res.string.show_less)).assertExists()
+    }
+
+    @Test
+    fun markingOlderEpisodesAsksFirstAndCanBeCancelled() = runComposeUiTest {
+        var cancelled = 0
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false, selectedEpisode = episodes.first()),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onDismissMarkPlayed = { cancelled++ }),
+                )
+            }
+        }
+
+        onNodeWithText(text(Res.string.cancel)).performClick()
+
+        assertEquals(1, cancelled)
+    }
+
+    @Test
+    fun eachEpisodeHasItsActionsInAMenu() = runComposeUiTest {
+        var older: Episode? = null
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false),
+                    episodes = flowOf(PagingData.from(episodes.take(1))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onEpisodeLongClick = { older = it }),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Episode 1"))
+
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.play)).assertExists()
+        onNodeWithText(text(Res.string.mark_older_as_played)).performClick()
+
+        assertEquals("e1", older?.id)
+    }
+
+    @Test
+    fun aPlayedEpisodeCanBeMarkedUnplayed() = runComposeUiTest {
+        var unplayed: Episode? = null
+        val played = episodes.first().copy(isPlayed = true)
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false),
+                    episodes = flowOf(PagingData.from(listOf(played))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onMarkUnplayed = { unplayed = it }),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Episode 1"))
+
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.mark_as_played)).assertDoesNotExist()
+        onNodeWithText(text(Res.string.mark_as_unplayed)).performClick()
+
+        assertEquals("e1", unplayed?.id)
     }
 }

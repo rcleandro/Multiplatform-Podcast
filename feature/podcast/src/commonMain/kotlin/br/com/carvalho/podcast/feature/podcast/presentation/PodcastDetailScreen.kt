@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -73,13 +72,12 @@ import br.com.carvalho.podcast.core.ui.generated.resources.delete_download_confi
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_unplayed
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played_description
-import br.com.carvalho.podcast.core.ui.generated.resources.only_this_one
+import br.com.carvalho.podcast.core.ui.generated.resources.mark
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_confirmation
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
 import br.com.carvalho.podcast.core.ui.generated.resources.show_more
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh
-import br.com.carvalho.podcast.core.ui.generated.resources.this_and_all_below
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -118,6 +116,7 @@ fun PodcastDetailScreen(
             onConfirmRemoveDownload = { viewModel.onIntent(PodcastDetailIntent.ConfirmDeleteDownload(it)) },
             onDismissRemoveDownload = { viewModel.onIntent(PodcastDetailIntent.DismissDeleteDownload) },
             onMarkPlayed = { viewModel.onIntent(PodcastDetailIntent.MarkPlayed(it)) },
+            onMarkUnplayed = { viewModel.onIntent(PodcastDetailIntent.MarkUnplayed(it)) },
             onMarkOlderPlayed = { viewModel.onIntent(PodcastDetailIntent.MarkOlderPlayed(it)) },
             onDismissMarkPlayed = { viewModel.onIntent(PodcastDetailIntent.DismissMarkPlayed) },
         ),
@@ -137,6 +136,7 @@ data class PodcastDetailActions(
     val onConfirmRemoveDownload: (Episode) -> Unit = {},
     val onDismissRemoveDownload: () -> Unit = {},
     val onMarkPlayed: (Episode) -> Unit = {},
+    val onMarkUnplayed: (Episode) -> Unit = {},
     val onMarkOlderPlayed: (Episode) -> Unit = {},
     val onDismissMarkPlayed: () -> Unit = {},
 )
@@ -247,8 +247,10 @@ private fun EpisodeList(
                     isPlaying = isCurrent && playerState.isPlaying,
                     downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
                     onClick = { actions.onEpisodeClick(episode) },
-                    onLongClick = { actions.onEpisodeLongClick(episode) },
                     onPlayClick = { actions.onPlay(episode) },
+                    onMarkPlayed = { actions.onMarkPlayed(episode) },
+                    onMarkUnplayed = { actions.onMarkUnplayed(episode) },
+                    onMarkOlderPlayed = { actions.onEpisodeLongClick(episode) },
                     onDownloadClick = { actions.onDownload(episode) },
                     onCancelDownloadClick = { actions.onCancelDownload(episode) },
                     onDeleteClick = { actions.onRemoveDownload(episode) }
@@ -261,21 +263,14 @@ private fun EpisodeList(
 @Composable
 private fun PodcastDetailDialogs(state: PodcastDetailUiState, actions: PodcastDetailActions) {
     state.selectedEpisode?.let { episode ->
-        AlertDialog(
-            onDismissRequest = actions.onDismissMarkPlayed,
-            title = { Text(stringResource(Res.string.mark_as_played)) },
-            text = { Text(stringResource(Res.string.mark_as_played_description, episode.title)) },
-            confirmButton = {
-                TextButton(onClick = { actions.onMarkPlayed(episode) }) {
-                    Text(stringResource(Res.string.only_this_one))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { actions.onMarkOlderPlayed(episode) }) {
-                    Text(stringResource(Res.string.this_and_all_below))
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        // Marking one episode is done straight from the menu; this one changes many, so it asks first.
+        ConfirmDialog(
+            title = stringResource(Res.string.mark_older_as_played),
+            message = stringResource(Res.string.mark_older_confirmation, episode.title),
+            confirmLabel = stringResource(Res.string.mark),
+            dismissLabel = stringResource(Res.string.cancel),
+            onConfirm = { actions.onMarkOlderPlayed(episode) },
+            onDismiss = actions.onDismissMarkPlayed,
         )
     }
     state.deleteEpisodeConfirmation?.let { episode ->

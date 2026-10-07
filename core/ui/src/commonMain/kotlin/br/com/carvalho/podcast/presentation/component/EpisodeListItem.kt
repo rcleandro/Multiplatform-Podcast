@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.component.DownloadState
 import br.com.carvalho.podcast.core.designsystem.component.EpisodePlayback
 import br.com.carvalho.podcast.core.designsystem.component.EpisodeRow
+import br.com.carvalho.podcast.core.designsystem.component.ItemAction
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
@@ -14,11 +15,24 @@ import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.cancel_download
+import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
+import br.com.carvalho.podcast.core.ui.generated.resources.download_cd
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.pause
+import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.retry_download
 import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
 import org.jetbrains.compose.resources.stringResource
 
-/** Maps an [Episode] and its download status to the design system [EpisodeRow]. */
+/**
+ * Maps an [Episode] and its download status to the design system [EpisodeRow], with its "⋮" menu: play or pause,
+ * the download action of its state, and, where the screen offers them, mark as played or unplayed and mark older
+ * as played.
+ */
 @Composable
 fun EpisodeListItem(
     episode: Episode,
@@ -29,10 +43,12 @@ fun EpisodeListItem(
     isBuffering: Boolean = false,
     isPlaying: Boolean = false,
     downloadStatus: DownloadStatus = DownloadStatus.Idle,
-    onLongClick: (() -> Unit)? = null,
     onDownloadClick: () -> Unit = {},
     onCancelDownloadClick: () -> Unit = {},
-    onDeleteClick: () -> Unit = {}
+    onDeleteClick: () -> Unit = {},
+    onMarkPlayed: (() -> Unit)? = null,
+    onMarkUnplayed: (() -> Unit)? = null,
+    onMarkOlderPlayed: (() -> Unit)? = null,
 ) {
     val durationMs = episode.duration * AppConfig.MILLIS_PER_SECOND
     val progress = if (durationMs > 0) episode.playbackPosition.toFloat() / durationMs else 0f
@@ -40,6 +56,17 @@ fun EpisodeListItem(
     val published = relativeTime(episode.publishDate, getCurrentTimestamp())?.text()
     val metadata = listOfNotNull(podcastTitle, published, remaining ?: episode.duration.toDuration())
         .joinToString(" · ")
+    val downloadState = downloadStatus.toDownloadState(episode.isDownloaded).takeIf { supportsDownloads }
+
+    val actions = listOfNotNull(
+        ItemAction(stringResource(if (isPlaying) Res.string.pause else Res.string.play), onPlayClick),
+        downloadState?.let { downloadAction(it, onDownloadClick, onCancelDownloadClick, onDeleteClick) },
+        // Played or not, the menu offers the opposite.
+        onMarkPlayed?.takeIf { !episode.isPlayed }?.let { ItemAction(stringResource(Res.string.mark_as_played), it) },
+        onMarkUnplayed?.takeIf { episode.isPlayed }
+            ?.let { ItemAction(stringResource(Res.string.mark_as_unplayed), it) },
+        onMarkOlderPlayed?.let { ItemAction(stringResource(Res.string.mark_older_as_played), it) },
+    )
 
     EpisodeRow(
         title = episode.title,
@@ -51,16 +78,27 @@ fun EpisodeListItem(
             progress = progress,
             isPlayed = episode.isPlayed,
         ),
-        downloadState = downloadStatus.toDownloadState(episode.isDownloaded).takeIf { supportsDownloads },
+        downloadState = downloadState,
         onClick = onClick,
-        onPlay = onPlayClick,
-        onDownload = onDownloadClick,
-        onCancelDownload = onCancelDownloadClick,
-        onRemoveDownload = onDeleteClick,
-        onLongClick = onLongClick,
-        onLongClickLabel = onLongClick?.let { stringResource(Res.string.episode_options) },
+        actions = actions,
+        actionsLabel = stringResource(Res.string.episode_options),
         modifier = modifier,
     )
+}
+
+/** The one download action that makes sense in [state]. */
+@Composable
+private fun downloadAction(
+    state: DownloadState,
+    onDownload: () -> Unit,
+    onCancel: () -> Unit,
+    onRemove: () -> Unit,
+): ItemAction = when (state) {
+    DownloadState.Idle -> ItemAction(stringResource(Res.string.download_cd), onDownload)
+    DownloadState.Queued, is DownloadState.Downloading ->
+        ItemAction(stringResource(Res.string.cancel_download), onCancel)
+    DownloadState.Downloaded -> ItemAction(stringResource(Res.string.delete_download), onRemove)
+    DownloadState.Failed -> ItemAction(stringResource(Res.string.retry_download), onDownload)
 }
 
 internal fun DownloadStatus.toDownloadState(isDownloaded: Boolean): DownloadState = when (this) {

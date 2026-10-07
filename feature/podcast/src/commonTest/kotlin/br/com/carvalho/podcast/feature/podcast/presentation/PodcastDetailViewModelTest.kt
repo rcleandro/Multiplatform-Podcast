@@ -122,6 +122,17 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
+    fun `marking unplayed reaches the repository`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode.copy(isPlayed = true, playbackPosition = 50))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.MarkUnplayed(sampleEpisode))
+
+        assertEquals(false, repository.episodes.value.single().isPlayed)
+        assertEquals(0L, repository.episodes.value.single().playbackPosition)
+    }
+
+    @Test
     fun `cancelDownload cancels the episode download`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 

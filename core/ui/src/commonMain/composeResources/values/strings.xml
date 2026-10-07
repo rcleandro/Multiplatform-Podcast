@@ -63,6 +63,12 @@
     <string name="podcast">Podcast</string>
     <string name="back">Back</string>
     <string name="mark_as_played">Mark as played</string>
+    <string name="mark_as_unplayed">Mark as unplayed</string>
+    <string name="cancel_download">Cancel download</string>
+    <string name="retry_download">Retry download</string>
+    <string name="mark_older_as_played">Mark this and older as played</string>
+    <string name="mark_older_confirmation">Mark “%1$s” and every older episode as played?</string>
+    <string name="mark">Mark</string>
     <string name="mark_as_played_description">Choose an option for episode “%1$s”</string>
     <string name="only_this_one">Only this one</string>
     <string name="this_and_all_below">This and all below</string>
@@ -122,7 +128,7 @@
     <string name="library_empty_message">Add the address of a podcast feed to start your library.</string>
     <string name="search_empty_title">No episodes found</string>
     <string name="search_empty_message">Try other words. The search looks at the episodes of the podcasts in your library.</string>
-    <string name="downloads_empty_message">Downloaded episodes play without internet. Tap the download button on any episode.</string>
+    <string name="downloads_empty_message">Downloaded episodes play without internet. Download one from its ⋮ menu.</string>
     <string name="state_on">On</string>
     <string name="error_download">Could not download the episode</string>
     <string name="downloads_storage_used">%1$s used</string>

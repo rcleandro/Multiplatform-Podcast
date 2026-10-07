@@ -31,6 +31,8 @@ import androidx.compose.ui.test.performScrollToIndex
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_first_added
 import kotlin.test.Test
+import br.com.carvalho.podcast.core.ui.generated.resources.delete_podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.podcast_options
 import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import kotlin.test.assertTrue
@@ -219,6 +221,25 @@ class LibraryContentTest {
         val last = onNodeWithText("Podcast 12").getBoundsInRoot()
         val add = onNodeWithContentDescription(text(Res.string.add_podcast)).getBoundsInRoot()
         assertTrue(last.bottom <= add.top, "${last.bottom} vs ${add.top}")
+    }
+
+    @Test
+    fun aPodcastsMenuOffersToDeleteIt() = runComposeUiTest {
+        var toDelete: Podcast? = null
+        val podcast = Podcast("id-1", "Hipsters", "", null, "Alura", null, emptyList(), "url", null, 0, true)
+        setContent {
+            PodcastTheme {
+                LibraryContent(
+                    state = LibraryUiState(podcasts = listOf(LibraryEntry(podcast, 0, null))),
+                    actions = LibraryActions(onPodcastLongClick = { toDelete = it }),
+                )
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.podcast_options)).performClick()
+        onNodeWithText(text(Res.string.delete_podcast)).performClick()
+
+        assertEquals("id-1", toDelete?.id)
     }
 
     @Test

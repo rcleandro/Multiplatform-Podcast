@@ -76,6 +76,7 @@ class PodcastDetailViewModel(
             is PodcastDetailIntent.SelectEpisode -> _uiState.update { it.copy(selectedEpisode = intent.episode) }
             PodcastDetailIntent.DismissMarkPlayed -> _uiState.update { it.copy(selectedEpisode = null) }
             is PodcastDetailIntent.MarkPlayed -> markAsPlayed(intent.episode.id)
+            is PodcastDetailIntent.MarkUnplayed -> markAsUnplayed(intent.episode.id)
             is PodcastDetailIntent.MarkOlderPlayed -> markOlderAsPlayed(intent.episode.publishDate)
         }
     }
@@ -135,6 +136,13 @@ class PodcastDetailViewModel(
         }
     }
 
+    private fun markAsUnplayed(episodeId: String) {
+        analytics.logEvent("mark_as_unplayed", mapOf("episode_id" to episodeId))
+        viewModelScope.launch(dispatchers.io) {
+            repository.markEpisodeAsUnplayed(episodeId)
+        }
+    }
+
     private fun markOlderAsPlayed(publishDate: Long) {
         analytics.logEvent("mark_older_as_played", mapOf("host" to urlHost(podcastId), "publish_date" to publishDate))
         _uiState.update { it.copy(selectedEpisode = null) }
@@ -166,5 +174,6 @@ sealed interface PodcastDetailIntent {
     data class SelectEpisode(val episode: Episode) : PodcastDetailIntent
     data object DismissMarkPlayed : PodcastDetailIntent
     data class MarkPlayed(val episode: Episode) : PodcastDetailIntent
+    data class MarkUnplayed(val episode: Episode) : PodcastDetailIntent
     data class MarkOlderPlayed(val episode: Episode) : PodcastDetailIntent
 }

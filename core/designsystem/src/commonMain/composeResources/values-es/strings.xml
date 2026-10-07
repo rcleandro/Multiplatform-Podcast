@@ -12,6 +12,10 @@
     <string name="ds_new">Nuevo</string>
     <string name="ds_played">Escuchado</string>
     <string name="ds_downloaded_label">Descargado</string>
+    <string name="ds_playing">Reproduciendo</string>
+    <string name="ds_downloading_label">Descargando</string>
+    <string name="ds_queued_label">En cola</string>
+    <string name="ds_download_failed_label">Error en la descarga</string>
     <string name="ds_position_of_duration">%1$s de %2$s</string>
     <plurals name="ds_unplayed_count">
         <item quantity="one">%1$d episodio sin escuchar</item>

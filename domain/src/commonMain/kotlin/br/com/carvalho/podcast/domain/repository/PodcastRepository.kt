@@ -31,6 +31,9 @@ interface PodcastRepository {
     ): Flow<PagingData<Episode>>
     suspend fun updateEpisodeProgress(id: String, progress: Long)
     suspend fun markEpisodeAsPlayed(id: String)
+
+    /** Back to not played, from the start. */
+    suspend fun markEpisodeAsUnplayed(id: String)
     /** Saves a podcast and its episodes all at once: if any of it fails, nothing is saved. */
     suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>)
     suspend fun deletePodcast(id: String)

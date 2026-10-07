@@ -26,6 +26,15 @@ import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.generated.resources.Res
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_downloaded_label
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_download_failed_label
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_downloading_label
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_loading
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_playing
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_queued_label
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_new
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_played
 import org.jetbrains.compose.resources.stringResource
@@ -40,9 +49,10 @@ data class EpisodePlayback(
 )
 
 /**
- * The one episode row for podcast detail, search, downloads and new episodes. [metadata] is the already
- * formatted line ("3 days · 47 min"); the row adds the "New", "Played" and "Downloaded" markers itself.
- * A null [downloadState] leaves out the download button, for platforms without downloads.
+ * The one episode row for podcast detail and the Episodes tab. Tapping it opens the episode; everything else
+ * (play, download, mark as played) is in its "⋮" menu, also opened by a long press or a right click. [metadata] is
+ * the already formatted line ("3 days · 47min"); the row adds the "Playing", "New", "Played" and download markers.
+ * A null [downloadState] leaves out the download markers, for platforms without downloads.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -53,22 +63,20 @@ fun EpisodeRow(
     playback: EpisodePlayback,
     downloadState: DownloadState?,
     onClick: () -> Unit,
-    onPlay: () -> Unit,
-    onDownload: () -> Unit,
-    onCancelDownload: () -> Unit,
-    onRemoveDownload: () -> Unit,
+    actions: List<ItemAction>,
+    actionsLabel: String,
     modifier: Modifier = Modifier,
     isNew: Boolean = false,
-    onLongClick: (() -> Unit)? = null,
-    onLongClickLabel: String? = null,
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = onLongClickLabel)
-            .padding(horizontal = Spacing.l, vertical = Spacing.s),
+            .onSecondaryClick { menuOpen = true }
+            .combinedClickable(onClick = onClick, onLongClick = { menuOpen = true }, onLongClickLabel = actionsLabel)
+            .padding(start = Spacing.l, top = Spacing.s, bottom = Spacing.s),
     ) {
         PodcastArtwork(
             imageUrl = imageUrl,
@@ -78,12 +86,7 @@ fun EpisodeRow(
             modifier = Modifier.size(Sizes.artworkS),
         )
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
-            MetadataLine(
-                metadata = metadata,
-                isNew = isNew && !playback.isPlayed,
-                isPlayed = playback.isPlayed,
-                isDownloaded = downloadState == DownloadState.Downloaded,
-            )
+            MetadataLine(metadata = metadata, marker = marker(playback, downloadState, isNew))
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium.let {
@@ -101,44 +104,51 @@ fun EpisodeRow(
                 EpisodeProgressBar(progress = playback.progress, modifier = Modifier.padding(top = Spacing.xs))
             }
         }
-        if (downloadState != null) {
-            DownloadButton(
-                state = downloadState,
-                onDownload = onDownload,
-                onCancel = onCancelDownload,
-                onRemove = onRemoveDownload,
-            )
-        }
-        PlayPauseButton(
-            isPlaying = playback.isPlaying,
-            isLoading = playback.isLoading,
-            onClick = onPlay,
-            style = PlayButtonStyle.Tonal,
-            progress = if (playback.isPlayed) 0f else playback.progress,
-        )
+        ItemActionsButton(actions, actionsLabel, expanded = menuOpen, onExpandedChange = { menuOpen = it })
     }
 }
 
+/** What the row says about the episode before the metadata; the most useful one wins. */
+private enum class Marker { Playing, Loading, Downloading, Queued, Failed, Played, Downloaded, New, None }
+
+private fun marker(playback: EpisodePlayback, download: DownloadState?, isNew: Boolean): Marker = when {
+    playback.isLoading -> Marker.Loading
+    playback.isPlaying -> Marker.Playing
+    download is DownloadState.Downloading -> Marker.Downloading
+    download == DownloadState.Queued -> Marker.Queued
+    download == DownloadState.Failed -> Marker.Failed
+    playback.isPlayed -> Marker.Played
+    download == DownloadState.Downloaded -> Marker.Downloaded
+    isNew -> Marker.New
+    else -> Marker.None
+}
+
 @Composable
-private fun MetadataLine(metadata: String, isNew: Boolean, isPlayed: Boolean, isDownloaded: Boolean) {
+private fun MetadataLine(metadata: String, marker: Marker) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         val style = MaterialTheme.typography.labelMedium
-        if (isNew) Text(stringResource(Res.string.ds_new), style = style, color = PodcastTheme.colors.accentText)
-        if (isPlayed) {
-            MarkerIcon(Icons.Rounded.CheckCircle, PodcastTheme.colors.played)
-            Text(
-                text = stringResource(Res.string.ds_played),
+        val muted = MaterialTheme.colorScheme.onSurfaceVariant
+        val accent = PodcastTheme.colors.accentText
+        when (marker) {
+            Marker.Playing -> Text(stringResource(Res.string.ds_playing), style = style, color = accent)
+            Marker.Loading -> Text(stringResource(Res.string.ds_loading), style = style, color = accent)
+            Marker.Downloading -> Text(stringResource(Res.string.ds_downloading_label), style = style, color = muted)
+            Marker.Queued -> Text(stringResource(Res.string.ds_queued_label), style = style, color = muted)
+            Marker.Failed -> Text(
+                stringResource(Res.string.ds_download_failed_label),
                 style = style,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.error,
             )
-        }
-        if (isDownloaded) {
-            MarkerIcon(Icons.Rounded.DownloadDone, PodcastTheme.colors.downloaded)
-            Text(
-                text = stringResource(Res.string.ds_downloaded_label),
-                style = style,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Marker.Played -> {
+                MarkerIcon(Icons.Rounded.CheckCircle, PodcastTheme.colors.played)
+                Text(stringResource(Res.string.ds_played), style = style, color = muted)
+            }
+            Marker.Downloaded -> {
+                MarkerIcon(Icons.Rounded.DownloadDone, PodcastTheme.colors.downloaded)
+                Text(stringResource(Res.string.ds_downloaded_label), style = style, color = muted)
+            }
+            Marker.New -> Text(stringResource(Res.string.ds_new), style = style, color = PodcastTheme.colors.accentText)
+            Marker.None -> Unit
         }
         Text(
             text = metadata,

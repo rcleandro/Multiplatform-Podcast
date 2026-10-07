@@ -61,6 +61,12 @@
     <string name="podcast">Podcast</string>
     <string name="back">Voltar</string>
     <string name="mark_as_played">Marcar como ouvido</string>
+    <string name="mark_as_unplayed">Marcar como não ouvido</string>
+    <string name="cancel_download">Cancelar download</string>
+    <string name="retry_download">Tentar baixar de novo</string>
+    <string name="mark_older_as_played">Marcar este e os anteriores como ouvidos</string>
+    <string name="mark_older_confirmation">Marcar “%1$s” e todos os episódios anteriores como ouvidos?</string>
+    <string name="mark">Marcar</string>
     <string name="mark_as_played_description">Escolha uma opção para o episódio “%1$s”</string>
     <string name="only_this_one">Apenas este</string>
     <string name="this_and_all_below">Este e todos abaixo</string>
@@ -121,7 +127,7 @@
     <string name="library_empty_message">Adicione o endereço do feed de um podcast para começar sua biblioteca.</string>
     <string name="search_empty_title">Nenhum episódio encontrado</string>
     <string name="search_empty_message">Tente outras palavras. A busca procura nos episódios dos podcasts da sua biblioteca.</string>
-    <string name="downloads_empty_message">Episódios baixados tocam sem internet. Toque no botão de download de qualquer episódio.</string>
+    <string name="downloads_empty_message">Episódios baixados tocam sem internet. Baixe pelo menu ⋮ de qualquer episódio.</string>
     <string name="state_on">Ativado</string>
     <string name="error_download">Não foi possível baixar o episódio</string>
     <string name="downloads_storage_used">%1$s em uso</string>

@@ -25,6 +25,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 class PodcastRepositoryImplTest {
@@ -176,6 +177,19 @@ class PodcastRepositoryImplTest {
 
         val retrieved = database.episodeDao().getByPodcast(podcastId).first()[0]
         assertTrue(retrieved.isPlayed)
+    }
+
+    @Test
+    fun `marking an episode as unplayed starts it over`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(listOf(episodeEntity.copy(isPlayed = true, playbackPosition = 900L)))
+
+        repository.markEpisodeAsUnplayed("e1")
+
+        val retrieved = database.episodeDao().getById("e1")!!
+        assertFalse(retrieved.isPlayed)
+        assertEquals(0L, retrieved.playbackPosition)
     }
 
     @Test

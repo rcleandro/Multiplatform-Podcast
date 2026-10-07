@@ -74,6 +74,12 @@ class FakePodcastRepository : PodcastRepository {
         }
     }
 
+    override suspend fun markEpisodeAsUnplayed(id: String) {
+        episodes.value = episodes.value.map {
+            if (it.id == id) it.copy(isPlayed = false, playbackPosition = 0) else it
+        }
+    }
+
     var saveFeedCalledCount = 0
         private set
 

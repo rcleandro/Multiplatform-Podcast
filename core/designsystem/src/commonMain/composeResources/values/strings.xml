@@ -13,6 +13,10 @@
     <string name="ds_new">New</string>
     <string name="ds_played">Played</string>
     <string name="ds_downloaded_label">Downloaded</string>
+    <string name="ds_playing">Playing</string>
+    <string name="ds_downloading_label">Downloading</string>
+    <string name="ds_queued_label">Queued</string>
+    <string name="ds_download_failed_label">Download failed</string>
     <string name="ds_position_of_duration">%1$s of %2$s</string>
     <plurals name="ds_unplayed_count">
         <item quantity="one">%1$d unplayed episode</item>

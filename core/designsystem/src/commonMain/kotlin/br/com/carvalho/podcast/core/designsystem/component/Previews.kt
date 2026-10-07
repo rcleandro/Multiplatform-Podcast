@@ -61,7 +61,7 @@ internal fun EpisodeRowsSample() {
         isNew = true,
         playback = EpisodePlayback(),
         downloadState = DownloadState.Idle,
-        onClick = {}, onPlay = {}, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+        onClick = {}, actions = emptyList(), actionsLabel = "",
     )
     EpisodeRow(
         title = "Kotlin Multiplatform em produção",
@@ -69,7 +69,7 @@ internal fun EpisodeRowsSample() {
         imageUrl = null,
         playback = EpisodePlayback(progress = 0.62f),
         downloadState = DownloadState.Downloaded,
-        onClick = {}, onPlay = {}, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+        onClick = {}, actions = emptyList(), actionsLabel = "",
     )
     EpisodeRow(
         title = "Como funciona o Pix por dentro",
@@ -77,7 +77,7 @@ internal fun EpisodeRowsSample() {
         imageUrl = null,
         playback = EpisodePlayback(isPlayed = true),
         downloadState = DownloadState.Downloading(0.3f),
-        onClick = {}, onPlay = {}, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+        onClick = {}, actions = emptyList(), actionsLabel = "",
     )
 }
 
