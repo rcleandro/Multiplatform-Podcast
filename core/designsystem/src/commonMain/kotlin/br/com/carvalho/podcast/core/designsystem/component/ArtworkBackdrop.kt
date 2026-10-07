@@ -26,7 +26,7 @@ fun ArtworkBackdrop(imageUrl: String?, modifier: Modifier = Modifier, content: @
     val tint = rememberArtworkColor(imageUrl)?.let {
         artworkTint(it, background, MaterialTheme.colorScheme.onSurfaceVariant)
     }
-    val top by animateColorAsState(tint ?: background, animationSpec = tween(Motion.LONG, easing = Motion.Standard))
+    val top by animateColorAsState(tint ?: background, animationSpec = tween(Motion.MEDIUM, easing = Motion.Standard))
     // It paints the background, so it also sets the content color: the player is drawn outside any Scaffold.
     Box(modifier = modifier.background(Brush.verticalGradient(listOf(top, background)))) {
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground, content = content)

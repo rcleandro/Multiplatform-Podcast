@@ -25,6 +25,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.runtime.CompositionLocalProvider
@@ -84,9 +85,7 @@ fun RootContent(component: RootComponent) {
     // The player and "Organize library" cover the tabs too (ADR 0005): the bar is for moving between tabs only.
     // Opening the player grows the mini player's cover into the player's, and minimizing shrinks it back (24.2).
     SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
-        val sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier = { visibility ->
-            Modifier.sharedElement(rememberSharedContentState(SHARED_COVER_KEY), visibility)
-        }
+        val sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier = { coverShared(it) }
         NavigationSuiteScaffold(
             layoutType = if (isWide) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -249,6 +248,15 @@ private fun MiniPlayerBar(
 }
 
 private const val SHARED_COVER_KEY = "player-cover"
+
+/** The cover that the mini player and the player share, moving in step with the player sliding up. */
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+private fun SharedTransitionScope.coverShared(visibility: AnimatedVisibilityScope): Modifier = Modifier.sharedElement(
+    sharedContentState = rememberSharedContentState(SHARED_COVER_KEY),
+    animatedVisibilityScope = visibility,
+    boundsTransform = { _, _ -> tween(Motion.LONG, easing = Motion.Emphasized) },
+)
 
 /** Scroll distance, in pixels per frame, that hides or shows the mini player; ignores jitter. */
 private const val SCROLL_THRESHOLD = 1f
