@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +44,6 @@ import br.com.carvalho.podcast.core.designsystem.component.MiniPlayer
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
-import br.com.carvalho.podcast.core.ui.generated.resources.player
 import br.com.carvalho.podcast.core.ui.generated.resources.search
 import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import br.com.carvalho.podcast.domain.model.PlayerState
@@ -73,36 +71,33 @@ fun RootContent(component: RootComponent) {
     val isWide = currentWindowAdaptiveInfo().windowSizeClass
         .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 
-    NavigationSuiteScaffold(
-        layoutType = if (isWide) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
-        containerColor = MaterialTheme.colorScheme.surface,
-        navigationSuiteColors = NavigationSuiteDefaults.colors(
-            navigationBarContainerColor = MaterialTheme.colorScheme.surface,
-            navigationRailContainerColor = MaterialTheme.colorScheme.surface
-        ),
-        navigationSuiteItems = {
-            TABS.forEach { (tab, icon, label) ->
-                item(
-                    selected = !state.isPlayerOpen && state.selectedTab == tab,
-                    onClick = { component.onTabClicked(tab) },
-                    icon = { Icon(icon, contentDescription = stringResource(label)) },
-                    label = { Text(stringResource(label)) }
-                )
+    // The player and "Organize library" cover the tabs too (ADR 0005): the bar is for moving between tabs only.
+    Box(modifier = Modifier.fillMaxSize()) {
+        NavigationSuiteScaffold(
+            layoutType = if (isWide) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
+            containerColor = MaterialTheme.colorScheme.surface,
+            navigationSuiteColors = NavigationSuiteDefaults.colors(
+                navigationBarContainerColor = MaterialTheme.colorScheme.surface,
+                navigationRailContainerColor = MaterialTheme.colorScheme.surface
+            ),
+            navigationSuiteItems = {
+                TABS.forEach { (tab, icon, label) ->
+                    item(
+                        selected = state.selectedTab == tab,
+                        onClick = { component.onTabClicked(tab) },
+                        icon = { Icon(icon, contentDescription = stringResource(label)) },
+                        label = { Text(stringResource(label)) }
+                    )
+                }
             }
-            item(
-                selected = state.isPlayerOpen,
-                onClick = component::onPlayerClicked,
-                icon = { Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(Res.string.player)) },
-                label = { Text(stringResource(Res.string.player)) }
+        ) {
+            TabContent(
+                component = component,
+                state = state,
+                playerState = playerState,
+                onPlayPause = { playerViewModel.onIntent(PlayerIntent.PlayPause) },
             )
         }
-    ) {
-        TabContent(
-            component = component,
-            state = state,
-            playerState = playerState,
-            onPlayPause = { playerViewModel.onIntent(PlayerIntent.PlayPause) },
-        )
 
         AnimatedVisibility(
             visible = state.isOrganizingLibrary,
