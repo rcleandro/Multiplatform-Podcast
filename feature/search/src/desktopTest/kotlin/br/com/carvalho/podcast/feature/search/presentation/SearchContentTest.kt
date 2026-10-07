@@ -28,6 +28,7 @@ import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import androidx.compose.ui.test.isHeading
+import androidx.compose.ui.test.isSelected
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_24_hours
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_older
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_30_days
@@ -135,7 +136,7 @@ class SearchContentTest {
         }
 
         waitUntilExactlyOneExists(hasText("Downloaded episode"))
-        onNodeWithText(text(Res.string.filter_downloaded)).assertExists()
+        onNode(hasText(text(Res.string.filter_downloaded)) and isSelected()).assertExists()
         onNodeWithText("50", substring = true).assertExists()
     }
 
