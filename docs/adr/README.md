@@ -9,6 +9,7 @@ one to "substituída por ADR NNNN" instead of deleting it.
 | [0002](0002-dependencias-instaveis-e-remendos.md) | Dependências instáveis e remendos de build, com condição de saída |
 | [0003](0003-grafo-de-modulos.md) | Grafo de módulos e regras de dependência |
 | [0004](0004-leitor-xml-dos-feeds.md) | Leitor XML dos feeds: xmlutil (`KtXmlReader`) em modo tolerante |
+| [0005](0005-navegacao.md) | Navegação: abas Biblioteca e Episódios; Downloads vira filtro, Player só pelo mini player, descoberta no "+" |
 
 ## Modelo
 
