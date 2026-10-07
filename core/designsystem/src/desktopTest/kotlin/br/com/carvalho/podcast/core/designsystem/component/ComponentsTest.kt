@@ -40,6 +40,17 @@ import org.jetbrains.compose.resources.getString
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.graphics.toPixelMap
+import br.com.carvalho.podcast.core.designsystem.Motion
 import kotlin.test.Test
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performMouseInput
@@ -282,5 +293,21 @@ class ComponentsTest {
         waitForIdle()
 
         assertEquals(expected, content)
+    }
+
+    @Test
+    fun theMorphingShapeRoundsItsCornersWhenAsked() = runComposeUiTest {
+        var round by mutableStateOf(false)
+        setContent {
+            Box(Modifier.size(100.dp).testTag("shape").clip(morphingShape(round)).background(Color.Black))
+        }
+        // (10, 10) is inside a corner of 30% and outside a circle.
+        fun cornerPixel() = onNodeWithTag("shape").captureToImage().toPixelMap().let { it[it.width / 10, it.height / 10] }
+        assertEquals(Color.Black, cornerPixel())
+
+        round = true
+        mainClock.advanceTimeBy(Motion.LONG.toLong())
+
+        assertEquals(Color.Transparent, cornerPixel())
     }
 }
