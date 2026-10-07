@@ -13,7 +13,6 @@
     <ID>FunctionNaming:LibraryScreen.kt$@Composable fun AddPodcastDialog( url: String, onUrlChange: (String) -&gt; Unit, onDismiss: () -&gt; Unit, onConfirm: () -&gt; Unit )</ID>
     <ID>FunctionNaming:LibraryScreen.kt$@Composable fun DeletePodcastDialog( podcastTitle: String, onDismiss: () -&gt; Unit, onConfirm: () -&gt; Unit )</ID>
     <ID>FunctionNaming:LibraryScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun LibraryScreen( viewModel: LibraryViewModel = koinViewModel(), isPlayerVisible: Boolean = false, onPodcastClick: (String) -&gt; Unit )</ID>
-    <ID>FunctionNaming:MainViewController.kt$@OptIn(FlowPreview::class) fun MainViewController(): UIViewController</ID>
     <ID>FunctionNaming:MiniPlayer.kt$@Composable fun MiniPlayer( episode: Episode, isPlaying: Boolean, isBuffering: Boolean, progress: Float, onPlayPauseClick: () -&gt; Unit, onClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
     <ID>FunctionNaming:PlayerScreen.kt$@Composable private fun PlaybackControls( isPlaying: Boolean, isBuffering: Boolean, onPlayPause: () -&gt; Unit, onSkipBack: () -&gt; Unit, onSkipForward: () -&gt; Unit, onNext: () -&gt; Unit, onPrevious: () -&gt; Unit, hasNext: Boolean, hasPrevious: Boolean )</ID>
     <ID>FunctionNaming:PlayerScreen.kt$@Composable private fun PlayerProgressBar( position: Long, duration: Long, onSeek: (Long) -&gt; Unit )</ID>
