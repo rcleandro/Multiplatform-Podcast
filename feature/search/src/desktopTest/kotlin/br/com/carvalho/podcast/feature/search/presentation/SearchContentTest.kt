@@ -2,6 +2,13 @@ package br.com.carvalho.podcast.feature.search.presentation
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -32,6 +39,12 @@ import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingSource
+import androidx.paging.PagingState
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
@@ -93,6 +106,44 @@ class SearchContentTest {
     }
 
     @Test
+    fun anotherFilterStartsAtTheTop() = runComposeUiTest {
+        val episodes = (1..30).map {
+            Episode(
+                id = "e$it", podcastId = "p", title = "Episode $it", description = null, audioUrl = "a",
+                imageUrl = null, duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0,
+                isDownloaded = false, fileSize = null,
+            )
+        }
+        // Like the view model: one flow, a new pager when the filter changes, loading through a paging source.
+        var state by mutableStateOf(SearchUiState())
+        val filters = MutableStateFlow(state.filter)
+        val pages = filters.flatMapLatest { Pager(PagingConfig(pageSize = 10)) { ListPagingSource(episodes) }.flow }
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = state,
+                    results = pages.collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(onFilterChange = {
+                        state = state.copy(filter = it)
+                        filters.value = it
+                    }),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Episode 1"))
+        // The filter chips scroll too: aim at the list of episodes.
+        onNode(hasScrollToIndexAction() and hasAnyDescendant(hasText("Episode 1"))).performScrollToIndex(episodes.lastIndex)
+        onNodeWithText("Episode 1").assertDoesNotExist()
+
+        onNodeWithText(text(Res.string.filter_in_progress)).performClick()
+
+        waitUntilExactlyOneExists(hasText("Episode 1"))
+        onNodeWithText("Episode 1").assertIsDisplayed()
+    }
+
+    @Test
     fun messagesShowAboveTheMiniPlayer() = runComposeUiTest {
         val snackbar = SnackbarHostState()
         setContent {
@@ -119,4 +170,12 @@ class SearchContentTest {
     private companion object {
         val MINI_PLAYER = 64.dp
     }
+}
+
+/** All of [items] in one page: enough for the list to go through a real refresh. */
+private class ListPagingSource(private val items: List<Episode>) : PagingSource<Int, Episode>() {
+    override fun getRefreshKey(state: PagingState<Int, Episode>): Int? = null
+
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Episode> =
+        LoadResult.Page(items, prevKey = null, nextKey = null)
 }

@@ -43,6 +43,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -135,6 +145,8 @@ fun SearchContent(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
+    val listState = rememberLazyListState()
+    val onFilterChange = rememberScrollToTopOnFilterChange(state.filter, results, listState, actions.onFilterChange)
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -143,7 +155,7 @@ fun SearchContent(
                 FilterChipRow(
                     options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
                     selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
-                    onSelected = { actions.onFilterChange(filters[it].first) },
+                    onSelected = { onFilterChange(filters[it].first) },
                     modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
                 )
             }
@@ -164,7 +176,9 @@ fun SearchContent(
             )
             results.itemCount == 0 && refresh is LoadState.NotLoading ->
                 EmptyFilter(state, Modifier.padding(padding))
-            else -> SearchResults(state, results, playerState, activeDownloads, actions, Modifier.padding(padding))
+            else -> SearchResults(
+                state, results, playerState, activeDownloads, actions, listState, Modifier.padding(padding)
+            )
         }
 
         state.deleteEpisodeConfirmation?.let { episode ->
@@ -219,9 +233,11 @@ private fun SearchResults(
     playerState: PlayerState,
     activeDownloads: Map<String, DownloadStatus>,
     actions: SearchActions,
+    listState: LazyListState,
     modifier: Modifier,
 ) {
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
     ) {
@@ -263,6 +279,34 @@ private fun SearchResults(
                 }
             }
         }
+    }
+}
+
+/**
+ * Another filter starts at its top. Its items arrive after the query's debounce, and until then the old filter's
+ * items stay on screen; scrolling right away would let the list follow the old top item into the new order. So the
+ * wait for the next refresh (loading, then done) starts before the filter is changed, and the scroll comes after it.
+ */
+@Composable
+private fun rememberScrollToTopOnFilterChange(
+    current: EpisodeListFilter,
+    results: LazyPagingItems<Episode>,
+    listState: LazyListState,
+    onFilterChange: (EpisodeListFilter) -> Unit,
+): (EpisodeListFilter) -> Unit {
+    val scope = rememberCoroutineScope()
+    var pending by remember { mutableStateOf<Job?>(null) }
+    return { filter ->
+        if (filter != current) {
+            pending?.cancel()
+            pending = scope.launch {
+                snapshotFlow { results.loadState.refresh }
+                    .dropWhile { it !is LoadState.Loading }
+                    .first { it is LoadState.NotLoading }
+                listState.scrollToItem(0)
+            }
+        }
+        onFilterChange(filter)
     }
 }
 
