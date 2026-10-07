@@ -100,15 +100,16 @@ class LibraryViewModel(
         if (url.isBlank()) return
 
         viewModelScope.launch(dispatchers.io) {
-            val host = mapOf("host" to urlHost(validFeedUrl(url) ?: url))
-            analytics.logEvent("add_podcast_attempt", host)
+            // Only the host: the typed text may lack the scheme, which the logger needs to spot (and cut) a URL.
+            val host = urlHost(validFeedUrl(url) ?: url)
+            analytics.logEvent("add_podcast_attempt", mapOf("host" to host))
             _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false) }
-            AppLogger.i(TAG, "Adding podcast from URL: $url")
+            AppLogger.i(TAG, "Adding podcast from host: $host")
             addPodcastUseCase(url).onSuccess {
-                analytics.logEvent("add_podcast_success", host)
+                analytics.logEvent("add_podcast_success", mapOf("host" to host))
             }.onFailure { e ->
-                AppLogger.e(TAG, "Failed to add podcast from URL: $url", e)
-                analytics.logEvent("add_podcast_failure", host + ("error" to e::class.simpleName))
+                AppLogger.e(TAG, "Failed to add podcast from host: $host", e)
+                analytics.logEvent("add_podcast_failure", mapOf("host" to host, "error" to e::class.simpleName))
                 _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_add_podcast)))
             }
             _uiState.update { it.copy(isRefreshing = false, addUrl = "") }

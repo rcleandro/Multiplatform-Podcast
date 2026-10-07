@@ -1,7 +1,9 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_feed
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_url
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
@@ -176,6 +178,24 @@ class LibraryViewModelTest {
         viewModel.messages.test {
             assertEquals(UiMessage(Res.string.error_podcast_exists), awaitItem())
         }
+    }
+
+    @Test
+    fun `a feed address typed without the scheme is not logged`() = runTest(testDispatcher) {
+        val logs = mutableListOf<String>()
+        AppLogger.crashReporter = object : CrashReporter {
+            override fun log(message: String) { logs += message }
+            override fun recordException(throwable: Throwable) { logs += throwable.stackTraceToString() }
+        }
+        feedSource.result = Result.failure(AppError.InvalidFeed)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ChangeUrl("feeds.example.com/private/rss?token=s3cr3t"))
+        viewModel.onIntent(LibraryIntent.ConfirmAdd)
+        AppLogger.crashReporter = null
+
+        assertTrue(logs.isNotEmpty())
+        assertTrue(logs.none { "s3cr3t" in it }, logs.joinToString("\n"))
     }
 
     @Test
