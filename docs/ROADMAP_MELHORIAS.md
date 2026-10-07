@@ -92,6 +92,8 @@ graph LR
    final. Continua antes da 18, para o código novo nascer cobrado.
 6. **18 — Funcionalidades essenciais**, depois **19**.
 7. **20 (release), 22 (segurança) e 23 (desempenho)** depois da 17, em paralelo com a 18 e a 19, como antes.
+8. **25 — UI nativa no iOS**, por último (decisão de 07/10/2026): reescreve a interface do iOS em SwiftUI sobre os
+   ViewModels e o domínio que as outras fases deixaram prontos, então chega quando eles param de mudar.
 
 **Regra de toda fase:** uma branch por fase a partir da `main` (`feature/phase-09-design-system`), um commit por
 subitem com o teste correspondente e a nota "Implementado" na seção do roadmap, e uma merge request no fim. Cada
@@ -1157,7 +1159,7 @@ biblioteca só tem grade.
 | 24.16 Mensagens atrás do mini player | ✔ feito | Achado pelo usuário no Razr: "Download excluído" aparecia atrás do mini player na aba Episódios. **Implementado.** Cada tela põe as mensagens no próprio rodapé, e o mini player é desenhado por cima pela navegação; só o "+" da biblioteca desviava, por um parâmetro próprio (`isPlayerVisible`). Agora a navegação fornece a altura que o mini player cobre em `LocalMiniPlayerInset` (0 quando ele some), e as três telas usam o novo `PodcastSnackbarHost`, que sobe as mensagens por essa altura; o "+" usa o mesmo valor, e o parâmetro avulso saiu. Na biblioteca a mensagem não soma o espaço (`clearMiniPlayer = false`), porque o `Scaffold` já a põe acima do "+". Teste: na tela de Episódios, a mensagem termina acima do mini player (falhou sem o espaço). Conferido no Razr | P |
 | 24.17 Filtro novo começa no topo | ✔ feito | Achado no Razr: ao trocar de filtro na aba Episódios, a lista continuava rolada, com os episódios mais novos acima da tela. **Implementado.** A busca espera um instante (debounce) antes de buscar o filtro novo, e até lá os itens do filtro anterior ficam na tela; quando os novos chegam, o `LazyColumn` acompanha o item do topo antigo até a nova posição. Rolar ao trocar o filtro não resolve (o item antigo puxa a lista de volta), nem uma chave por filtro (a lista nova começa com os itens velhos). Agora, ao tocar no chip, o app primeiro passa a esperar a próxima carga (carregando, depois pronta) e só então troca o filtro; ao terminar, rola para o topo. Escolher o filtro já selecionado não espera nada. Teste de tela com um `Pager` de verdade, para a carga passar pelo estado de carregando como no app (falhou sem a rolagem; as duas tentativas anteriores passavam no teste com dados trocados de uma vez e falhavam no aparelho). Conferido no Razr | P |
 | 24.18 Player legível no tema escuro | ✔ feito | Achado pelo usuário: no tema escuro, o título e os botões do player ficavam quase pretos sobre o fundo escuro | **Implementado.** Desde a ADR 0005 o player é desenhado por cima de tudo, fora do `Scaffold`, que era quem definia a cor do conteúdo; sem ele, textos e ícones sem cor própria caíam no preto padrão. O `ArtworkBackdrop`, que pinta o fundo do player, agora define também a cor do conteúdo (`onBackground`). Teste: dentro do `ArtworkBackdrop` no tema escuro, a cor do conteúdo é a do tema (falhou com preto antes). Conferido no simulador do iPhone, nos temas escuro e claro | P |
-| 24.19 Barra de abas nativa no iOS 26 | 🔎 | Da [ADR 0008](adr/0008-liquid-glass-no-ios.md), depois da 24.2: no iOS 26+, trocar a barra do Material por um `UITabBar` solto num `UIKitView` sobreposto (`placedAsOverlay`), com a navegação no `RootComponent`. Protótipo primeiro, conferindo os cinco riscos da ADR (vidro sobre o Compose rolando, toque, insets, VoiceOver, tema); se o vidro ou o toque falhar, fica a barra atual | M |
+| 24.19 Barra de abas nativa no iOS 26 | Movida para a fase 25 | Era o `UITabBar` por cima do Compose da [ADR 0008](adr/0008-liquid-glass-no-ios.md). Em 07/10/2026 o usuário decidiu fazer a interface do iOS toda em SwiftUI (fase 25), que traz a barra de abas nativa e o Liquid Glass sem a sobreposição | — |
 
 As decisões de 24.5–24.7 estão na [ADR 0005](adr/0005-navegacao.md) (06/10/2026): duas abas, Biblioteca e Episódios.
 A ADR também diz onde entram as telas da 18: busca de podcasts no "+" da biblioteca (18.1), Configurações por um ícone
@@ -1165,7 +1167,38 @@ na biblioteca (18.5), fila pelo player e pelo mini player (18.6) e novos episód
 (18.7).
 
 **Critério de conclusão:** a barra só com abas que não repetem outro caminho; cada tela revisada na 24.1 sem
-achado aberto; o visual novo nos snapshots dos dois temas; decisão do Liquid Glass registrada.
+achado aberto; o visual novo nos snapshots dos dois temas; decisão do Liquid Glass registrada (ADR 0008, depois substituída pela
+fase 25).
+
+---
+
+## Fase 25 — UI nativa no iOS (SwiftUI)
+
+**Objetivo:** no iOS, toda a interface em SwiftUI, com a cara e o comportamento do sistema (barra de abas e barras de
+título com Liquid Glass no iOS 26, listas, folhas, gestos, Dynamic Type, VoiceOver), usando em Kotlin o que já é
+compartilhado: ViewModels, casos de uso, repositórios, banco, rede, player e downloads. O Compose continua no
+Android, no Desktop e na Web.
+
+**Quando:** por último, depois das 18–23. Cada tela existe duas vezes (Compose e SwiftUI), então ela entra quando
+as funcionalidades e os ViewModels pararam de mudar.
+
+**Hoje:** o iOS mostra o mesmo Compose das outras plataformas dentro de um `UIViewControllerRepresentable`
+(`ContentView.swift`). A [ADR 0008](adr/0008-liquid-glass-no-ios.md) tinha escolhido só um `UITabBar` por cima
+dele; esta fase a substitui.
+
+| Item | Status | Ação | Esforço |
+|---|---|---|---|
+| 25.1 ADR da arquitetura | 🔎 | Antes do código, substituindo a ADR 0008: como o Swift consome os ViewModels (SKIE, KMP-NativeCoroutines ou adaptadores à mão para `StateFlow` e intents), quem é dono da navegação (`NavigationStack`/`TabView` com estado em Swift ou o `RootComponent` do Decompose exposto ao Swift), de onde vêm os textos (hoje só nos `composeResources`, que o Swift não lê: gerar um `Localizable.xcstrings` a partir deles ou expor os `StringResource` resolvidos), os tokens da ADR 0001 (cores no catálogo de assets, a Onest embarcada), a versão mínima do iOS (16 hoje; `@Observable` pede 17) e se o Compose sai do binário do iOS (tamanho do app) | M |
+| 25.2 Fundação | 🔎 | A ponte escolhida na 25.1 com um ViewModel de exemplo, o Koin iniciado pelo Swift, o tema (cores dos dois temas e a fonte), os textos localizados nos três idiomas e um teste de UI (XCTest) rodando no CI | M |
+| 25.3 Navegação e mini player | 🔎 | `TabView` com Biblioteca e Episódios (ADR 0005) e uma `NavigationStack` por aba; mini player como acessório da barra no iOS 26 (`tabViewBottomAccessory`), com uma barra própria acima das abas no 16–25; player em tela cheia por cima; voltar pelo gesto do sistema; estado restaurado ao reabrir | M |
+| 25.4 Biblioteca | 🔎 | Grade e lista, "Continuar ouvindo", ordenar, "Organizar biblioteca" (reordenar nativo da `List`), adicionar por URL, atualizar puxando, excluir com confirmação | G |
+| 25.5 Detalhe do podcast e episódio | 🔎 | Cabeçalho de capa da 24.2, filtros, episódios paginados, ações do menu (tocar, baixar, marcar como ouvido ou não ouvido, marcar anteriores) e a tela do episódio com a descrição em HTML | M |
+| 25.6 Episódios | 🔎 | Busca (`searchable`), filtros, lista por data, abrir em "Baixados" sem rede (24.15) | M |
+| 25.7 Player | 🔎 | Player em tela cheia com capa, progresso arrastável, saltos, velocidade, timer e fila; o player do sistema (Now Playing, Central de Controle) continua o de hoje | M |
+| 25.8 Acabamento | 🔎 | VoiceOver e Dynamic Type em todas as telas, testes de UI das telas principais, remover o Compose do app iOS se a 25.1 decidir, e conferir num iPhone com iOS 26 e num com iOS anterior | M |
+
+**Critério de conclusão:** nenhuma tela do iOS em Compose; as mesmas funcionalidades das outras plataformas; Liquid
+Glass na barra de abas e nas barras de título do iOS 26; VoiceOver e Dynamic Type conferidos.
 
 ---
 
