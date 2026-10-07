@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesContent
 import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesUiState
@@ -59,7 +60,11 @@ private fun episodesPaging() = flowOf(PagingData.from(sampleEpisodes)).collectAs
 @Composable
 internal fun LibraryContentPreview() = PodcastTheme(darkTheme = false) {
     LibraryContent(
-        state = LibraryUiState(podcasts = samplePodcasts),
+        state = LibraryUiState(
+            podcasts = samplePodcasts.mapIndexed { index, podcast ->
+                LibraryEntry(podcast, unplayedCount = index, latestEpisodeDate = null)
+            },
+        ),
         actions = LibraryActions(),
         isPlayerVisible = true,
     )

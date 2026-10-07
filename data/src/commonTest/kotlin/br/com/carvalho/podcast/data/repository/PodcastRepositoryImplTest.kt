@@ -209,6 +209,27 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `the library counts unplayed episodes and finds the latest one`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.podcastDao().insert(podcastEntity.copy(id = "empty", title = "Empty"))
+        database.episodeDao().insertAll(
+            listOf(
+                episodeEntity.copy(id = "old", publishDate = 100L, isPlayed = true),
+                episodeEntity.copy(id = "new", publishDate = 300L),
+                episodeEntity.copy(id = "mid", publishDate = 200L),
+            )
+        )
+
+        val library = repository.getLibrary().first().associateBy { it.podcast.id }
+
+        assertEquals(2, library.getValue(podcastId).unplayedCount)
+        assertEquals(300L, library.getValue(podcastId).latestEpisodeDate)
+        assertEquals(0, library.getValue("empty").unplayedCount)
+        assertNull(library.getValue("empty").latestEpisodeDate)
+    }
+
+    @Test
     fun `saving a feed keeps the version the server sent`() = runTest {
         if (!isDatabaseSupported) return@runTest
         val version = FeedVersion(etag = "\"v2\"", lastModified = null)

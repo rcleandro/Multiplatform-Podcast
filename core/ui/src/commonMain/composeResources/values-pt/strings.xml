@@ -1,5 +1,11 @@
 <resources>
     <string name="library_title">Biblioteca</string>
+    <string name="library_show_list">Mostrar em lista</string>
+    <string name="library_show_grid">Mostrar em grade</string>
+    <plurals name="library_unplayed">
+        <item quantity="one">%1$d não ouvido</item>
+        <item quantity="other">%1$d não ouvidos</item>
+    </plurals>
     <string name="refresh_all">Atualizar Tudo</string>
     <string name="add_podcast">Adicionar Podcast</string>
     <string name="search_placeholder">Buscar nos seus episódios…</string>

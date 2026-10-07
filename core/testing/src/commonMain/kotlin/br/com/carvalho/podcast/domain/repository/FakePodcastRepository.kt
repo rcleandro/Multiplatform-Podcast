@@ -2,10 +2,12 @@ package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 class FakePodcastRepository : PodcastRepository {
@@ -19,6 +21,13 @@ class FakePodcastRepository : PodcastRepository {
     var getEpisodeError: Exception? = null
 
     override fun getPodcasts(): Flow<List<Podcast>> = podcasts
+
+    override fun getLibrary(): Flow<List<LibraryEntry>> = combine(podcasts, episodes) { podcasts, episodes ->
+        podcasts.sortedBy { it.title.lowercase() }.map { podcast ->
+            val own = episodes.filter { it.podcastId == podcast.id }
+            LibraryEntry(podcast, own.count { !it.isPlayed }, own.maxOfOrNull { it.publishDate })
+        }
+    }
 
     override suspend fun getPodcastById(id: String): Podcast? = podcasts.value.find { it.id == id }
 

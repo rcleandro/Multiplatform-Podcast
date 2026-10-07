@@ -5,6 +5,7 @@ import br.com.carvalho.podcast.data.local.dao.PodcastDao
 import br.com.carvalho.podcast.data.mapper.toDomain
 import br.com.carvalho.podcast.data.mapper.toEntity
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -26,6 +27,10 @@ class PodcastRepositoryImpl(
     private val podcastDao: PodcastDao,
     private val episodeDao: EpisodeDao
 ) : PodcastRepository {
+
+    override fun getLibrary(): Flow<List<LibraryEntry>> = podcastDao.getLibrary().map { rows ->
+        rows.map { LibraryEntry(it.podcast.toDomain(), it.unplayedCount, it.latestEpisodeDate) }
+    }
 
     override fun getPodcasts(): Flow<List<Podcast>> {
         return podcastDao.getAll().map { entities ->

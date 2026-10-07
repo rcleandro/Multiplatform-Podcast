@@ -2,12 +2,14 @@ package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 
 interface PodcastRepository {
     fun getPodcasts(): Flow<List<Podcast>>
+    fun getLibrary(): Flow<List<LibraryEntry>>
     suspend fun getPodcastById(id: String): Podcast?
     fun getPodcastByIdFlow(id: String): Flow<Podcast?>
     fun getEpisodes(podcastId: String): Flow<List<Episode>>

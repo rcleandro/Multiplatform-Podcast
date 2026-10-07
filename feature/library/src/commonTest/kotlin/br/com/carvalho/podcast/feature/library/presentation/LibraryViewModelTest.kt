@@ -13,7 +13,11 @@ import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.LibraryEntry
+import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
@@ -55,8 +59,47 @@ class LibraryViewModelTest {
 
     private val analytics = FakeAnalytics()
 
+    private val preferences = FakePreferencesRepository()
+
     private fun createViewModel(): LibraryViewModel {
-        return LibraryViewModel(repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, dispatchers, analytics)
+        return LibraryViewModel(
+            repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, preferences, dispatchers, analytics
+        )
+    }
+
+    @Test
+    fun `the layout choice is saved and shown`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ToggleLayout)
+
+        assertEquals(LibraryLayout.LIST, preferences.libraryLayout.value)
+        assertEquals(LibraryLayout.LIST, viewModel.uiState.value.layout)
+
+        viewModel.onIntent(LibraryIntent.ToggleLayout)
+
+        assertEquals(LibraryLayout.GRID, viewModel.uiState.value.layout)
+    }
+
+    @Test
+    fun `the library opens in the saved layout with the unplayed counts`() = runTest(testDispatcher) {
+        preferences.setLibraryLayout(LibraryLayout.LIST)
+        val podcast = Podcast(
+            id = "p", title = "P", description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), feedUrl = "p", siteUrl = null, lastUpdated = 0, isSubscribed = true
+        )
+        repository.podcasts.value = listOf(podcast)
+        repository.episodes.value = listOf(
+            Episode(
+                id = "e1", podcastId = "p", title = "E1", description = null, audioUrl = "a", imageUrl = null,
+                duration = 0, publishDate = 5, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null
+            )
+        )
+
+        val viewModel = createViewModel()
+
+        assertEquals(LibraryLayout.LIST, viewModel.uiState.value.layout)
+        assertEquals(listOf(LibraryEntry(podcast, unplayedCount = 1, latestEpisodeDate = 5)), viewModel.uiState.value.podcasts)
     }
 
     @Test

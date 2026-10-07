@@ -4,6 +4,7 @@ import androidx.room3.Dao
 import androidx.room3.Query
 import androidx.room3.Delete
 import androidx.room3.Upsert
+import br.com.carvalho.podcast.data.local.entity.LibraryRow
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -11,6 +12,18 @@ import kotlinx.coroutines.flow.Flow
 interface PodcastDao {
     @Query("SELECT * FROM podcasts ORDER BY title ASC")
     fun getAll(): Flow<List<PodcastEntity>>
+
+    // Correlated subqueries use the index on episodes.podcastId; one query instead of one per podcast.
+    @Query(
+        """
+        SELECT p.*,
+            (SELECT COUNT(*) FROM episodes e WHERE e.podcastId = p.id AND e.isPlayed = 0) AS unplayedCount,
+            (SELECT MAX(e.publishDate) FROM episodes e WHERE e.podcastId = p.id) AS latestEpisodeDate
+        FROM podcasts p
+        ORDER BY p.title COLLATE NOCASE
+        """
+    )
+    fun getLibrary(): Flow<List<LibraryRow>>
 
     @Query("SELECT * FROM podcasts WHERE id = :id")
     suspend fun getById(id: String): PodcastEntity?

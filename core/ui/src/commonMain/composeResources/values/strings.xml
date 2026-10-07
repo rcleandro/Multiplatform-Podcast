@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">Podcast KMP</string>
     <string name="library_title">Library</string>
+    <string name="library_show_list">Show as list</string>
+    <string name="library_show_grid">Show as grid</string>
+    <plurals name="library_unplayed">
+        <item quantity="one">%1$d unplayed</item>
+        <item quantity="other">%1$d unplayed</item>
+    </plurals>
     <string name="refresh_all">Refresh All</string>
     <string name="add_podcast">Add Podcast</string>
     <string name="search_placeholder">Search your episodes…</string>

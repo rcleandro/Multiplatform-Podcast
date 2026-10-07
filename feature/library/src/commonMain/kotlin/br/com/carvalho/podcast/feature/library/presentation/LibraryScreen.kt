@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.automirrored.rounded.ViewList
+import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Mic
@@ -49,6 +53,16 @@ import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastCard
+import br.com.carvalho.podcast.core.designsystem.component.PodcastListItem
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.domain.model.LibraryEntry
+import br.com.carvalho.podcast.domain.model.LibraryLayout
+import br.com.carvalho.podcast.presentation.format.relativeTime
+import br.com.carvalho.podcast.presentation.format.text
+import br.com.carvalho.podcast.core.ui.generated.resources.library_show_grid
+import br.com.carvalho.podcast.core.ui.generated.resources.library_show_list
+import br.com.carvalho.podcast.core.ui.generated.resources.library_unplayed
+import org.jetbrains.compose.resources.pluralStringResource
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -87,6 +101,7 @@ fun LibraryScreen(
             onPodcastClick = onPodcastClick,
             onPodcastLongClick = { viewModel.onIntent(LibraryIntent.RequestDelete(it)) },
             onRefresh = { viewModel.onIntent(LibraryIntent.RefreshAll) },
+            onToggleLayout = { viewModel.onIntent(LibraryIntent.ToggleLayout) },
             onAddClick = { viewModel.onIntent(LibraryIntent.OpenAddDialog) },
             onUrlChange = { viewModel.onIntent(LibraryIntent.ChangeUrl(it)) },
             onAddConfirm = { viewModel.onIntent(LibraryIntent.ConfirmAdd) },
@@ -101,6 +116,7 @@ data class LibraryActions(
     val onPodcastClick: (String) -> Unit = {},
     val onPodcastLongClick: (Podcast) -> Unit = {},
     val onRefresh: () -> Unit = {},
+    val onToggleLayout: () -> Unit = {},
     val onAddClick: () -> Unit = {},
     val onUrlChange: (String) -> Unit = {},
     val onAddConfirm: () -> Unit = {},
@@ -127,7 +143,7 @@ fun LibraryContent(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = { LibraryTopBar(scrollBehavior, actions.onRefresh) },
+        topBar = { LibraryTopBar(scrollBehavior, state.layout, actions) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(),
         floatingActionButton = {
@@ -154,7 +170,7 @@ fun LibraryContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, onRefresh: () -> Unit) {
+private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, layout: LibraryLayout, actions: LibraryActions) {
     TopAppBar(
         title = {
             Text(
@@ -164,7 +180,15 @@ private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, onRefresh: ()
             )
         },
         actions = {
-            IconButton(onClick = onRefresh) {
+            // The button shows the layout it switches to.
+            IconButton(onClick = actions.onToggleLayout) {
+                if (layout == LibraryLayout.GRID) {
+                    Icon(Icons.AutoMirrored.Rounded.ViewList, stringResource(Res.string.library_show_list))
+                } else {
+                    Icon(Icons.Rounded.GridView, stringResource(Res.string.library_show_grid))
+                }
+            }
+            IconButton(onClick = actions.onRefresh) {
                 Icon(Icons.Rounded.Refresh, contentDescription = stringResource(Res.string.refresh_all))
             }
         },
@@ -187,30 +211,73 @@ private fun LibraryBody(state: LibraryUiState, actions: LibraryActions) {
             actionLabel = stringResource(Res.string.add_podcast),
             onAction = actions.onAddClick,
         )
-        else -> LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = Sizes.artworkM),
-            contentPadding = PaddingValues(
-                start = Spacing.l,
-                top = Spacing.l,
-                end = Spacing.l,
-                bottom = Sizes.listBottomInset,
-            ),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.m),
-            verticalArrangement = Arrangement.spacedBy(Spacing.l),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(items = state.podcasts, key = { it.id }) { podcast ->
-                PodcastCard(
-                    title = podcast.title,
-                    author = podcast.author,
-                    imageUrl = podcast.imageUrl,
-                    onClick = { actions.onPodcastClick(podcast.id) },
-                    onLongClick = { actions.onPodcastLongClick(podcast) },
-                    onLongClickLabel = stringResource(Res.string.podcast_options)
-                )
-            }
+        state.layout == LibraryLayout.LIST -> LibraryList(state.podcasts, actions)
+        else -> LibraryGrid(state.podcasts, actions)
+    }
+}
+
+private val libraryPadding = PaddingValues(
+    start = Spacing.l,
+    top = Spacing.l,
+    end = Spacing.l,
+    bottom = Sizes.listBottomInset,
+)
+
+@Composable
+private fun LibraryGrid(entries: List<LibraryEntry>, actions: LibraryActions) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = Sizes.artworkM),
+        contentPadding = libraryPadding,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+        verticalArrangement = Arrangement.spacedBy(Spacing.l),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(items = entries, key = { it.podcast.id }) { entry ->
+            val podcast = entry.podcast
+            PodcastCard(
+                title = podcast.title,
+                author = podcast.author,
+                imageUrl = podcast.imageUrl,
+                unplayedCount = entry.unplayedCount,
+                onClick = { actions.onPodcastClick(podcast.id) },
+                onLongClick = { actions.onPodcastLongClick(podcast) },
+                onLongClickLabel = stringResource(Res.string.podcast_options)
+            )
         }
     }
+}
+
+@Composable
+private fun LibraryList(entries: List<LibraryEntry>, actions: LibraryActions) {
+    LazyColumn(
+        contentPadding = libraryPadding,
+        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(items = entries, key = { it.podcast.id }) { entry ->
+            val podcast = entry.podcast
+            PodcastListItem(
+                title = podcast.title,
+                author = podcast.author,
+                imageUrl = podcast.imageUrl,
+                supportingText = entry.summary(),
+                onClick = { actions.onPodcastClick(podcast.id) },
+                onLongClick = { actions.onPodcastLongClick(podcast) },
+                onLongClickLabel = stringResource(Res.string.podcast_options),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/** "2 days ago · 3 unplayed", like the episode rows; each half is left out when there is nothing to say. */
+@Composable
+private fun LibraryEntry.summary(): String? {
+    val latest = latestEpisodeDate?.let { relativeTime(it, getCurrentTimestamp())?.text() }
+    val unplayed = unplayedCount.takeIf { it > 0 }?.let {
+        pluralStringResource(Res.plurals.library_unplayed, it, it)
+    }
+    return listOfNotNull(latest, unplayed).joinToString(" · ").ifEmpty { null }
 }
 
 @Composable
