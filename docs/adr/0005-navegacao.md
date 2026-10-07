@@ -67,3 +67,6 @@ Alternativas consideradas:
   estar em todas as telas com algo tocando (ele continua sumindo ao rolar e voltando ao parar).
 - Sai o `DownloadedEpisodesScreen` como destino; sua lista vira o filtro, e o texto do espaço ocupado muda de lugar.
 - Revisar se Episódios › Novos cumpre o papel da antiga aba Buscar com dados de uso (16) depois de publicado.
+- **Implementação (06/10/2026):** as duas abas e os filtros Todos, Em andamento e Baixados estão no app. Faltam o filtro
+  Novos, que depende da 18.7 (guardar a última visita), e abrir em Baixados sem rede (24.15), que depende de detectar
+  a rede; até lá, Episódios abre em Todos.

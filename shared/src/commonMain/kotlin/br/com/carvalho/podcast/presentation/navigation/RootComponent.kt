@@ -76,7 +76,8 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
 }
 
 @Serializable
-enum class Tab { Library, Search, Downloads }
+/** The two tabs of ADR 0005. */
+enum class Tab { Library, Episodes }
 
 @Serializable
 sealed interface Detail {

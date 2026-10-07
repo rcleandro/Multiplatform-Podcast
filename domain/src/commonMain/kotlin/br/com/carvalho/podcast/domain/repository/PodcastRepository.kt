@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import androidx.paging.PagingData
@@ -24,7 +25,10 @@ interface PodcastRepository {
     fun getUnplayedEpisodes(): Flow<List<Episode>>
     suspend fun getEpisodeById(id: String): Episode?
     fun searchEpisodes(query: String): Flow<List<Episode>>
-    fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>>
+    fun searchEpisodesPaged(
+        query: String?,
+        filter: EpisodeListFilter = EpisodeListFilter.ALL,
+    ): Flow<PagingData<Episode>>
     suspend fun updateEpisodeProgress(id: String, progress: Long)
     suspend fun markEpisodeAsPlayed(id: String)
     /** Saves a podcast and its episodes all at once: if any of it fails, nothing is saved. */

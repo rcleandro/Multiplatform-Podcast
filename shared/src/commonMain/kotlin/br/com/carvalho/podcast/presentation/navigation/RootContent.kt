@@ -9,9 +9,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,13 +41,10 @@ import androidx.window.core.layout.WindowSizeClass
 import br.com.carvalho.podcast.core.designsystem.Motion
 import br.com.carvalho.podcast.core.designsystem.component.MiniPlayer
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.downloads
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
-import br.com.carvalho.podcast.core.ui.generated.resources.search
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
 import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import br.com.carvalho.podcast.domain.model.PlayerState
-import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesScreen
-import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
@@ -183,8 +179,7 @@ private fun ListPane(component: RootComponent, tab: Tab, isPlayerVisible: Boolea
             onOrganize = component::onOrganizeLibrary,
             onPodcastClick = component::onPodcastSelected,
         )
-        Tab.Search -> SearchScreen(onEpisodeClick = component::onEpisodeSelected)
-        Tab.Downloads -> DownloadedEpisodesScreen(onEpisodeClick = component::onEpisodeSelected)
+        Tab.Episodes -> SearchScreen(onEpisodeClick = component::onEpisodeSelected)
     }
 }
 
@@ -224,6 +219,5 @@ private const val SCROLL_THRESHOLD = 1f
 
 private val TABS: List<Triple<Tab, ImageVector, StringResource>> = listOf(
     Triple(Tab.Library, Icons.Rounded.Home, Res.string.library_title),
-    Triple(Tab.Search, Icons.Rounded.Search, Res.string.search),
-    Triple(Tab.Downloads, Icons.Rounded.DownloadDone, Res.string.downloads),
-).filter { (tab) -> supportsDownloads || tab != Tab.Downloads }
+    Triple(Tab.Episodes, Icons.Rounded.Podcasts, Res.string.episodes_tab),
+)

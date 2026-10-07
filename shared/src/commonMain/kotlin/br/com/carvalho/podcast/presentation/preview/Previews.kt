@@ -10,8 +10,6 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
-import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesContent
-import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesUiState
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailContent
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailUiState
 import br.com.carvalho.podcast.feature.library.presentation.LibraryActions
@@ -103,17 +101,6 @@ internal fun SearchContentPreview() = PodcastTheme(darkTheme = false) {
         playerState = PlayerState(),
         activeDownloads = emptyMap(),
         actions = SearchActions(),
-    )
-}
-
-@Preview
-@Composable
-internal fun DownloadsEmptyPreview() = PodcastTheme(darkTheme = false) {
-    DownloadedEpisodesContent(
-        state = DownloadedEpisodesUiState(),
-        playerState = PlayerState(),
-        activeDownloads = emptyMap(),
-        onEpisodeClick = {}, onPlay = {}, onRemove = {}, onConfirmRemove = {}, onDismissRemove = {},
     )
 }
 

@@ -21,7 +21,11 @@ class FakeEpisodeDao : EpisodeDao {
         onlyDownloaded: Boolean,
     ): PagingSource<Int, EpisodeEntity> = throw NotImplementedError("Paging is tested against the real database")
 
-    override fun searchPagingSource(query: String): PagingSource<Int, EpisodeEntity> =
+    override fun searchPagingSource(
+        query: String,
+        onlyInProgress: Boolean,
+        onlyDownloaded: Boolean,
+    ): PagingSource<Int, EpisodeEntity> =
         throw NotImplementedError("Paging is tested against the real database")
 
     override suspend fun getSince(podcastId: String, publishDate: Long): List<EpisodeEntity> =

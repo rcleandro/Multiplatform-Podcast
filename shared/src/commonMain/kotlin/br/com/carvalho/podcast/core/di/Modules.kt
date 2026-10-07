@@ -27,7 +27,6 @@ import br.com.carvalho.podcast.feature.library.libraryFeatureModule
 import br.com.carvalho.podcast.feature.podcast.podcastFeatureModule
 import br.com.carvalho.podcast.feature.episode.episodeFeatureModule
 import br.com.carvalho.podcast.feature.search.searchFeatureModule
-import br.com.carvalho.podcast.feature.downloads.downloadsFeatureModule
 import br.com.carvalho.podcast.feature.player.playerFeatureModule
 import br.com.carvalho.podcast.core.player.PlaybackController
 import br.com.carvalho.podcast.domain.player.AudioPlayer
@@ -88,6 +87,5 @@ val commonModules = listOf(
     podcastFeatureModule,
     episodeFeatureModule,
     searchFeatureModule,
-    downloadsFeatureModule,
     playerFeatureModule
 )

@@ -5,6 +5,8 @@ import app.cash.turbine.test
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.error_storage_full
+import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.presentation.UiMessage
@@ -53,6 +55,31 @@ class SearchViewModelTest {
         viewModel.uiState.test {
             val state = awaitItem()
             assertEquals("", state.searchQuery)
+        }
+    }
+
+    @Test
+    fun `the downloaded filter shows the space the downloads take`() = runTest(testDispatcher) {
+        episodeDownloader.usedBytes = USED_BYTES
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(SearchIntent.ChangeFilter(EpisodeListFilter.DOWNLOADED))
+
+        assertEquals(EpisodeListFilter.DOWNLOADED, viewModel.uiState.value.filter)
+        assertEquals(USED_BYTES, viewModel.uiState.value.usedBytes)
+    }
+
+    @Test
+    fun `removing a download says so`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        val episode = Episode(
+            id = "e1", podcastId = "p", title = "E", description = null, audioUrl = "a", imageUrl = null,
+            duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = true, fileSize = null
+        )
+
+        viewModel.messages.test {
+            viewModel.onIntent(SearchIntent.ConfirmDeleteDownload(episode))
+            assertEquals(UiMessage(Res.string.download_deleted), awaitItem())
         }
     }
 
@@ -138,5 +165,9 @@ class SearchViewModelTest {
         viewModel.onIntent(SearchIntent.CancelDownload(createEpisode("episode-1", "Title")))
 
         assertEquals("episode-1", episodeDownloader.cancelCalledWith)
+    }
+
+    private companion object {
+        const val USED_BYTES = 52_428_800L
     }
 }

@@ -66,6 +66,10 @@
     <string name="filter_all">All</string>
     <string name="filter_unplayed">Unplayed</string>
     <string name="filter_downloaded">Downloaded</string>
+    <string name="filter_in_progress">In progress</string>
+    <string name="episodes_tab">Episodes</string>
+    <string name="in_progress_empty_title">Nothing in progress</string>
+    <string name="in_progress_empty_message">Episodes you start listening to show up here.</string>
     <string name="downloads">Downloads</string>
     <string name="no_downloads">No downloaded episodes</string>
     <string name="episode">Episode</string>

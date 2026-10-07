@@ -7,6 +7,10 @@ import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
+import kotlinx.coroutines.channels.Channel
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.failureMessages
@@ -39,23 +43,33 @@ class SearchViewModel(
 
     val activeDownloads = episodeDownloader.activeDownloads
 
-    /** Why a download failed, shown as a snackbar. */
-    val messages: Flow<UiMessage> = episodeDownloader.failureMessages()
+    private val removed = Channel<UiMessage>(Channel.BUFFERED)
+
+    /** Why a download failed, and that one was removed, shown as a snackbar. */
+    val messages: Flow<UiMessage> = merge(episodeDownloader.failureMessages(), removed.receiveAsFlow())
     val playerState = audioPlayer.playerState
 
-    val pagedResults: Flow<PagingData<Episode>> = _uiState.map { it.searchQuery }
+    val pagedResults: Flow<PagingData<Episode>> = _uiState.map { it.searchQuery to it.filter }
         .distinctUntilChanged()
-        .combine(_refreshTrigger) { query, _ -> query }
+        .combine(_refreshTrigger) { search, _ -> search }
         .debounce(AppConfig.SEARCH_DEBOUNCE_MS)
-        .flatMapLatest { query ->
-            AppLogger.d(TAG, "Search query changed or refreshed: $query")
-            repository.searchEpisodesPaged(query.takeIf { it.isNotBlank() })
+        .flatMapLatest { (query, filter) ->
+            AppLogger.d(TAG, "Episodes query or filter changed: $query, $filter")
+            repository.searchEpisodesPaged(query.takeIf { it.isNotBlank() }, filter)
         }
         .cachedIn(viewModelScope)
+
+    init {
+        // The downloaded list changes when a download ends or is removed, which is when the space changes too.
+        repository.getDownloadedEpisodes()
+            .onEach { _uiState.update { it.copy(usedBytes = episodeDownloader.usedBytes()) } }
+            .launchIn(viewModelScope)
+    }
 
     fun onIntent(intent: SearchIntent) {
         when (intent) {
             is SearchIntent.ChangeQuery -> _uiState.update { it.copy(searchQuery = intent.query) }
+            is SearchIntent.ChangeFilter -> _uiState.update { it.copy(filter = intent.filter) }
             SearchIntent.Refresh -> _refreshTrigger.value += 1
             is SearchIntent.Play -> play(intent.episode)
             is SearchIntent.Download -> downloadEpisode(intent.episode)
@@ -91,17 +105,22 @@ class SearchViewModel(
         _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
+            removed.send(UiMessage(Res.string.download_deleted))
         }
     }
 }
 
 data class SearchUiState(
     val searchQuery: String = "",
+    val filter: EpisodeListFilter = EpisodeListFilter.ALL,
+    /** Disk space the downloads take, shown with the "Downloaded" filter. */
+    val usedBytes: Long = 0,
     val deleteEpisodeConfirmation: Episode? = null
 )
 
 sealed interface SearchIntent {
     data class ChangeQuery(val query: String) : SearchIntent
+    data class ChangeFilter(val filter: EpisodeListFilter) : SearchIntent
     data object Refresh : SearchIntent
     data class Play(val episode: Episode) : SearchIntent
     data class Download(val episode: Episode) : SearchIntent

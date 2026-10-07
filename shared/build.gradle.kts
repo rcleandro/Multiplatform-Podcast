@@ -65,7 +65,6 @@ kotlin {
             implementation(project(":feature:podcast"))
             implementation(project(":feature:episode"))
             implementation(project(":feature:search"))
-            implementation(project(":feature:downloads"))
             implementation(project(":feature:player"))
             implementation(project(":core:database"))
             implementation(project(":core:designsystem"))

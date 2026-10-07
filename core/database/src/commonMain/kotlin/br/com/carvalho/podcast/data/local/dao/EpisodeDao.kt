@@ -38,10 +38,16 @@ interface EpisodeDao {
 
     @Query("""
         SELECT * FROM episodes
-        WHERE :query = '' OR title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%'
+        WHERE (:query = '' OR title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%')
+        AND (:onlyInProgress = 0 OR (playbackPosition > 0 AND isPlayed = 0))
+        AND (:onlyDownloaded = 0 OR isDownloaded = 1)
         ORDER BY publishDate DESC
     """)
-    fun searchPagingSource(query: String): PagingSource<Int, EpisodeEntity>
+    fun searchPagingSource(
+        query: String,
+        onlyInProgress: Boolean = false,
+        onlyDownloaded: Boolean = false,
+    ): PagingSource<Int, EpisodeEntity>
 
     @Query("SELECT * FROM episodes WHERE podcastId = :podcastId AND publishDate >= :publishDate ORDER BY publishDate")
     suspend fun getSince(podcastId: String, publishDate: Long): List<EpisodeEntity>

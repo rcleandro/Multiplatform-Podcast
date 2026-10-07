@@ -60,13 +60,13 @@ class RootComponentTest {
         val root = createRoot()
         root.onPodcastSelected("p1")
 
-        root.onTabClicked(Tab.Search)
+        root.onTabClicked(Tab.Episodes)
         assertNull(root.current.podcast)
         root.onEpisodeSelected("e2", "p2")
 
         root.onTabClicked(Tab.Library)
         assertEquals(Detail.Podcast("p1"), root.current.podcast)
-        root.onTabClicked(Tab.Search)
+        root.onTabClicked(Tab.Episodes)
         assertEquals(Detail.Episode("e2"), root.current.episode)
     }
 
@@ -83,7 +83,7 @@ class RootComponentTest {
     @Test
     fun backClosesThePlayerThenPopsTheTabThenReturnsToTheLibrary() {
         val root = createRoot()
-        root.onTabClicked(Tab.Downloads)
+        root.onTabClicked(Tab.Episodes)
         root.onEpisodeSelected("e1", "p1")
         root.onPlayerClicked()
 
@@ -103,7 +103,7 @@ class RootComponentTest {
     fun theStateSurvivesRecreation() {
         val savedState = StateKeeperDispatcher().let { keeper ->
             createRoot(keeper).apply {
-                onTabClicked(Tab.Search)
+                onTabClicked(Tab.Episodes)
                 onEpisodeSelected("e1", "p1")
             }
             keeper.save()
@@ -111,7 +111,7 @@ class RootComponentTest {
 
         val restored = createRoot(StateKeeperDispatcher(savedState))
 
-        assertEquals(Tab.Search, restored.current.selectedTab)
+        assertEquals(Tab.Episodes, restored.current.selectedTab)
         assertEquals(Detail.Episode("e1"), restored.current.episode)
     }
 }

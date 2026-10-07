@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import androidx.paging.PagingData
@@ -57,7 +58,7 @@ class FakePodcastRepository : PodcastRepository {
 
     override fun searchEpisodes(query: String): Flow<List<Episode>> = episodes.map { it.filter { e -> e.title.contains(query, ignoreCase = true) } }
 
-    override fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>> {
+    override fun searchEpisodesPaged(query: String?, filter: EpisodeListFilter): Flow<PagingData<Episode>> {
         throw NotImplementedError("Paging not supported in fake")
     }
 

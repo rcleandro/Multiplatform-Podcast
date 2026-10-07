@@ -64,6 +64,10 @@
     <string name="filter_all">Todos</string>
     <string name="filter_unplayed">No escuchados</string>
     <string name="filter_downloaded">Descargados</string>
+    <string name="filter_in_progress">En curso</string>
+    <string name="episodes_tab">Episodios</string>
+    <string name="in_progress_empty_title">Nada en curso</string>
+    <string name="in_progress_empty_message">Los episodios que empieces a escuchar aparecen aquí.</string>
     <string name="downloads">Descargas</string>
     <string name="no_downloads">No hay episodios descargados</string>
     <string name="episode">Episodio</string>

@@ -16,6 +16,7 @@ import androidx.paging.PagingSource
 import androidx.paging.map
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -76,8 +77,14 @@ class PodcastRepositoryImpl(
         }
     }
 
-    override fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>> =
-        pagedEpisodes { episodeDao.searchPagingSource(query.orEmpty()) }
+    override fun searchEpisodesPaged(query: String?, filter: EpisodeListFilter): Flow<PagingData<Episode>> =
+        pagedEpisodes {
+            episodeDao.searchPagingSource(
+                query.orEmpty(),
+                onlyInProgress = filter == EpisodeListFilter.IN_PROGRESS,
+                onlyDownloaded = filter == EpisodeListFilter.DOWNLOADED,
+            )
+        }
 
     private fun pagedEpisodes(source: () -> PagingSource<Int, EpisodeEntity>): Flow<PagingData<Episode>> =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = source)

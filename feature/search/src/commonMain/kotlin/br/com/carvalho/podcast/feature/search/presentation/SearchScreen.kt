@@ -1,6 +1,23 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.rounded.DownloadDone
+import androidx.compose.material.icons.rounded.PlayArrow
+import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
+import br.com.carvalho.podcast.core.designsystem.component.FilterOption
+import br.com.carvalho.podcast.core.util.supportsDownloads
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.presentation.format.storageSize
+import br.com.carvalho.podcast.presentation.format.text
+import br.com.carvalho.podcast.core.ui.generated.resources.downloads_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
+import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_title
+import br.com.carvalho.podcast.core.ui.generated.resources.no_downloads
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -83,6 +100,7 @@ fun SearchScreen(
         activeDownloads = activeDownloads,
         actions = SearchActions(
             onQueryChange = { viewModel.onIntent(SearchIntent.ChangeQuery(it)) },
+            onFilterChange = { viewModel.onIntent(SearchIntent.ChangeFilter(it)) },
             onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
             onPlay = { viewModel.onIntent(SearchIntent.Play(it)) },
             onDownload = { viewModel.onIntent(SearchIntent.Download(it)) },
@@ -97,6 +115,7 @@ fun SearchScreen(
 
 data class SearchActions(
     val onQueryChange: (String) -> Unit = {},
+    val onFilterChange: (EpisodeListFilter) -> Unit = {},
     val onEpisodeClick: (Episode) -> Unit = {},
     val onPlay: (Episode) -> Unit = {},
     val onDownload: (Episode) -> Unit = {},
@@ -118,7 +137,17 @@ fun SearchContent(
 ) {
     Scaffold(
         modifier = modifier,
-        topBar = { SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange) },
+        topBar = {
+            Column {
+                SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange)
+                FilterChipRow(
+                    options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
+                    selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
+                    onSelected = { actions.onFilterChange(filters[it].first) },
+                    modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
+                )
+            }
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
@@ -133,13 +162,9 @@ fun SearchContent(
                 onAction = results::retry,
                 modifier = Modifier.padding(padding),
             )
-            results.itemCount == 0 && refresh is LoadState.NotLoading -> EmptyState(
-                icon = Icons.Rounded.Search,
-                title = stringResource(Res.string.search_empty_title),
-                message = stringResource(Res.string.search_empty_message),
-                modifier = Modifier.padding(padding),
-            )
-            else -> SearchResults(results, playerState, activeDownloads, actions, Modifier.padding(padding))
+            results.itemCount == 0 && refresh is LoadState.NotLoading ->
+                EmptyFilter(state, Modifier.padding(padding))
+            else -> SearchResults(state, results, playerState, activeDownloads, actions, Modifier.padding(padding))
         }
 
         state.deleteEpisodeConfirmation?.let { episode ->
@@ -155,8 +180,41 @@ fun SearchContent(
     }
 }
 
+// "Downloaded" only where downloads survive (not on the Web).
+private val filters = listOfNotNull(
+    EpisodeListFilter.ALL to Res.string.filter_all,
+    EpisodeListFilter.IN_PROGRESS to Res.string.filter_in_progress,
+    (EpisodeListFilter.DOWNLOADED to Res.string.filter_downloaded).takeIf { supportsDownloads },
+)
+
+/** Each filter says why it is empty; a search that finds nothing says so whatever the filter. */
+@Composable
+private fun EmptyFilter(state: SearchUiState, modifier: Modifier) {
+    when {
+        state.searchQuery.isNotBlank() || state.filter == EpisodeListFilter.ALL -> EmptyState(
+            icon = Icons.Rounded.Search,
+            title = stringResource(Res.string.search_empty_title),
+            message = stringResource(Res.string.search_empty_message),
+            modifier = modifier,
+        )
+        state.filter == EpisodeListFilter.IN_PROGRESS -> EmptyState(
+            icon = Icons.Rounded.PlayArrow,
+            title = stringResource(Res.string.in_progress_empty_title),
+            message = stringResource(Res.string.in_progress_empty_message),
+            modifier = modifier,
+        )
+        else -> EmptyState(
+            icon = Icons.Rounded.DownloadDone,
+            title = stringResource(Res.string.no_downloads),
+            message = stringResource(Res.string.downloads_empty_message),
+            modifier = modifier,
+        )
+    }
+}
+
 @Composable
 private fun SearchResults(
+    state: SearchUiState,
     results: LazyPagingItems<Episode>,
     playerState: PlayerState,
     activeDownloads: Map<String, DownloadStatus>,
@@ -167,6 +225,16 @@ private fun SearchResults(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
     ) {
+        if (state.filter == EpisodeListFilter.DOWNLOADED) {
+            item {
+                Text(
+                    text = stringResource(Res.string.downloads_storage_used, storageSize(state.usedBytes).text()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.s),
+                )
+            }
+        }
         items(
             count = results.itemCount,
             key = results.itemKey { it.id },

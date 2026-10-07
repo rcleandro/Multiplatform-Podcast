@@ -13,6 +13,7 @@ import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import androidx.paging.testing.asSnapshot
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import androidx.paging.PagingSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -309,6 +310,26 @@ class PodcastRepositoryImplTest {
         val shown = repository.getEpisodesPaged(podcastId, EpisodeFilter.DOWNLOADED).asSnapshot()
 
         assertEquals(listOf("downloaded"), shown.map { it.id })
+    }
+
+    @Test
+    fun `the episodes tab filters started and downloaded episodes`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(
+            listOf(
+                episodeEntity.copy(id = "new"),
+                episodeEntity.copy(id = "started", playbackPosition = 1_000L),
+                episodeEntity.copy(id = "finished", playbackPosition = 1_000L, isPlayed = true),
+                episodeEntity.copy(id = "downloaded", isDownloaded = true),
+            )
+        )
+
+        val started = repository.searchEpisodesPaged(null, EpisodeListFilter.IN_PROGRESS).asSnapshot()
+        val downloaded = repository.searchEpisodesPaged(null, EpisodeListFilter.DOWNLOADED).asSnapshot()
+
+        assertEquals(listOf("started"), started.map { it.id })
+        assertEquals(listOf("downloaded"), downloaded.map { it.id })
     }
 
     @Test
