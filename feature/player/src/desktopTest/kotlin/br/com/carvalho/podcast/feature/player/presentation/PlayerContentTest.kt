@@ -26,6 +26,14 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.model.Podcast
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.graphics.toPixelMap
+import br.com.carvalho.podcast.core.designsystem.Motion
+import kotlin.test.assertNotEquals
+import br.com.carvalho.podcast.core.ui.generated.resources.pause
+import br.com.carvalho.podcast.core.ui.generated.resources.play
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.getBoundsInRoot
 import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
@@ -41,6 +49,24 @@ class PlayerContentTest {
         audioUrl = "", imageUrl = null, duration = 60, publishDate = 0, isPlayed = false,
         playbackPosition = 0, isDownloaded = false, fileSize = null,
     )
+
+    @Test
+    fun thePlayButtonIsSquareWhilePlayingAndRoundWhenPaused() = runComposeUiTest {
+        var state by mutableStateOf(PlayerState(currentEpisode = episode("e1"), isPlaying = true))
+        setContent { PodcastTheme { PlayerContent(state = state, actions = PlayerActions()) } }
+        // Near the button's top left corner: inside a square with large corners, outside a circle.
+        val bounds = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+        fun cornerPixel() = onRoot().captureToImage().toPixelMap().let { pixels ->
+            val size = (bounds.right - bounds.left).value * density.density
+            pixels[(bounds.left.value * density.density + size / 8).toInt(), (bounds.top.value * density.density + size / 8).toInt()]
+        }
+        val square = cornerPixel()
+
+        state = state.copy(isPlaying = false)
+        mainClock.advanceTimeBy(Motion.LONG.toLong())
+
+        assertNotEquals(square, cornerPixel())
+    }
 
     @Test
     fun beforeTheAudioLoadsTheBarUsesTheFeedDuration() = runComposeUiTest {
@@ -82,7 +108,7 @@ class PlayerContentTest {
                 }
             }
         }
-        onNodeWithText(text(Res.string.sleep_timer)).performScrollTo().assertIsDisplayed()
+        onNodeWithContentDescription(text(Res.string.sleep_timer)).performScrollTo().assertIsDisplayed()
     }
 
     @Test

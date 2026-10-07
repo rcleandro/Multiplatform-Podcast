@@ -41,6 +41,9 @@
     <string name="playback_speed">Velocidade de reprodução</string>
     <string name="sleep_timer">Timer para dormir</string>
     <string name="queue">Fila de Reprodução</string>
+    <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->
+    <string name="queue_short">Fila</string>
+    <string name="sleep_timer_short">Timer</string>
     <string name="finished">Finalizado</string>
     <string name="remaining_time">%1$s restantes</string>
     <string name="resume_remaining">Continuar · %1$s restantes</string>
