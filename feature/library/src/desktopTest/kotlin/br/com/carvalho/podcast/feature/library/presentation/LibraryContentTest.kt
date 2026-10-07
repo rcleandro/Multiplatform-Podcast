@@ -30,6 +30,8 @@ import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.performScrollToIndex
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_first_added
+import br.com.carvalho.podcast.core.ui.generated.resources.continue_listening
+import br.com.carvalho.podcast.domain.model.Episode
 import kotlin.test.Test
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_options
@@ -50,6 +52,8 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+
+private const val PODCASTS_TO_FILL = 20
 
 @OptIn(ExperimentalTestApi::class)
 class LibraryContentTest {
@@ -115,12 +119,17 @@ class LibraryContentTest {
     }
 
     @Test
-    fun choosingASortGoesBackToTheTopOfTheNewOrder() = runComposeUiTest {
+    fun choosingASortGoesBackToTheTopOfTheNewOrder() = choosingASortGoesBackToTheTop(LibraryLayout.LIST)
+
+    @Test
+    fun choosingASortGoesBackToTheTopOfTheGridToo() = choosingASortGoesBackToTheTop(LibraryLayout.GRID)
+
+    private fun choosingASortGoesBackToTheTop(layout: LibraryLayout) = runComposeUiTest {
         val entries = (1..30).map {
             LibraryEntry(Podcast("id-$it", "Podcast $it", "", null, null, null, emptyList(), "url$it", null, 0, true), 0, null)
         }
         // Like the view model: the chosen sort comes back with the list in the new order.
-        var state by mutableStateOf(LibraryUiState(podcasts = entries, layout = LibraryLayout.LIST))
+        var state by mutableStateOf(LibraryUiState(podcasts = entries, layout = layout))
         setContent {
             PodcastTheme {
                 LibraryContent(
@@ -246,5 +255,30 @@ class LibraryContentTest {
     fun screenTitlesAreHeadings() = runComposeUiTest {
         setContent { PodcastTheme { LibraryContent(state = LibraryUiState(), actions = LibraryActions()) } }
         onNode(isHeading() and hasText(text(Res.string.library_title))).assertExists()
+    }
+
+    @Test
+    fun continueListeningShowsOnlyWhenSomethingIsStartedAndPlaysIt() = runComposeUiTest {
+        var played: String? = null
+        val podcast = Podcast("id-1", "Hipsters", "", null, "Alura", null, emptyList(), "url", null, 0, true)
+        val started = Episode(
+            id = "e1", podcastId = "id-1", title = "Started episode", description = null, audioUrl = "a",
+            imageUrl = null, duration = 1_800, publishDate = 0, isPlayed = false, playbackPosition = 720_000,
+            isDownloaded = false, fileSize = null,
+        )
+        // Enough podcasts to fill the screen, so the grid could keep the first one in place.
+        val podcasts = List(PODCASTS_TO_FILL) { LibraryEntry(podcast.copy(id = "id-$it"), 0, null) }
+        var state by mutableStateOf(LibraryUiState(podcasts = podcasts))
+        setContent {
+            PodcastTheme { LibraryContent(state = state, actions = LibraryActions(onPlay = { played = it.id })) }
+        }
+        onNode(isHeading() and hasText(text(Res.string.continue_listening), ignoreCase = true)).assertDoesNotExist()
+
+        state = state.copy(inProgress = listOf(started))
+        // It arrives after the podcasts: the library at its top shows it, instead of keeping the first podcast there.
+        onNode(isHeading() and hasText(text(Res.string.continue_listening), ignoreCase = true)).assertIsDisplayed()
+        onNodeWithText("Started episode").performClick()
+
+        assertEquals("e1", played)
     }
 }

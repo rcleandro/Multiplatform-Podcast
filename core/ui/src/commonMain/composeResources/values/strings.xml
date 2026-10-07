@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Podcast KMP</string>
     <string name="library_title">Library</string>
+    <string name="continue_listening">Continue listening</string>
+    <string name="library_podcasts">Podcasts</string>
     <string name="library_show_list">Show as list</string>
     <string name="library_show_grid">Show as grid</string>
     <string name="library_sort">Sort</string>

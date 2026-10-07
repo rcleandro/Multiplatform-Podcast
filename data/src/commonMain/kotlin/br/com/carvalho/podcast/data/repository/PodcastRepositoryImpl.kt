@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 private const val PAGE_SIZE = 20
+private const val IN_PROGRESS_LIMIT = 10
 
 private const val TAG = "PodcastRepository"
 
@@ -96,6 +97,9 @@ class PodcastRepositoryImpl(
             entities.map { it.toDomain() }
         }
     }
+
+    override fun getInProgressEpisodes(): Flow<List<Episode>> =
+        episodeDao.getInProgress(IN_PROGRESS_LIMIT).map { entities -> entities.map { it.toDomain() } }
 
     override fun getUnplayedEpisodes(): Flow<List<Episode>> {
         return episodeDao.getUnplayed().map { entities ->

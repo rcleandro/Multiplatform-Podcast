@@ -22,6 +22,8 @@ import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +43,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModelTest {
     private val repository = FakePodcastRepository()
+    private val audioPlayer = FakeAudioPlayer()
     private val feedSource = FakeFeedSource()
     private val addPodcastUseCase = AddPodcastFromUrlUseCase(feedSource, repository)
     private val refreshPodcastUseCase = RefreshPodcastUseCase(feedSource, repository)
@@ -64,8 +67,25 @@ class LibraryViewModelTest {
 
     private fun createViewModel(): LibraryViewModel {
         return LibraryViewModel(
-            repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, preferences, dispatchers, analytics
+            repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, preferences,
+            PlayEpisodeUseCase(audioPlayer, repository), dispatchers, analytics
         )
+    }
+
+    @Test
+    fun `continue listening shows the started episodes and plays the tapped one`() = runTest(testDispatcher) {
+        val started = Episode(
+            id = "e1", podcastId = "p1", title = "Started", description = null, audioUrl = "a", imageUrl = null,
+            duration = 600, publishDate = 0, isPlayed = false, playbackPosition = 120_000, isDownloaded = false,
+            fileSize = null,
+        )
+        repository.episodes.value = listOf(started, started.copy(id = "e2", playbackPosition = 0))
+        val viewModel = createViewModel()
+
+        assertEquals(listOf("e1"), viewModel.uiState.value.inProgress.map { it.id })
+        viewModel.onIntent(LibraryIntent.Play(started))
+
+        assertEquals("e1", audioPlayer.playCalledWith?.id)
     }
 
     @Test

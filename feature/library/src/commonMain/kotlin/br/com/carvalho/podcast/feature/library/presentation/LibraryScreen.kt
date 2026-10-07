@@ -59,7 +59,7 @@ import androidx.compose.material3.SnackbarHostState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -81,6 +81,7 @@ import br.com.carvalho.podcast.presentation.format.text
 import br.com.carvalho.podcast.core.ui.generated.resources.library_show_grid
 import br.com.carvalho.podcast.core.ui.generated.resources.library_show_list
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add
@@ -118,6 +119,7 @@ fun LibraryScreen(
             onRefresh = { viewModel.onIntent(LibraryIntent.RefreshAll) },
             onToggleLayout = { viewModel.onIntent(LibraryIntent.ToggleLayout) },
             onSortChange = { viewModel.onIntent(LibraryIntent.ChangeSort(it)) },
+            onPlay = { viewModel.onIntent(LibraryIntent.Play(it)) },
             onOrganize = onOrganize,
             onAddClick = { viewModel.onIntent(LibraryIntent.OpenAddDialog) },
             onUrlChange = { viewModel.onIntent(LibraryIntent.ChangeUrl(it)) },
@@ -135,6 +137,7 @@ data class LibraryActions(
     val onRefresh: () -> Unit = {},
     val onToggleLayout: () -> Unit = {},
     val onSortChange: (LibrarySort) -> Unit = {},
+    val onPlay: (Episode) -> Unit = {},
     val onOrganize: () -> Unit = {},
     val onAddClick: () -> Unit = {},
     val onUrlChange: (String) -> Unit = {},
@@ -152,17 +155,32 @@ fun LibraryContent(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    // The large title shrinks into the bar as the library scrolls (24.2).
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     // A new order starts from its first podcast. It scrolls once the reordered list is on screen: before that, the
     // lazy list would follow the item at the top to its new place.
+    // Only the layout on screen scrolls: the other one's state has no layout, and scrolling it waits for one forever.
+    val isList = state.layout == LibraryLayout.LIST
     var shownSort by remember { mutableStateOf(state.sort) }
     LaunchedEffect(state.sort) {
         if (state.sort != shownSort) {
             shownSort = state.sort
-            listState.scrollToItem(0)
-            gridState.scrollToItem(0)
+            if (isList) listState.scrollToItem(0) else gridState.scrollToItem(0)
+        }
+    }
+    // "Continue listening" loads after the podcasts and goes above them. The lazy list keeps its first item in place
+    // when one is added before it, which would hide the new section above the top; at the top, show it instead.
+    val hasContinue = state.inProgress.isNotEmpty()
+    LaunchedEffect(hasContinue) {
+        val (index, offset) = if (isList) {
+            listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
+        } else {
+            gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
+        }
+        if (hasContinue && index <= 1 && offset == 0) {
+            if (isList) listState.scrollToItem(0) else gridState.scrollToItem(0)
         }
     }
     val fabPadding by animateDpAsState(
@@ -181,8 +199,10 @@ fun LibraryContent(
             if (state.podcasts.isNotEmpty()) {
                 FloatingActionButton(
                     onClick = actions.onAddClick,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    // A square with large corners, the Expressive FAB of the visual reference (24.2).
+                    shape = MaterialTheme.shapes.large,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.padding(bottom = fabPadding)
                 ) {
                     Icon(Icons.Rounded.Add, contentDescription = stringResource(Res.string.add_podcast))
@@ -204,13 +224,9 @@ fun LibraryContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, state: LibraryUiState, actions: LibraryActions) {
-    TopAppBar(
+    LargeTopAppBar(
         title = {
-            Text(
-                text = stringResource(Res.string.library_title),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.semantics { heading() },
-            )
+            Text(text = stringResource(Res.string.library_title), modifier = Modifier.semantics { heading() })
         },
         actions = {
             SortMenu(state.sort, actions.onSortChange, actions.onOrganize)
@@ -291,8 +307,8 @@ private fun LibraryBody(
             actionLabel = stringResource(Res.string.add_podcast),
             onAction = actions.onAddClick,
         )
-        state.layout == LibraryLayout.LIST -> LibraryList(state.podcasts, actions, listState)
-        else -> LibraryGrid(state.podcasts, actions, gridState)
+        state.layout == LibraryLayout.LIST -> LibraryList(state, actions, listState)
+        else -> LibraryGrid(state, actions, gridState)
     }
 }
 

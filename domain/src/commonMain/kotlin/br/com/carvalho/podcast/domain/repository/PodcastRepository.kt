@@ -23,6 +23,9 @@ interface PodcastRepository {
     suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode>
     fun getDownloadedEpisodes(): Flow<List<Episode>>
     fun getUnplayedEpisodes(): Flow<List<Episode>>
+
+    /** Started and not finished, for "Continue listening". */
+    fun getInProgressEpisodes(): Flow<List<Episode>>
     suspend fun getEpisodeById(id: String): Episode?
     fun searchEpisodes(query: String): Flow<List<Episode>>
     fun searchEpisodesPaged(

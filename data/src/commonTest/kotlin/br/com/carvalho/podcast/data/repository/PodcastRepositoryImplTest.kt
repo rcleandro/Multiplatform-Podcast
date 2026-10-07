@@ -180,6 +180,21 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `in progress episodes are the started ones not yet played`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(
+            listOf(
+                episodeEntity.copy(id = "new"),
+                episodeEntity.copy(id = "started", playbackPosition = 300L),
+                episodeEntity.copy(id = "finished", playbackPosition = 0L, isPlayed = true),
+            )
+        )
+
+        assertEquals(listOf("started"), repository.getInProgressEpisodes().first().map { it.id })
+    }
+
+    @Test
     fun `marking an episode as unplayed starts it over`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)

@@ -1,5 +1,7 @@
 <resources>
     <string name="library_title">Biblioteca</string>
+    <string name="continue_listening">Seguir escuchando</string>
+    <string name="library_podcasts">Podcasts</string>
     <string name="library_show_list">Mostrar en lista</string>
     <string name="library_show_grid">Mostrar en cuadrícula</string>
     <string name="library_sort">Ordenar</string>

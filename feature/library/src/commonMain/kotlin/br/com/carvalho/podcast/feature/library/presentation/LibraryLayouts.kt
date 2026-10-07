@@ -12,6 +12,19 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import br.com.carvalho.podcast.core.AppConfig
+import br.com.carvalho.podcast.core.designsystem.component.ContinueCard
+import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
+import br.com.carvalho.podcast.core.ui.generated.resources.continue_listening
+import br.com.carvalho.podcast.core.ui.generated.resources.library_podcasts
+import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.presentation.component.remainingDuration
 import androidx.compose.ui.Modifier
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
@@ -39,16 +52,21 @@ private val libraryPadding = PaddingValues(
 )
 
 @Composable
-internal fun LibraryGrid(entries: List<LibraryEntry>, actions: LibraryActions, state: LazyGridState) {
+internal fun LibraryGrid(state: LibraryUiState, actions: LibraryActions, gridState: LazyGridState) {
     LazyVerticalGrid(
-        state = state,
+        state = gridState,
         columns = GridCells.Adaptive(minSize = Sizes.artworkM),
         contentPadding = libraryPadding,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         verticalArrangement = Arrangement.spacedBy(Spacing.l),
         modifier = Modifier.fillMaxSize()
     ) {
-        items(items = entries, key = { it.podcast.id }) { entry ->
+        if (state.inProgress.isNotEmpty()) {
+            item(key = CONTINUE_KEY, span = { GridItemSpan(maxLineSpan) }) {
+                ContinueListening(state.inProgress, actions.onPlay)
+            }
+        }
+        items(items = state.podcasts, key = { it.podcast.id }) { entry ->
             val podcast = entry.podcast
             PodcastCard(
                 title = podcast.title,
@@ -64,9 +82,9 @@ internal fun LibraryGrid(entries: List<LibraryEntry>, actions: LibraryActions, s
 }
 
 @Composable
-internal fun LibraryList(entries: List<LibraryEntry>, actions: LibraryActions, state: LazyListState) {
+internal fun LibraryList(state: LibraryUiState, actions: LibraryActions, listState: LazyListState) {
     LazyColumn(
-        state = state,
+        state = listState,
         // No right margin: each row's "⋮" sits at the edge, like the episode rows.
         contentPadding = PaddingValues(
             start = Spacing.l,
@@ -76,7 +94,10 @@ internal fun LibraryList(entries: List<LibraryEntry>, actions: LibraryActions, s
         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         modifier = Modifier.fillMaxSize()
     ) {
-        items(items = entries, key = { it.podcast.id }) { entry ->
+        if (state.inProgress.isNotEmpty()) {
+            item(key = CONTINUE_KEY) { ContinueListening(state.inProgress, actions.onPlay) }
+        }
+        items(items = state.podcasts, key = { it.podcast.id }) { entry ->
             val podcast = entry.podcast
             PodcastListItem(
                 title = podcast.title,
@@ -89,6 +110,30 @@ internal fun LibraryList(entries: List<LibraryEntry>, actions: LibraryActions, s
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+    }
+}
+
+private const val CONTINUE_KEY = "continue-listening"
+
+/** The started episodes in a row above the podcasts, each one played from where it stopped by a tap. */
+@Composable
+private fun ContinueListening(episodes: List<Episode>, onPlay: (Episode) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s), modifier = Modifier.padding(bottom = Spacing.s)) {
+        SectionTitle(stringResource(Res.string.continue_listening))
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            items(items = episodes, key = { it.id }) { episode ->
+                val durationMs = episode.duration * AppConfig.MILLIS_PER_SECOND
+                ContinueCard(
+                    title = episode.title,
+                    imageUrl = episode.imageUrl,
+                    progress = if (durationMs > 0) episode.playbackPosition.toFloat() / durationMs else 0f,
+                    caption = episode.remainingDuration()?.let { stringResource(Res.string.remaining_time, it) },
+                    onClick = { onPlay(episode) },
+                    onClickLabel = stringResource(Res.string.play),
+                )
+            }
+        }
+        SectionTitle(stringResource(Res.string.library_podcasts), Modifier.padding(top = Spacing.m))
     }
 }
 

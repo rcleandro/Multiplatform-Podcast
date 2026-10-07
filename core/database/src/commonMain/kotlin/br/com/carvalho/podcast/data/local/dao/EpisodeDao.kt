@@ -58,6 +58,14 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE isPlayed = 0 ORDER BY publishDate DESC")
     fun getUnplayed(): Flow<List<EpisodeEntity>>
 
+    // ponytail: newest first, since nothing records when an episode was last played; add that column if the
+    // library should show the most recently heard first.
+    @Query("""
+        SELECT * FROM episodes WHERE playbackPosition > 0 AND isPlayed = 0
+        ORDER BY publishDate DESC LIMIT :limit
+    """)
+    fun getInProgress(limit: Int): Flow<List<EpisodeEntity>>
+
     @Query("""
         SELECT * FROM episodes
         WHERE title LIKE '%' || :query || '%'
