@@ -15,4 +15,6 @@ data class Podcast(
     val isSubscribed: Boolean,
     val episodeCount: Int = 0,
     val feedVersion: FeedVersion? = null,
+    /** When the podcast entered the library (epoch ms); refreshing the feed keeps it. */
+    val subscribedAt: Long = 0,
 )

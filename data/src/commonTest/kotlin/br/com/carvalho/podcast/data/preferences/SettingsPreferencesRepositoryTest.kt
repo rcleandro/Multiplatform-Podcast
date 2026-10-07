@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.data.preferences
 
 import br.com.carvalho.podcast.domain.model.LibraryLayout
+import br.com.carvalho.podcast.domain.model.LibrarySort
 import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,6 +28,15 @@ class SettingsPreferencesRepositoryTest {
         repository.setLibraryLayout(LibraryLayout.LIST)
 
         assertEquals(LibraryLayout.LIST, repository.libraryLayout.value)
+    }
+
+    @Test
+    fun theChosenSortIsKeptAndStartsByTitle() {
+        assertEquals(LibrarySort.TITLE, SettingsPreferencesRepository(settings).librarySort.value)
+
+        SettingsPreferencesRepository(settings).setLibrarySort(LibrarySort.LATEST_EPISODE)
+
+        assertEquals(LibrarySort.LATEST_EPISODE, SettingsPreferencesRepository(settings).librarySort.value)
     }
 
     @Test

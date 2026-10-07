@@ -9,6 +9,9 @@ import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.LibraryLayout
+import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.sortedFor
+import kotlinx.coroutines.flow.combine
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.presentation.toMessage
@@ -52,8 +55,10 @@ class LibraryViewModel(
 
     init {
         viewModelScope.launch(dispatchers.io) {
-            repository.getLibrary().onStart { emit(emptyList()) }.collect { podcasts ->
-                _uiState.update { it.copy(podcasts = podcasts, isLoading = false) }
+            combine(repository.getLibrary().onStart { emit(emptyList()) }, preferences.librarySort) { podcasts, sort ->
+                podcasts.sortedFor(sort) to sort
+            }.collect { (podcasts, sort) ->
+                _uiState.update { it.copy(podcasts = podcasts, sort = sort, isLoading = false) }
             }
         }
     }
@@ -69,6 +74,7 @@ class LibraryViewModel(
             is LibraryIntent.ChangeUrl -> _uiState.update { it.copy(addUrl = intent.url) }
             LibraryIntent.ConfirmAdd -> addPodcast()
             LibraryIntent.ToggleLayout -> toggleLayout()
+            is LibraryIntent.ChangeSort -> preferences.setLibrarySort(intent.sort)
         }
     }
 
@@ -132,6 +138,7 @@ class LibraryViewModel(
 data class LibraryUiState(
     val podcasts: List<LibraryEntry> = emptyList(),
     val layout: LibraryLayout = LibraryLayout.GRID,
+    val sort: LibrarySort = LibrarySort.TITLE,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val isAddDialogOpen: Boolean = false,
@@ -145,6 +152,7 @@ sealed interface LibraryIntent {
     data class ChangeUrl(val url: String) : LibraryIntent
     data object ConfirmAdd : LibraryIntent
     data object ToggleLayout : LibraryIntent
+    data class ChangeSort(val sort: LibrarySort) : LibraryIntent
     data object DismissAddDialog : LibraryIntent
     data class RequestDelete(val podcast: Podcast) : LibraryIntent
     data object ConfirmDelete : LibraryIntent

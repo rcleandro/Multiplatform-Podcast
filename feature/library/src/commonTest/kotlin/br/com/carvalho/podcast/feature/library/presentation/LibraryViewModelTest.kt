@@ -16,6 +16,7 @@ import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.LibraryLayout
+import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
@@ -65,6 +66,23 @@ class LibraryViewModelTest {
         return LibraryViewModel(
             repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, preferences, dispatchers, analytics
         )
+    }
+
+    @Test
+    fun `the sort choice is saved and orders the library`() = runTest(testDispatcher) {
+        fun podcast(title: String, subscribedAt: Long) = Podcast(
+            id = title, title = title, description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), feedUrl = title, siteUrl = null, lastUpdated = 0, isSubscribed = true,
+            subscribedAt = subscribedAt,
+        )
+        repository.podcasts.value = listOf(podcast("A", subscribedAt = 1), podcast("B", subscribedAt = 2))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ChangeSort(LibrarySort.RECENTLY_ADDED))
+
+        assertEquals(LibrarySort.RECENTLY_ADDED, preferences.librarySort.value)
+        assertEquals(LibrarySort.RECENTLY_ADDED, viewModel.uiState.value.sort)
+        assertEquals(listOf("B", "A"), viewModel.uiState.value.podcasts.map { it.podcast.title })
     }
 
     @Test

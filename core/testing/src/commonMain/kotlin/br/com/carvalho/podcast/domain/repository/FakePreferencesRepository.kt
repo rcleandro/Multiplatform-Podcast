@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.LibraryLayout
+import br.com.carvalho.podcast.domain.model.LibrarySort
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakePreferencesRepository : PreferencesRepository {
@@ -8,5 +9,11 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override fun setLibraryLayout(layout: LibraryLayout) {
         libraryLayout.value = layout
+    }
+
+    override val librarySort = MutableStateFlow(LibrarySort.TITLE)
+
+    override fun setLibrarySort(sort: LibrarySort) {
+        librarySort.value = sort
     }
 }

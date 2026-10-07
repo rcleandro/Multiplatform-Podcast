@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.data.local.dao
 import androidx.paging.PagingSource
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.data.local.entity.PodcastFeedFields
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -85,8 +86,19 @@ class FakeEpisodeDao : EpisodeDao {
         return podcasts.value.size.toLong()
     }
 
-    override suspend fun updatePodcast(podcast: PodcastEntity) {
-        podcasts.value = podcasts.value.map { if (it.id == podcast.id) podcast else it }
+    override suspend fun updatePodcast(fields: PodcastFeedFields) {
+        podcasts.value = podcasts.value.map {
+            if (it.id != fields.id) {
+                it
+            } else {
+                it.copy(
+                    title = fields.title, description = fields.description, imageUrl = fields.imageUrl,
+                    author = fields.author, language = fields.language, categories = fields.categories,
+                    feedUrl = fields.feedUrl, siteUrl = fields.siteUrl, lastUpdated = fields.lastUpdated,
+                    etag = fields.etag, lastModified = fields.lastModified,
+                )
+            }
+        }
     }
 
     override suspend fun updateDownloadFile(id: String, fileName: String?) {

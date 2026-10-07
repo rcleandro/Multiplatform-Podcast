@@ -17,6 +17,14 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.library_show_grid
 import br.com.carvalho.podcast.core.ui.generated.resources.library_show_list
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.performScrollToIndex
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_first_added
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
@@ -83,6 +91,29 @@ class LibraryContentTest {
         }
         onNodeWithText("7").assertExists()
         onNodeWithContentDescription(text(Res.string.library_show_list)).assertExists()
+    }
+
+    @Test
+    fun choosingASortGoesBackToTheTopOfTheNewOrder() = runComposeUiTest {
+        val entries = (1..30).map {
+            LibraryEntry(Podcast("id-$it", "Podcast $it", "", null, null, null, emptyList(), "url$it", null, 0, true), 0, null)
+        }
+        // Like the view model: the chosen sort comes back with the list in the new order.
+        var state by mutableStateOf(LibraryUiState(podcasts = entries, layout = LibraryLayout.LIST))
+        setContent {
+            PodcastTheme {
+                LibraryContent(
+                    state = state,
+                    actions = LibraryActions(onSortChange = { state = state.copy(sort = it, podcasts = entries.reversed()) }),
+                )
+            }
+        }
+        onNode(hasScrollToIndexAction()).performScrollToIndex(entries.lastIndex)
+
+        onNodeWithContentDescription(text(Res.string.library_sort)).performClick()
+        onNodeWithText(text(Res.string.library_sort_first_added)).performClick()
+
+        onNodeWithText("Podcast 30").assertIsDisplayed()
     }
 
     @Test

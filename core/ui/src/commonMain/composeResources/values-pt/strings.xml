@@ -2,6 +2,12 @@
     <string name="library_title">Biblioteca</string>
     <string name="library_show_list">Mostrar em lista</string>
     <string name="library_show_grid">Mostrar em grade</string>
+    <string name="library_sort">Ordenar</string>
+    <string name="library_sort_title">Nome (A–Z)</string>
+    <string name="library_sort_recently_added">Últimas adicionadas</string>
+    <string name="library_sort_first_added">Adicionadas primeiro</string>
+    <string name="library_sort_latest_episode">Episódio mais recente</string>
+    <string name="library_sort_most_unplayed">Mais não ouvidos</string>
     <plurals name="library_unplayed">
         <item quantity="one">%1$d não ouvido</item>
         <item quantity="other">%1$d não ouvidos</item>

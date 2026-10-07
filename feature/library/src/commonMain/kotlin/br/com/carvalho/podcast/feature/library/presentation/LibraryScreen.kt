@@ -15,9 +15,29 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.selected
+import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_first_added
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_latest_episode
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_most_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_recently_added
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_title
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Mic
@@ -102,6 +122,7 @@ fun LibraryScreen(
             onPodcastLongClick = { viewModel.onIntent(LibraryIntent.RequestDelete(it)) },
             onRefresh = { viewModel.onIntent(LibraryIntent.RefreshAll) },
             onToggleLayout = { viewModel.onIntent(LibraryIntent.ToggleLayout) },
+            onSortChange = { viewModel.onIntent(LibraryIntent.ChangeSort(it)) },
             onAddClick = { viewModel.onIntent(LibraryIntent.OpenAddDialog) },
             onUrlChange = { viewModel.onIntent(LibraryIntent.ChangeUrl(it)) },
             onAddConfirm = { viewModel.onIntent(LibraryIntent.ConfirmAdd) },
@@ -117,6 +138,7 @@ data class LibraryActions(
     val onPodcastLongClick: (Podcast) -> Unit = {},
     val onRefresh: () -> Unit = {},
     val onToggleLayout: () -> Unit = {},
+    val onSortChange: (LibrarySort) -> Unit = {},
     val onAddClick: () -> Unit = {},
     val onUrlChange: (String) -> Unit = {},
     val onAddConfirm: () -> Unit = {},
@@ -135,6 +157,18 @@ fun LibraryContent(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
+    // A new order starts from its first podcast. It scrolls once the reordered list is on screen: before that, the
+    // lazy list would follow the item at the top to its new place.
+    var shownSort by remember { mutableStateOf(state.sort) }
+    LaunchedEffect(state.sort) {
+        if (state.sort != shownSort) {
+            shownSort = state.sort
+            listState.scrollToItem(0)
+            gridState.scrollToItem(0)
+        }
+    }
     val fabPadding by animateDpAsState(
         targetValue = if (isPlayerVisible) Sizes.miniPlayerHeight else 0.dp,
         animationSpec = tween(Motion.MEDIUM, easing = Motion.Standard)
@@ -143,7 +177,7 @@ fun LibraryContent(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = { LibraryTopBar(scrollBehavior, state.layout, actions) },
+        topBar = { LibraryTopBar(scrollBehavior, state, actions) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(),
         floatingActionButton = {
@@ -162,7 +196,7 @@ fun LibraryContent(
             onRefresh = actions.onRefresh,
             modifier = Modifier.padding(padding)
         ) {
-            LibraryBody(state, actions)
+            LibraryBody(state, actions, listState, gridState)
         }
         LibraryDialogs(state, actions)
     }
@@ -170,7 +204,7 @@ fun LibraryContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, layout: LibraryLayout, actions: LibraryActions) {
+private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, state: LibraryUiState, actions: LibraryActions) {
     TopAppBar(
         title = {
             Text(
@@ -180,9 +214,10 @@ private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, layout: Libra
             )
         },
         actions = {
+            SortMenu(state.sort, actions.onSortChange)
             // The button shows the layout it switches to.
             IconButton(onClick = actions.onToggleLayout) {
-                if (layout == LibraryLayout.GRID) {
+                if (state.layout == LibraryLayout.GRID) {
                     Icon(Icons.AutoMirrored.Rounded.ViewList, stringResource(Res.string.library_show_list))
                 } else {
                     Icon(Icons.Rounded.GridView, stringResource(Res.string.library_show_grid))
@@ -200,8 +235,44 @@ private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, layout: Libra
     )
 }
 
+private val sortLabels = mapOf(
+    LibrarySort.TITLE to Res.string.library_sort_title,
+    LibrarySort.RECENTLY_ADDED to Res.string.library_sort_recently_added,
+    LibrarySort.FIRST_ADDED to Res.string.library_sort_first_added,
+    LibrarySort.LATEST_EPISODE to Res.string.library_sort_latest_episode,
+    LibrarySort.MOST_UNPLAYED to Res.string.library_sort_most_unplayed,
+)
+
 @Composable
-private fun LibraryBody(state: LibraryUiState, actions: LibraryActions) {
+private fun SortMenu(current: LibrarySort, onSortChange: (LibrarySort) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = stringResource(Res.string.library_sort))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            sortLabels.forEach { (sort, label) ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(label)) },
+                    onClick = {
+                        expanded = false
+                        onSortChange(sort)
+                    },
+                    trailingIcon = { if (sort == current) Icon(Icons.Rounded.Check, contentDescription = null) },
+                    modifier = Modifier.semantics { selected = sort == current },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LibraryBody(
+    state: LibraryUiState,
+    actions: LibraryActions,
+    listState: LazyListState,
+    gridState: LazyGridState,
+) {
     when {
         state.isLoading -> LoadingState()
         state.podcasts.isEmpty() -> EmptyState(
@@ -211,8 +282,8 @@ private fun LibraryBody(state: LibraryUiState, actions: LibraryActions) {
             actionLabel = stringResource(Res.string.add_podcast),
             onAction = actions.onAddClick,
         )
-        state.layout == LibraryLayout.LIST -> LibraryList(state.podcasts, actions)
-        else -> LibraryGrid(state.podcasts, actions)
+        state.layout == LibraryLayout.LIST -> LibraryList(state.podcasts, actions, listState)
+        else -> LibraryGrid(state.podcasts, actions, gridState)
     }
 }
 
@@ -224,8 +295,9 @@ private val libraryPadding = PaddingValues(
 )
 
 @Composable
-private fun LibraryGrid(entries: List<LibraryEntry>, actions: LibraryActions) {
+private fun LibraryGrid(entries: List<LibraryEntry>, actions: LibraryActions, state: LazyGridState) {
     LazyVerticalGrid(
+        state = state,
         columns = GridCells.Adaptive(minSize = Sizes.artworkM),
         contentPadding = libraryPadding,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
@@ -248,8 +320,9 @@ private fun LibraryGrid(entries: List<LibraryEntry>, actions: LibraryActions) {
 }
 
 @Composable
-private fun LibraryList(entries: List<LibraryEntry>, actions: LibraryActions) {
+private fun LibraryList(entries: List<LibraryEntry>, actions: LibraryActions, state: LazyListState) {
     LazyColumn(
+        state = state,
         contentPadding = libraryPadding,
         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         modifier = Modifier.fillMaxSize()

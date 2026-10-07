@@ -209,6 +209,18 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `refreshing a feed keeps the date the podcast was added`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        repository.saveFeed(podcastEntity.toDomain().copy(subscribedAt = 1_000L), emptyList())
+
+        repository.saveFeed(podcastEntity.toDomain().copy(title = "Renamed", subscribedAt = 9_000L), emptyList())
+
+        val saved = repository.getPodcastById(podcastId)!!
+        assertEquals("Renamed", saved.title)
+        assertEquals(1_000L, saved.subscribedAt)
+    }
+
+    @Test
     fun `the library counts unplayed episodes and finds the latest one`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)

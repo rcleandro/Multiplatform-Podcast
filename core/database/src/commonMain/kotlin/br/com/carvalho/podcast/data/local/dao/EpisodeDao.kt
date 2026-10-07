@@ -10,6 +10,8 @@ import androidx.room3.Query
 import androidx.room3.Update
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.data.local.entity.PodcastFeedFields
+import br.com.carvalho.podcast.data.local.entity.feedFields
 import kotlinx.coroutines.flow.Flow
 
 import androidx.room3.Transaction
@@ -85,13 +87,13 @@ interface EpisodeDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPodcastIfNew(podcast: PodcastEntity): Long
 
-    @Update
-    suspend fun updatePodcast(podcast: PodcastEntity)
+    @Update(entity = PodcastEntity::class)
+    suspend fun updatePodcast(fields: PodcastFeedFields)
 
     /** A feed read from the network: the podcast and its episodes, all or nothing. */
     @Transaction
     suspend fun saveFeed(podcast: PodcastEntity, episodes: List<EpisodeEntity>) {
-        if (insertPodcastIfNew(podcast) == NOT_INSERTED) updatePodcast(podcast)
+        if (insertPodcastIfNew(podcast) == NOT_INSERTED) updatePodcast(podcast.feedFields())
         deleteWithoutAudio(podcast.id)
         saveFromFeed(episodes)
     }
