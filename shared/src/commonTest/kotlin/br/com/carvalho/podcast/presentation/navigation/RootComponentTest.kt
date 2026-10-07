@@ -33,6 +33,19 @@ class RootComponentTest {
     }
 
     @Test
+    fun organizingTheLibraryOpensItsScreenAndBackClosesIt() {
+        val root = createRoot()
+
+        root.onOrganizeLibrary()
+
+        assertTrue(root.current.isOrganizingLibrary)
+        assertTrue(backDispatcher.isEnabled)
+        backDispatcher.back()
+        assertFalse(root.current.isOrganizingLibrary)
+        assertEquals(Tab.Library, root.current.selectedTab)
+    }
+
+    @Test
     fun selectingAnEpisodeOpensItOverItsPodcast() {
         val root = createRoot()
 

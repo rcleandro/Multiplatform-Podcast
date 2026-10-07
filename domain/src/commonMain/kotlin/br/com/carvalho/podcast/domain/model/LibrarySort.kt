@@ -1,7 +1,7 @@
 package br.com.carvalho.podcast.domain.model
 
-/** Orders the library offers. */
-enum class LibrarySort { TITLE, RECENTLY_ADDED, FIRST_ADDED, LATEST_EPISODE, MOST_UNPLAYED }
+/** Orders the library offers; [CUSTOM] is the one the user arranges by hand. */
+enum class LibrarySort { TITLE, RECENTLY_ADDED, FIRST_ADDED, LATEST_EPISODE, MOST_UNPLAYED, CUSTOM }
 
 private val byTitle = compareBy<LibraryEntry> { it.podcast.title.lowercase() }
 
@@ -14,4 +14,5 @@ fun List<LibraryEntry>.sortedFor(sort: LibrarySort): List<LibraryEntry> = when (
     LibrarySort.LATEST_EPISODE ->
         sortedWith(compareByDescending<LibraryEntry> { it.latestEpisodeDate ?: Long.MIN_VALUE }.then(byTitle))
     LibrarySort.MOST_UNPLAYED -> sortedWith(compareByDescending<LibraryEntry> { it.unplayedCount }.then(byTitle))
+    LibrarySort.CUSTOM -> sortedWith(compareBy<LibraryEntry> { it.podcast.position }.then(byTitle))
 }

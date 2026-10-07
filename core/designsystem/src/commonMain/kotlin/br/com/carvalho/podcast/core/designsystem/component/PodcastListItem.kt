@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 
-/** Library row: small cover, title, author and a line such as "2 days ago · 3 unplayed". */
+/** Library row: small cover, title, author and a line such as "2 days ago · 3 unplayed"; [dragHandle] at the end. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PodcastListItem(
@@ -29,6 +29,7 @@ fun PodcastListItem(
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
     onLongClickLabel: String? = null,
+    dragHandle: (@Composable () -> Unit)? = null,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
@@ -57,5 +58,6 @@ fun PodcastListItem(
                 )
             }
         }
+        dragHandle?.invoke()
     }
 }

@@ -18,6 +18,11 @@ import br.com.carvalho.podcast.core.ui.generated.resources.library_show_grid
 import br.com.carvalho.podcast.core.ui.generated.resources.library_show_list
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.core.ui.generated.resources.library_reorder
+import br.com.carvalho.podcast.core.ui.generated.resources.library_organize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -114,6 +119,27 @@ class LibraryContentTest {
         onNodeWithText(text(Res.string.library_sort_first_added)).performClick()
 
         onNodeWithText("Podcast 30").assertIsDisplayed()
+    }
+
+    @Test
+    fun theCustomOrderIsArrangedInItsOwnScreen() = runComposeUiTest {
+        var organize = 0
+        val podcast = Podcast("id-1", "Hipsters", "", null, "Alura", null, emptyList(), "url", null, 0, true)
+        setContent {
+            PodcastTheme {
+                LibraryContent(
+                    state = LibraryUiState(podcasts = listOf(LibraryEntry(podcast, 0, null)), sort = LibrarySort.CUSTOM),
+                    actions = LibraryActions(onOrganize = { organize++ }),
+                )
+            }
+        }
+        // The library itself stays clean: no drag handles, even in the custom order.
+        onAllNodesWithContentDescription(text(Res.string.library_reorder)).assertCountEquals(0)
+
+        onNodeWithContentDescription(text(Res.string.library_sort)).performClick()
+        onNodeWithText(text(Res.string.library_organize)).performClick()
+
+        assertEquals(1, organize)
     }
 
     @Test

@@ -22,6 +22,10 @@ class FakePodcastRepository : PodcastRepository {
 
     override fun getPodcasts(): Flow<List<Podcast>> = podcasts
 
+    override suspend fun reorderLibrary(podcastIds: List<String>) {
+        podcasts.value = podcasts.value.map { it.copy(position = podcastIds.indexOf(it.id)) }
+    }
+
     override fun getLibrary(): Flow<List<LibraryEntry>> = combine(podcasts, episodes) { podcasts, episodes ->
         podcasts.sortedBy { it.title.lowercase() }.map { podcast ->
             val own = episodes.filter { it.podcastId == podcast.id }

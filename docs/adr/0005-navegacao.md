@@ -25,6 +25,7 @@ Duas abas: **Biblioteca** e **Episódios**. Tudo o mais abre a partir delas.
 ```
 Biblioteca ──┬─ "+" ── Adicionar podcast: busca no diretório (18.1) · menu: adicionar por URL, importar OPML (18.13)
              ├─ ⚙  ── Configurações (18.5), com o espaço ocupado pelos downloads (14.8)
+             ├─ menu de ordem › "Organizar…" ── Organizar biblioteca (24.4), sobre as abas
              └─ card ─ Detalhe do podcast ── Episódio
 
 Episódios ── busca nos episódios salvos
@@ -44,6 +45,8 @@ Mini player (em todas as telas, com algo tocando) ── Player em tela cheia, s
 - **Novos episódios (18.7)** é o filtro padrão de Episódios, não uma aba.
 - **Configurações (18.5)** abre por um ícone na barra superior da biblioteca.
 - **Fila (18.6)** abre pelo player e pelo mini player.
+- **Organizar biblioteca (24.4)** abre pelo item "Organizar…" do menu de ordem, sobre as abas, como o player; voltar
+  ou tocar numa aba fecha. É o único lugar que mostra as alças de arrastar (ADR 0007).
 
 Alternativas consideradas:
 

@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 interface PodcastRepository {
     fun getPodcasts(): Flow<List<Podcast>>
     fun getLibrary(): Flow<List<LibraryEntry>>
+
+    /** Saves the custom order: [podcastIds] from first to last. */
+    suspend fun reorderLibrary(podcastIds: List<String>)
     suspend fun getPodcastById(id: String): Podcast?
     fun getPodcastByIdFlow(id: String): Flow<Podcast?>
     fun getEpisodes(podcastId: String): Flow<List<Episode>>

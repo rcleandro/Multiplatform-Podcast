@@ -32,6 +32,8 @@ class PodcastRepositoryImpl(
         rows.map { LibraryEntry(it.podcast.toDomain(), it.unplayedCount, it.latestEpisodeDate) }
     }
 
+    override suspend fun reorderLibrary(podcastIds: List<String>) = podcastDao.reorder(podcastIds)
+
     override fun getPodcasts(): Flow<List<Podcast>> {
         return podcastDao.getAll().map { entities ->
             entities.map { it.toDomain() }

@@ -23,7 +23,7 @@ import kotlin.test.assertTrue
 class MigrationTest {
     private val databaseFile: Path = Files.createTempFile("migration", ".db")
     private val directories = AppDirectories(FakeFileSystem(), "/app".toPath())
-    private val migrations = listOf(EpisodeIdMigration(directories), QueueItemsMigration, DownloadFileMigration, SubscribedAtMigration)
+    private val migrations = listOf(EpisodeIdMigration(directories), QueueItemsMigration, DownloadFileMigration, SubscribedAtMigration, PositionMigration)
     private val helper = MigrationTestHelper(
         schemaDirectoryPath = Paths.get("schemas"),
         databasePath = databaseFile,
@@ -141,6 +141,23 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version9PlacesThePodcastsInTheOrderTheyWereAdded() = runTest {
+        helper.createDatabase(POSITION_VERSION - 1).use { connection ->
+            connection.insertLibrary(queueJson = null, episodeId = E1)
+            connection.execSQL(
+                "INSERT INTO podcasts (id, title, description, categories, feedUrl, lastUpdated, isSubscribed) " +
+                    "VALUES ('p0', 'Added later', '', '[]', 'https://later', 0, 1)"
+            )
+        }
+
+        helper.runMigrationsAndValidate(POSITION_VERSION, migrations).use { connection ->
+            assertEquals(
+                "p1,p0", connection.text("SELECT group_concat(id) FROM (SELECT id FROM podcasts ORDER BY position)")
+            )
+        }
+    }
+
     private fun SQLiteConnection.insertLibrary(queueJson: String? = "[]", episodeId: String = "e1") {
         execSQL(
             "INSERT INTO podcasts (id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, " +
@@ -169,7 +186,8 @@ class MigrationTest {
         const val DOWNLOAD_FILE_VERSION = 6
         const val FEED_VERSION_VERSION = 7
         const val SUBSCRIBED_AT_VERSION = 8
-        const val CURRENT_VERSION = 8
+        const val POSITION_VERSION = 9
+        const val CURRENT_VERSION = 9
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

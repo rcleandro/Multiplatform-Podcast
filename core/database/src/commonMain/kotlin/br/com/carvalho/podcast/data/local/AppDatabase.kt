@@ -16,10 +16,10 @@ import br.com.carvalho.podcast.data.local.entity.QueueItemEntity
 
 @Database(
     entities = [PodcastEntity::class, EpisodeEntity::class, PlaybackStateEntity::class, QueueItemEntity::class],
-    version = 8,
+    version = 9,
     // Every schema change ships a migration and a MigrationTest case; there is no destructive fallback.
-    // 3 → 4, 4 → 5, 5 → 6 and 7 → 8 are manual (EpisodeIdMigration, QueueItemsMigration, DownloadFileMigration,
-    // SubscribedAtMigration), added by addAppMigrations.
+    // 3 → 4, 4 → 5, 5 → 6, 7 → 8 and 8 → 9 are manual (EpisodeIdMigration, QueueItemsMigration,
+    // DownloadFileMigration, SubscribedAtMigration, PositionMigration), added by addAppMigrations.
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -40,4 +40,7 @@ expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
 
 /** The manual migrations every platform's builder needs; the automatic ones come from `@Database`. */
 fun RoomDatabase.Builder<AppDatabase>.addAppMigrations(directories: AppDirectories): RoomDatabase.Builder<AppDatabase> =
-    addMigrations(EpisodeIdMigration(directories), QueueItemsMigration, DownloadFileMigration, SubscribedAtMigration)
+    addMigrations(
+        EpisodeIdMigration(directories), QueueItemsMigration, DownloadFileMigration, SubscribedAtMigration,
+        PositionMigration,
+    )

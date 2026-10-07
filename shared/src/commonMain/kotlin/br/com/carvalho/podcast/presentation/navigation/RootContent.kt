@@ -52,6 +52,7 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesScreen
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
+import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
@@ -102,6 +103,14 @@ fun RootContent(component: RootComponent) {
             playerState = playerState,
             onPlayPause = { playerViewModel.onIntent(PlayerIntent.PlayPause) },
         )
+
+        AnimatedVisibility(
+            visible = state.isOrganizingLibrary,
+            enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
+            exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
+        ) {
+            LibraryOrderScreen(onBack = component::onBackClicked)
+        }
 
         AnimatedVisibility(
             visible = state.isPlayerOpen,
@@ -174,7 +183,11 @@ private fun TabContent(
 @Composable
 private fun ListPane(component: RootComponent, tab: Tab, isPlayerVisible: Boolean) {
     when (tab) {
-        Tab.Library -> LibraryScreen(isPlayerVisible = isPlayerVisible, onPodcastClick = component::onPodcastSelected)
+        Tab.Library -> LibraryScreen(
+            isPlayerVisible = isPlayerVisible,
+            onOrganize = component::onOrganizeLibrary,
+            onPodcastClick = component::onPodcastSelected,
+        )
         Tab.Search -> SearchScreen(onEpisodeClick = component::onEpisodeSelected)
         Tab.Downloads -> DownloadedEpisodesScreen(onEpisodeClick = component::onEpisodeSelected)
     }

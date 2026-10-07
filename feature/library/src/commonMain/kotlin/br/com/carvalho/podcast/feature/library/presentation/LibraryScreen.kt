@@ -6,21 +6,15 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.LazyColumn
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_custom
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.automirrored.rounded.Sort
@@ -28,8 +22,9 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import br.com.carvalho.podcast.core.ui.generated.resources.library_organize
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.selected
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
@@ -60,8 +55,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -72,17 +68,10 @@ import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
-import br.com.carvalho.podcast.core.designsystem.component.PodcastCard
-import br.com.carvalho.podcast.core.designsystem.component.PodcastListItem
-import br.com.carvalho.podcast.core.util.getCurrentTimestamp
-import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.LibraryLayout
-import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
 import br.com.carvalho.podcast.core.ui.generated.resources.library_show_grid
 import br.com.carvalho.podcast.core.ui.generated.resources.library_show_list
-import br.com.carvalho.podcast.core.ui.generated.resources.library_unplayed
-import org.jetbrains.compose.resources.pluralStringResource
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -95,7 +84,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.delete_podcast_confir
 import br.com.carvalho.podcast.core.ui.generated.resources.library_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
 import br.com.carvalho.podcast.core.ui.generated.resources.no_podcasts_found
-import br.com.carvalho.podcast.core.ui.generated.resources.podcast_options
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh_all
 import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_label
 import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_placeholder
@@ -106,6 +94,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun LibraryScreen(
     viewModel: LibraryViewModel = koinViewModel(),
     isPlayerVisible: Boolean = false,
+    onOrganize: () -> Unit = {},
     onPodcastClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -123,6 +112,7 @@ fun LibraryScreen(
             onRefresh = { viewModel.onIntent(LibraryIntent.RefreshAll) },
             onToggleLayout = { viewModel.onIntent(LibraryIntent.ToggleLayout) },
             onSortChange = { viewModel.onIntent(LibraryIntent.ChangeSort(it)) },
+            onOrganize = onOrganize,
             onAddClick = { viewModel.onIntent(LibraryIntent.OpenAddDialog) },
             onUrlChange = { viewModel.onIntent(LibraryIntent.ChangeUrl(it)) },
             onAddConfirm = { viewModel.onIntent(LibraryIntent.ConfirmAdd) },
@@ -139,6 +129,7 @@ data class LibraryActions(
     val onRefresh: () -> Unit = {},
     val onToggleLayout: () -> Unit = {},
     val onSortChange: (LibrarySort) -> Unit = {},
+    val onOrganize: () -> Unit = {},
     val onAddClick: () -> Unit = {},
     val onUrlChange: (String) -> Unit = {},
     val onAddConfirm: () -> Unit = {},
@@ -214,7 +205,7 @@ private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, state: Librar
             )
         },
         actions = {
-            SortMenu(state.sort, actions.onSortChange)
+            SortMenu(state.sort, actions.onSortChange, actions.onOrganize)
             // The button shows the layout it switches to.
             IconButton(onClick = actions.onToggleLayout) {
                 if (state.layout == LibraryLayout.GRID) {
@@ -241,10 +232,11 @@ private val sortLabels = mapOf(
     LibrarySort.FIRST_ADDED to Res.string.library_sort_first_added,
     LibrarySort.LATEST_EPISODE to Res.string.library_sort_latest_episode,
     LibrarySort.MOST_UNPLAYED to Res.string.library_sort_most_unplayed,
+    LibrarySort.CUSTOM to Res.string.library_sort_custom,
 )
 
 @Composable
-private fun SortMenu(current: LibrarySort, onSortChange: (LibrarySort) -> Unit) {
+private fun SortMenu(current: LibrarySort, onSortChange: (LibrarySort) -> Unit, onOrganize: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { expanded = true }) {
@@ -262,6 +254,15 @@ private fun SortMenu(current: LibrarySort, onSortChange: (LibrarySort) -> Unit) 
                     modifier = Modifier.semantics { selected = sort == current },
                 )
             }
+            HorizontalDivider()
+            // Arranging opens its own screen, so the library never shows drag handles.
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.library_organize)) },
+                onClick = {
+                    expanded = false
+                    onOrganize()
+                },
+            )
         }
     }
 }
@@ -285,72 +286,6 @@ private fun LibraryBody(
         state.layout == LibraryLayout.LIST -> LibraryList(state.podcasts, actions, listState)
         else -> LibraryGrid(state.podcasts, actions, gridState)
     }
-}
-
-private val libraryPadding = PaddingValues(
-    start = Spacing.l,
-    top = Spacing.l,
-    end = Spacing.l,
-    bottom = Sizes.listBottomInset,
-)
-
-@Composable
-private fun LibraryGrid(entries: List<LibraryEntry>, actions: LibraryActions, state: LazyGridState) {
-    LazyVerticalGrid(
-        state = state,
-        columns = GridCells.Adaptive(minSize = Sizes.artworkM),
-        contentPadding = libraryPadding,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
-        verticalArrangement = Arrangement.spacedBy(Spacing.l),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        items(items = entries, key = { it.podcast.id }) { entry ->
-            val podcast = entry.podcast
-            PodcastCard(
-                title = podcast.title,
-                author = podcast.author,
-                imageUrl = podcast.imageUrl,
-                unplayedCount = entry.unplayedCount,
-                onClick = { actions.onPodcastClick(podcast.id) },
-                onLongClick = { actions.onPodcastLongClick(podcast) },
-                onLongClickLabel = stringResource(Res.string.podcast_options)
-            )
-        }
-    }
-}
-
-@Composable
-private fun LibraryList(entries: List<LibraryEntry>, actions: LibraryActions, state: LazyListState) {
-    LazyColumn(
-        state = state,
-        contentPadding = libraryPadding,
-        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        items(items = entries, key = { it.podcast.id }) { entry ->
-            val podcast = entry.podcast
-            PodcastListItem(
-                title = podcast.title,
-                author = podcast.author,
-                imageUrl = podcast.imageUrl,
-                supportingText = entry.summary(),
-                onClick = { actions.onPodcastClick(podcast.id) },
-                onLongClick = { actions.onPodcastLongClick(podcast) },
-                onLongClickLabel = stringResource(Res.string.podcast_options),
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-}
-
-/** "2 days ago · 3 unplayed", like the episode rows; each half is left out when there is nothing to say. */
-@Composable
-private fun LibraryEntry.summary(): String? {
-    val latest = latestEpisodeDate?.let { relativeTime(it, getCurrentTimestamp())?.text() }
-    val unplayed = unplayedCount.takeIf { it > 0 }?.let {
-        pluralStringResource(Res.plurals.library_unplayed, it, it)
-    }
-    return listOfNotNull(latest, unplayed).joinToString(" · ").ifEmpty { null }
 }
 
 @Composable

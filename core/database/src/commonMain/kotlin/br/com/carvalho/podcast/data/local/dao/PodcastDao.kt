@@ -2,7 +2,7 @@ package br.com.carvalho.podcast.data.local.dao
 
 import androidx.room3.Dao
 import androidx.room3.Query
-import androidx.room3.Delete
+import androidx.room3.Transaction
 import androidx.room3.Upsert
 import br.com.carvalho.podcast.data.local.entity.LibraryRow
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
@@ -31,18 +31,18 @@ interface PodcastDao {
     @Query("SELECT * FROM podcasts WHERE id = :id")
     fun getByIdFlow(id: String): Flow<PodcastEntity?>
 
-    @Query("SELECT EXISTS(SELECT 1 FROM podcasts WHERE feedUrl = :feedUrl)")
-    suspend fun existsByFeedUrl(feedUrl: String): Boolean
-
     @Upsert
     suspend fun insert(podcast: PodcastEntity)
-
-    @Delete
-    suspend fun delete(podcast: PodcastEntity)
 
     @Query("DELETE FROM podcasts WHERE id = :id")
     suspend fun deleteById(id: String)
 
-    @Query("UPDATE podcasts SET lastUpdated = :timestamp WHERE id = :id")
-    suspend fun updateLastUpdated(id: String, timestamp: Long)
+    @Query("UPDATE podcasts SET position = :position WHERE id = :id")
+    suspend fun setPosition(id: String, position: Int)
+
+    /** The custom order, all or nothing: [ids] from first to last. */
+    @Transaction
+    suspend fun reorder(ids: List<String>) {
+        ids.forEachIndexed { position, id -> setPosition(id, position) }
+    }
 }

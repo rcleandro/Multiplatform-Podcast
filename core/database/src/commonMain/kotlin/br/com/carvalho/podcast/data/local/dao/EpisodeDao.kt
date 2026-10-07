@@ -87,13 +87,19 @@ interface EpisodeDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPodcastIfNew(podcast: PodcastEntity): Long
 
+    @Query("SELECT COALESCE(MAX(position), -1) + 1 FROM podcasts")
+    suspend fun nextPodcastPosition(): Int
+
     @Update(entity = PodcastEntity::class)
     suspend fun updatePodcast(fields: PodcastFeedFields)
 
     /** A feed read from the network: the podcast and its episodes, all or nothing. */
     @Transaction
     suspend fun saveFeed(podcast: PodcastEntity, episodes: List<EpisodeEntity>) {
-        if (insertPodcastIfNew(podcast) == NOT_INSERTED) updatePodcast(podcast.feedFields())
+        // A new podcast goes to the end of the custom order; a known one keeps its place.
+        if (insertPodcastIfNew(podcast.copy(position = nextPodcastPosition())) == NOT_INSERTED) {
+            updatePodcast(podcast.feedFields())
+        }
         deleteWithoutAudio(podcast.id)
         saveFromFeed(episodes)
     }

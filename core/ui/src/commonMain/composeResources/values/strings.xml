@@ -9,6 +9,13 @@
     <string name="library_sort_first_added">First added</string>
     <string name="library_sort_latest_episode">Latest episode</string>
     <string name="library_sort_most_unplayed">Most unplayed</string>
+    <string name="library_sort_custom">Custom</string>
+    <string name="library_reorder">Drag to reorder</string>
+    <string name="library_move_up">Move up</string>
+    <string name="library_move_down">Move down</string>
+    <string name="library_organize">Organize…</string>
+    <string name="library_organize_title">Organize library</string>
+    <string name="library_organize_hint">Drag ☰ to change the order. It is saved as you go.</string>
     <plurals name="library_unplayed">
         <item quantity="one">%1$d unplayed</item>
         <item quantity="other">%1$d unplayed</item>

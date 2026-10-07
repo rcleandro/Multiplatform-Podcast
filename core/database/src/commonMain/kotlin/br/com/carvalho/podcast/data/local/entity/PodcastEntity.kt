@@ -22,9 +22,11 @@ data class PodcastEntity(
     val lastModified: String? = null,
     /** When the podcast entered the library; the feed never rewrites it (see PodcastFeedFields). */
     @ColumnInfo(defaultValue = "0") val subscribedAt: Long = 0,
+    /** Place in the custom order; the feed never rewrites it either. */
+    @ColumnInfo(defaultValue = "0") val position: Int = 0,
 )
 
-/** The columns a feed owns: refreshing it updates these and keeps what the library set (subscribedAt). */
+/** The columns a feed owns: refreshing it updates these and keeps what the library set (subscribedAt, position). */
 data class PodcastFeedFields(
     val id: String,
     val title: String,

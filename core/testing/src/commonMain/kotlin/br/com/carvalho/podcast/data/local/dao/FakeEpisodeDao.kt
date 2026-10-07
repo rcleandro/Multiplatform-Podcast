@@ -86,6 +86,8 @@ class FakeEpisodeDao : EpisodeDao {
         return podcasts.value.size.toLong()
     }
 
+    override suspend fun nextPodcastPosition(): Int = (podcasts.value.maxOfOrNull { it.position } ?: -1) + 1
+
     override suspend fun updatePodcast(fields: PodcastFeedFields) {
         podcasts.value = podcasts.value.map {
             if (it.id != fields.id) {

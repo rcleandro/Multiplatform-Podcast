@@ -209,6 +209,21 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `a custom order is saved and a new podcast goes to its end`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        repository.saveFeed(podcastEntity.toDomain().copy(id = "a", title = "A"), emptyList())
+        repository.saveFeed(podcastEntity.toDomain().copy(id = "b", title = "B"), emptyList())
+
+        repository.reorderLibrary(listOf("b", "a"))
+        repository.saveFeed(podcastEntity.toDomain().copy(id = "c", title = "C"), emptyList())
+        // Refreshing keeps the place the user gave it.
+        repository.saveFeed(podcastEntity.toDomain().copy(id = "b", title = "B again"), emptyList())
+
+        val order = repository.getLibrary().first().sortedBy { it.podcast.position }.map { it.podcast.id }
+        assertEquals(listOf("b", "a", "c"), order)
+    }
+
+    @Test
     fun `refreshing a feed keeps the date the podcast was added`() = runTest {
         if (!isDatabaseSupported) return@runTest
         repository.saveFeed(podcastEntity.toDomain().copy(subscribedAt = 1_000L), emptyList())
