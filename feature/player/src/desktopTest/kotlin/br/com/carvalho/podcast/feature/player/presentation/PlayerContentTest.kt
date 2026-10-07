@@ -5,9 +5,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -33,6 +41,19 @@ class PlayerContentTest {
         audioUrl = "", imageUrl = null, duration = 60, publishDate = 0, isPlayed = false,
         playbackPosition = 0, isDownloaded = false, fileSize = null,
     )
+
+    @Test
+    fun aShortWindowStillReachesTheBottomButtons() = runComposeUiTest {
+        val queue = listOf(episode("1"))
+        setContent {
+            PodcastTheme {
+                Box(modifier = Modifier.size(width = 400.dp, height = 360.dp)) {
+                    PlayerContent(state = PlayerState(currentEpisode = queue.first(), queue = queue), actions = PlayerActions())
+                }
+            }
+        }
+        onNodeWithText(text(Res.string.sleep_timer)).performScrollTo().assertIsDisplayed()
+    }
 
     @Test
     fun playerDisablesNextOnTheLastEpisodeOfTheQueue() = runComposeUiTest {
