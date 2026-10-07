@@ -37,6 +37,9 @@ import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_unplayed
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getPluralString
 import org.jetbrains.compose.resources.getString
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
 import kotlin.test.Test
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performMouseInput
@@ -263,5 +266,21 @@ class ComponentsTest {
             PodcastTheme { EmptyState(icon = androidx.compose.material.icons.Icons.Rounded.Mic, title = "Vazio", message = null) }
         }
         onNode(isHeading() and hasText("Vazio")).assertExists()
+    }
+
+    @Test
+    fun theArtworkBackdropColorsItsContentForItsOwnBackground() = runComposeUiTest {
+        var content = Color.Unspecified
+        var expected = Color.Unspecified
+        // The player is drawn over everything, outside any Scaffold that would set the content color.
+        setContent {
+            PodcastTheme(darkTheme = true) {
+                expected = MaterialTheme.colorScheme.onBackground
+                ArtworkBackdrop(imageUrl = null) { content = LocalContentColor.current }
+            }
+        }
+        waitForIdle()
+
+        assertEquals(expected, content)
     }
 }
