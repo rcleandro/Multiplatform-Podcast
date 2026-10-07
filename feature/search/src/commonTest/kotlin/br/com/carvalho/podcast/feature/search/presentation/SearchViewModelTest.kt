@@ -14,6 +14,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.core.util.FakeNetworkMonitor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -44,10 +45,28 @@ class SearchViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private val networkMonitor = FakeNetworkMonitor()
+
     private fun createViewModel() = SearchViewModel(
         repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer, repository),
-        dispatchers, FakeAnalytics()
+        networkMonitor, dispatchers, FakeAnalytics()
     )
+
+    @Test
+    fun `without network the episodes start on the downloaded filter`() = runTest(testDispatcher) {
+        networkMonitor.online = false
+
+        val viewModel = createViewModel()
+
+        assertEquals(EpisodeListFilter.DOWNLOADED, viewModel.uiState.value.filter)
+    }
+
+    @Test
+    fun `with network the episodes start on all of them`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        assertEquals(EpisodeListFilter.ALL, viewModel.uiState.value.filter)
+    }
 
     @Test
     fun `initial state is correct`() = runTest(testDispatcher) {

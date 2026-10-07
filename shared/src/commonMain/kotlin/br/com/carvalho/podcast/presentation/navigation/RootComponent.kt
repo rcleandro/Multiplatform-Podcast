@@ -17,7 +17,8 @@ private const val STATE_KEY = "navigation"
  */
 class RootComponent(componentContext: ComponentContext) : ComponentContext by componentContext {
 
-    private val _state = MutableValue(stateKeeper.consume(STATE_KEY, NavigationState.serializer()) ?: NavigationState())
+    private val restoredState = stateKeeper.consume(STATE_KEY, NavigationState.serializer())
+    private val _state = MutableValue(restoredState ?: NavigationState())
     val state: Value<NavigationState> = _state
 
     private val backCallback = BackCallback(isEnabled = _state.value.canGoBack) { onBackClicked() }
@@ -35,6 +36,16 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
             val stacks = if (tab == it.selectedTab && !it.isPlayerOpen) it.stacks - tab else it.stacks
             it.copy(selectedTab = tab, stacks = stacks, isPlayerOpen = false, isOrganizingLibrary = false)
         }
+    }
+
+    /**
+     * Opened without network: starts on Episodes, whose downloaded filter is what can be heard (ADR 0005). A screen
+     * restored or already left behind stays where it is.
+     */
+    fun onOpenedOffline() {
+        if (restoredState != null || _state.value != NavigationState()) return
+        AppLogger.d(TAG, "Opened offline")
+        _state.update { it.copy(selectedTab = Tab.Episodes) }
     }
 
     fun onPlayerClicked() {

@@ -100,6 +100,39 @@ class RootComponentTest {
     }
 
     @Test
+    fun openingWithoutNetworkStartsOnTheEpisodesTab() {
+        val root = createRoot()
+
+        root.onOpenedOffline()
+
+        assertEquals(Tab.Episodes, root.current.selectedTab)
+    }
+
+    @Test
+    fun goingOfflineLaterKeepsTheScreenTheUserIsOn() {
+        val root = createRoot()
+        root.onPodcastSelected("p1")
+
+        root.onOpenedOffline()
+
+        assertEquals(Tab.Library, root.current.selectedTab)
+        assertEquals(Detail.Podcast("p1"), root.current.podcast)
+    }
+
+    @Test
+    fun aRestoredScreenIsKeptWithoutNetwork() {
+        val savedState = StateKeeperDispatcher().let { keeper ->
+            createRoot(keeper)
+            keeper.save()
+        }
+        val restored = createRoot(StateKeeperDispatcher(savedState))
+
+        restored.onOpenedOffline()
+
+        assertEquals(Tab.Library, restored.current.selectedTab)
+    }
+
+    @Test
     fun theStateSurvivesRecreation() {
         val savedState = StateKeeperDispatcher().let { keeper ->
             createRoot(keeper).apply {

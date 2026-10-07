@@ -60,7 +60,9 @@ import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import br.com.carvalho.podcast.core.util.NetworkMonitor
 
 /** Draws [RootComponent.state]: tabs, the list/detail/extra panes of the selected tab, mini player and player. */
 @Composable
@@ -68,6 +70,10 @@ fun RootContent(component: RootComponent) {
     val playerViewModel: PlayerViewModel = koinViewModel()
     val playerState by playerViewModel.playerState.collectAsState()
     val state by component.state.subscribeAsState()
+    val networkMonitor: NetworkMonitor = koinInject()
+    LaunchedEffect(component) {
+        if (!networkMonitor.isOnline()) component.onOpenedOffline()
+    }
     val isWide = currentWindowAdaptiveInfo().windowSizeClass
         .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 

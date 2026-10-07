@@ -11,6 +11,8 @@ import okio.fakefilesystem.FakeFileSystem
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import com.russhwolf.settings.Settings
+import br.com.carvalho.podcast.core.util.AlwaysOnline
+import br.com.carvalho.podcast.core.util.NetworkMonitor
 import org.koin.dsl.module
 
 actual val platformModule = module {
@@ -22,4 +24,5 @@ actual val platformModule = module {
     single { AppDirectories(FakeFileSystem(), "/".toPath()) }
     single<Analytics> { LogAnalytics() }
     single<EpisodeDownloader> { get<KtorEpisodeDownloader>() }
+    single<NetworkMonitor> { AlwaysOnline }
 }

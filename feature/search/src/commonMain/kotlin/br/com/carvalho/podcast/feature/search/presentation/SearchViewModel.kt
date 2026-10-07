@@ -19,6 +19,7 @@ import androidx.paging.cachedIn
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.core.util.NetworkMonitor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -27,11 +28,13 @@ import kotlinx.coroutines.launch
 private const val TAG = "SearchViewModel"
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+@Suppress("LongParameterList") // one dependency per thing the tab does (list, download, play, offline start)
 class SearchViewModel(
     private val repository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
     audioPlayer: AudioPlayer,
     private val playEpisode: PlayEpisodeUseCase,
+    networkMonitor: NetworkMonitor,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics
 ) : ViewModel() {
@@ -64,6 +67,10 @@ class SearchViewModel(
         repository.getDownloadedEpisodes()
             .onEach { _uiState.update { it.copy(usedBytes = episodeDownloader.usedBytes()) } }
             .launchIn(viewModelScope)
+        // Without network the downloaded episodes are the ones that play (ADR 0005).
+        viewModelScope.launch {
+            if (!networkMonitor.isOnline()) _uiState.update { it.copy(filter = EpisodeListFilter.DOWNLOADED) }
+        }
     }
 
     fun onIntent(intent: SearchIntent) {

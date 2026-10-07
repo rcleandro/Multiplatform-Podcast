@@ -2,7 +2,9 @@ package br.com.carvalho.podcast.core.di
 
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.LogAnalytics
+import br.com.carvalho.podcast.core.util.AlwaysOnline
 import br.com.carvalho.podcast.core.util.AppDirectories
+import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.core.player.PlatformPlayer
 import br.com.carvalho.podcast.core.player.DesktopPlatformPlayer
@@ -24,6 +26,7 @@ actual val platformModule = module {
     single { AppDirectories(FileSystem.SYSTEM, appDirectory()) }
     single<Analytics> { LogAnalytics() }
     single<EpisodeDownloader> { get<KtorEpisodeDownloader>() }
+    single<NetworkMonitor> { AlwaysOnline }
 }
 
 private const val PREFERENCES_NODE = "br/com/carvalho/podcast"
