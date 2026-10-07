@@ -24,6 +24,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaul
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,7 +39,10 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.window.core.layout.WindowSizeClass
+import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import br.com.carvalho.podcast.core.designsystem.Motion
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.component.MiniPlayer
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
@@ -148,17 +152,21 @@ private fun TabContent(
         modifier = Modifier.nestedScroll(hideMiniPlayerOnScroll),
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            ListDetailPaneScaffold(
-                directive = navigator.scaffoldDirective,
-                value = navigator.scaffoldValue,
-                listPane = { ListPane(component, state.selectedTab, isPlayerVisible = showMiniPlayer) },
-                detailPane = { DetailPane(component, state.podcast) },
-                extraPane = {
-                    state.episode?.let {
-                        EpisodeDetailScreen(episodeId = it.episodeId, onBackClick = component::onBackClicked)
+            // Screens move their messages and buttons above the mini player drawn over them.
+            val miniPlayerInset = if (showMiniPlayer) Sizes.miniPlayerHeight else 0.dp
+            CompositionLocalProvider(LocalMiniPlayerInset provides miniPlayerInset) {
+                ListDetailPaneScaffold(
+                    directive = navigator.scaffoldDirective,
+                    value = navigator.scaffoldValue,
+                    listPane = { ListPane(component, state.selectedTab) },
+                    detailPane = { DetailPane(component, state.podcast) },
+                    extraPane = {
+                        state.episode?.let {
+                            EpisodeDetailScreen(episodeId = it.episodeId, onBackClick = component::onBackClicked)
+                        }
                     }
-                }
-            )
+                )
+            }
             AnimatedVisibility(
                 visible = showMiniPlayer,
                 enter = slideInVertically(tween(Motion.MEDIUM, easing = Motion.Standard)) { it },
@@ -172,10 +180,9 @@ private fun TabContent(
 }
 
 @Composable
-private fun ListPane(component: RootComponent, tab: Tab, isPlayerVisible: Boolean) {
+private fun ListPane(component: RootComponent, tab: Tab) {
     when (tab) {
         Tab.Library -> LibraryScreen(
-            isPlayerVisible = isPlayerVisible,
             onOrganize = component::onOrganizeLibrary,
             onPodcastClick = component::onPodcastSelected,
         )

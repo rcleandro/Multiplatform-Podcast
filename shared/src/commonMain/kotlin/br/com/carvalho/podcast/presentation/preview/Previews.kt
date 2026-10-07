@@ -64,7 +64,6 @@ internal fun LibraryContentPreview() = PodcastTheme(darkTheme = false) {
             },
         ),
         actions = LibraryActions(),
-        isPlayerVisible = true,
     )
 }
 

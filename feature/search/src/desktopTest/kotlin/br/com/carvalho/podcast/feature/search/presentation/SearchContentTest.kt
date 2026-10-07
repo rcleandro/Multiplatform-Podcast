@@ -24,6 +24,14 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
@@ -82,5 +90,33 @@ class SearchContentTest {
         waitUntilExactlyOneExists(hasText("Downloaded episode"))
         onNodeWithText(text(Res.string.filter_downloaded)).assertExists()
         onNodeWithText("50", substring = true).assertExists()
+    }
+
+    @Test
+    fun messagesShowAboveTheMiniPlayer() = runComposeUiTest {
+        val snackbar = SnackbarHostState()
+        setContent {
+            PodcastTheme {
+                CompositionLocalProvider(LocalMiniPlayerInset provides MINI_PLAYER) {
+                    SearchContent(
+                        state = SearchUiState(),
+                        results = flowOf(PagingData.empty<Episode>()).collectAsLazyPagingItems(),
+                        playerState = PlayerState(),
+                        activeDownloads = emptyMap(),
+                        actions = SearchActions(),
+                        snackbarHostState = snackbar,
+                    )
+                }
+            }
+            LaunchedEffect(Unit) { snackbar.showSnackbar("Download removed") }
+        }
+
+        val screen = onRoot().getBoundsInRoot()
+        val message = onNodeWithText("Download removed").getBoundsInRoot()
+        assertTrue(message.bottom <= screen.bottom - MINI_PLAYER, "${message.bottom} vs ${screen.bottom}")
+    }
+
+    private companion object {
+        val MINI_PLAYER = 64.dp
     }
 }

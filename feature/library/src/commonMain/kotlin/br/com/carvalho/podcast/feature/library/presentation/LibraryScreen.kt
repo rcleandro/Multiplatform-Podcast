@@ -46,8 +46,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -61,9 +61,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import br.com.carvalho.podcast.core.designsystem.Motion
-import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
@@ -93,7 +92,6 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel = koinViewModel(),
-    isPlayerVisible: Boolean = false,
     onOrganize: () -> Unit = {},
     onPodcastClick: (String) -> Unit
 ) {
@@ -104,7 +102,6 @@ fun LibraryScreen(
 
     LibraryContent(
         state = uiState,
-        isPlayerVisible = isPlayerVisible,
         snackbarHostState = snackbarHostState,
         actions = LibraryActions(
             onPodcastClick = onPodcastClick,
@@ -144,7 +141,6 @@ fun LibraryContent(
     state: LibraryUiState,
     actions: LibraryActions,
     modifier: Modifier = Modifier,
-    isPlayerVisible: Boolean = false,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -161,13 +157,13 @@ fun LibraryContent(
         }
     }
     val fabPadding by animateDpAsState(
-        targetValue = if (isPlayerVisible) Sizes.miniPlayerHeight else 0.dp,
+        targetValue = LocalMiniPlayerInset.current,
         animationSpec = tween(Motion.MEDIUM, easing = Motion.Standard)
     )
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { PodcastSnackbarHost(snackbarHostState, clearMiniPlayer = false) },
         topBar = { LibraryTopBar(scrollBehavior, state, actions) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(),

@@ -21,8 +21,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -148,7 +148,7 @@ fun PodcastDetailContent(
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
         topBar = { PodcastDetailTopBar(scrollBehavior, actions) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
