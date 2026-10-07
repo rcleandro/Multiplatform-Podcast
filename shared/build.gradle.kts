@@ -72,6 +72,7 @@ kotlin {
             implementation(project(":core:network"))
             implementation(project(":core:player"))
             implementation(project(":core:ui"))
+            implementation(libs.multiplatform.settings.no.arg)
             implementation(project(":core:observability"))
 
             // Compose

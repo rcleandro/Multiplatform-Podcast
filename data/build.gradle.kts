@@ -22,6 +22,7 @@ kotlin {
             implementation(libs.paging.common)
             implementation(libs.okio)
             implementation(libs.xmlutil.core)
+            implementation(libs.multiplatform.settings)
         }
         commonTest.dependencies {
             implementation(project(":core:testing"))
@@ -31,6 +32,7 @@ kotlin {
             implementation(libs.ktor.client.mock)
             implementation(libs.okio.fakefilesystem)
             implementation(libs.paging.testing)
+            implementation(libs.multiplatform.settings.test)
         }
     }
 }

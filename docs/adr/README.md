@@ -10,6 +10,7 @@ one to "substituída por ADR NNNN" instead of deleting it.
 | [0003](0003-grafo-de-modulos.md) | Grafo de módulos e regras de dependência |
 | [0004](0004-leitor-xml-dos-feeds.md) | Leitor XML dos feeds: xmlutil (`KtXmlReader`) em modo tolerante |
 | [0005](0005-navegacao.md) | Navegação: abas Biblioteca e Episódios; Downloads vira filtro, Player só pelo mini player, descoberta no "+" |
+| [0006](0006-preferencias.md) | Preferências do usuário: multiplatform-settings atrás de `PreferencesRepository` |
 
 ## Modelo
 

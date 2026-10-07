@@ -14,9 +14,12 @@ import androidx.work.WorkManager
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
+import com.russhwolf.settings.Settings
 import org.koin.dsl.module
 
 actual val platformModule = module {
+    // Default store of the platform (SharedPreferences, NSUserDefaults, localStorage), ADR 0006.
+    single<Settings> { Settings() }
     single(createdAtStart = true) { createAppDatabase(androidContext(), get()) }
     single<PlatformPlayer> { AndroidPlatformPlayer(androidContext()) }
     single { AppDirectories(FileSystem.SYSTEM, androidContext().filesDir.absolutePath.toPath()) }

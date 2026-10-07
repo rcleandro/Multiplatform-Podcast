@@ -12,6 +12,8 @@ import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.data.preferences.SettingsPreferencesRepository
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
@@ -62,6 +64,8 @@ val playerModule = module {
 val repositoryModule = module {
     single<PodcastRepository> { PodcastRepositoryImpl(get(), get()) }
     single<PlayerRepository> { PlayerRepositoryImpl(get()) }
+    // Settings comes from each platform module (ADR 0006).
+    single<PreferencesRepository> { SettingsPreferencesRepository(get()) }
     // Each platform binds EpisodeDownloader: Android and iOS wrap this one to download in the background.
     single { KtorEpisodeDownloader(get(), get(), get()) }
 }

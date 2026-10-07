@@ -10,9 +10,12 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import com.russhwolf.settings.Settings
 import org.koin.dsl.module
 
 actual val platformModule = module {
+    // Default store of the platform (SharedPreferences, NSUserDefaults, localStorage), ADR 0006.
+    single<Settings> { Settings() }
     single(createdAtStart = true) { createAppDatabase(get()) }
     single<PlatformPlayer> { WebPlatformPlayer() }
     // ponytail: in-memory file system, downloads vanish on reload; roadmap 14.7 hides downloads on the Web.
