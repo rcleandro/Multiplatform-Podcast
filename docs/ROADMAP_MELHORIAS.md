@@ -874,6 +874,50 @@ Fica para depois, sem bloquear a fase: "apagar ao terminar de ouvir" (18.19) e a
 **Critério de conclusão:** todos os fixtures reais são lidos com título, áudio, data e duração corretos; atualizar
 um feed que não mudou não reprocessa nada.
 
+**Conferido no simulador do iOS (iPhone 17, iOS 26.5, 06/10/2026)**, instalando por cima da fase 14, com o banco real
+(10 feeds, 8.136 episódios, 2 baixados, um em andamento e 2 na fila):
+
+- **Migração 6 → 7:** abriu sem erro; downloads, progresso (22,8 s), fila e episódios intactos, e os podcasts sem versão
+  de feed até a primeira atualização.
+- **Parser (15.1):** 503 episódios com `&amp;`/`&#…;` no título ou na URL do áudio, deixados pelo parser antigo, ficaram
+  decodificados na primeira atualização (`updateFeedFields`), e entraram 12 episódios novos sem duplicar nenhum.
+- **Atualização condicional (15.6):** depois da primeira atualização, os 10 feeds guardaram `ETag` e/ou
+  `Last-Modified` (Anchor só manda `ETag`; NerdCast só `Last-Modified`). Na segunda, seguida, as 10 respostas foram
+  `304` e nada foi regravado.
+- **Feed que mudou (15.5), caso real:** o NerdCast responde 301 três vezes (`jovemnerd.com.br` → `api.jovemnerd.com.br`
+  → `…/feed-nerdcast/` → `feeds.megaphone.fm/JNPD6227286900`). O app gravou o endereço do Megaphone em `feedUrl`,
+  manteve o id antigo, e os 1.736 episódios continuaram os mesmos.
+- **Fuso (15.3):** o Buzzcast (Buzzsprout, `-0400`/`-0500`), inserido no banco, ficou com as três datas iguais às de
+  referência dos fixtures.
+- **Descrição (15.7):** episódio do Hipsters com parágrafos, lista com marcadores, aspas tipográficas decodificadas e
+  links sublinhados na cor do tema; tocar num link abriu o Safari no endereço dele. Um espaço antes de "Links:" vem de
+  um `&nbsp;` no próprio feed.
+- **Logs (16.1):** nenhuma linha do app trouxe URL completa. As URLs que aparecem no log do simulador são do framework de
+  rede da Apple (`com.apple.network:connection`), que não vai para o Crashlytics e é mascarado como privado em aparelho.
+- **Não conferido no iOS:** URL inválida (15.8) e feed duplicado digitado de outro jeito (15.10), porque o AXe não
+  consegue digitar no campo de texto do Compose (ver as notas da fase 14); foram conferidos no Razr.
+
+**Conferido no Razr 60 (Android 16, 06/10/2026).** O banco antigo do aparelho tinha metade dos episódios duplicada
+(ids calculados sem guid, do tempo em que o parser não lia `<guid isPermaLink="false">`, preservados pela migração
+3 → 4); como o app não tem versão publicada, os dados foram apagados (`pm clear`) e os feeds adicionados pela tela:
+
+- **URL inválida (15.8):** `…/feed-nerdcast|` mostrou "Este endereço não é válido…" sem nenhuma requisição.
+- **Adicionar (15.1, 15.5, 15.8):** os 10 feeds do usuário, Buzzcast e Planet Money (digitado sem `https://`) entraram,
+  8.764 episódios e nenhum duplicado. Dois casos reais de 301 no próprio cadastro: o NerdCast foi salvo em
+  `feeds.megaphone.fm/…` e o Buzzcast em `rss.buzzsprout.com/…`, cada um com o id do endereço digitado.
+- **Duplicado (15.10):** `http://hipsters.tech/feed/podcast` e o endereço do Megaphone foram recusados antes de buscar;
+  `feeds.buzzsprout.com/…` foi recusado depois, porque o 301 leva ao endereço já salvo.
+- **Atualização condicional (15.6):** duas atualizações seguidas com 6 respostas `304` e uma `200` em cada; o feed que
+  responde 200 é do Anchor, que manda um `ETag` novo a cada resposta.
+- **Logs (16.1):** o log HTTP no logcat mostra só o host (`https://anchor.fm/…`). Achado: um endereço digitado sem
+  esquema (`feeds.npr.org/510289/podcast.xml`) ia inteiro para o log, porque o `redactUrls` só reconhece URL com
+  esquema. Corrigido no `LibraryViewModel`, que passou a registrar só o host (com teste). Também ficou visível que um
+  erro do usuário (`InvalidUrl`, `AlreadyExists`) vai para o Crashlytics como exceção; é ruído, e entra na 16.2.
+
+**Fase 15 concluída (06/10/2026),** com a 15.9 indo junto com a 16.5. Critério conferido: os fixtures reais são lidos
+com título, áudio, data e duração corretos, e atualizar um feed que não mudou não reprocessa nada (304 no iOS e no
+Razr).
+
 ---
 
 ## Fase 16 — Observabilidade, configuração e privacidade
