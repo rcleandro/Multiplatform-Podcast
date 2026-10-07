@@ -24,6 +24,13 @@ import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.PlayerState
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
+import androidx.compose.ui.test.isHeading
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_24_hours
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_older
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_30_days
 import kotlin.test.Test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -61,6 +68,33 @@ class SearchContentTest {
 
     @AfterTest
     fun resetMain() = Dispatchers.resetMain()
+
+    @Test
+    fun theListIsDividedByDate() = runComposeUiTest {
+        val now = getCurrentTimestamp()
+        val today = Episode(
+            id = "e1", podcastId = "p", podcastTitle = "Podcast", title = "Today's episode", description = null,
+            audioUrl = "a", imageUrl = null, duration = 60, publishDate = now - 1.minutes.inWholeMilliseconds,
+            isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null,
+        )
+        val old = today.copy(id = "e2", title = "Old episode", publishDate = now - 60.days.inWholeMilliseconds)
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(),
+                    results = flowOf(PagingData.from(listOf(today, old))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Old episode"))
+
+        onNode(isHeading() and hasText(text(Res.string.date_group_last_24_hours), ignoreCase = true)).assertExists()
+        onNode(isHeading() and hasText(text(Res.string.date_group_older), ignoreCase = true)).assertExists()
+        onNode(isHeading() and hasText(text(Res.string.date_group_last_30_days), ignoreCase = true)).assertDoesNotExist()
+    }
 
     @Test
     fun theFiltersChangeWhatTheListShows() = runComposeUiTest {

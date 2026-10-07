@@ -40,6 +40,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
+import br.com.carvalho.podcast.presentation.format.dateGroup
+import br.com.carvalho.podcast.presentation.format.DateGroup
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.foundation.background
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -59,8 +67,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemContentType
-import androidx.paging.compose.itemKey
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
@@ -150,7 +156,14 @@ fun SearchContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            Column {
+            Column(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
+                Text(
+                    text = stringResource(Res.string.episodes_tab),
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier
+                        .padding(start = Spacing.l, end = Spacing.l, top = Spacing.l)
+                        .semantics { heading() },
+                )
                 SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange)
                 FilterChipRow(
                     options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
@@ -251,25 +264,26 @@ private fun SearchResults(
                 )
             }
         }
-        items(
-            count = results.itemCount,
-            key = results.itemKey { it.id },
-            contentType = results.itemContentType { "episode" }
-        ) { index ->
-            results[index]?.let { episode ->
-                val isCurrent = playerState.currentEpisode?.id == episode.id
-                EpisodeListItem(
-                    episode = episode,
-                    podcastTitle = episode.podcastTitle,
-                    isBuffering = isCurrent && playerState.isBuffering,
-                    isPlaying = isCurrent && playerState.isPlaying,
-                    downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
-                    onClick = { actions.onEpisodeClick(episode) },
-                    onPlayClick = { actions.onPlay(episode) },
-                    onDownloadClick = { actions.onDownload(episode) },
-                    onCancelDownloadClick = { actions.onCancelDownload(episode) },
-                    onDeleteClick = { actions.onRemoveDownload(episode) }
-                )
+        // A header wherever the date group changes, held at the top while its episodes scroll by. Peeking does not
+        // load pages; episodes not loaded yet stay in the group before them.
+        var group: DateGroup? = null
+        val now = getCurrentTimestamp()
+        for (index in 0 until results.itemCount) {
+            val episodeGroup = results.peek(index)?.let { dateGroup(it.publishDate, now) }
+            if (episodeGroup != null && episodeGroup != group) {
+                group = episodeGroup
+                stickyHeader(key = "group-$episodeGroup", contentType = "group") {
+                    SectionTitle(
+                        text = episodeGroup.text(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background)
+                            .padding(horizontal = Spacing.l, vertical = Spacing.s),
+                    )
+                }
+            }
+            item(key = results.peek(index)?.id ?: "placeholder-$index", contentType = "episode") {
+                EpisodeRowAt(index, results, playerState, activeDownloads, actions)
             }
         }
         if (results.loadState.append is LoadState.Loading) {
@@ -338,7 +352,31 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.statusBars)
             .padding(horizontal = Spacing.l, vertical = Spacing.m),
     )
+}
+
+@Composable
+private fun EpisodeRowAt(
+    index: Int,
+    results: LazyPagingItems<Episode>,
+    playerState: PlayerState,
+    activeDownloads: Map<String, DownloadStatus>,
+    actions: SearchActions,
+) {
+    results[index]?.let { episode ->
+        val isCurrent = playerState.currentEpisode?.id == episode.id
+        EpisodeListItem(
+            episode = episode,
+            podcastTitle = episode.podcastTitle,
+            isBuffering = isCurrent && playerState.isBuffering,
+            isPlaying = isCurrent && playerState.isPlaying,
+            downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
+            onClick = { actions.onEpisodeClick(episode) },
+            onPlayClick = { actions.onPlay(episode) },
+            onDownloadClick = { actions.onDownload(episode) },
+            onCancelDownloadClick = { actions.onCancelDownload(episode) },
+            onDeleteClick = { actions.onRemoveDownload(episode) }
+        )
+    }
 }

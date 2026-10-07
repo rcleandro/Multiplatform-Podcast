@@ -124,6 +124,10 @@
         <item quantity="other">%1$d h ago</item>
     </plurals>
     <string name="time_yesterday">Yesterday</string>
+    <string name="date_group_last_24_hours">Last 24 hours</string>
+    <string name="date_group_last_7_days">Last 7 days</string>
+    <string name="date_group_last_30_days">Last 30 days</string>
+    <string name="date_group_older">Older</string>
     <plurals name="time_days_ago">
         <item quantity="one">%1$d day ago</item>
         <item quantity="other">%1$d days ago</item>

@@ -124,6 +124,10 @@
         <item quantity="other">Hace %1$d h</item>
     </plurals>
     <string name="time_yesterday">Ayer</string>
+    <string name="date_group_last_24_hours">Últimas 24 horas</string>
+    <string name="date_group_last_7_days">Últimos 7 días</string>
+    <string name="date_group_last_30_days">Últimos 30 días</string>
+    <string name="date_group_older">Más antiguos</string>
     <plurals name="time_days_ago">
         <item quantity="one">Hace %1$d día</item>
         <item quantity="other">Hace %1$d días</item>
