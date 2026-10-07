@@ -90,7 +90,12 @@ data class PlayerActions(
 
 /** Stateless full-screen player. */
 @Composable
-fun PlayerContent(state: PlayerState, actions: PlayerActions, modifier: Modifier = Modifier) {
+fun PlayerContent(
+    state: PlayerState,
+    actions: PlayerActions,
+    modifier: Modifier = Modifier,
+    artworkModifier: Modifier = Modifier,
+) {
     ArtworkBackdrop(imageUrl = state.currentEpisode?.imageUrl, modifier = modifier.fillMaxSize()) {
         Column {
             PodcastTopBar(
@@ -107,7 +112,7 @@ fun PlayerContent(state: PlayerState, actions: PlayerActions, modifier: Modifier
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = Spacing.xl, vertical = Spacing.l),
             ) {
-                PlayerHeader(state.currentEpisode)
+                PlayerHeader(state.currentEpisode, artworkModifier)
                 PlayerSlider(
                     positionMs = state.position,
                     durationMs = state.knownDurationMs(),
@@ -129,14 +134,14 @@ private fun PlayerState.knownDurationMs(): Long =
     duration?.takeIf { it > 0 } ?: ((currentEpisode?.duration ?: 0L) * MS_PER_SECOND)
 
 @Composable
-private fun PlayerHeader(episode: Episode?) {
+private fun PlayerHeader(episode: Episode?, artworkModifier: Modifier) {
     // The cover takes the phone's width (24.2), up to a size that still leaves the controls in view on a tablet.
     val artworkMax = 360.dp
     PodcastArtwork(
         imageUrl = episode?.imageUrl,
         contentDescription = episode?.title,
         shape = MaterialTheme.shapes.extraLarge,
-        modifier = Modifier.widthIn(max = artworkMax).fillMaxWidth().aspectRatio(1f),
+        modifier = artworkModifier.widthIn(max = artworkMax).fillMaxWidth().aspectRatio(1f),
     )
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         Text(

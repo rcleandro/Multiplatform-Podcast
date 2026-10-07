@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,13 +14,15 @@ private enum class PlayerDialog { Speed, SleepTimer, Queue }
 @Composable
 fun PlayerScreen(
     viewModel: PlayerViewModel = koinViewModel(),
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    artworkModifier: Modifier = Modifier,
 ) {
     val playerState by viewModel.playerState.collectAsState()
     var dialog by remember { mutableStateOf<PlayerDialog?>(null) }
 
     PlayerContent(
         state = playerState,
+        artworkModifier = artworkModifier,
         actions = PlayerActions(
             onMinimize = onBackClick,
             onPlayPause = { viewModel.onIntent(PlayerIntent.PlayPause) },

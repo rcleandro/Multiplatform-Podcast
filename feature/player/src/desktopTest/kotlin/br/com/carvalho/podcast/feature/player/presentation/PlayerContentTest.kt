@@ -34,6 +34,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.onNodeWithTag
 import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
@@ -49,6 +51,21 @@ class PlayerContentTest {
         audioUrl = "", imageUrl = null, duration = 60, publishDate = 0, isPlayed = false,
         playbackPosition = 0, isDownloaded = false, fileSize = null,
     )
+
+    @Test
+    fun thePlayerHandsItsCoverModifierToTheCover() = runComposeUiTest {
+        // The navigation shares the cover with the mini player through this modifier.
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = episode("e1")),
+                    actions = PlayerActions(),
+                    artworkModifier = Modifier.testTag("cover"),
+                )
+            }
+        }
+        onNodeWithTag("cover").assertExists()
+    }
 
     @Test
     fun thePlayButtonIsSquareWhilePlayingAndRoundWhenPaused() = runComposeUiTest {

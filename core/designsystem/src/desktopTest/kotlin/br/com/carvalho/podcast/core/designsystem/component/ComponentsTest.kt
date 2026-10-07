@@ -51,6 +51,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.graphics.toPixelMap
 import br.com.carvalho.podcast.core.designsystem.Motion
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import kotlin.test.Test
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performMouseInput
@@ -309,5 +310,19 @@ class ComponentsTest {
         mainClock.advanceTimeBy(Motion.LONG.toLong())
 
         assertEquals(Color.Transparent, cornerPixel())
+    }
+
+    @Test
+    fun theMiniPlayerHandsItsCoverModifierToTheCover() = runComposeUiTest {
+        // The navigation shares the cover with the full player through this modifier.
+        setContent {
+            PodcastTheme {
+                MiniPlayer(
+                    title = "Episode", subtitle = null, imageUrl = null, isPlaying = false, isLoading = false,
+                    progress = 0f, onPlayPause = {}, onClick = {}, artworkModifier = Modifier.testTag("cover"),
+                )
+            }
+        }
+        onNodeWithTag("cover", useUnmergedTree = true).assertWidthIsEqualTo(44.dp)
     }
 }

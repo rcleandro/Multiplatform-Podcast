@@ -24,6 +24,9 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaul
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -65,6 +68,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import br.com.carvalho.podcast.core.util.NetworkMonitor
 
 /** Draws [RootComponent.state]: tabs, the list/detail/extra panes of the selected tab, mini player and player. */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun RootContent(component: RootComponent) {
     val playerViewModel: PlayerViewModel = koinViewModel()
@@ -78,7 +82,11 @@ fun RootContent(component: RootComponent) {
         .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 
     // The player and "Organize library" cover the tabs too (ADR 0005): the bar is for moving between tabs only.
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Opening the player grows the mini player's cover into the player's, and minimizing shrinks it back (24.2).
+    SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+        val sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier = { visibility ->
+            Modifier.sharedElement(rememberSharedContentState(SHARED_COVER_KEY), visibility)
+        }
         NavigationSuiteScaffold(
             layoutType = if (isWide) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -102,6 +110,7 @@ fun RootContent(component: RootComponent) {
                 state = state,
                 playerState = playerState,
                 onPlayPause = { playerViewModel.onIntent(PlayerIntent.PlayPause) },
+                sharedCover = sharedCover,
             )
         }
 
@@ -118,7 +127,7 @@ fun RootContent(component: RootComponent) {
             enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
             exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
         ) {
-            PlayerScreen(onBackClick = component::onBackClicked)
+            PlayerScreen(onBackClick = component::onBackClicked, artworkModifier = sharedCover(this))
         }
     }
 }
@@ -130,6 +139,7 @@ private fun TabContent(
     state: NavigationState,
     playerState: PlayerState,
     onPlayPause: () -> Unit,
+    sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier,
 ) {
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
     var isMiniPlayerShown by remember { mutableStateOf(true) }
@@ -179,7 +189,12 @@ private fun TabContent(
                 exit = slideOutVertically(tween(Motion.MEDIUM, easing = Motion.Standard)) { it },
                 modifier = Modifier.align(Alignment.BottomCenter)
             ) {
-                MiniPlayerBar(playerState, onPlayPause = onPlayPause, onClick = component::onPlayerClicked)
+                MiniPlayerBar(
+                    playerState,
+                    onPlayPause = onPlayPause,
+                    onClick = component::onPlayerClicked,
+                    artworkModifier = sharedCover(this),
+                )
             }
         }
     }
@@ -212,7 +227,12 @@ private fun DetailPane(component: RootComponent, podcast: Detail.Podcast?) {
 }
 
 @Composable
-private fun MiniPlayerBar(playerState: PlayerState, onPlayPause: () -> Unit, onClick: () -> Unit) {
+private fun MiniPlayerBar(
+    playerState: PlayerState,
+    onPlayPause: () -> Unit,
+    onClick: () -> Unit,
+    artworkModifier: Modifier,
+) {
     val episode = playerState.currentEpisode ?: return
     val duration = playerState.duration
     MiniPlayer(
@@ -223,9 +243,12 @@ private fun MiniPlayerBar(playerState: PlayerState, onPlayPause: () -> Unit, onC
         isLoading = playerState.isBuffering,
         progress = if (duration != null && duration > 0) playerState.position.toFloat() / duration else 0f,
         onPlayPause = onPlayPause,
-        onClick = onClick
+        onClick = onClick,
+        artworkModifier = artworkModifier,
     )
 }
+
+private const val SHARED_COVER_KEY = "player-cover"
 
 /** Scroll distance, in pixels per frame, that hides or shows the mini player; ignores jitter. */
 private const val SCROLL_THRESHOLD = 1f
