@@ -38,6 +38,7 @@
     <string name="queue">Queue</string>
     <string name="finished">Finished</string>
     <string name="remaining_time">%1$s left</string>
+    <string name="resume_remaining">Resume · %1$s left</string>
     <string name="show_more">Show more</string>
     <string name="show_less">Show less</string>
     <string name="play">Play</string>

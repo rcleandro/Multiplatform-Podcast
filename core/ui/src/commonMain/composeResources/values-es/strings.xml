@@ -36,6 +36,7 @@
     <string name="queue">Cola de reproducción</string>
     <string name="finished">Finalizado</string>
     <string name="remaining_time">Quedan %1$s</string>
+    <string name="resume_remaining">Continuar · quedan %1$s</string>
     <string name="show_more">Ver más</string>
     <string name="show_less">Ver menos</string>
     <string name="play">Reproducir</string>

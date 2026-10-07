@@ -36,6 +36,7 @@
     <string name="queue">Fila de Reprodução</string>
     <string name="finished">Finalizado</string>
     <string name="remaining_time">%1$s restantes</string>
+    <string name="resume_remaining">Continuar · %1$s restantes</string>
     <string name="show_more">Ver mais</string>
     <string name="show_less">Ver menos</string>
     <string name="play">Reproduzir</string>

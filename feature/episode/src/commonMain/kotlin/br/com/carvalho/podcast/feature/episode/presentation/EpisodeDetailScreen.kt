@@ -29,6 +29,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.FlowRow
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.resume_remaining
+import br.com.carvalho.podcast.core.ui.generated.resources.pause
+import br.com.carvalho.podcast.presentation.component.toDownloadState
+import br.com.carvalho.podcast.presentation.component.remainingDuration
+import br.com.carvalho.podcast.presentation.component.downloadAction
+import br.com.carvalho.podcast.presentation.format.text
+import br.com.carvalho.podcast.presentation.format.relativeTime
+import br.com.carvalho.podcast.core.extensions.toDuration
+import br.com.carvalho.podcast.core.util.supportsDownloads
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -66,20 +81,36 @@ fun EpisodeDetailScreen(
 
     EpisodeDetailContent(
         state = uiState,
-        onBack = onBackClick,
-        onPlay = { viewModel.onIntent(EpisodeDetailIntent.Play) },
-        onRetry = { viewModel.onIntent(EpisodeDetailIntent.Retry) },
+        actions = EpisodeDetailActions(
+            onBack = onBackClick,
+            onPlayPause = { viewModel.onIntent(EpisodeDetailIntent.PlayPause) },
+            onRetry = { viewModel.onIntent(EpisodeDetailIntent.Retry) },
+            onDownload = { viewModel.onIntent(EpisodeDetailIntent.Download) },
+            onCancelDownload = { viewModel.onIntent(EpisodeDetailIntent.CancelDownload) },
+            onDeleteDownload = { viewModel.onIntent(EpisodeDetailIntent.DeleteDownload) },
+            onMarkPlayed = { viewModel.onIntent(EpisodeDetailIntent.MarkPlayed) },
+            onMarkUnplayed = { viewModel.onIntent(EpisodeDetailIntent.MarkUnplayed) },
+        ),
     )
 }
+
+data class EpisodeDetailActions(
+    val onBack: () -> Unit = {},
+    val onPlayPause: () -> Unit = {},
+    val onRetry: () -> Unit = {},
+    val onDownload: () -> Unit = {},
+    val onCancelDownload: () -> Unit = {},
+    val onDeleteDownload: () -> Unit = {},
+    val onMarkPlayed: () -> Unit = {},
+    val onMarkUnplayed: () -> Unit = {},
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EpisodeDetailContent(
     state: EpisodeDetailUiState,
-    onBack: () -> Unit,
-    onPlay: () -> Unit,
+    actions: EpisodeDetailActions,
     modifier: Modifier = Modifier,
-    onRetry: () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
@@ -89,7 +120,7 @@ fun EpisodeDetailContent(
             TopAppBar(
                 title = { Text(stringResource(Res.string.episode)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = actions.onBack) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
@@ -111,7 +142,7 @@ fun EpisodeDetailContent(
                 title = stringResource(Res.string.error_load_episode),
                 message = null,
                 actionLabel = stringResource(Res.string.try_again),
-                onAction = onRetry,
+                onAction = actions.onRetry,
                 modifier = Modifier.padding(padding),
             )
             episode == null -> EmptyState(
@@ -120,13 +151,18 @@ fun EpisodeDetailContent(
                 message = null,
                 modifier = Modifier.padding(padding),
             )
-            else -> EpisodeDetailBody(episode, onPlay, Modifier.padding(padding))
+            else -> EpisodeDetailBody(episode, state, actions, Modifier.padding(padding))
         }
     }
 }
 
 @Composable
-private fun EpisodeDetailBody(episode: Episode, onPlay: () -> Unit, modifier: Modifier) {
+private fun EpisodeDetailBody(
+    episode: Episode,
+    state: EpisodeDetailUiState,
+    actions: EpisodeDetailActions,
+    modifier: Modifier,
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(Spacing.l),
         modifier = modifier
@@ -149,14 +185,59 @@ private fun EpisodeDetailBody(episode: Episode, onPlay: () -> Unit, modifier: Mo
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.semantics { heading() },
                 )
+                EpisodeFacts(episode)
             }
         }
-        Button(onClick = onPlay, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Rounded.PlayArrow, contentDescription = null)
-            Spacer(modifier = Modifier.width(Spacing.s))
-            Text(stringResource(Res.string.play))
-        }
+        PlayPauseButton(episode, state, actions.onPlayPause)
+        EpisodeActionButtons(episode, state, actions)
         Text(text = stringResource(Res.string.description), style = MaterialTheme.typography.titleMedium)
         HtmlText(html = episode.description ?: stringResource(Res.string.no_description))
+    }
+}
+
+/** When it came out and how long it is; what is left goes on the play button. */
+@Composable
+private fun EpisodeFacts(episode: Episode) {
+    val published = relativeTime(episode.publishDate, getCurrentTimestamp())?.text()
+    val length = episode.duration.takeIf { it > 0 }?.toDuration()
+    listOfNotNull(published, length).joinToString(" · ").takeIf { it.isNotEmpty() }?.let {
+        Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** "Play" for a new episode, "Resume · 42min left" for a started one, "Pause" while it plays. */
+@Composable
+private fun PlayPauseButton(episode: Episode, state: EpisodeDetailUiState, onClick: () -> Unit) {
+    val remaining = episode.remainingDuration()
+    val label = when {
+        state.isPlaying -> stringResource(Res.string.pause)
+        remaining != null -> stringResource(Res.string.resume_remaining, remaining)
+        else -> stringResource(Res.string.play)
+    }
+    Button(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Icon(if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null)
+        Spacer(modifier = Modifier.width(Spacing.s))
+        Text(label)
+    }
+}
+
+/** The download action of its state and mark as played or unplayed: what the rows keep in their "⋮" menu. */
+@Composable
+private fun EpisodeActionButtons(episode: Episode, state: EpisodeDetailUiState, actions: EpisodeDetailActions) {
+    // Each button as wide as its label; they wrap instead of squeezing a label onto two lines.
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s), modifier = Modifier.fillMaxWidth()) {
+        if (supportsDownloads) {
+            val download = downloadAction(
+                state.downloadStatus.toDownloadState(episode.isDownloaded),
+                actions.onDownload,
+                actions.onCancelDownload,
+                actions.onDeleteDownload,
+            )
+            OutlinedButton(onClick = download.onClick) { Text(download.label) }
+        }
+        val mark = if (episode.isPlayed) Res.string.mark_as_unplayed else Res.string.mark_as_played
+        OutlinedButton(
+            onClick = if (episode.isPlayed) actions.onMarkUnplayed else actions.onMarkPlayed,
+        ) { Text(stringResource(mark)) }
     }
 }

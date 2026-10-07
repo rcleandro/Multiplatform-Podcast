@@ -10,6 +10,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailActions
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailContent
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailUiState
 import br.com.carvalho.podcast.feature.library.presentation.LibraryActions
@@ -106,7 +107,10 @@ internal fun SearchContentPreview() = PodcastTheme(darkTheme = false) {
 @Preview
 @Composable
 internal fun EpisodeDetailPreview() = PodcastTheme(darkTheme = true) {
-    EpisodeDetailContent(state = EpisodeDetailUiState(episode = sampleEpisodes.first()), onBack = {}, onPlay = {})
+    EpisodeDetailContent(
+        state = EpisodeDetailUiState(episode = sampleEpisodes.first()),
+        actions = EpisodeDetailActions(),
+    )
 }
 
 @Preview

@@ -86,9 +86,9 @@ fun EpisodeListItem(
     )
 }
 
-/** The one download action that makes sense in [state]. */
+/** The one download action that makes sense in [state]; the episode screen shows it as a button. */
 @Composable
-private fun downloadAction(
+fun downloadAction(
     state: DownloadState,
     onDownload: () -> Unit,
     onCancel: () -> Unit,
@@ -101,7 +101,7 @@ private fun downloadAction(
     DownloadState.Failed -> ItemAction(stringResource(Res.string.retry_download), onDownload)
 }
 
-internal fun DownloadStatus.toDownloadState(isDownloaded: Boolean): DownloadState = when (this) {
+fun DownloadStatus.toDownloadState(isDownloaded: Boolean): DownloadState = when (this) {
     is DownloadStatus.Queued -> DownloadState.Queued
     is DownloadStatus.Downloading -> DownloadState.Downloading(progress)
     is DownloadStatus.Completed -> DownloadState.Downloaded
@@ -112,7 +112,7 @@ internal fun DownloadStatus.toDownloadState(isDownloaded: Boolean): DownloadStat
 private const val SECONDS_PER_MINUTE = 60
 
 /** What is left of a started episode, in the same style as its length ("1h 5min"); null when not started or done. */
-internal fun Episode.remainingDuration(): String? {
+fun Episode.remainingDuration(): String? {
     val durationMs = duration * AppConfig.MILLIS_PER_SECOND
     if (isPlayed || playbackPosition <= 0 || durationMs <= 0) return null
     val leftSeconds = ((durationMs - playbackPosition) / AppConfig.MILLIS_PER_SECOND)
