@@ -31,6 +31,14 @@ import androidx.compose.ui.test.performScrollToIndex
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_first_added
 import kotlin.test.Test
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performImeAction
+import br.com.carvalho.podcast.core.ui.generated.resources.paste
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
@@ -140,6 +148,48 @@ class LibraryContentTest {
         onNodeWithText(text(Res.string.library_organize)).performClick()
 
         assertEquals(1, organize)
+    }
+
+    @Test
+    fun theAddDialogIsReadyToTypeAndSendsWithTheKeyboard() = runComposeUiTest {
+        var confirmed = 0
+        setContent {
+            PodcastTheme {
+                LibraryContent(
+                    state = LibraryUiState(isAddDialogOpen = true, addUrl = "feeds.example.com/rss"),
+                    actions = LibraryActions(onAddConfirm = { confirmed++ }),
+                )
+            }
+        }
+        val field = onNode(hasSetTextAction())
+
+        field.assertIsFocused()
+        field.performImeAction()
+
+        assertEquals(1, confirmed)
+    }
+
+    @Test
+    fun pasteFillsTheAddress() = runComposeUiTest {
+        var typed: String? = null
+        val clipboard = object : ClipboardManager {
+            override fun getText() = AnnotatedString("https://feeds.example.com/rss")
+            override fun setText(annotatedString: AnnotatedString) = Unit
+        }
+        setContent {
+            PodcastTheme {
+                CompositionLocalProvider(LocalClipboardManager provides clipboard) {
+                    LibraryContent(
+                        state = LibraryUiState(isAddDialogOpen = true),
+                        actions = LibraryActions(onUrlChange = { typed = it }),
+                    )
+                }
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.paste)).performClick()
+
+        assertEquals("https://feeds.example.com/rss", typed)
     }
 
     @Test

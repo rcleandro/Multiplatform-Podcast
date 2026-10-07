@@ -45,6 +45,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.rounded.ContentPaste
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import br.com.carvalho.podcast.core.ui.generated.resources.paste
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
@@ -313,6 +322,13 @@ private fun AddPodcastDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    // Ready to type (or paste) as soon as it opens; the keyboard's done key, Enter on Desktop, sends it.
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
+    // ponytail: the deprecated ClipboardManager reads plain text on every platform; its replacement (LocalClipboard)
+    // returns a platform ClipEntry that needs an expect/actual per platform. Switch when text gets a common accessor.
+    @Suppress("DEPRECATION")
+    val clipboard = LocalClipboardManager.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.add_podcast)) },
@@ -323,8 +339,15 @@ private fun AddPodcastDialog(
                     onValueChange = onUrlChange,
                     label = { Text(stringResource(Res.string.rss_url_label)) },
                     placeholder = { Text(stringResource(Res.string.rss_url_placeholder)) },
+                    trailingIcon = {
+                        IconButton(onClick = { clipboard.getText()?.text?.let(onUrlChange) }) {
+                            Icon(Icons.Rounded.ContentPaste, contentDescription = stringResource(Res.string.paste))
+                        }
+                    },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { if (url.isNotBlank()) onConfirm() }),
+                    modifier = Modifier.fillMaxWidth().focusRequester(focus),
                 )
             }
         },

@@ -27,7 +27,8 @@
     <string name="cancel">Cancelar</string>
     <string name="delete">Eliminar</string>
     <string name="add">Añadir</string>
-    <string name="rss_url_label">Introduce la URL del feed RSS:</string>
+    <string name="rss_url_label">Dirección del feed</string>
+    <string name="paste">Pegar</string>
     <string name="now_playing">REPRODUCIENDO AHORA</string>
     <string name="minimize">Minimizar</string>
     <string name="playback_speed">Velocidad de reproducción</string>

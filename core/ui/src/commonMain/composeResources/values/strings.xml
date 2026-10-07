@@ -29,7 +29,8 @@
     <string name="delete">Delete</string>
     <string name="add">Add</string>
     <string name="rss_url_placeholder">https://...</string>
-    <string name="rss_url_label">Enter RSS feed URL:</string>
+    <string name="rss_url_label">Feed address</string>
+    <string name="paste">Paste</string>
     <string name="now_playing">NOW PLAYING</string>
     <string name="minimize">Minimize</string>
     <string name="playback_speed">Playback speed</string>
