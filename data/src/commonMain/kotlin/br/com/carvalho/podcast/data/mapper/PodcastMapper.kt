@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.data.mapper
 
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.domain.model.Podcast
 import kotlinx.serialization.json.Json
 
@@ -15,7 +16,8 @@ fun PodcastEntity.toDomain(): Podcast = Podcast(
     feedUrl = feedUrl,
     siteUrl = siteUrl,
     isSubscribed = true,
-    lastUpdated = lastUpdated
+    lastUpdated = lastUpdated,
+    feedVersion = if (etag == null && lastModified == null) null else FeedVersion(etag, lastModified),
 )
 
 fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
@@ -29,5 +31,7 @@ fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
     feedUrl = feedUrl,
     siteUrl = siteUrl,
     lastUpdated = lastUpdated,
-    isSubscribed = true
+    isSubscribed = true,
+    etag = feedVersion?.etag,
+    lastModified = feedVersion?.lastModified,
 )

@@ -25,6 +25,7 @@ actual fun createHttpClient(): HttpClient = HttpClient(CIO) {
         exponentialDelay()
     }
     install(Logging) {
+        logger = KtorLogger
         level = LogLevel.INFO
     }
 }

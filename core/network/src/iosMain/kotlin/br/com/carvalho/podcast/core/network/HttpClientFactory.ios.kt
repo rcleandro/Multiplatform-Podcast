@@ -30,6 +30,7 @@ actual fun createHttpClient(): HttpClient = HttpClient(Darwin) {
         exponentialDelay()
     }
     install(Logging) {
+        logger = KtorLogger
         level = LogLevel.INFO
     }
 }

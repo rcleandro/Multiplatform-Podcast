@@ -16,13 +16,14 @@ import br.com.carvalho.podcast.data.local.entity.QueueItemEntity
 
 @Database(
     entities = [PodcastEntity::class, EpisodeEntity::class, PlaybackStateEntity::class, QueueItemEntity::class],
-    version = 6,
+    version = 7,
     // Every schema change ships a migration and a MigrationTest case; there is no destructive fallback.
     // 3 → 4, 4 → 5 and 5 → 6 are manual (EpisodeIdMigration, QueueItemsMigration, DownloadFileMigration),
     // added by addAppMigrations.
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 6, to = 7),
     ],
 )
 @ConstructedBy(AppDatabaseConstructor::class)

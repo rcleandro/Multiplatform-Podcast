@@ -38,11 +38,7 @@ class PlayerViewModel(
     }
 
     private fun play(episode: Episode) = viewModelScope.launch(dispatchers.io) {
-        analytics.logEvent("play_episode", mapOf(
-            "episode_id" to episode.id,
-            "episode_title" to episode.title,
-            "podcast_title" to episode.podcastTitle
-        ))
+        analytics.logEvent("play_episode", mapOf("episode_id" to episode.id))
         // Picked from the queue: keep the queue as it is.
         playEpisode(episode, queue = playerState.value.queue)
     }

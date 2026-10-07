@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+xmlns:podcast="https://podcastindex.org/namespace/1.0"
+xmlns:rawvoice="https://blubrry.com/developer/rawvoice-rss/"
+>
+
+<channel>
+	<title>Hoy Hablamos: Podcast diario para aprender español - Learn Spanish Daily Podcast</title>
+	<atom:link href="https://www.hoyhablamos.com/category/podcast/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.hoyhablamos.com</link>
+	<description>Publicamos un episodio cada día de lunes a viernes, sobre temas muy variados para aprender español. Tenemos más de 2000 episodios. Para acceder al catálogo completo, hazte suscriptor premium en hoyhablamos.com</description>
+	<lastBuildDate>Tue, 06 Oct 2026 19:01:32 +0000</lastBuildDate>
+	<language>es</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	
+
+<image>
+	<url>https://www.hoyhablamos.com/wp-content/uploads/2017/02/cropped-hoy-hablamos-itunes-01-32x32.jpg</url>
+	<title>Hoy Hablamos: Podcast diario para aprender español - Learn Spanish Daily Podcast</title>
+	<link>https://www.hoyhablamos.com</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<atom:link rel="hub" href="https://pubsubhubbub.appspot.com/" />
+	<itunes:author>Hoy Hablamos</itunes:author>
+	<itunes:explicit>false</itunes:explicit>
+	<itunes:image href="https://www.hoyhablamos.com/wp-content/uploads/2017/02/hoy-hablamos-itunes-01.jpg" />
+	<itunes:type>episodic</itunes:type>
+	<itunes:owner>
+		<itunes:name>Hoy Hablamos</itunes:name>
+		<itunes:email>podcast@example.com</itunes:email>
+	</itunes:owner>
+	<podcast:medium>podcast</podcast:medium>
+	<image>
+		<title>Hoy Hablamos: Podcast diario para aprender español - Learn Spanish Daily Podcast</title>
+		<url>https://www.hoyhablamos.com/wp-content/uploads/2017/02/hoy-hablamos-itunes-01.jpg</url>
+		<link> https://www.hoyhablamos.com</link>
+	</image>
+	<itunes:category text="Education">
+		<itunes:category text="Language Learning" />
+	</itunes:category>
+	<itunes:category text="Education" />
+	<itunes:category text="Education">
+		<itunes:category text="Courses" />
+	</itunes:category>
+	<rawvoice:rating>TV-Y</rawvoice:rating>
+	<podcast:updateFrequency rrule="FREQ=DAILY">Daily</podcast:updateFrequency>
+	<rawvoice:frequency>Daily</rawvoice:frequency>
+	<rawvoice:donate href="https://wwww.hoyhablamos.com"></rawvoice:donate>
+	<podcast:funding url="https://wwww.hoyhablamos.com"></podcast:funding>
+	<podcast:podping usesPodping="true" />
+	<podcast:guid>100a409e-9b85-5e95-963a-e306af8e7c1c</podcast:guid>
+	<rawvoice:subscribe feed="https://www.hoyhablamos.com/category/podcast/feed/" itunes="https://podcasts.apple.com/podcast/podcast-diario-para-aprender-español-learn-spanish/id1201483158"></rawvoice:subscribe>
+	<item>
+		<title>2375. Maricarmen y elecciones generales</title>
+		<link>https://www.hoyhablamos.com/2375-maricarmen-y-elecciones-generales/</link>
+					<comments>https://www.hoyhablamos.com/2375-maricarmen-y-elecciones-generales/#respond</comments>
+		
+		<dc:creator><![CDATA[Rebeca - Hoy Hablamos]]></dc:creator>
+		<pubDate>Tue, 06 Oct 2026 19:01:28 +0000</pubDate>
+				<category><![CDATA[Podcast diario]]></category>
+		<category><![CDATA[Podcast para aprender español]]></category>
+		<category><![CDATA[Sociedad española]]></category>
+		<guid isPermaLink="false">https://www.hoyhablamos.com/?p=267733</guid>
+
+					<description><![CDATA[Hoy hablamos del caso de Maricarmen, la mujer de 87 años desahuciada en Madrid tras más de setenta años viviendo en la misma casa. Y cómo este caso ha llevado a una movilización ciudadana y, finalmente, a la convocatoria de elecciones generales en España.]]></description>
+		
+					<wfw:commentRss>https://www.hoyhablamos.com/2375-maricarmen-y-elecciones-generales/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+				<enclosure url="https://media.blubrry.com/podcast_diario_de_espaol/content.blubrry.com/podcast_diario_de_espaol/Episodio_2375_Maricarmen_y_las_elecciones_generales_mezcla.mp3" length="12964532" type="audio/mpeg" />
+
+				<itunes:episodeType>full</itunes:episodeType>
+		<itunes:duration>18:00</itunes:duration>
+		<rawvoice:pid>155648252</rawvoice:pid>
+	</item>
+<item>
+		<title>2374. La sonda Mars Climate Orbiter</title>
+		<link>https://www.hoyhablamos.com/2374-la-sonda-mars-climate-orbiter/</link>
+					<comments>https://www.hoyhablamos.com/2374-la-sonda-mars-climate-orbiter/#respond</comments>
+		
+		<dc:creator><![CDATA[Rebeca - Hoy Hablamos]]></dc:creator>
+		<pubDate>Mon, 05 Oct 2026 19:13:53 +0000</pubDate>
+				<category><![CDATA[Podcast diario]]></category>
+		<category><![CDATA[Podcast para aprender español]]></category>
+		<category><![CDATA[Historia]]></category>
+		<guid isPermaLink="false">https://www.hoyhablamos.com/?p=267699</guid>
+
+					<description><![CDATA[Iniciamos un nuevo tema del mes en el que vamos a conocer algunos de los errores o fracasos más costosos de la historia. En este episodio conocemos la historia de la sonda Mars Climate Orbiter, la nave de la NASA que se perdió en 1999 por un error muy simple.]]></description>
+		
+					<wfw:commentRss>https://www.hoyhablamos.com/2374-la-sonda-mars-climate-orbiter/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+				<enclosure url="https://media.blubrry.com/podcast_diario_de_espaol/content.blubrry.com/podcast_diario_de_espaol/Episodio_2374_La_sonda_Mars_Climate_Orbiter_mezcla.mp3" length="7980666" type="audio/mpeg" />
+
+				<itunes:episodeType>full</itunes:episodeType>
+		<itunes:duration>11:04</itunes:duration>
+		<rawvoice:pid>155641019</rawvoice:pid>
+	</item>
+	</channel>
+</rss>

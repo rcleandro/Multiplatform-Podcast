@@ -11,11 +11,13 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.toMessage
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.validFeedUrl
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.observability.Analytics
+import br.com.carvalho.podcast.core.observability.urlHost
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,10 +69,7 @@ class LibraryViewModel(
     private fun confirmDelete() {
         val podcast = _uiState.value.podcastToDelete ?: return
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("delete_podcast", mapOf(
-                "podcast_id" to podcast.id,
-                "podcast_title" to podcast.title
-            ))
+            analytics.logEvent("delete_podcast", mapOf("host" to urlHost(podcast.feedUrl)))
             deletePodcastUseCase(podcast.id)
             _uiState.update { it.copy(podcastToDelete = null) }
         }
@@ -100,17 +99,17 @@ class LibraryViewModel(
         val url = _uiState.value.addUrl.trim()
         if (url.isBlank()) return
 
-        val finalUrl = if (!url.startsWith("http")) "https://$url" else url
-
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("add_podcast_attempt", mapOf("url" to finalUrl))
+            // Only the host: the typed text may lack the scheme, which the logger needs to spot (and cut) a URL.
+            val host = urlHost(validFeedUrl(url) ?: url)
+            analytics.logEvent("add_podcast_attempt", mapOf("host" to host))
             _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false) }
-            AppLogger.i(TAG, "Adding podcast from URL: $finalUrl")
-            addPodcastUseCase(finalUrl).onSuccess {
-                analytics.logEvent("add_podcast_success", mapOf("url" to finalUrl))
+            AppLogger.i(TAG, "Adding podcast from host: $host")
+            addPodcastUseCase(url).onSuccess {
+                analytics.logEvent("add_podcast_success", mapOf("host" to host))
             }.onFailure { e ->
-                AppLogger.e(TAG, "Failed to add podcast from URL: $finalUrl", e)
-                analytics.logEvent("add_podcast_failure", mapOf("url" to finalUrl, "error" to e::class.simpleName))
+                AppLogger.e(TAG, "Failed to add podcast from host: $host", e)
+                analytics.logEvent("add_podcast_failure", mapOf("host" to host, "error" to e::class.simpleName))
                 _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_add_podcast)))
             }
             _uiState.update { it.copy(isRefreshing = false, addUrl = "") }

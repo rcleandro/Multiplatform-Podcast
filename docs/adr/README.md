@@ -8,6 +8,7 @@ one to "substituída por ADR NNNN" instead of deleting it.
 | [0001](0001-identidade-visual.md) | Identidade visual "Sinal": cores, tipografia, tokens e ícone |
 | [0002](0002-dependencias-instaveis-e-remendos.md) | Dependências instáveis e remendos de build, com condição de saída |
 | [0003](0003-grafo-de-modulos.md) | Grafo de módulos e regras de dependência |
+| [0004](0004-leitor-xml-dos-feeds.md) | Leitor XML dos feeds: xmlutil (`KtXmlReader`) em modo tolerante |
 
 ## Modelo
 

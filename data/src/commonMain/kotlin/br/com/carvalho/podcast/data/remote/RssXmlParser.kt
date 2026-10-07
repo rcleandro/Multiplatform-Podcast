@@ -1,148 +1,117 @@
 package br.com.carvalho.podcast.data.remote
 
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
-import br.com.carvalho.podcast.core.util.AppLogger
+import nl.adaptivity.xmlutil.EventType
+import nl.adaptivity.xmlutil.core.KtXmlReader
 
 private const val TAG = "RssXmlParser"
+private const val ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
+private const val CONTENT_NS = "http://purl.org/rss/1.0/modules/content/"
+private const val ATOM_NS = "http://www.w3.org/2005/Atom"
+private const val TITLE_FALLBACK_LENGTH = 80
+private val EXPLICIT_VALUES = setOf("yes", "true", "explicit")
+
+/**
+ * Reads RSS 2.0 with the iTunes tags (ADR 0004). The XML becomes a small tree first: feeds are read whole anyway,
+ * and looking fields up by name is simpler than a streaming state machine.
+ */
 object RssXmlParser {
     fun parse(xml: String): RssFeed {
         AppLogger.d(TAG, "Starting XML parse (length: ${xml.length})")
-        val firstItemPos = xml.indexOf("<item>")
-        val channelXml = if (firstItemPos != -1) xml.substring(0, firstItemPos) else xml
-
-        val channelTitle = extractTag(channelXml, "title").orEmpty()
-        val channelDescription = extractTag(channelXml, "description") ?: ""
-        val channelImage = extractChannelImage(channelXml)
-        val channelAuthor = extractTag(channelXml, "itunes:author")
-
-        val episodes = parseEpisodes(xml, firstItemPos, channelImage)
-
+        val channel = readTree(xml).find("channel") ?: Node("channel")
+        val channelImage = channel.child("itunes:image")?.attributes?.get("href") ?: channel.child("image")?.text("url")
+        val episodes = channel.children("item").mapNotNull { it.toEpisode(channelImage) }
         AppLogger.d(TAG, "Finished XML parse. Total episodes: ${episodes.size}")
 
         return RssFeed(
-            title = channelTitle,
-            description = channelDescription,
+            title = channel.text("title").orEmpty(),
+            description = channel.text("description") ?: channel.text("itunes:summary").orEmpty(),
             imageUrl = channelImage,
-            author = channelAuthor,
-            language = extractTag(xml, "language"),
-            categories = emptyList(),
-            link = extractTag(xml, "link"),
-            ttl = null,
-            episodes = episodes
+            author = channel.text("itunes:author"),
+            language = channel.text("language"),
+            categories = channel.categories(),
+            link = channel.text("link"),
+            ttl = channel.text("ttl")?.toIntOrNull(),
+            episodes = episodes,
+            selfUrl = channel.children("atom:link").firstOrNull { it.attributes["rel"] == "self" }
+                ?.attributes?.get("href"),
+            newFeedUrl = channel.text("itunes:new-feed-url"),
         )
     }
 
-    private fun extractChannelImage(channelXml: String): String? {
-        return extractAttribute(channelXml, "itunes:image", "href") ?: extractTag(channelXml, "url")
-    }
-
-    private const val ITEM_TAG_LENGTH = 7
-    private const val TITLE_FALLBACK_LENGTH = 80
-
-    private fun parseEpisodes(xml: String, firstItemPos: Int, defaultImage: String?): List<RssEpisode> {
-        val episodes = mutableListOf<RssEpisode>()
-        var currentPos = firstItemPos
-
-        while (currentPos != -1) {
-            val startItem = xml.indexOf("<item>", currentPos)
-            val endItem = if (startItem != -1) xml.indexOf("</item>", startItem) else -1
-
-            if (startItem == -1 || endItem == -1) {
-                currentPos = -1
-            } else {
-                val itemXml = xml.substring(startItem, endItem + ITEM_TAG_LENGTH)
-                episodes.add(parseEpisodeItem(itemXml, defaultImage))
-                currentPos = endItem + ITEM_TAG_LENGTH
-            }
-        }
-        return episodes
-    }
-
-    private fun parseEpisodeItem(itemXml: String, defaultImage: String?): RssEpisode {
-        val rawTitle = extractTag(itemXml, "title")
-        val description = extractTag(itemXml, "description")
-        val enclosureUrl = extractAttribute(itemXml, "enclosure", "url") ?: ""
-        val guid = extractTag(itemXml, "guid")
+    // An item without audio (a blog post in the same feed) is not an episode.
+    private fun Node.toEpisode(defaultImage: String?): RssEpisode? {
+        val enclosure = child("enclosure")?.attributes
+        val enclosureUrl = enclosure?.get("url")?.trim().orEmpty().ifEmpty { return null }
+        val description = text("description") ?: text("content:encoded") ?: text("itunes:summary")
         // Without a title, fall back to the feed's own data instead of a fixed text.
-        val title = rawTitle
+        val title = text("title")
             ?: description?.take(TITLE_FALLBACK_LENGTH)
             ?: enclosureUrl.substringAfterLast('/').substringBefore('?')
-        val imageUrl = extractAttribute(itemXml, "itunes:image", "href") ?: defaultImage
-        val duration = extractTag(itemXml, "itunes:duration")
-        val pubDate = extractTag(itemXml, "pubDate") ?: ""
-
         return RssEpisode(
-            guid = guid,
+            guid = text("guid"),
             title = title,
             description = description,
             enclosureUrl = enclosureUrl,
-            enclosureType = "audio/mpeg",
-            duration = duration,
-            publishDate = pubDate,
-            imageUrl = imageUrl,
-            explicit = false,
-            season = null,
-            episode = null
+            enclosureType = enclosure?.get("type"),
+            duration = text("itunes:duration"),
+            publishDate = text("pubDate").orEmpty(),
+            imageUrl = child("itunes:image")?.attributes?.get("href") ?: defaultImage,
+            explicit = text("itunes:explicit")?.lowercase() in EXPLICIT_VALUES,
+            season = text("itunes:season")?.toIntOrNull(),
+            episode = text("itunes:episode")?.toIntOrNull(),
         )
     }
 
-    private fun extractTag(xml: String, tagName: String): String? {
-        val startIndex = findTagStart(xml, tagName) ?: return null
-        val startTagEnd = xml.indexOf(">", startIndex)
-        if (startTagEnd == -1) return null
+    // Apple nests subcategories (`Technology > Software How-To`); both levels count.
+    private fun Node.categories(): List<String> = children("itunes:category").flatMap { category ->
+        listOfNotNull(category.attributes["text"]) + category.categories()
+    }.distinct()
 
-        val endTag = "</$tagName>"
-        val endIndex = xml.indexOf(endTag, startTagEnd)
-        if (endIndex == -1) return null
-
-        val content = xml.substring(startTagEnd + 1, endIndex).trim()
-        return cleanCData(content)
-    }
-
-    private fun findTagStart(xml: String, tagName: String): Int? {
-        val startTagPattern = "<$tagName"
-        var startIndex = xml.indexOf(startTagPattern)
-
-        while (startIndex != -1) {
-            val nextChar = xml.getOrNull(startIndex + startTagPattern.length)
-            if (nextChar == null || nextChar == '>' || nextChar.isWhitespace()) {
-                return startIndex
+    private fun readTree(xml: String): Node {
+        // relaxed: real feeds have undeclared prefixes and stray characters that a strict reader rejects.
+        val reader = KtXmlReader(xml, relaxed = true)
+        val root = Node("")
+        val stack = ArrayDeque(listOf(root))
+        while (reader.hasNext()) {
+            when (reader.next()) {
+                EventType.START_ELEMENT -> {
+                    val attributes = (0 until reader.attributeCount).associate {
+                        reader.getAttributeLocalName(it) to reader.getAttributeValue(it)
+                    }
+                    val node = Node(reader.qualifiedName(), attributes)
+                    stack.last().children += node
+                    stack.addLast(node)
+                }
+                EventType.END_ELEMENT -> stack.removeLast()
+                EventType.TEXT, EventType.CDSECT, EventType.IGNORABLE_WHITESPACE ->
+                    stack.last().text.append(reader.text)
+                // Known XML entities come with their text; HTML ones (&nbsp;) are undeclared and stay as written.
+                EventType.ENTITY_REF ->
+                    stack.last().text.append(if (reader.isKnownEntity) reader.text else "&${reader.localName};")
+                else -> Unit
             }
-            startIndex = xml.indexOf(startTagPattern, startIndex + 1)
         }
-        return null
+        return root
     }
 
-    private fun cleanCData(content: String): String {
-        return if (content.startsWith("<![CDATA[")) {
-            content.removePrefix("<![CDATA[").removeSuffix("]]>").trim()
-        } else {
-            content
-        }
+    // The prefix comes from the namespace: a feed may bind iTunes to another prefix, or write Atom's link unprefixed.
+    private fun KtXmlReader.qualifiedName(): String = when (namespaceURI) {
+        ITUNES_NS -> "itunes:$localName"
+        CONTENT_NS -> "content:$localName"
+        ATOM_NS -> "atom:$localName"
+        else -> if (prefix.isEmpty()) localName else "$prefix:$localName"
     }
 
-    private fun extractAttribute(xml: String, tagName: String, attributeName: String): String? {
-        val tagStart = xml.indexOf("<$tagName")
-        if (tagStart == -1) return null
-        val tagEnd = xml.indexOf(">", tagStart)
-        if (tagEnd == -1) return null
-        val tagContent = xml.substring(tagStart, tagEnd)
-        val attrStart = tagContent.indexOf("$attributeName=\"")
-        val valueDelimiter = "\""
-        var finalAttrStart = attrStart
-        var finalDelimiter = valueDelimiter
+    private class Node(val name: String, val attributes: Map<String, String> = emptyMap()) {
+        val children = mutableListOf<Node>()
+        val text = StringBuilder()
 
-        if (attrStart == -1) {
-            finalAttrStart = tagContent.indexOf("$attributeName='")
-            finalDelimiter = "'"
-        }
-
-        if (finalAttrStart == -1) return null
-
-        val valueStart = finalAttrStart + attributeName.length + 2
-        val valueEnd = tagContent.indexOf(finalDelimiter, valueStart)
-        if (valueEnd == -1) return null
-        return tagContent.substring(valueStart, valueEnd)
+        fun child(name: String) = children.firstOrNull { it.name == name }
+        fun children(name: String) = children.filter { it.name == name }
+        fun text(name: String) = child(name)?.text?.trim()?.toString()?.ifEmpty { null }
+        fun find(name: String): Node? = child(name) ?: children.firstNotNullOfOrNull { it.find(name) }
     }
 }

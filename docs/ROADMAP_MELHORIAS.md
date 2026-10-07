@@ -34,6 +34,8 @@
 | 15 | Qualquer app instalado pode navegar na biblioteca e controlar o player (serviço de mídia exportado sem filtro) | Segurança | 22 |
 | 16 | A navegação inteira recompõe a cada 500 ms enquanto toca | Desempenho | 23 |
 | 17 | Layout de celular esticado em tablet, Desktop e dobráveis; nada reage à dobra | Produto | 21 |
+| 18 | O mesmo feed entra duas vezes se a URL vier escrita de outro jeito (`http`/`https`, `/` no fim, caractere sobrando) | Integridade | 15 |
+| 19 | Barra de navegação com abas que repetem outros caminhos (Downloads, Player), nome "Buscar" para uma lista de episódios e layout sem modernização desde a 9 | Produto | 24 |
 
 ## Sequência
 
@@ -56,6 +58,11 @@ graph LR
     F11 --> F21[21 Layout responsivo e dobráveis]
     F16 --> F22[22 Segurança]
     F17 --> F23[23 Desempenho]
+    F15 --> F24[24 Navegação, UX e visual]
+    F24 --> F21
+    F21 --> F17
+    F24 --> F17
+    F21 --> F18
 ```
 
 - **A fase 9 vem primeiro** a pedido: é ela que define a cara do app e cria o primeiro módulo separado
@@ -69,6 +76,22 @@ graph LR
   cobrado. A 20 (release) pode andar em paralelo com elas.
 - A 21 (layout responsivo) depende da modularização (11) e dos componentes da 9; a 22 (segurança) vem depois da 16,
   que já trata de privacidade; a 23 (desempenho) precisa das medições da 17.6 e pode rodar junto com as 18–20.
+
+**Ordem a partir da fase 15** (revista em 03/10/2026, com a fase 14 concluída):
+
+1. **15 — Feed RSS**, com a **16.1** (URL de feed privado vazando) antecipada: é um vazamento que acontece hoje e
+   também é sobre feeds. A 15 vem antes da 24 porque corrige o que as telas mostram (datas, itens sem áudio, HTML,
+   links, feeds duplicados); revisar a UX com conteúdo errado desperdiça a revisão.
+2. **24 — Navegação, UX e visual.** Antes da 18 para que as telas novas (busca de podcasts, Configurações, fila,
+   novos episódios) já nasçam no layout e na navegação decididos, em vez de serem refeitas. A ADR de navegação já
+   diz onde entram 18.1, 18.5, 18.6 e 18.7.
+3. **21 — Layout responsivo**, logo depois da 24: adapta a cada tamanho o layout novo, não o que vai ser trocado.
+4. **16 — Observabilidade e privacidade** (o resto; a 15.9 sai junto com a 16.5, de que depende). Antes da 17,
+   que usa as métricas da 16.8.
+5. **17 — Gates de qualidade**, depois da 24 e da 21: os testes de tela e snapshots da 17.4 já cobrem o visual
+   final. Continua antes da 18, para o código novo nascer cobrado.
+6. **18 — Funcionalidades essenciais**, depois **19**.
+7. **20 (release), 22 (segurança) e 23 (desempenho)** depois da 17, em paralelo com a 18 e a 19, como antes.
 
 **Regra de toda fase:** uma branch por fase a partir da `main` (`feature/phase-09-design-system`), um commit por
 subitem com o teste correspondente e a nota "Implementado" na seção do roadmap, e uma merge request no fim. Cada
@@ -837,18 +860,63 @@ Fica para depois, sem bloquear a fase: "apagar ao terminar de ouvir" (18.19) e a
 
 | Item | Status | Evidência | Ação | Esforço |
 |---|---|---|---|---|
-| 15.1 Parser feito à mão | ✅ | `RssXmlParser` usa `indexOf` sobre a string: não decodifica entidades (`&amp;` numa URL de enclosure quebra o áudio), não acha `<item>` com atributos, lê `language`/`link` do documento inteiro, fixa `enclosureType = "audio/mpeg"`, `explicit = false`, `season`/`episode` nulos e categorias vazias | ADR 0004: trocar por um leitor XML de verdade (`xmlutil`, que é KMP) ou corrigir o atual, decidido pelos fixtures da 15.2. Ler também `itunes:summary`, `content:encoded`, `itunes:episode`/`season`, `itunes:explicit`, categorias, tamanho e tipo do enclosure | M |
-| 15.2 Fixtures de feeds reais | ✅ | `RssXmlParserTest` com 51 linhas e XML mínimo | 8–10 feeds reais salvos em `commonTest/resources` (com CDATA, entidades, itens sem guid, durações em segundos e em `hh:mm:ss`, fusos variados, categorias aninhadas) | P |
-| 15.3 Data sem fuso | ✅ | `parsePubDate` ignora o fuso (`+0000`, `-0300`, `GMT`, `PDT`) e trata tudo como UTC | `DateTimeComponents.Formats.RFC_1123` do kotlinx-datetime, que já é dependência | P |
-| 15.4 Item sem áudio | ✅ | Sem `<enclosure>`, o episódio é salvo com `audioUrl = ""` | Pular o item | P |
-| 15.5 Feed que mudou de endereço | 🔎 | O id do podcast é a URL do feed; `itunes:new-feed-url` e redirecionamento permanente são ignorados | Id interno estável (não a URL); seguir `new-feed-url`/301 atualizando `feedUrl` | M |
-| 15.6 Atualização cara | ✅ | `refreshAll` baixa todos os feeds em série e inteiros toda vez | `ETag`/`If-Modified-Since` (304 não reprocessa) e concorrência limitada (ex.: 4 por vez) | M |
-| 15.7 HTML da descrição | ✅ | `HtmlText` (agora no design system) usa um parser próprio por regex (só `b`, `i`, `br`, `p`), sem links clicáveis | O `AnnotatedString.fromHtml()` **não existe** no Compose Multiplatform 1.11 fora do Android (conferido no jar do Desktop na 9.6). Opções: `expect/actual` com o `fromHtml` no Android e um parser comum nos demais, ou estender o parser atual para `a href` com `LinkAnnotation.Url`, com testes de feeds reais (15.2) | P |
-| 15.8 Validação da URL | ✅ | O `LibraryViewModel` só põe `https://` na frente; `validateFeedUrl` existe e ninguém chama | Validar a URL antes do fetch, com erro específico; apagar `validateFeedUrl` | P |
+| 15.1 Parser feito à mão | ✔ feito | `RssXmlParser` usa `indexOf` sobre a string: não decodifica entidades (`&amp;` numa URL de enclosure quebra o áudio), não acha `<item>` com atributos, lê `language`/`link` do documento inteiro, fixa `enclosureType = "audio/mpeg"`, `explicit = false`, `season`/`episode` nulos e categorias vazias | ADR 0004: trocar por um leitor XML de verdade (`xmlutil`, que é KMP) ou corrigir o atual, decidido pelos fixtures da 15.2. Ler também `itunes:summary`, `content:encoded`, `itunes:episode`/`season`, `itunes:explicit`, categorias, tamanho e tipo do enclosure | **Implementado.** ADR 0004: `KtXmlReader` do xmlutil 1.0.2 (publica para JVM, Android, iOS, Wasm e watchOS) em modo `relaxed`, que aceita prefixo não declarado e XML quebrado ou truncado sem lançar exceção, como o parser antigo. O XML vira uma árvore pequena e os campos são lidos por nome; `itunes:`/`content:` vêm do namespace. Entidades decodificadas (as HTML não declaradas, como `&nbsp;`, ficam como vieram), `<item>` com atributos, `language`/`link`/`ttl` só do canal, tipo do enclosure, `explicit`, temporada, número do episódio e categorias com as subcategorias. Descrição do episódio: `description`, senão `content:encoded`, senão `itunes:summary`. O tamanho do enclosure não entrou: `Episode.fileSize` é o do arquivo baixado e nada usaria o do feed. Testes: os fixtures da 15.2 saíram do `knownBroken` (sobrou o fuso, 15.3, e o item sem áudio, 15.4) e `RssXmlParserFieldsTest` cobre os campos novos e a entidade HTML; no parser antigo, 6 testes de fixture e os 3 novos falharam | M |
+| 15.2 Fixtures de feeds reais | ✔ feito | `RssXmlParserTest` com 51 linhas e XML mínimo | 8–10 feeds reais salvos em `commonTest/resources` (com CDATA, entidades, itens sem guid, durações em segundos e em `hh:mm:ss`, fusos variados, categorias aninhadas) | **Implementado.** Dez feeds reais em `data/src/commonTest/resources/feeds`, cortados para o cabeçalho, os dois primeiros itens e um item com a particularidade que interessa: Hoy Hablamos (es, `mm:ss`, transcrição), Hipsters (`h:mm:ss`), Anchor/Spotify (CDATA, GMT, temporada), NerdCast (duração em segundos, `-0000`, `content:encoded`), NPR e The Daily (`&amp;` na URL do áudio, `new-feed-url`), Podcasting 2.0 (capítulos e transcrição), Buzzsprout (`-0400`/`-0500`) e Libsyn (temporada). Nenhum feed real tinha item sem áudio, item sem guid ou `<item>` com atributos, então esses casos estão num `synthetic-edge-cases.xml` (com PDT e `&#8211;`). E-mails viraram `podcast@example.com` e um token do Podcasting 2.0 virou `REDACTED`. Os testes da Wasm não leem arquivos, então a tarefa `:data:generateFeedFixtures` transforma cada XML numa string do `FeedFixtures` gerado para o `commonTest` (em pedaços, por causa do limite de 64 KB das constantes da JVM). `RealFeedFixturesTest` (Desktop, iOS e Wasm) compara título do feed, contagem, título, id, áudio, data e duração dos episódios com valores tirados dos fixtures pelo `xml.etree` e pelo `email.utils` do Python. O que o parser atual erra fica em `knownBroken`, com o item que corrige: 15.1 (entidades no título e na URL da NPR e do The Daily; `<item id=…>`), 15.3 (fuso do Buzzsprout e PDT) e 15.4 (item sem áudio). Cada um desses itens tira o fixture da lista, e o teste falha no código antigo | P |
+| 15.3 Data sem fuso | ✔ feito | `parsePubDate` ignora o fuso (`+0000`, `-0300`, `GMT`, `PDT`) e trata tudo como UTC | `DateTimeComponents.Formats.RFC_1123` do kotlinx-datetime, que já é dependência | **Implementado.** O `RFC_1123` pronto não serve sozinho: exige os segundos e não conhece os fusos por nome. Ficou um `DateTimeComponents.Format` próprio (dia sem zero à esquerda, mês abreviado em inglês, segundos opcionais, offset `+HHMM`) e uma normalização antes: o dia da semana sai (feeds reais trazem o dia errado, e o kotlinx recusaria a data), espaços repetidos viram um, os nomes da RFC 822 (`GMT`, `UT`, `Z`, `EST`/`EDT`, `CST`/`CDT`, `MST`/`MDT`, `PST`/`PDT`) viram offset e data sem fuso é lida como UTC. Data ilegível continua virando 0, com log. Episódios já salvos com a hora errada são corrigidos na próxima atualização do feed (`updateFeedFields` regrava `publishDate`). Testes: `RssMapperTest` com 12 formas da mesma data (offsets, nomes, `-0000`, sem segundos, dia da semana errado, espaços duplos, sem fuso) e os fixtures do Buzzsprout e o sintético saíram do `knownBroken` de `publishDates`; os dois falharam no código antigo | P |
+| 15.4 Item sem áudio | ✔ feito | Sem `<enclosure>`, o episódio é salvo com `audioUrl = ""` | Pular o item | **Implementado.** O parser descarta o item sem `<enclosure>` ou com `url` em branco (um post de blog no mesmo feed), então ele não entra na lista nem na contagem de episódios do podcast. Os episódios sem áudio salvos antes saem na próxima atualização de cada podcast (`EpisodeDao.deleteWithoutAudio`, dentro da transação do `saveFeed`); a fila perde o item pela chave estrangeira. Testes: o feed sintético saiu do `knownBroken` de `itemsWithoutAudioAreSkipped`, a última exceção, e o `knownBroken` foi removido do `RealFeedFixturesTest`; caso novo no `RssXmlParserFieldsTest` (sem enclosure e com `url` em branco) e no `PodcastRepositoryImplTest` (a limpeza não toca outro podcast). Os três falharam no código antigo | P |
+| 15.5 Feed que mudou de endereço | ✔ feito | O id do podcast é a URL do feed; `itunes:new-feed-url` e redirecionamento permanente são ignorados | Id interno estável (não a URL); seguir `new-feed-url`/301 atualizando `feedUrl` | **Implementado.** O id não foi trocado: ele continua sendo a URL com que o podcast entrou, mas passou a ser só um identificador, e quando o feed muda de endereço só `feedUrl` muda. Trocar o id pediria migrar os ids dos episódios e os nomes dos arquivos baixados, que derivam dele, sem ganho. `FeedSource.fetch`/`fetchIfChanged` recebem o `podcastId`, então os episódios lidos no endereço novo mantêm os ids e não duplicam. **301/308:** a busca de feeds usa `client.config { followRedirects = false }` (mesmo engine e plugins; os downloads continuam seguindo os redirecionamentos das CDNs) e segue até 5 saltos; o endereço final só conta como mudança se todos os saltos foram permanentes (`RssFeed.permanentRedirect`). Location relativo é resolvido sobre o endereço do salto. **`itunes:new-feed-url`:** vale quando não houve redirecionamento permanente. `movedFeedUrl` (pura, no `:domain`) só aceita o endereço novo se ele passar na `validFeedUrl` e não for o mesmo feed escrito de outro jeito (`feedUrlKey`). O `RefreshPodcastUseCase` grava com o id antigo e o `feedUrl` novo; o `AddPodcastFromUrlUseCase` já salva no endereço final, e o destino do redirecionamento entra nos `declaredUrls` da 15.10. Testes: data source (301 → 308 com Location relativo vira o endereço novo; 301 → 302 não; laço para em 6 requisições), `movedFeedUrl`, e nos casos de uso o refresh que mantém o id e troca o endereço, o podcast já mudado buscado no endereço novo com o id antigo, e o podcast novo salvo no endereço final; 5 falharam no código antigo (o de redirecionamento temporário já passava, porque o código antigo seguia sem gravar nada) | M |
+| 15.6 Atualização cara | ✔ feito | `refreshAll` baixa todos os feeds em série e inteiros toda vez | `ETag`/`If-Modified-Since` (304 não reprocessa) e concorrência limitada (ex.: 4 por vez) | **Implementado.** `FeedVersion(etag, lastModified)` no domínio, guardado no `Podcast` e em duas colunas novas de `podcasts` (banco na versão 7, `AutoMigration` 6→7). A versão vem dos cabeçalhos da resposta e é gravada junto com o podcast, na transação do `saveFeed`: se salvar os episódios falhar, ela não avança e a próxima atualização não perde nada. `FeedSource.fetchIfChanged(url, version)` manda `If-None-Match`/`If-Modified-Since` e devolve `null` no 304, e o `RefreshPodcastUseCase` então não lê nem grava nada; adicionar podcast continua no `fetch`, sem cabeçalho condicional. `refreshAll` atualiza até 4 feeds ao mesmo tempo (`Semaphore`), e a contagem de falhas continua igual. `lastUpdated` não muda no 304: nenhuma tela o mostra. O `MigrationTest` passou a nomear as colunas do `INSERT` em `episodes`, porque a versão 6 entrou no laço de versões e tem uma coluna a mais. Testes: cabeçalhos condicionais e 304 (`MockEngine`), versão lida da resposta, repositório guardando a versão, migração 6→7, e no caso de uso o 304 que não salva e o máximo de 4 ao mesmo tempo; os dois do caso de uso falharam no código antigo, os outros nem compilam nele (API nova) | M |
+| 15.7 HTML da descrição | ✔ feito | `HtmlText` (agora no design system) usa um parser próprio por regex (só `b`, `i`, `br`, `p`), sem links clicáveis | O `AnnotatedString.fromHtml()` **não existe** no Compose Multiplatform 1.11 fora do Android (conferido no jar do Desktop na 9.6). Opções: `expect/actual` com o `fromHtml` no Android e um parser comum nos demais, ou estender o parser atual para `a href` com `LinkAnnotation.Url`, com testes de feeds reais (15.2) | **Implementado.** O `fromHtml` continua fora do Compose Desktop na 1.12.1 (conferido no jar `ui-text-desktop`), então o parser comum foi estendido, sem `expect/actual`: um `HtmlWriter` percorre texto e tags. `a href` vira `LinkAnnotation.Url` clicável (sublinhado, na cor `primary` do tema); `p`, `ul` e `ol` separam parágrafos, `div` quebra a linha, `li` vira "• ", `br` quebra; tags desconhecidas (`span`, `small`) somem e o texto fica; comentários somem. Espaços e quebras do código-fonte colapsam como no navegador, e o espaço só é escrito quando vem mais texto, então nenhum sobra antes de uma quebra nem no começo de um trecho em negrito ou de um link. Entidades: as numéricas (inclusive emoji, com par substituto) e as nomeadas que aparecem nos fixtures (`&mdash;`, `&nbsp;`, `&hellip;`, aspas…); uma desconhecida fica como veio. HTML escapado duas vezes pelo próprio feed (o Podcasting 2.0 tem `&amp;lt;b&amp;gt;`) aparece como texto, como o autor publicou. Testes: `HtmlParserTest` com 8 casos (negrito, entidades, parágrafos, listas, tags desconhecidas, link com `&amp;` na URL e uma descrição no formato das do Hipsters); 7 falharam no parser antigo | P |
+| 15.8 Validação da URL | ✔ feito | O `LibraryViewModel` só põe `https://` na frente; `validateFeedUrl` existe e ninguém chama | Validar a URL antes do fetch, com erro específico; apagar `validateFeedUrl` | **Implementado.** `validFeedUrl` (função pura no `:domain`) devolve o endereço ou `null`: só http/https, host com ponto e rótulos válidos, porta numérica e só os caracteres que a RFC 3986 permite (espaço e o `|` colado de uma lista recusam). Sem esquema, ganha `https://`; o resto não muda, porque comparar endereços é da 15.10. O `AddPodcastFromUrlUseCase` valida antes de procurar duplicado e de buscar, e falha com o novo `AppError.InvalidUrl` ("Este endereço não é válido…", nos três idiomas). O `LibraryViewModel` deixou de completar a URL. `validateFeedUrl` (um `HEAD` que ninguém chamava) saiu da interface, da implementação e do fake. Testes: `FeedUrlTest` (6 endereços aceitos, 11 recusados), caso de uso e `LibraryViewModelTest` (a URL do NerdCast com `\|` mostra o erro e nada é buscado); os dois últimos falharam no código antigo | P |
 | 15.9 User-Agent | 🔎 | O Ktor manda o User-Agent padrão; alguns hosts de podcast bloqueiam ou limitam clientes sem identificação | `User-Agent: PodcastKMP/<versão> (<plataforma>)` no client comum (16.5) | P |
+| 15.10 Feed duplicado com outra URL | ✔ feito | O `AddPodcastFromUrlUseCase` só recusa com `AppError.AlreadyExists` quando a URL é **idêntica** à de um podcast salvo (`getPodcastById(url)`): `http` e `https`, `/` no fim, host com maiúsculas, espaços ou um caractere sobrando (`…/feed-nerdcast\|`, colado de uma lista) viram um segundo podcast com os mesmos episódios | Normalizar a URL antes de conferir e de salvar (sem espaços, host em minúsculas, sem `/` final nem fragmento), numa função pura testada; depois do fetch, comparar também o endereço canônico que o próprio feed declara (`atom:link rel="self"`, `itunes:new-feed-url`) com os já salvos. Junto da 15.5 (id estável) e da 15.8 (validação da URL) | **Implementado.** `feedUrlKey` (pura, no `:domain`) é o que dois endereços do mesmo feed têm em comum: sem esquema (http e https), host em minúsculas e sem `www.`, sem fragmento e sem `/` final; caminho e query mantêm a caixa, porque o servidor pode diferenciá-los. O `AddPodcastFromUrlUseCase` compara a chave da URL digitada com a de todos os podcasts da biblioteca (pega também os salvos antes, sem migração) e, depois do fetch, as chaves dos endereços que o feed declara: `atom:link rel="self"` e `itunes:new-feed-url`, lidos pelo parser (`RssFeed.selfUrl`/`newFeedUrl`) e passados em `FetchedFeed.declaredUrls`. O parser passou a dar o prefixo `atom:` pelo namespace, então um `<link xmlns="…Atom">` sem prefixo não ocupa mais o lugar do `link` do canal. O caractere sobrando (`…/feed-nerdcast|`) já é recusado pela 15.8. O endereço salvo continua o digitado; o id estável é da 15.5. Testes: `FeedUrlTest` (4 grafias com a mesma chave, 4 pares diferentes), dois casos no caso de uso (grafia diferente, recusada sem buscar; feed que declara o endereço de um salvo, recusado sem salvar) e um no parser (self, new-feed-url e o `link` Atom sem prefixo); os três falharam no código antigo | P |
 
 **Critério de conclusão:** todos os fixtures reais são lidos com título, áudio, data e duração corretos; atualizar
 um feed que não mudou não reprocessa nada.
+
+**Conferido no simulador do iOS (iPhone 17, iOS 26.5, 06/10/2026)**, instalando por cima da fase 14, com o banco real
+(10 feeds, 8.136 episódios, 2 baixados, um em andamento e 2 na fila):
+
+- **Migração 6 → 7:** abriu sem erro; downloads, progresso (22,8 s), fila e episódios intactos, e os podcasts sem versão
+  de feed até a primeira atualização.
+- **Parser (15.1):** 503 episódios com `&amp;`/`&#…;` no título ou na URL do áudio, deixados pelo parser antigo, ficaram
+  decodificados na primeira atualização (`updateFeedFields`), e entraram 12 episódios novos sem duplicar nenhum.
+- **Atualização condicional (15.6):** depois da primeira atualização, os 10 feeds guardaram `ETag` e/ou
+  `Last-Modified` (Anchor só manda `ETag`; NerdCast só `Last-Modified`). Na segunda, seguida, as 10 respostas foram
+  `304` e nada foi regravado.
+- **Feed que mudou (15.5), caso real:** o NerdCast responde 301 três vezes (`jovemnerd.com.br` → `api.jovemnerd.com.br`
+  → `…/feed-nerdcast/` → `feeds.megaphone.fm/JNPD6227286900`). O app gravou o endereço do Megaphone em `feedUrl`,
+  manteve o id antigo, e os 1.736 episódios continuaram os mesmos.
+- **Fuso (15.3):** o Buzzcast (Buzzsprout, `-0400`/`-0500`), inserido no banco, ficou com as três datas iguais às de
+  referência dos fixtures.
+- **Descrição (15.7):** episódio do Hipsters com parágrafos, lista com marcadores, aspas tipográficas decodificadas e
+  links sublinhados na cor do tema; tocar num link abriu o Safari no endereço dele. Um espaço antes de "Links:" vem de
+  um `&nbsp;` no próprio feed.
+- **Logs (16.1):** nenhuma linha do app trouxe URL completa. As URLs que aparecem no log do simulador são do framework de
+  rede da Apple (`com.apple.network:connection`), que não vai para o Crashlytics e é mascarado como privado em aparelho.
+- **Não conferido no iOS:** URL inválida (15.8) e feed duplicado digitado de outro jeito (15.10), porque o AXe não
+  consegue digitar no campo de texto do Compose (ver as notas da fase 14); foram conferidos no Razr.
+
+**Conferido no Razr 60 (Android 16, 06/10/2026).** O banco antigo do aparelho tinha metade dos episódios duplicada
+(ids calculados sem guid, do tempo em que o parser não lia `<guid isPermaLink="false">`, preservados pela migração
+3 → 4); como o app não tem versão publicada, os dados foram apagados (`pm clear`) e os feeds adicionados pela tela:
+
+- **URL inválida (15.8):** `…/feed-nerdcast|` mostrou "Este endereço não é válido…" sem nenhuma requisição.
+- **Adicionar (15.1, 15.5, 15.8):** os 10 feeds do usuário, Buzzcast e Planet Money (digitado sem `https://`) entraram,
+  8.764 episódios e nenhum duplicado. Dois casos reais de 301 no próprio cadastro: o NerdCast foi salvo em
+  `feeds.megaphone.fm/…` e o Buzzcast em `rss.buzzsprout.com/…`, cada um com o id do endereço digitado.
+- **Duplicado (15.10):** `http://hipsters.tech/feed/podcast` e o endereço do Megaphone foram recusados antes de buscar;
+  `feeds.buzzsprout.com/…` foi recusado depois, porque o 301 leva ao endereço já salvo.
+- **Atualização condicional (15.6):** duas atualizações seguidas com 6 respostas `304` e uma `200` em cada; o feed que
+  responde 200 é do Anchor, que manda um `ETag` novo a cada resposta.
+- **Logs (16.1):** o log HTTP no logcat mostra só o host (`https://anchor.fm/…`). Achado: um endereço digitado sem
+  esquema (`feeds.npr.org/510289/podcast.xml`) ia inteiro para o log, porque o `redactUrls` só reconhece URL com
+  esquema. Corrigido no `LibraryViewModel`, que passou a registrar só o host (com teste). Também ficou visível que um
+  erro do usuário (`InvalidUrl`, `AlreadyExists`) vai para o Crashlytics como exceção; é ruído, e entra na 16.2.
+
+**Fase 15 concluída (06/10/2026),** com a 15.9 indo junto com a 16.5. Critério conferido: os fixtures reais são lidos
+com título, áudio, data e duração corretos, e atualizar um feed que não mudou não reprocessa nada (304 no iOS e no
+Razr).
 
 ---
 
@@ -858,7 +926,7 @@ um feed que não mudou não reprocessa nada.
 
 | Item | Status | Evidência | Ação | Esforço |
 |---|---|---|---|---|
-| 16.1 URL de feed privado vazando | ✅ | `LibraryViewModel` manda a URL do feed para o Analytics (`add_podcast_attempt`), para atributos de trace e para os logs, que também vão para o Crashlytics. Feeds pagos (Patreon, Supercast, Apple) trazem o token de acesso na URL | Nunca registrar URL: no máximo o host. Títulos de episódio também saem dos eventos (ficam só os ids) | P |
+| 16.1 URL de feed privado vazando (antecipado para junto da 15) | ✔ feito | `LibraryViewModel` manda a URL do feed para o Analytics (`add_podcast_attempt`), para atributos de trace e para os logs, que também vão para o Crashlytics. Feeds pagos (Patreon, Supercast, Apple) trazem o token de acesso na URL | Nunca registrar URL: no máximo o host. Títulos de episódio também saem dos eventos (ficam só os ids) | **Implementado.** Além do `LibraryViewModel`, a URL vazava por três caminhos: o id do podcast **é** a URL do feed (`podcast_id` nos eventos e nos logs), o log HTTP do Ktor grava a URL de cada requisição (no Android e na Web ia para o Crashlytics) e exceções como o timeout do Ktor trazem a URL na mensagem. A correção fica num ponto só: `redactUrls` (em `core:observability`) corta toda URL para esquema + host, sem credenciais, e o `AppLogger` aplica isso a toda mensagem antes do Kermit e do Crashlytics; uma exceção cuja mensagem (ou a de uma causa) tem URL é trocada por `RedactedException` com o nome da classe e a mensagem reduzida (perde a pilha original, porque o código comum não consegue copiá-la). iOS e Desktop passaram a mandar o log HTTP pelo `KtorLogger`, como Android e Web. Eventos: `url` e `podcast_id` viraram `host` (`urlHost`), e `episode_title`/`podcast_title` saíram (ficam os ids de episódio, que são hashes). Testes: `AppLoggerTest` (URL na mensagem e numa causa da exceção), `UrlRedactionTest` e `LibraryViewModelTest` (nenhum evento leva a URL nem o título); os três falharam no código antigo | P |
 | 16.2 Logs demais no Crashlytics | ✅ | `AppLogger.d` grava toda linha de debug como breadcrumb do Crashlytics, inclusive cada linha de log HTTP | Só `i`/`e` vão para o Crashlytics; nível mínimo do Kermit por tipo de build; HTTP em `LogLevel.HEADERS` só no debug | P |
 | 16.3 Catálogo de eventos | ✅ | Nomes de evento em string espalhados pelos ViewModels | `sealed interface AnalyticsEvent` com os parâmetros tipados, e um teste de que todos os nomes seguem o limite do Firebase (40 caracteres, `snake_case`) | M |
 | 16.4 Consentimento | ✅ | Analytics e Crashlytics ligados sem opção | Opção de desligar nas Configurações (18.5, LGPD), respeitada antes do primeiro evento; `PrivacyInfo.xcprivacy` no iOS e formulário de segurança de dados da Play Store coerentes com isso | M |
@@ -912,11 +980,11 @@ catálogo da 16.3.
 
 | Item | O que entrega | Depende de | Esforço |
 |---|---|---|---|
-| 18.5 Configurações | Tela nova com tema (sistema/claro/escuro), saltos, velocidade padrão, download automático, só Wi-Fi, limite de armazenamento, conteúdo explícito e telemetria (16.4). Persistência com `multiplatform-settings` ou DataStore KMP, decidida em ADR | 11 | M |
-| 18.6 Fila editável | Arrastar para reordenar, remover, "tocar a seguir" e "adicionar ao fim" a partir de qualquer episódio; a fila deixa de ser montada sozinha a partir da lista do podcast | 12.9, 13.5 | M |
+| 18.5 Configurações | Tela nova com tema (sistema/claro/escuro), saltos, velocidade padrão, download automático, só Wi-Fi, limite de armazenamento, conteúdo explícito e telemetria (16.4). Usa a persistência de preferências criada na 24.4 | 11 | M |
+| 18.6 Tela da fila de reprodução | Hoje a fila é um `AlertDialog` (`QueueDialog`) com só os títulos, até 400 dp de altura, em que só dá para tocar num episódio. Vira uma **tela própria**, aberta pelo player e pelo mini player: o episódio atual no topo e os próximos com capa, podcast, duração restante e estado do download; **arrastar para reordenar**; **remover** deslizando, com "desfazer" no snackbar; tocar para pular para um episódio; tempo total restante da fila; "limpar fila" com confirmação; "tocar a seguir" e "adicionar ao fim" a partir de qualquer episódio (menu do episódio e do detalhe); opção de tirar da fila o episódio terminado. Reordenar também sem arrastar (ações de acessibilidade "mover para cima/baixo" no TalkBack/VoiceOver e teclado no Desktop). A fila deixa de ser montada sozinha a partir da lista do podcast | 12.9, 13.5 | G |
 | 18.7 Novos episódios | Aba ou seção cronológica com os episódios novos de todos os podcasts desde a última visita, com ações rápidas (tocar, enfileirar, baixar, dispensar) | 12.3 | M |
 | 18.8 Continuar ouvindo | Seção "Em andamento" no topo da biblioteca com os episódios começados e o tempo que falta | 13.1 | P |
-| 18.9 Ordenação e visualização da biblioteca | Ordenar por nome, episódio mais recente, mais não ouvidos ou data em que foi assinado; alternar entre grade e lista; contador de não ouvidos no card (a query `getUnplayedCount` já existe e não é usada) | 9.6 | P |
+| 18.9 Ordenação e visualização da biblioteca | Movida para a 24.4 | — | — |
 | 18.10 Episódios do podcast | Ordenar do mais novo ao mais antigo e o contrário; agrupar por temporada (`itunes:season`); destacar trailer e bônus (`itunes:episodeType`); "marcar como não ouvido" (hoje só existe o contrário); filtros combináveis com os atuais | 15.1 | M |
 | 18.11 Ações rápidas na lista | Deslizar para baixar, enfileirar ou marcar como ouvido; seleção múltipla para fazer isso em vários episódios de uma vez | 9.6 | M |
 | 18.12 Salvos e histórico | Marcar episódios como favoritos ("Salvos") e uma tela de histórico do que foi ouvido, com data | 12.1 | M |
@@ -955,10 +1023,12 @@ envolver serviço externo ou dependência nova.
 | 19.6 Recomendações | "Ouvintes também assinam" e "parecidos com este" a partir das categorias e do autor (sem backend: lookup do iTunes por gênero) | 18.2 | M |
 | 19.7 Widgets e atalhos | Widget de "tocando agora" e "continuar ouvindo" (Glance no Android, WidgetKit no iOS); atalhos do launcher | 18.8 | G |
 | 19.8 CarPlay | Navegação por biblioteca e fila no CarPlay, equivalente ao Android Auto que já existe | 13.5 | G |
-| 19.9 Relógio | Controles e downloads no Wear OS e no Apple Watch | 13.5, 14.6 | G |
+| 19.9a Wear OS standalone | Módulo `:wearApp` (Compose for Wear OS, Media3 no relógio) com banco próprio, reaproveitando `:domain`, `:data`, `:core:database` e o parser de RSS: atualiza feeds, baixa e toca pelo LTE/Wi-Fi do relógio, sem celular por perto. `com.google.android.wearable.standalone=true` (funciona pareado com iPhone ou sem celular); assinaturas vêm do celular (19.9b) ou de OPML (18.13). Mesmo application ID do app do celular; o empacotamento e a publicação entram na 20 | 13.5, 14.6, 18.6 | G |
+| 19.9b Sincronização celular ↔ relógio | Data Layer API (Bluetooth ou nuvem do Google, sem backend próprio) quando os dois se encontram. Assinaturas: união, com remoções guardadas como tombstone datada; progresso e "ouvido": vale o `updatedAt` mais recente por episódio; fila: vale a última alterada; downloads não sincronizam (cada aparelho baixa os seus). Pede colunas `updatedAt` e tombstones (migração e caso no `MigrationTest`, regra da 12.1). O merge é Kotlin puro testado em `commonTest` e é o mesmo que a 19.12 vai usar, trocando só o transporte. URLs de feeds privados vão para o relógio: a Data Layer é criptografada, e a regra de nunca logar a URL vale lá também | 19.9a, 12.1 | G |
+| 19.9c Apple Watch (investigar) | O Kotlin compila para watchOS, mas o Compose não; confirmar se o Room KMP tem target watchOS. UI em SwiftUI e, se o Room não servir, persistência própria; sincronização pela WatchConnectivity com o mesmo merge da 19.9b. Entra só depois da ADR com o resultado da investigação | 19.9b | G |
 | 19.10 Podcasts em vídeo | Reproduzir enclosures de vídeo (hoje só áudio), com picture-in-picture | 13.5 | G |
 | 19.11 Backup completo | Exportar e importar biblioteca + progresso + fila + configurações num arquivo (o OPML da 18.13 só leva as assinaturas) | 12 | M |
-| 19.12 Sincronização entre aparelhos | Fora de escopo até uma ADR escolher o caminho (gpodder.net, backend próprio ou iCloud/Drive) | 19.11 | — |
+| 19.12 Sincronização entre aparelhos | Fora de escopo até uma ADR escolher o caminho (gpodder.net, backend próprio ou iCloud/Drive). Reaproveita o merge da 19.9b | 19.11, 19.9b | — |
 
 ---
 
@@ -1051,6 +1121,38 @@ um número que mostre o ganho.
 
 **Critério de conclusão:** os orçamentos da 23.1 cumpridos e medidos; nenhuma recomposição periódica fora dos
 componentes que mostram o tempo; busca rápida com milhares de episódios; app menor nas quatro plataformas.
+
+---
+
+## Fase 24 — Navegação, UX e visual
+
+**Objetivo:** uma navegação com só as abas que se justificam, nomes que dizem o que a tela mostra e um visual
+atual nas quatro plataformas. A adaptação a cada tamanho de tela (celular, tablet, dobráveis, Desktop) já é a
+fase 21; aqui entra o que a 21 não cobre: o que cada tela mostra, como se navega e a cara do app.
+
+**Quando:** logo depois da 15 e antes da 21 e da 18 (ver "Sequência"). O número 24 é só a ordem em que a fase
+entrou no roadmap.
+
+**Hoje:** a barra tem Biblioteca, Buscar, Downloads e Player. "Buscar" lista e procura episódios já salvos; Downloads
+repete o filtro "Baixados" do detalhe; o Player também abre pelo mini player e fica vazio quando nada toca; a
+biblioteca só tem grade.
+
+| Item | Status | Ação | Esforço |
+|---|---|---|---|
+| 24.1 Revisão de UX tela a tela | 🔎 | Percorrer biblioteca, detalhe do podcast, episódio, busca, downloads, player e diálogos no Razr, num iPhone e no Desktop, listando por tela o que atrapalha (hierarquia, alvos de toque, estados vazios e de erro, textos, gestos); cada achado vira item desta fase ou da 21 | M |
+| 24.2 Modernização do layout | 🔎 | Atualizar a referência visual da 9.1 e a ADR 0001 antes do código: hierarquia mais forte, capas maiores, componentes do Material 3 Expressive onde couber, transições com elemento compartilhado (capa da lista → player) e movimento consistente. Snapshots da 9.13 atualizados | G |
+| 24.3 Liquid Glass no iOS | 🔎 | Estudo, com ADR. O Compose desenha os próprios pixels, então o material do iOS 26 só aparece em componentes nativos: barra de abas e barras de ferramentas em SwiftUI/UIKit com as telas em Compose dentro, ou uma imitação com desfoque no Compose (ex.: Haze). Pesar o custo de manter dois sistemas de navegação, o visual no iOS anterior ao 26 e o que muda no Android | M |
+| 24.4 Visualização da biblioteca (era a 18.9) | ✅ | Alternância entre grade (a de hoje) e lista (capa pequena, título, autor, episódios não ouvidos e data do último); ordenar por nome, episódio mais recente, mais não ouvidos ou data da assinatura; contador de não ouvidos no card (a query `getUnplayedCount` já existe e não é usada). A escolha fica salva: a persistência de preferências (`multiplatform-settings` ou DataStore KMP, em ADR) entra aqui, e a 18.5 depois só monta a tela de Configurações em cima dela | M |
+| 24.5 Downloads na barra | 🔎 | Estudar se a aba se justifica ou se vira um filtro "Baixados" na lista de episódios (24.6), como já existe no detalhe. Pesar o uso sem rede (abrir direto nos baixados), o espaço ocupado (14.8) e o que os dados de uso mostrarem (16) | P |
+| 24.6 "Buscar" vira "Episódios" | ✅ | A aba lista e procura episódios já salvos, não podcasts: trocar nome, ícone e textos nos três idiomas. Decidir junto com a 18.1, que planeja buscar podcasts novos nessa mesma aba; se a descoberta ficar em outro lugar (o "+" da biblioteca, por exemplo), a aba vira "Episódios" | P |
+| 24.7 Player na barra | 🔎 | Estudar se a aba se justifica: o mini player já abre o player, e a aba fica vazia quando nada toca. Opções: tirar a aba e deixar o mini player e a tela cheia; ou manter só no rail de telas largas (21.1) | P |
+
+As decisões de 24.5–24.7 saem juntas numa ADR de navegação, com protótipo das opções antes de mexer no código.
+A ADR também já diz onde entram as telas da 18: busca de podcasts (18.1), Configurações (18.5), fila (18.6) e
+novos episódios (18.7).
+
+**Critério de conclusão:** a barra só com abas que não repetem outro caminho; cada tela revisada na 24.1 sem
+achado aberto; o visual novo nos snapshots dos dois temas; decisão do Liquid Glass registrada.
 
 ---
 

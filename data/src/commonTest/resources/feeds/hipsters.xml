@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+xmlns:podcast="https://podcastindex.org/namespace/1.0"
+xmlns:rawvoice="https://blubrry.com/developer/rawvoice-rss/"
+>
+<channel>
+	<title>Hipsters Ponto Tech</title>
+	<atom:link href="https://www.hipsters.tech/feed/podcast/" rel="self" type="application/rss+xml" />
+	<link>https://www.hipsters.tech/</link>
+	<description>Discussões acaloradas sobre desenvolvimento de software, startups, programação, IA, UX, gadgets e as últimas tendências em tecnologia.</description>
+	<lastBuildDate>Tue, 06 Oct 2026 03:45:27 +0000</lastBuildDate>
+	<language>pt-BR</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+	<generator>Blubrry PowerPress/11.17.7</generator>
+		<atom:link rel="hub" href="https://pubsubhubbub.appspot.com/" />
+	<itunes:author>Alura - Hipsters Network</itunes:author>
+	<itunes:explicit>false</itunes:explicit>
+	<itunes:image href="https://www.hipsters.tech/wp-content/uploads/2021/07/HipstersTech_Logo_Vertical_1.png" />
+	<itunes:owner>
+		<itunes:name>Alura - Hipsters Network</itunes:name>
+		<itunes:email>podcast@example.com</itunes:email>
+	</itunes:owner>
+	<copyright>Copyright &#xA9; Alura - Hipsters Network</copyright>
+	<podcast:license>Copyright &#xA9; Alura - Hipsters Network</podcast:license>
+	<podcast:medium>podcast</podcast:medium>
+	<image>
+		<title>Hipsters Ponto Tech</title>
+		<url>https://www.hipsters.tech/wp-content/uploads/2021/07/HipstersTech_Logo_Vertical_1.png</url>
+		<link>https://www.hipsters.tech</link>
+	</image>
+	<itunes:category text="Technology" />
+	<itunes:category text="Science" />
+	<itunes:category text="Education" />
+	<podcast:podping usesPodping="true" />
+	<podcast:guid>06b8c44d-5ea9-55ff-a60f-0f5abf95d2f2</podcast:guid>
+	<item>
+		<title>Paulo Silveira comenta: Orquestração, arquétipos e profundidade – Hipsters Ponto Tech #536</title>
+		<link>https://www.hipsters.tech/paulo-silveira-comenta-orquestracao-arquetipos-e-profundidade-hipsters-ponto-tech-536/</link>
+		<pubDate>Tue, 06 Oct 2026 03:36:01 +0000</pubDate>
+		<guid isPermaLink="false">https://www.hipsters.tech/?p=6275</guid>
+		<comments>https://www.hipsters.tech/paulo-silveira-comenta-orquestracao-arquetipos-e-profundidade-hipsters-ponto-tech-536/#disqus_thread</comments>
+		<wfw:commentRss>https://www.hipsters.tech/paulo-silveira-comenta-orquestracao-arquetipos-e-profundidade-hipsters-ponto-tech-536/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<category><![CDATA[aprendizado]]></category>
+		<description><![CDATA[<p class="wp-block-paragraph">Hoje o papo é sobre o novo papel de quem trabalha com tecnologia na era dos agentes!</p>
+<p class="wp-block-paragraph">Neste episódio,&#160;<strong><a href="https://twitter.com/paulo_caelum">Paulo Silveira</a></strong>&#160;lê e comenta três textos sobre como a IA está transformando o trabalho de profissionais de tecnologia. O papo passa pela pessoa desenvolvedora como regente de agentes, por novos arquétipos que atravessam engenharia, produto, design e dados, e pela importância do conhecimento profundo e amplo, do gosto e da autonomia quando a atenção humana se torna o novo gargalo.</p>
+<p class="wp-block-paragraph">&#160;Links:&#160;</p>
+<ul class="wp-block-list">
+<li><a href="https://martinfowler.com/rachels-ramblings/conductor-developer.html">The Conductor Developer, de Rachel Laycock</a></li>
+<li><a href="https://martinfowler.com/bliki/FutureOfSoftwareDevelopment.html">Future of Software Development</a></li>
+<li><a href="https://x.com/bcherny/status/2071379474277613732">Boris Cherny: cinco arquétipos para as novas equipes de produto e tecnologia</a></li>
+<li><a href="https://www.oneusefulthing.org/p/the-overhang">The Overhang, de Ethan Mollick</a></li>
+<li><a href="https://zork-underground-empire.netlify.app/">Zork: The Great Underground Empire em 3D</a></li>
+<li><a href="https://github.com/emollick/zork-underground-empire">Código do projeto Zork em 3D</a></li>
+<li><a href="https://eco-library-map.netlify.app/">Biblioteca de Umberto Eco recriada em 3D</a></li>
+<li><a href="https://github.com/emollick/eco-library">Código do projeto da biblioteca de Umberto Eco</a></li>
+<li><a href="https://co-existence.ai/">Livro Co-Existence: The Next Phase of AI, de Ethan Mollick</a></li>
+<li><a href="https://cdn.sanity.io/files/4zrzovbb/website/b93c7465925dc052b9102209b29b58f11df4fe55.pdf">Anthropic: Agentic Coding and Persistent Returns to Expertise</a></li>
+<li><a href="https://paulo.com.br/notes/agi-marco-que-perde-sentido/">Paulo Silveira: AGI — um marco que perde o sentido ao ser atingido</a></li>
+<li><a href="https://bravenewgeek.com/you-are-not-paid-to-write-code/">You Are Not Paid to Write Code, de Tyler Treat</a></li>
+</ul>
+<p class="wp-block-paragraph">Conheça o <a href="https://conteudo.alura.com.br/guia-tatico-alura"><strong>GTA: Guia Tático Alura</strong></a>, o mapa para guiar a sua carreira em tecnologia. 75 cargos. 8 distritos. 65 rotas possíveis. Explore o mercado de tecnologia como uma cidade aberta: descubra onde você está, quais caminhos pode seguir e o que precisa para chegar ao próximo nível.</p>
+<p class="wp-block-paragraph"><strong>Comente no Spotify: </strong>Quais áreas além da sua você vem estudando e investigando?</p>
+<p class="wp-block-paragraph"><strong><a href="https://techguide.sh/">TechGuide.sh</a></strong>, um mapeamento das principais tecnologias demandadas pelo mercado para diferentes carreiras, com nossas sugestões e opiniões.</p>
+<p class="wp-block-paragraph"><strong><a href="https://7daysofcode.io/">#7DaysOfCode</a></strong>: Coloque em prática os seus conhecimentos de programação em&#160;<strong>desafios diários e gratuitos</strong>. Acesse&#160;<a href="https://7daysofcode.io/">https://7daysofcode.io/</a></p>
+<p class="wp-block-paragraph">Produção e conteúdo:</p>
+<ul class="wp-block-list">
+<li>Alura Cursos de Tecnologia – <a href="https://www.alura.com.br/" target="_blank" rel="noopener">https://www.alura.com.br</a></li>
+</ul>
+<p class="wp-block-paragraph">Edição e sonorização:&#160;<a href="https://gigahertz.fm/">Rede Gigahertz de Podcasts</a></p>]]></description>
+		<enclosure url="https://media.blubrry.com/hipsterstech/content.blubrry.com/hipsterstech/HpT-536.mp3" length="20371902" type="audio/mpeg" />
+		<itunes:image href="https://www.hipsters.tech/wp-content/uploads/2026/10/Hipster-Ponto-Tech_Capa_Podcast_Quadrado-536-scaled.jpg" />
+		<itunes:episodeType>full</itunes:episodeType>
+		<itunes:duration>27:36</itunes:duration>
+		<rawvoice:pid>155641692</rawvoice:pid>
+	</item>
+<item>
+		<title>Liderando equipes de tecnologia – Hipsters Ponto Tech #535</title>
+		<link>https://www.hipsters.tech/liderando-equipes-de-tecnologia-hipsters-ponto-tech-535/</link>
+		<pubDate>Tue, 29 Sep 2026 03:59:12 +0000</pubDate>
+		<guid isPermaLink="false">https://www.hipsters.tech/?p=6271</guid>
+		<comments>https://www.hipsters.tech/liderando-equipes-de-tecnologia-hipsters-ponto-tech-535/#disqus_thread</comments>
+		<wfw:commentRss>https://www.hipsters.tech/liderando-equipes-de-tecnologia-hipsters-ponto-tech-535/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<category><![CDATA[carreira]]></category>
+		<category><![CDATA[Podcast]]></category>
+		<description><![CDATA[<p class="wp-block-paragraph">Hoje o papo é sobre liderança de times de software!</p>
+<p class="wp-block-paragraph">Neste episódio, conversamos sobre como liderar equipes de engenharia encarando-as como sistemas, em vez de ater-se à ideia de que são conjuntos de indivíduos. O papo passa pelas adaptações da transição de dev para gestão, por avaliação de desempenho e, é claro, pelos novos desafios trazidos pelos agentes de IA. Vem ver quem participou desse papo:</p>
+<ul class="wp-block-list">
+<li><a href="https://twitter.com/paulo_caelum">Paulo Silveira</a>, o host que conhece a briga da avaliação de devs</li>
+<li><a href="https://www.linkedin.com/in/vinny-neves/">Vinny Neves</a>, cohost, dev e professor na Alura</li>
+<li><a href="https://www.linkedin.com/in/franciscomt">Francisco “Frank” Trindade</a>, VP de Engenharia na Braze e autor de Leading Effective Software Teams</li>
+</ul>
+<p class="wp-block-paragraph">&#160;Links:&#160;</p>
+<ul class="wp-block-list">
+<li><a href="https://www.hipsters.tech/team-topologies-na-era-de-agentes-de-ia-com-manuel-pais-hipsters-ponto-tech-520/">Team Topologies na era de agentes de IA, com Manuel Pais – Hipsters Ponto Tech #520</a></li>
+<li><a href="https://teamtopologies.com/book">Livro Team Topologies</a></li>
+<li><a href="https://franciscotrindade.me/leading-effective-software-teams-book">Livro Leading Effective Software Teams: Systems Thinking for Engineering Managers, de Francisco Trindade</a></li>
+<li><a href="https://pt.linkedin.com/posts/mauricioaniche_estamos-colocando-ia-na-engenharia-de-software-activity-7506700855593791489-V-Vq">Maurício Aniche: Estamos colocando IA na engenharia de software “da esquerda pra direita”</a></li>
+<li><a href="https://www.linkedin.com/posts/franciscomt_the-goal-is-still-value-francisco-trindade-activity-7493207615183679488-OezD">Francisco Trindade: The Goal is (Still) Value</a></li>
+<li><a href="https://fortune.com/2026/09/17/shopify-tobias-lutke-ai-slop-grenades/">Shopify: CEO alerta para as “slop grenades” geradas por IA</a></li>
+</ul>
+<p class="wp-block-paragraph"><strong>Comente no Spotify</strong>: Quais técnicas de liderança mais ajudam no seu dia a dia?</p>
+<p class="wp-block-paragraph"><strong><a href="https://techguide.sh/">TechGuide.sh</a></strong>, um mapeamento das principais tecnologias demandadas pelo mercado para diferentes carreiras, com nossas sugestões e opiniões.</p>
+<p class="wp-block-paragraph"><strong><a href="https://7daysofcode.io/">#7DaysOfCode</a></strong>: Coloque em prática os seus conhecimentos de programação em&#160;<strong>desafios diários e gratuitos</strong>. Acesse&#160;<a href="https://7daysofcode.io/">https://7daysofcode.io/</a></p>
+<p class="wp-block-paragraph">Produção e conteúdo:</p>
+<ul class="wp-block-list">
+<li>Alura Cursos de Tecnologia – <a href="https://www.alura.com.br/" target="_blank" rel="noopener">https://www.alura.com.br</a></li>
+</ul>
+<p class="wp-block-paragraph">Edição e sonorização:&#160;<a href="https://gigahertz.fm">Rede Gigahertz de Podcasts</a></p>]]></description>
+		<enclosure url="https://media.blubrry.com/hipsterstech/content.blubrry.com/hipsterstech/HpT-535.mp3" length="25865801" type="audio/mpeg" />
+		<itunes:image href="https://www.hipsters.tech/wp-content/uploads/2026/09/Hipster-Ponto-Tech_Capa_Podcast_Quadrado-535-scaled.jpg" />
+		<itunes:episodeType>full</itunes:episodeType>
+		<itunes:duration>35:15</itunes:duration>
+		<rawvoice:pid>155581195</rawvoice:pid>
+	</item>
+<item>
+		<title>O SaaS está morto? – Hipsters Ponto Tech #515</title>
+		<link>https://www.hipsters.tech/o-saas-esta-morto-hipsters-ponto-tech-515/</link>
+		<pubDate>Tue, 12 May 2026 04:36:30 +0000</pubDate>
+		<guid isPermaLink="false">https://www.hipsters.tech/?p=6111</guid>
+		<description>Hoje o papo é sobre o futuro do software!
+
+
+
+Neste episódio, mergulhamos em uma discussão para entender se o SaaS está mesmo morrendo, como a IA está mudando a criação e a venda de software, e por que agentes, modelos por resultado e novas formas de programar podem transformar o mercado sem acabar com os devs. Vem ver quem participou desse papo:
+
+
+
+
+Paulo Silveira, o host que voltou a programar
+
+
+
+Denis Balaguer, Líder de inovação na EY
+
+
+
+Guilherme Pereira, Diretor de Inovação, Programas &amp; Experiências na Alura Para Empresas
+
+
+
+Rafael Salomão, CEO e fundador de Niuco
+
+
+
+Vinny Neves, cohost, dev e professor na Alura
+
+
+
+
+ Links: 
+
+
+
+
+Paulo Silveira Comenta: Da Hierarquia à Inteligência, de Jack Dorsey – Hipsters Ponto Tech #514
+
+
+
+Blog do Vinny Neves
+
+
+
+Site da Niuco
+
+
+
+Linkedin do Denis Balaguer
+
+
+
+Linkedin do Guilherme Pereira
+
+
+
+
+Inscreva-se na Hipsters.Builders, a newsletter da comunidade builder. Toda semana, a principal newsletter de quem constrói software no Brasil traz notícias, citações e movimentos da comunidade Builder do X, do Hipsters e do IA Sob Controle, além dos melhores links e eventos. Direto no seu e-mail.
+
+
+
+Vá para o Vale do Silício com Paulo Silveira, Marcell Almeida, Fabrício Carraro e Marcus Mendes na “Imersão IA Sob Controle e Alura no Vale do Silício“! Vagas limitadas, corra para reservar a sua.
+
+
+
+TechGuide.sh, um mapeamento das principais tecnologias demandadas pelo mercado para diferentes carreiras, com nossas sugestões e opiniões.
+
+
+
+#7DaysOfCode: Coloque em prática os seus conhecimentos de programação em desafios diários e gratuitos. Acesse https://7daysofcode.io/
+
+
+
+Produção e conteúdo:
+
+
+
+
+Alura Cursos de Tecnologia – https://www.alura.com.br
+
+
+
+
+Edição e sonorização: Rede Gigahertz de Podcasts</description>
+		<enclosure url="https://media.blubrry.com/hipsterstech/content.blubrry.com/hipsterstech/HpT-515.mp3" length="50311292" type="audio/mpeg" />
+		<itunes:image href="https://www.hipsters.tech/wp-content/uploads/2026/05/Hipster-Ponto-Tech_Capa_Podcast_Quadrado-515-scaled.jpg" />
+		<itunes:episodeType>full</itunes:episodeType>
+		<itunes:duration>1:09:13</itunes:duration>
+	</item>
+</channel>
+</rss>

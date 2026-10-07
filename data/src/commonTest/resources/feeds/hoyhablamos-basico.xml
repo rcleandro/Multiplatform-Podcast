@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+xmlns:podcast="https://podcastindex.org/namespace/1.0"
+xmlns:rawvoice="https://blubrry.com/developer/rawvoice-rss/"
+>
+<channel>
+	<title>Hoy Hablamos Básico: Aprender español nivel básico-intermedio | Learn Spanish</title>
+	<atom:link href="https://www.hoyhablamos.com/feed/podcast-basico/" rel="self" type="application/rss+xml" />
+	<link>https://www.hoyhablamos.com/basico/</link>
+	<description>Publicamos episodios sobre temas diversos para aprender español. Utilizamos vocabulario y gramática relevante para estudiantes de nivel básico e intermedio. El podcast es adecuado para estudiantes con un nivel A2 (advanced beginner level).</description>
+	<lastBuildDate>Tue, 06 Oct 2026 19:01:32 +0000</lastBuildDate>
+	<language>es</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+	<generator>Blubrry PowerPress/11.17.9</generator>
+		<atom:link rel="hub" href="https://pubsubhubbub.appspot.com/" />
+	<podcast:locked owner="podcast@example.com">yes</podcast:locked>
+	<itunes:author>Hoy Hablamos</itunes:author>
+	<itunes:explicit>false</itunes:explicit>
+	<itunes:image href="https://www.hoyhablamos.com/wp-content/uploads/2024/03/logo-rrss-hoyhablamos-basico.jpg" />
+	<itunes:type>episodic</itunes:type>
+	<itunes:owner>
+		<itunes:name>Hoy Hablamos</itunes:name>
+		<itunes:email>podcast@example.com</itunes:email>
+	</itunes:owner>
+	<podcast:medium>podcast</podcast:medium>
+	<image>
+		<title>Hoy Hablamos Básico: Aprender español nivel básico-intermedio | Learn Spanish</title>
+		<url>https://www.hoyhablamos.com/wp-content/uploads/2024/03/logo-rrss-hoyhablamos-basico.jpg</url>
+		<link>https://www.hoyhablamos.com/basico/</link>
+	</image>
+	<itunes:category text="Education">
+		<itunes:category text="Language Learning" />
+	</itunes:category>
+	<itunes:category text="Education" />
+	<itunes:category text="Education">
+		<itunes:category text="Courses" />
+	</itunes:category>
+	<rawvoice:rating>TV-Y</rawvoice:rating>
+	<podcast:updateFrequency rrule="FREQ=WEEKLY;BYDAY=MO,WE,FR">Weekly</podcast:updateFrequency>
+	<rawvoice:frequency>Weekly</rawvoice:frequency>
+	<podcast:podping usesPodping="true" />
+	<podcast:guid>26d2fdbc-3c04-52ce-8ec6-9f4cf3cdd83d</podcast:guid>
+	<rawvoice:subscribe feed="https://www.hoyhablamos.com/feed/podcast-basico/" itunes="https://podcasts.apple.com/us/podcast/hoy-hablamos-básico-aprender-español-desde-cero-con-historias-|-learn-spanish-from-scratch-with-stories/id1743450850"></rawvoice:subscribe>
+	<item>
+		<title>140. El café</title>
+		<link>https://www.hoyhablamos.com/140-el-cafe/</link>
+		<pubDate>Fri, 02 Oct 2026 15:41:37 +0000</pubDate>
+		<guid isPermaLink="false">https://www.hoyhablamos.com/?p=267659</guid>
+		<description>En el episodio de hoy hablamos sobre el café y aprendemos a pedirlo como un autentico nativo.</description>
+		<enclosure url="https://media.blubrry.com/podcast_diario_de_espaol/media.blubrry.com/3715649/content.blubrry.com/3715649/HHB_140_El_cafe_mezcla.mp3" length="7997498" type="audio/mpeg" />
+		<itunes:episodeType>full</itunes:episodeType>
+		<itunes:duration>11:06</itunes:duration>
+		<rawvoice:pid>155616118</rawvoice:pid>
+	</item>
+<item>
+		<title>139. El otoño</title>
+		<link>https://www.hoyhablamos.com/139-el-otono/</link>
+		<pubDate>Fri, 25 Sep 2026 14:01:05 +0000</pubDate>
+		<guid isPermaLink="false">https://www.hoyhablamos.com/?p=267548</guid>
+		<description>Hoy vamos a hablar de qué es el otoño, de por qué caen las hojas, de lo que comemos y de cómo nos sentimos.</description>
+		<enclosure url="https://media.blubrry.com/podcast_diario_de_espaol/media.blubrry.com/3715649/content.blubrry.com/3715649/HHB_139_El_oton_o_mezcla.mp3" length="7229365" type="audio/mpeg" />
+		<itunes:episodeType>full</itunes:episodeType>
+		<itunes:duration>10:02</itunes:duration>
+		<rawvoice:pid>155548697</rawvoice:pid>
+	</item>
+<item>
+		<title>26. Mal de amores</title>
+		<link>https://www.hoyhablamos.com/26-mal-de-amores/</link>
+		<pubDate>Wed, 24 Jul 2024 16:37:26 +0000</pubDate>
+		<guid isPermaLink="false">https://www.hoyhablamos.com/?p=249813</guid>
+		<description>Hoy tenemos una historia para hablar de varias expresiones que usan los verbos “estar”  y “tener”. Además, conoceremos vocabulario que sirve para expresar sensaciones físicas, sentimientos y algunos datos de información personal. Para ver la transcripción, explicaciones y ejercicios, hazte suscriptor premium en: www.hoyhablamos.com</description>
+		<enclosure url="https://media.blubrry.com/podcast_diario_de_espaol/media.blubrry.com/3715649/content.blubrry.com/3715649/HHB_episodio_26_Mal_de_amores_mezcla.mp3" length="15958974" type="audio/mpeg" />
+		<itunes:episodeType>full</itunes:episodeType>
+		<itunes:duration>11:05</itunes:duration>
+		<podcast:transcript url="https://transcripts.blubrry.com/3715649/133473794-37769.srt" language="es" type="application/srt" rel="captions" />
+		<rawvoice:pid>133473794</rawvoice:pid>
+	</item>
+</channel>
+</rss>

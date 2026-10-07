@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rss version="2.0"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:cc="http://web.resource.org/cc/"
+  xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+  xmlns:media="http://search.yahoo.com/mrss/"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:podcast="https://podcastindex.org/namespace/1.0"
+  xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:libsyn="https://rss.libsyn.com/ns.xml">
+
+  <channel>
+    <atom:link href="https://rss.libsyn.com/shows/60664/destinations/234448.xml" rel="self" type="application/rss+xml"/>
+    <title>Ask a Spaceman!</title>
+    <pubDate>Tue, 06 Oct 2026 11:05:09 +0000</pubDate>
+    <lastBuildDate>Tue, 06 Oct 2026 11:05:09 +0000</lastBuildDate>
+    <generator>Libsyn RSSgen 1.0</generator>
+    <libsyn:show-id>60664</libsyn:show-id>
+    
+    <libsyn:last-updated>2025-11-07T14:46:08Z</libsyn:last-updated>
+    
+    <link>http://www.askaspaceman.com</link>
+    <language>en</language>
+    <copyright><![CDATA[Copyright 2015 Paul M. Sutter]]></copyright>
+    <docs>http://www.askaspaceman.com</docs>
+    <itunes:summary><![CDATA[You've got questions and astrophysicist Paul M. Sutter has answers - every episode you will come closer to complete knowledge of time and space!]]></itunes:summary>
+    <image>
+      <url>https://static.libsyn.com/p/assets/e/7/a/d/e7ad18c65ca60f1c88c4a68c3ddbc4f2/ask_a_spaceman_itunes.jpg</url>
+      <title>Ask a Spaceman!</title>
+      <link><![CDATA[http://www.askaspaceman.com]]></link>
+    </image>
+    <itunes:author>Paul M. Sutter</itunes:author>
+		<itunes:category text="Science">
+  <itunes:category text="Natural Sciences" />
+</itunes:category>
+<itunes:category text="Science">
+  <itunes:category text="Astronomy" />
+</itunes:category>
+    <itunes:image href="https://static.libsyn.com/p/assets/e/7/a/d/e7ad18c65ca60f1c88c4a68c3ddbc4f2/ask_a_spaceman_itunes.jpg" />
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:owner>
+      <itunes:name>Paul M. Sutter</itunes:name>
+      <itunes:email>podcast@example.com</itunes:email>
+    </itunes:owner>
+    <description><![CDATA[You've got questions and astrophysicist Paul M. Sutter has answers - every episode you will come closer to complete knowledge of time and space!]]></description>
+    
+    <itunes:type>episodic</itunes:type>
+    
+
+    <itunes:keywords />
+
+    
+
+    
+    <podcast:locked owner="podcast@example.com">no</podcast:locked>
+    
+    
+    
+    
+    
+    <item>
+      <title>AaS! 281: What Makes the Scattered Disk So Wild?</title>
+      <itunes:title>AaS! 281: What Makes the Scattered Disk So Wild?</itunes:title>
+      <pubDate>Tue, 06 Oct 2026 11:00:00 +0000</pubDate>
+      <guid isPermaLink="false"><![CDATA[b4ef3a52-1b75-467c-b616-9855f18add44]]></guid>
+      <link><![CDATA[https://askaspaceman.libsyn.com/aas-281-what-makes-the-scattered-disk-so-wild]]></link>
+      <description><![CDATA[<p class="" data-pm-slice="0 0 []">How did the scattered disk of the solar system form? What kins of strange objects roam those badlands? And what does it do to the rest of the solar system? I discuss these questions and more in today's Ask a Spaceman!</p> <p class="">Support the show: <a href= "http://www.patreon.com/pmsutter">http://www.patreon.com/pmsutter</a></p> <p class="">All episodes: <a href= "http://www.AskASpaceman.com">http://www.AskASpaceman.com</a></p> <p class="">Watch on YouTube: <a href= "http://www.youtube.com/PaulMSutter">http://www.youtube.com/PaulMSutter</a></p> <p class="">Read a book: <a href= "http://www.pmsutter/book">https://www.pmsutter.com/books</a></p> <p class="">Keep those questions about space, science, astronomy, astrophysics, physics, and cosmology coming to #AskASpaceman for COMPLETE KNOWLEDGE OF TIME AND SPACE!</p> <p class="">Big thanks to my top Patreon supporters this month: Justin G, Chris L, Alberto M, Corey D, Michael P, Naila, Sam R, Joshua, Scott M, Rob H, Scott M, Louis M, John W, Alexis, Gilbert M, Rob W, Jessica M, Jules R, Jim L, David S, Scott R, Heather, Mike S, Pete H, Steve S, Lisa R, Kevin B, Aileen G, Michael J, Phillip L, Steven B, Mark R, Alan B, Craig B, Richard K, Joe R, David P, Justin, Tracy F, Thomas K, James C, Syamkumar M, Mark D, Bruce A, Tim Z, Linda C, The Tired Jedi, Bob C, Stephen A, James R, Allen E, Michael S, Sheryl, David W, Chris, Michael S, Erlend A, James D, Karl W, Edward K, Scott K, Vivek D, M0PPET, Brad, Azra K, Steve R, M D Malahy, Brian O, Alonna M, Joseph B, Anders J, Blaine, Ry Guy, and Phil!</p> <p class="">Hosted by <a href="https://pmsutter.com">Paul M. Sutter</a>.</p>]]></description>
+      
+      <content:encoded><![CDATA[<p class="" data-pm-slice="0 0 []">How did the scattered disk of the solar system form? What kins of strange objects roam those badlands? And what does it do to the rest of the solar system? I discuss these questions and more in today's Ask a Spaceman!</p> <p class="">Support the show: <a href= "http://www.patreon.com/pmsutter">http://www.patreon.com/pmsutter</a></p> <p class="">All episodes: <a href= "http://www.AskASpaceman.com">http://www.AskASpaceman.com</a></p> <p class="">Watch on YouTube: <a href= "http://www.youtube.com/PaulMSutter">http://www.youtube.com/PaulMSutter</a></p> <p class="">Read a book: <a href= "http://www.pmsutter/book">https://www.pmsutter.com/books</a></p> <p class="">Keep those questions about space, science, astronomy, astrophysics, physics, and cosmology coming to #AskASpaceman for COMPLETE KNOWLEDGE OF TIME AND SPACE!</p> <p class="">Big thanks to my top Patreon supporters this month: Justin G, Chris L, Alberto M, Corey D, Michael P, Naila, Sam R, Joshua, Scott M, Rob H, Scott M, Louis M, John W, Alexis, Gilbert M, Rob W, Jessica M, Jules R, Jim L, David S, Scott R, Heather, Mike S, Pete H, Steve S, Lisa R, Kevin B, Aileen G, Michael J, Phillip L, Steven B, Mark R, Alan B, Craig B, Richard K, Joe R, David P, Justin, Tracy F, Thomas K, James C, Syamkumar M, Mark D, Bruce A, Tim Z, Linda C, The Tired Jedi, Bob C, Stephen A, James R, Allen E, Michael S, Sheryl, David W, Chris, Michael S, Erlend A, James D, Karl W, Edward K, Scott K, Vivek D, M0PPET, Brad, Azra K, Steve R, M D Malahy, Brian O, Alonna M, Joseph B, Anders J, Blaine, Ry Guy, and Phil!</p> <p class="">Hosted by <a href="https://pmsutter.com">Paul M. Sutter</a>.</p>]]></content:encoded>
+      
+      
+      <enclosure url="https://dts.podtrac.com/redirect.mp3/pscrb.fm/rss/p/clrtpod.com/m/mgln.ai/e/35/traffic.libsyn.com/secure/askaspaceman/AAS281_10012026_AdBR04m21sTO04m27s.mp3?dest-id=234448" length="68290089" type="audio/mpeg" />
+      <itunes:duration>27:04</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      
+      
+      <itunes:keywords />
+      
+      
+      <itunes:episode>281</itunes:episode>
+      
+      
+      <itunes:image href="https://static.libsyn.com/p/assets/5/9/4/f/594f8daa1dcbd0f488c4a68c3ddbc4f2/scattered_square.png" />
+      
+      
+      <itunes:episodeType>full</itunes:episodeType>
+      
+      <itunes:author>Paul M. Sutter</itunes:author>
+      
+      
+      
+
+      <libsyn:item-id>43146803</libsyn:item-id>
+      
+      <libsyn:last-updated>2026-10-06T11:04:08Z</libsyn:last-updated>
+      
+      
+      <libsyn:ad-markers>
+        
+        <libsyn:ad-marker type="pre" count="2" />
+        
+        <libsyn:ad-marker type="mid" count="2" timestamp="265" />
+        
+        <libsyn:ad-marker type="post" count="4" timestamp="1624" />
+        
+      </libsyn:ad-markers>
+      
+    </item>
+<item>
+      <title>AaS! 280: Wait So We Can Steal Energy from Black Holes?</title>
+      <itunes:title>AaS! 280: Wait So We Can Steal Energy from Black Holes?</itunes:title>
+      <pubDate>Tue, 22 Sep 2026 11:00:00 +0000</pubDate>
+      <guid isPermaLink="false"><![CDATA[11da6f1f-92c2-4c7a-ac3e-dbc97e4bf1d5]]></guid>
+      <link><![CDATA[https://askaspaceman.libsyn.com/aas-280-wait-so-we-can-steal-energy-from-black-holes]]></link>
+      <description><![CDATA[<p class="" data-pm-slice="0 0 []">What is frame dragging? How do we measure it? And how can we turn this into a method for extracting energy from rotating black holes? I discuss these questions and more in today's Ask a Spaceman!</p> <p class="">Support the show: <a href= "http://www.patreon.com/pmsutter">http://www.patreon.com/pmsutter</a></p> <p class="">All episodes: <a href= "http://www.AskASpaceman.com">http://www.AskASpaceman.com</a></p> <p class="">Watch on YouTube: <a href= "http://www.youtube.com/PaulMSutter">http://www.youtube.com/PaulMSutter</a></p> <p class="">Read a book: <a href= "http://www.pmsutter/book">https://www.pmsutter.com/books</a></p> <p class="">Keep those questions about space, science, astronomy, astrophysics, physics, and cosmology coming to #AskASpaceman for COMPLETE KNOWLEDGE OF TIME AND SPACE!</p> <p class="">Big thanks to my top Patreon supporters this month: Justin G, Chris L, Alberto M, Corey D, Michael P, Naila, Sam R, Joshua, Scott M, Rob H, Scott M, Louis M, John W, Alexis, Gilbert M, Rob W, Jessica M, Jules R, Jim L, David S, Scott R, Heather, Mike S, Pete H, Steve S, Lisa R, Kevin B, Aileen G, Deb A, Michael J, Phillip L, Steven B, Mark R, Alan B, Craig B, Richard K, Joe R, David P, Justin, Tracy F, Thomas K, James C, Syamkumar M, Homer V, Mark D, Bruce A, Tim Z, Linda C, The Tired Jedi, Bob C, Stephen A, James R, Allen E, Michael S, Sheryl, David W, Chris, Michael S, Erlend A, James D, Karl W, Den K, Edward K, Scott K, Vivek D, M0PPET, Brad, Azra K, Steve R, M D Malahy, Brian O, Alonna M, Joseph B, and Anders J!</p> <p class="">Hosted by <a href="https://pmsutter.com">Paul M. Sutter</a>.</p>]]></description>
+      
+      <content:encoded><![CDATA[<p class="" data-pm-slice="0 0 []">What is frame dragging? How do we measure it? And how can we turn this into a method for extracting energy from rotating black holes? I discuss these questions and more in today's Ask a Spaceman!</p> <p class="">Support the show: <a href= "http://www.patreon.com/pmsutter">http://www.patreon.com/pmsutter</a></p> <p class="">All episodes: <a href= "http://www.AskASpaceman.com">http://www.AskASpaceman.com</a></p> <p class="">Watch on YouTube: <a href= "http://www.youtube.com/PaulMSutter">http://www.youtube.com/PaulMSutter</a></p> <p class="">Read a book: <a href= "http://www.pmsutter/book">https://www.pmsutter.com/books</a></p> <p class="">Keep those questions about space, science, astronomy, astrophysics, physics, and cosmology coming to #AskASpaceman for COMPLETE KNOWLEDGE OF TIME AND SPACE!</p> <p class="">Big thanks to my top Patreon supporters this month: Justin G, Chris L, Alberto M, Corey D, Michael P, Naila, Sam R, Joshua, Scott M, Rob H, Scott M, Louis M, John W, Alexis, Gilbert M, Rob W, Jessica M, Jules R, Jim L, David S, Scott R, Heather, Mike S, Pete H, Steve S, Lisa R, Kevin B, Aileen G, Deb A, Michael J, Phillip L, Steven B, Mark R, Alan B, Craig B, Richard K, Joe R, David P, Justin, Tracy F, Thomas K, James C, Syamkumar M, Homer V, Mark D, Bruce A, Tim Z, Linda C, The Tired Jedi, Bob C, Stephen A, James R, Allen E, Michael S, Sheryl, David W, Chris, Michael S, Erlend A, James D, Karl W, Den K, Edward K, Scott K, Vivek D, M0PPET, Brad, Azra K, Steve R, M D Malahy, Brian O, Alonna M, Joseph B, and Anders J!</p> <p class="">Hosted by <a href="https://pmsutter.com">Paul M. Sutter</a>.</p>]]></content:encoded>
+      
+      
+      <enclosure url="https://dts.podtrac.com/redirect.mp3/pscrb.fm/rss/p/clrtpod.com/m/mgln.ai/e/35/traffic.libsyn.com/secure/askaspaceman/AAS280_09152026_AdBR19m58sTO20m0s.mp3?dest-id=234448" length="69111235" type="audio/mpeg" />
+      <itunes:duration>27:15</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      
+      
+      <itunes:keywords />
+      
+      
+      <itunes:episode>280</itunes:episode>
+      
+      
+      <itunes:image href="https://static.libsyn.com/p/assets/7/6/7/d/767d27a28c2f399c16c3140a3186d450/frame_dragging_square.png" />
+      
+      
+      <itunes:episodeType>full</itunes:episodeType>
+      
+      <itunes:author>Paul M. Sutter</itunes:author>
+      
+      
+      
+
+      <libsyn:item-id>42813565</libsyn:item-id>
+      
+      <libsyn:last-updated>2026-10-01T00:00:12Z</libsyn:last-updated>
+      
+      
+      <libsyn:ad-markers>
+        
+        <libsyn:ad-marker type="pre" count="2" />
+        
+        <libsyn:ad-marker type="mid" count="2" timestamp="1198" />
+        
+        <libsyn:ad-marker type="post" count="4" timestamp="1635" />
+        
+      </libsyn:ad-markers>
+      
+    </item>
+<item>
+      <title>AaS! 172: What Are Some Alternatives to the Big Bang Theory?</title>
+      <itunes:title>What Are Some Alternatives to the Big Bang Theory?</itunes:title>
+      <pubDate>Tue, 15 Mar 2022 11:00:00 +0000</pubDate>
+      <guid isPermaLink="false"><![CDATA[729abc08-de8d-48e1-8a24-d8d559260950]]></guid>
+      <link><![CDATA[https://traffic.libsyn.com/secure/askaspaceman/aas172.mp3]]></link>
+      <description><![CDATA[<p>What makes the Big Bang theory so successful? How were alternatives ruled out? What are the electric universe and steady state theories? Do any other options remain, like conformal cyclic cosmology? I discuss these questions and more in today's Ask a Spaceman!</p> <p>Support the show: <a href= "http://www.patreon.com/pmsutter">http://www.patreon.com/pmsutter</a><br />  All episodes: <a href= "http://www.askaspaceman.com/">http://www.AskASpaceman.com</a><br />  Watch on YouTube: <a href="http://www.youtube.com/PaulMSutter" target="_blank" rel= "noopener noreferrer">http://www.youtube.com/PaulMSutter</a><br /> Read a book: <a href= "https://www.pmsutter.com/books">https://www.pmsutter.com/books</a> </p> <p>Keep those questions about space, science, astronomy, astrophysics, physics, and cosmology coming to #AskASpaceman for COMPLETE KNOWLEDGE OF TIME AND SPACE!</p> <p>Big thanks to my top Patreon supporters this month: Justin G, Chris L, Barbara K, Duncan M, Corey D, Justin Z, Nate H, Andrew F, Naila, Aaron S, Scott M, Rob H, Lowell T, Justin, Louis M, Paul G, John W, Alexis, Erin J, Jennifer M, Gilbert M, Joshua, Bob H, David B, Frank T, Tim R, Tom Van S, Mark R, Alan B, Craig B, Richard K, Steve P, Dave L, Chuck C, Stephen M, Maureen R, Stace J, Neil P, COTFM, Stephen S, Ken L, Debra S, Alberto M, Matt C, Joe R, David P, Ulfert B, Fr. Bruce W, Nicolai B, Sean M, Edward K, Darren W, Tracy F, Sarah K, Steven S, Ryan L, Ella F, Richard S, Sam R, Thomas K, James C, Jorg D, R Larche, Syamkumar M, John S, Fred S, Homer V, Mark D, Colin B, Bruce A, Steven M, Brent B, Bill E, Tim Z, Thomas W, Linda C, David W, Aissa F, Marc H, Avery P, Scott M, Thomas H, Farshad A, Matthias S, Kenneth D, Maureen R, Michael W, Scott W, David W, Neuterdude, Cha0sKami, Brett, Robert C, Matthew K, Robert B, Gary K, Stephen J, dhr18, Anna V, Johanna M, Matthew G, Paul & Giulia S, Ron D, Steven M, Louis M, Michael C, Alyssa K, Lode D, Roger, Bob C, Patti H, and Simon G!</p> <p>Thanks to <a href="http://www.midnightaudiotheatre.com/">Cathy Rinella</a> for editing.</p> <p>Hosted by Paul M. Sutter, astrophysicist and the one and only Agent to the Stars (<a href= "http://www.pmsutter.com">http://www.pmsutter.com</a>).</p>]]></description>
+      
+      <content:encoded><![CDATA[<p>What makes the Big Bang theory so successful? How were alternatives ruled out? What are the electric universe and steady state theories? Do any other options remain, like conformal cyclic cosmology? I discuss these questions and more in today's Ask a Spaceman!</p> <p>Support the show: <a href= "http://www.patreon.com/pmsutter">http://www.patreon.com/pmsutter</a> All episodes: <a href= "http://www.askaspaceman.com/">http://www.AskASpaceman.com</a> Watch on YouTube: <a href="http://www.youtube.com/PaulMSutter" target="_blank" rel= "noopener noreferrer">http://www.youtube.com/PaulMSutter</a> Read a book: <a href= "https://www.pmsutter.com/books">https://www.pmsutter.com/books</a> </p> <p>Keep those questions about space, science, astronomy, astrophysics, physics, and cosmology coming to #AskASpaceman for COMPLETE KNOWLEDGE OF TIME AND SPACE!</p> <p>Big thanks to my top Patreon supporters this month: Justin G, Chris L, Barbara K, Duncan M, Corey D, Justin Z, Nate H, Andrew F, Naila, Aaron S, Scott M, Rob H, Lowell T, Justin, Louis M, Paul G, John W, Alexis, Erin J, Jennifer M, Gilbert M, Joshua, Bob H, David B, Frank T, Tim R, Tom Van S, Mark R, Alan B, Craig B, Richard K, Steve P, Dave L, Chuck C, Stephen M, Maureen R, Stace J, Neil P, COTFM, Stephen S, Ken L, Debra S, Alberto M, Matt C, Joe R, David P, Ulfert B, Fr. Bruce W, Nicolai B, Sean M, Edward K, Darren W, Tracy F, Sarah K, Steven S, Ryan L, Ella F, Richard S, Sam R, Thomas K, James C, Jorg D, R Larche, Syamkumar M, John S, Fred S, Homer V, Mark D, Colin B, Bruce A, Steven M, Brent B, Bill E, Tim Z, Thomas W, Linda C, David W, Aissa F, Marc H, Avery P, Scott M, Thomas H, Farshad A, Matthias S, Kenneth D, Maureen R, Michael W, Scott W, David W, Neuterdude, Cha0sKami, Brett, Robert C, Matthew K, Robert B, Gary K, Stephen J, dhr18, Anna V, Johanna M, Matthew G, Paul & Giulia S, Ron D, Steven M, Louis M, Michael C, Alyssa K, Lode D, Roger, Bob C, Patti H, and Simon G!</p> <p>Thanks to <a href="http://www.midnightaudiotheatre.com/">Cathy Rinella</a> for editing.</p> <p>Hosted by Paul M. Sutter, astrophysicist and the one and only Agent to the Stars (<a href= "http://www.pmsutter.com">http://www.pmsutter.com</a>).</p>]]></content:encoded>
+      
+      
+      <enclosure url="https://dts.podtrac.com/redirect.mp3/pscrb.fm/rss/p/clrtpod.com/m/mgln.ai/e/35/traffic.libsyn.com/secure/askaspaceman/aas172.mp3?dest-id=234448" length="25868133" type="audio/mpeg" />
+      <itunes:duration>35:36</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      
+      
+      <itunes:keywords />
+      
+      <itunes:season>2022</itunes:season>
+      
+      
+      <itunes:episode>172</itunes:episode>
+      
+      
+      <itunes:image href="https://static.libsyn.com/p/assets/1/5/1/7/15176047edbb359616c3140a3186d450/aas172.jpg" />
+      
+      
+      <itunes:episodeType>full</itunes:episodeType>
+      
+      <itunes:author>Paul M. Sutter</itunes:author>
+      
+      
+      
+
+      <libsyn:item-id>22430945</libsyn:item-id>
+      
+      <libsyn:last-updated>2025-07-28T00:52:45Z</libsyn:last-updated>
+      
+      
+      <libsyn:ad-markers>
+        
+        <libsyn:ad-marker type="pre" count="2" />
+        
+        <libsyn:ad-marker type="post" count="2" timestamp="2136" />
+        
+      </libsyn:ad-markers>
+      
+    </item>
+    
+  </channel>
+</rss>

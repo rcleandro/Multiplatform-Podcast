@@ -20,6 +20,7 @@ import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import br.com.carvalho.podcast.core.observability.Analytics
+import br.com.carvalho.podcast.core.observability.urlHost
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -82,7 +83,7 @@ class PodcastDetailViewModel(
     private fun refresh() {
         _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("refresh_podcast_detail", mapOf("podcast_id" to podcastId))
+            analytics.logEvent("refresh_podcast_detail", mapOf("host" to urlHost(podcastId)))
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
             refreshPodcastUseCase(podcastId).onFailure { e ->
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
@@ -99,20 +100,14 @@ class PodcastDetailViewModel(
 
     private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("play_episode_from_detail", mapOf(
-                "episode_id" to episode.id,
-                "episode_title" to episode.title
-            ))
+            analytics.logEvent("play_episode_from_detail", mapOf("episode_id" to episode.id))
             playEpisode(episode)
         }
     }
 
     private fun downloadEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("download_episode_from_detail", mapOf(
-                "episode_id" to episode.id,
-                "episode_title" to episode.title
-            ))
+            analytics.logEvent("download_episode_from_detail", mapOf("episode_id" to episode.id))
             AppLogger.i(TAG, "Starting download for episode: ${episode.title}")
             episodeDownloader.download(episode)
         }
@@ -141,7 +136,7 @@ class PodcastDetailViewModel(
     }
 
     private fun markOlderAsPlayed(publishDate: Long) {
-        analytics.logEvent("mark_older_as_played", mapOf("podcast_id" to podcastId, "publish_date" to publishDate))
+        analytics.logEvent("mark_older_as_played", mapOf("host" to urlHost(podcastId), "publish_date" to publishDate))
         _uiState.update { it.copy(selectedEpisode = null) }
         viewModelScope.launch(dispatchers.io) {
             repository.markOlderEpisodesAsPlayed(podcastId, publishDate)

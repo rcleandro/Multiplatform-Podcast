@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.domain.usecase
 
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
@@ -75,5 +76,57 @@ class RefreshPodcastUseCaseTest {
         assertEquals(1, summary.failures.size)
         assertEquals(false, summary.allFailed)
         assertEquals(1, podcastRepo.saveFeedCalledCount)
+    }
+
+    @Test
+    fun `a feed that did not change is not saved again`() = runTest {
+        val version = FeedVersion(etag = "\"v1\"", lastModified = "Mon, 05 Oct 2026 10:00:00 GMT")
+        podcastRepo.podcasts.value = listOf(samplePodcast.copy(feedVersion = version))
+        feedSource.notModified = true
+
+        val result = useCase(samplePodcast.id)
+
+        assertTrue(result.isSuccess)
+        assertEquals(version, feedSource.versionAskedFor)
+        assertEquals(0, podcastRepo.saveFeedCalledCount)
+    }
+
+    @Test
+    fun `refreshAll fetches at most four feeds at a time`() = runTest {
+        podcastRepo.podcasts.value = (1..10).map { samplePodcast.copy(id = "url$it", feedUrl = "url$it") }
+        feedSource.result = Result.success(sampleFeed)
+        feedSource.delayMs = 100
+
+        val summary = useCase.refreshAll()
+
+        assertEquals(10, summary.total)
+        assertEquals(4, feedSource.maxConcurrentFetches)
+    }
+
+    @Test
+    fun `a feed that moved keeps its id and episodes and gets the new address`() = runTest {
+        val original = samplePodcast.copy(id = "https://old.example.com/rss", feedUrl = "https://old.example.com/rss")
+        podcastRepo.podcasts.value = listOf(original)
+        feedSource.result = Result.success(sampleFeed.copy(movedTo = "https://new.example.com/rss"))
+
+        useCase(original.id)
+
+        assertEquals(original.id, feedSource.podcastIdAskedFor)
+        val saved = podcastRepo.podcasts.value.single()
+        assertEquals(original.id, saved.id)
+        assertEquals("https://new.example.com/rss", saved.feedUrl)
+    }
+
+    @Test
+    fun `a podcast whose address moved before is fetched at the new one under its old id`() = runTest {
+        val moved = samplePodcast.copy(id = "https://old.example.com/rss", feedUrl = "https://new.example.com/rss")
+        podcastRepo.podcasts.value = listOf(moved)
+        feedSource.result = Result.success(sampleFeed)
+
+        useCase(moved.id)
+
+        assertEquals("https://new.example.com/rss", feedSource.fetchCalledWith)
+        assertEquals(moved.id, feedSource.podcastIdAskedFor)
+        assertEquals(moved, podcastRepo.podcasts.value.single().copy(lastUpdated = moved.lastUpdated))
     }
 }

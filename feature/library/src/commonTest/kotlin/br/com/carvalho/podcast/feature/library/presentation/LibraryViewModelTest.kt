@@ -1,8 +1,11 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_feed
+import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_url
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
@@ -80,8 +83,8 @@ class LibraryViewModelTest {
     fun `addPodcast calls use case and closes dialog`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         val podcast = Podcast(
-            id = "https://test-url", title = "New", description = "", imageUrl = null, author = null, language = null,
-            categories = emptyList(), feedUrl = "https://test-url", siteUrl = null, lastUpdated = 0, isSubscribed = true
+            id = "https://feeds.example.com/rss", title = "New", description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), feedUrl = "https://feeds.example.com/rss", siteUrl = null, lastUpdated = 0, isSubscribed = true
         )
         feedSource.result = Result.success(FetchedFeed(podcast, emptyList()))
         feedSource.delayMs = 10
@@ -92,7 +95,7 @@ class LibraryViewModelTest {
             viewModel.onIntent(LibraryIntent.OpenAddDialog)
             awaitItem()
 
-            viewModel.onIntent(LibraryIntent.ChangeUrl("test-url"))
+            viewModel.onIntent(LibraryIntent.ChangeUrl("feeds.example.com/rss"))
             awaitItem()
 
             viewModel.onIntent(LibraryIntent.ConfirmAdd)
@@ -111,7 +114,7 @@ class LibraryViewModelTest {
             assertFalse(state.isRefreshing)
             assertEquals("", state.addUrl)
             
-            assertEquals("https://test-url", feedSource.fetchCalledWith)
+            assertEquals("https://feeds.example.com/rss", feedSource.fetchCalledWith)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -138,6 +141,27 @@ class LibraryViewModelTest {
     }
 
     @Test
+    fun `events never carry the feed URL or titles`() = runTest(testDispatcher) {
+        val feedUrl = "https://feeds.example.com/private/rss?token=s3cr3t"
+        val podcast = Podcast(
+            id = feedUrl, title = "Paid show", description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), feedUrl = feedUrl, siteUrl = null, lastUpdated = 0, isSubscribed = true
+        )
+        feedSource.result = Result.success(FetchedFeed(podcast, emptyList()))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ChangeUrl(feedUrl))
+        viewModel.onIntent(LibraryIntent.ConfirmAdd)
+        viewModel.onIntent(LibraryIntent.RequestDelete(podcast))
+        viewModel.onIntent(LibraryIntent.ConfirmDelete)
+
+        assertEquals(listOf("add_podcast_attempt", "add_podcast_success", "delete_podcast"), analytics.events)
+        analytics.params.forEach { params ->
+            assertEquals(mapOf<String, Any?>("host" to "feeds.example.com"), params)
+        }
+    }
+
+    @Test
     fun `adding a podcast already in the library shows a specific message`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(
             Podcast(
@@ -154,6 +178,37 @@ class LibraryViewModelTest {
         viewModel.messages.test {
             assertEquals(UiMessage(Res.string.error_podcast_exists), awaitItem())
         }
+    }
+
+    @Test
+    fun `a feed address typed without the scheme is not logged`() = runTest(testDispatcher) {
+        val logs = mutableListOf<String>()
+        AppLogger.crashReporter = object : CrashReporter {
+            override fun log(message: String) { logs += message }
+            override fun recordException(throwable: Throwable) { logs += throwable.stackTraceToString() }
+        }
+        feedSource.result = Result.failure(AppError.InvalidFeed)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ChangeUrl("feeds.example.com/private/rss?token=s3cr3t"))
+        viewModel.onIntent(LibraryIntent.ConfirmAdd)
+        AppLogger.crashReporter = null
+
+        assertTrue(logs.isNotEmpty())
+        assertTrue(logs.none { "s3cr3t" in it }, logs.joinToString("\n"))
+    }
+
+    @Test
+    fun `an address that is not a URL says so without fetching`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ChangeUrl("https://jovemnerd.com.br/feed-nerdcast|"))
+        viewModel.onIntent(LibraryIntent.ConfirmAdd)
+
+        viewModel.messages.test {
+            assertEquals(UiMessage(Res.string.error_invalid_url), awaitItem())
+        }
+        assertEquals(null, feedSource.fetchCalledWith)
     }
 
     @Test

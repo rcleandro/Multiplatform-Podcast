@@ -60,6 +60,10 @@ class FakeEpisodeDao : EpisodeDao {
         }
     }
 
+    override suspend fun deleteWithoutAudio(podcastId: String) {
+        episodes.value = episodes.value.filterNot { it.podcastId == podcastId && it.audioUrl.isEmpty() }
+    }
+
     override suspend fun exists(id: String): Boolean = episodes.value.any { it.id == id }
 
     override suspend fun updatePlayback(id: String, played: Boolean, position: Long) {
