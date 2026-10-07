@@ -98,6 +98,11 @@ class PodcastRepositoryImpl(
         }
     }
 
+    override fun getEpisodeCount(podcastId: String): Flow<Int> = episodeDao.countByPodcast(podcastId)
+
+    override fun getLatestUnplayedEpisode(podcastId: String): Flow<Episode?> =
+        episodeDao.getLatestUnplayed(podcastId).map { it?.toDomain() }
+
     override fun getInProgressEpisodes(): Flow<List<Episode>> =
         episodeDao.getInProgress(IN_PROGRESS_LIMIT).map { entities -> entities.map { it.toDomain() } }
 

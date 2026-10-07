@@ -60,6 +60,22 @@ class PodcastDetailViewModelTest {
     )
 
     @Test
+    fun `the header counts the episodes and finds the newest unplayed one`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(
+            sampleEpisode.copy(id = "played", publishDate = 300, isPlayed = true),
+            sampleEpisode.copy(id = "latest", publishDate = 200),
+            sampleEpisode.copy(id = "older", publishDate = 100),
+        )
+        val viewModel = createViewModel()
+
+        assertEquals(3, viewModel.uiState.value.episodeCount)
+        assertEquals("latest", viewModel.uiState.value.latestUnplayed?.id)
+        viewModel.onIntent(PodcastDetailIntent.Play(viewModel.uiState.value.latestUnplayed!!))
+
+        assertEquals("latest", audioPlayer.playCalledWith?.id)
+    }
+
+    @Test
     fun `initial state loads the podcast`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
 

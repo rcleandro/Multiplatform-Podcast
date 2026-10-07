@@ -149,6 +149,12 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE isDownloaded = 1 ORDER BY publishDate DESC")
     fun getDownloaded(): Flow<List<EpisodeEntity>>
 
+    @Query("SELECT COUNT(*) FROM episodes WHERE podcastId = :podcastId")
+    fun countByPodcast(podcastId: String): Flow<Int>
+
+    @Query("SELECT * FROM episodes WHERE podcastId = :podcastId AND isPlayed = 0 ORDER BY publishDate DESC LIMIT 1")
+    fun getLatestUnplayed(podcastId: String): Flow<EpisodeEntity?>
+
     @Query("SELECT COUNT(*) FROM episodes WHERE podcastId = :podcastId AND isPlayed = 0")
     fun getUnplayedCount(podcastId: String): Flow<Int>
 

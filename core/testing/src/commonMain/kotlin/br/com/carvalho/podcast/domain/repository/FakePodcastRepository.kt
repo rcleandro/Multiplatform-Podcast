@@ -51,6 +51,13 @@ class FakePodcastRepository : PodcastRepository {
 
     override fun getUnplayedEpisodes(): Flow<List<Episode>> = episodes.map { list -> list.filter { !it.isPlayed } }
 
+    override fun getEpisodeCount(podcastId: String): Flow<Int> =
+        episodes.map { list -> list.count { it.podcastId == podcastId } }
+
+    override fun getLatestUnplayedEpisode(podcastId: String): Flow<Episode?> = episodes.map { list ->
+        list.filter { it.podcastId == podcastId && !it.isPlayed }.maxByOrNull { it.publishDate }
+    }
+
     override fun getInProgressEpisodes(): Flow<List<Episode>> =
         episodes.map { list -> list.filter { it.playbackPosition > 0 && !it.isPlayed } }
 

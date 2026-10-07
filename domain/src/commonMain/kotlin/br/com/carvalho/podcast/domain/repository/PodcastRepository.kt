@@ -17,6 +17,11 @@ interface PodcastRepository {
     suspend fun getPodcastById(id: String): Podcast?
     fun getPodcastByIdFlow(id: String): Flow<Podcast?>
     fun getEpisodes(podcastId: String): Flow<List<Episode>>
+
+    fun getEpisodeCount(podcastId: String): Flow<Int>
+
+    /** The newest episode not played yet, for the podcast's "Latest" button. */
+    fun getLatestUnplayedEpisode(podcastId: String): Flow<Episode?>
     fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>>
 
     /** The podcast's episodes published at or after [publishDate], oldest first: what plays after one of them. */

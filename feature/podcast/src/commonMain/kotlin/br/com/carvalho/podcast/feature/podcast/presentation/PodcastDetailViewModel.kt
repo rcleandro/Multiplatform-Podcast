@@ -60,6 +60,9 @@ class PodcastDetailViewModel(
         repository.getPodcastByIdFlow(podcastId)
             .onEach { podcast -> _uiState.update { it.copy(podcast = podcast, isLoading = false) } }
             .launchIn(viewModelScope)
+        combine(repository.getEpisodeCount(podcastId), repository.getLatestUnplayedEpisode(podcastId), ::Pair)
+            .onEach { (count, latest) -> _uiState.update { it.copy(episodeCount = count, latestUnplayed = latest) } }
+            .launchIn(viewModelScope)
     }
 
     fun onIntent(intent: PodcastDetailIntent) {
@@ -154,6 +157,9 @@ class PodcastDetailViewModel(
 
 
 data class PodcastDetailUiState(
+    val episodeCount: Int = 0,
+    /** What "Latest" plays; no button while every episode was heard. */
+    val latestUnplayed: Episode? = null,
     val podcast: Podcast? = null,
     val filter: EpisodeFilter = EpisodeFilter.ALL,
     val selectedEpisode: Episode? = null,

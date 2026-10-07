@@ -180,6 +180,22 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `the podcast header counts its episodes and finds the newest unplayed one`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(
+            listOf(
+                episodeEntity.copy(id = "newest", publishDate = 300L, isPlayed = true),
+                episodeEntity.copy(id = "unplayed", publishDate = 200L),
+                episodeEntity.copy(id = "oldest", publishDate = 100L),
+            )
+        )
+
+        assertEquals(3, repository.getEpisodeCount(podcastId).first())
+        assertEquals("unplayed", repository.getLatestUnplayedEpisode(podcastId).first()?.id)
+    }
+
+    @Test
     fun `in progress episodes are the started ones not yet played`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)

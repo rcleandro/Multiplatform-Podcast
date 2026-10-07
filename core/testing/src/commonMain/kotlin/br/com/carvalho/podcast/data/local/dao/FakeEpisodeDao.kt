@@ -83,6 +83,13 @@ class FakeEpisodeDao : EpisodeDao {
 
     override fun getDownloaded(): Flow<List<EpisodeEntity>> = episodes.map { it.filter { it.isDownloaded } }
 
+    override fun countByPodcast(podcastId: String): Flow<Int> =
+        episodes.map { list -> list.count { it.podcastId == podcastId } }
+
+    override fun getLatestUnplayed(podcastId: String): Flow<EpisodeEntity?> = episodes.map { list ->
+        list.filter { it.podcastId == podcastId && !it.isPlayed }.maxByOrNull { it.publishDate }
+    }
+
     override fun getUnplayedCount(podcastId: String): Flow<Int> =
         episodes.map { it.count { e -> e.podcastId == podcastId && !e.isPlayed } }
 

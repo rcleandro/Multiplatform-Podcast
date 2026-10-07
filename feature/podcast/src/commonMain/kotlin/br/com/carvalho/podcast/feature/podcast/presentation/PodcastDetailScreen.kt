@@ -29,6 +29,19 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.ui.unit.Dp
+import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
+import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
+import org.jetbrains.compose.resources.pluralStringResource
+import br.com.carvalho.podcast.core.designsystem.component.ArtworkBackdrop
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Button
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
@@ -161,18 +174,28 @@ fun PodcastDetailContent(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
         topBar = { PodcastDetailTopBar(scrollBehavior, state.podcast?.title?.takeIf { headerGone }, actions) },
+        // The tinted header runs behind the bar, which stays clear until the header scrolls away.
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
     ) { padding ->
+        val topInset = padding.calculateTopPadding()
+        val refreshState = rememberPullToRefreshState()
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
             onRefresh = actions.onRefresh,
-            modifier = Modifier.padding(padding)
+            state = refreshState,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = refreshState,
+                    isRefreshing = state.isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset),
+                )
+            },
         ) {
             if (state.isLoading) {
-                LoadingState()
+                LoadingState(modifier = Modifier.padding(top = topInset))
             } else {
-                EpisodeList(state, episodes, playerState, activeDownloads, actions, listState)
+                EpisodeList(state, episodes, playerState, activeDownloads, actions, listState, topInset)
             }
             PodcastDetailDialogs(state, actions)
         }
@@ -193,13 +216,8 @@ private fun PodcastDetailTopBar(
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.back))
             }
         },
-        actions = {
-            IconButton(onClick = actions.onRefresh) {
-                Icon(Icons.Rounded.Refresh, contentDescription = stringResource(Res.string.refresh))
-            }
-        },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.background.copy(alpha = if (title == null) 0f else 1f),
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
         scrollBehavior = scrollBehavior
@@ -214,13 +232,17 @@ private fun EpisodeList(
     activeDownloads: Map<String, DownloadStatus>,
     actions: PodcastDetailActions,
     listState: LazyListState,
+    topInset: Dp,
 ) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = Sizes.listBottomInset),
+        contentPadding = PaddingValues(
+            top = if (state.podcast == null) topInset else 0.dp,
+            bottom = Sizes.listBottomInset,
+        ),
     ) {
-        state.podcast?.let { podcast -> item { PodcastHeader(podcast) } }
+        state.podcast?.let { podcast -> item { PodcastHeader(podcast, state, actions, topInset) } }
         item {
             FilterChipRow(
                 // "Downloaded" stays last, so the indices still match EpisodeFilter where it is left out.
@@ -285,36 +307,74 @@ private fun PodcastDetailDialogs(state: PodcastDetailUiState, actions: PodcastDe
     }
 }
 
+/**
+ * The cover centered over a background tinted by it (24.2), the name, "author · 312 episodes", and the two things
+ * to do here: play the newest unheard episode, or look for new ones.
+ */
 @Composable
-private fun PodcastHeader(podcast: Podcast) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(Spacing.m),
-        modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.l)) {
+private fun PodcastHeader(
+    podcast: Podcast,
+    state: PodcastDetailUiState,
+    actions: PodcastDetailActions,
+    topInset: Dp,
+) {
+    val artworkSize = 168.dp
+    ArtworkBackdrop(imageUrl = podcast.imageUrl, modifier = Modifier.fillMaxWidth()) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Spacing.m),
+            modifier = Modifier
+                .padding(horizontal = Spacing.l)
+                .padding(top = topInset + Spacing.m, bottom = Spacing.m),
+        ) {
             PodcastArtwork(
                 imageUrl = podcast.imageUrl,
                 contentDescription = null,
-                modifier = Modifier.size(Sizes.artworkM),
+                shape = MaterialTheme.shapes.extraLarge,
+                modifier = Modifier.size(artworkSize),
             )
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            ) {
                 Text(
                     text = podcast.title,
                     style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.semantics { heading() },
                     maxLines = TITLE_MAX_LINES,
                     overflow = TextOverflow.Ellipsis
                 )
-                podcast.author?.let {
+                val count = state.episodeCount.takeIf { it > 0 }
+                    ?.let { pluralStringResource(Res.plurals.podcast_episode_count, it, it) }
+                listOfNotNull(podcast.author, count).joinToString(" · ").takeIf { it.isNotEmpty() }?.let {
                     Text(
                         text = it,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
                     )
                 }
             }
+            HeaderActions(state, actions)
+            CollapsibleDescription(podcast.description)
         }
-        CollapsibleDescription(podcast.description)
+    }
+}
+
+@Composable
+private fun HeaderActions(state: PodcastDetailUiState, actions: PodcastDetailActions) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s), verticalAlignment = Alignment.CenterVertically) {
+        state.latestUnplayed?.let { latest ->
+            Button(onClick = { actions.onPlay(latest) }) {
+                Icon(Icons.Rounded.PlayArrow, contentDescription = null)
+                Spacer(Modifier.width(Spacing.s))
+                Text(stringResource(Res.string.play_latest))
+            }
+        }
+        FilledTonalIconButton(onClick = actions.onRefresh) {
+            Icon(Icons.Rounded.Refresh, contentDescription = stringResource(Res.string.refresh))
+        }
     }
 }
 

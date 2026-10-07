@@ -1,6 +1,11 @@
 <resources>
     <string name="library_title">Biblioteca</string>
     <string name="continue_listening">Continuar ouvindo</string>
+    <string name="play_latest">Mais recente</string>
+    <plurals name="podcast_episode_count">
+        <item quantity="one">%1$d episódio</item>
+        <item quantity="other">%1$d episódios</item>
+    </plurals>
     <string name="library_podcasts">Podcasts</string>
     <string name="library_show_list">Mostrar em lista</string>
     <string name="library_show_grid">Mostrar em grade</string>

@@ -23,6 +23,10 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -88,6 +92,31 @@ class PodcastDetailContentTest {
 
         // The header is gone and the bar carries the name instead.
         onAllNodesWithText("Hipsters Ponto Tech").assertCountEquals(1)
+    }
+
+    @Test
+    fun theHeaderCountsTheEpisodesAndPlaysTheLatest() = runComposeUiTest {
+        var played: Episode? = null
+        var state by mutableStateOf(PodcastDetailUiState(podcast = podcast(), isLoading = false, episodeCount = 312))
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = state,
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onPlay = { played = it }),
+                )
+            }
+        }
+        onNodeWithText("312", substring = true).assertExists()
+        // Nothing left to hear: no button.
+        onNodeWithText(text(Res.string.play_latest)).assertDoesNotExist()
+
+        state = state.copy(latestUnplayed = episodes.first())
+        onNodeWithText(text(Res.string.play_latest)).performClick()
+
+        assertEquals("e1", played?.id)
     }
 
     @Test
