@@ -177,13 +177,16 @@ fun LibraryContent(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(),
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = actions.onAddClick,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.padding(bottom = fabPadding)
-            ) {
-                Icon(Icons.Rounded.Add, contentDescription = stringResource(Res.string.add_podcast))
+            // While the library is empty, its message already has the add button.
+            if (state.podcasts.isNotEmpty()) {
+                FloatingActionButton(
+                    onClick = actions.onAddClick,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.padding(bottom = fabPadding)
+                ) {
+                    Icon(Icons.Rounded.Add, contentDescription = stringResource(Res.string.add_podcast))
+                }
             }
         }
     ) { padding ->

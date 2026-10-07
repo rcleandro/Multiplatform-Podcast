@@ -31,7 +31,8 @@ private val libraryPadding = PaddingValues(
     start = Spacing.l,
     top = Spacing.l,
     end = Spacing.l,
-    bottom = Sizes.listBottomInset,
+    // Room for the mini player and the floating "+", so neither covers the last podcast.
+    bottom = Sizes.listBottomInset + Sizes.fabClearance,
 )
 
 @Composable

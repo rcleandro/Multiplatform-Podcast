@@ -30,6 +30,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -69,7 +76,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.filter_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played_description
 import br.com.carvalho.podcast.core.ui.generated.resources.only_this_one
-import br.com.carvalho.podcast.core.ui.generated.resources.podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.show_less
+import br.com.carvalho.podcast.core.ui.generated.resources.show_more
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh
 import br.com.carvalho.podcast.core.ui.generated.resources.this_and_all_below
 import org.jetbrains.compose.resources.stringResource
@@ -145,11 +153,14 @@ fun PodcastDetailContent(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val listState = rememberLazyListState()
+    // The header shows the name; once it scrolls away, the bar takes it over.
+    val headerGone by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
-        topBar = { PodcastDetailTopBar(scrollBehavior, actions) },
+        topBar = { PodcastDetailTopBar(scrollBehavior, state.podcast?.title?.takeIf { headerGone }, actions) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
     ) { padding ->
@@ -161,7 +172,7 @@ fun PodcastDetailContent(
             if (state.isLoading) {
                 LoadingState()
             } else {
-                EpisodeList(state, episodes, playerState, activeDownloads, actions)
+                EpisodeList(state, episodes, playerState, activeDownloads, actions, listState)
             }
             PodcastDetailDialogs(state, actions)
         }
@@ -170,9 +181,13 @@ fun PodcastDetailContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PodcastDetailTopBar(scrollBehavior: TopAppBarScrollBehavior, actions: PodcastDetailActions) {
+private fun PodcastDetailTopBar(
+    scrollBehavior: TopAppBarScrollBehavior,
+    title: String?,
+    actions: PodcastDetailActions,
+) {
     TopAppBar(
-        title = { Text(stringResource(Res.string.podcast)) },
+        title = { title?.let { Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis) } },
         navigationIcon = {
             IconButton(onClick = actions.onBack) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.back))
@@ -198,8 +213,13 @@ private fun EpisodeList(
     playerState: PlayerState,
     activeDownloads: Map<String, DownloadStatus>,
     actions: PodcastDetailActions,
+    listState: LazyListState,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = Sizes.listBottomInset)) {
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = Sizes.listBottomInset),
+    ) {
         state.podcast?.let { podcast -> item { PodcastHeader(podcast) } }
         item {
             FilterChipRow(
@@ -299,8 +319,29 @@ private fun PodcastHeader(podcast: Podcast) {
                 }
             }
         }
-        HtmlText(html = podcast.description, modifier = Modifier.fillMaxWidth())
+        CollapsibleDescription(podcast.description)
+    }
+}
+
+/** A long description shows its first lines and "Show more"; a short one shows whole, with no button. */
+@Composable
+private fun CollapsibleDescription(html: String) {
+    var expanded by rememberSaveable(html) { mutableStateOf(false) }
+    var overflows by remember(html) { mutableStateOf(false) }
+    Column {
+        HtmlText(
+            html = html,
+            maxLines = if (expanded) Int.MAX_VALUE else DESCRIPTION_COLLAPSED_LINES,
+            onTextLayout = { if (!expanded) overflows = it.hasVisualOverflow },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (overflows || expanded) {
+            TextButton(onClick = { expanded = !expanded }, contentPadding = PaddingValues(0.dp)) {
+                Text(stringResource(if (expanded) Res.string.show_less else Res.string.show_more))
+            }
+        }
     }
 }
 
 private const val TITLE_MAX_LINES = 3
+private const val DESCRIPTION_COLLAPSED_LINES = 4

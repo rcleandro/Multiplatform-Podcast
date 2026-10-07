@@ -35,7 +35,9 @@
     <string name="sleep_timer">Temporizador de apagado</string>
     <string name="queue">Cola de reproducción</string>
     <string name="finished">Finalizado</string>
-    <string name="remaining_min">%1$d min restante</string>
+    <string name="remaining_time">Quedan %1$s</string>
+    <string name="show_more">Ver más</string>
+    <string name="show_less">Ver menos</string>
     <string name="play">Reproducir</string>
     <string name="pause">Pausar</string>
     <string name="next">Siguiente</string>
@@ -116,7 +118,7 @@
     <string name="tray_next">Siguiente episodio</string>
     <string name="tray_previous">Episodio anterior</string>
     <string name="tray_quit">Salir</string>
-    <string name="library_empty_message">Toca + y pega la dirección del feed RSS de un podcast para empezar tu biblioteca.</string>
+    <string name="library_empty_message">Añade la dirección del feed de un podcast para empezar tu biblioteca.</string>
     <string name="search_empty_title">No se encontraron episodios</string>
     <string name="search_empty_message">Prueba otras palabras. La búsqueda mira los episodios de los podcasts de tu biblioteca.</string>
     <string name="downloads_empty_message">Los episodios descargados se reproducen sin internet. Toca el botón de descarga de cualquier episodio.</string>

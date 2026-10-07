@@ -1,0 +1,104 @@
+package br.com.carvalho.podcast.feature.podcast.presentation
+
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.test.waitUntilExactlyOneExists
+import androidx.paging.PagingData
+import androidx.paging.compose.collectAsLazyPagingItems
+import br.com.carvalho.podcast.core.designsystem.PodcastTheme
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.show_less
+import br.com.carvalho.podcast.core.ui.generated.resources.show_more
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.model.Podcast
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
+
+@OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
+class PodcastDetailContentTest {
+
+    private fun text(res: StringResource) = runBlocking { getString(res) }
+
+    // The paging items collect on Dispatchers.Main, which a desktop test does not have.
+    @BeforeTest
+    fun setMain() = Dispatchers.setMain(UnconfinedTestDispatcher())
+
+    @AfterTest
+    fun resetMain() = Dispatchers.resetMain()
+
+    private fun podcast(description: String = "Short") = Podcast(
+        id = "p", title = "Hipsters Ponto Tech", description = description, imageUrl = null, author = "Alura",
+        language = null, categories = emptyList(), feedUrl = "p", siteUrl = null, lastUpdated = 0, isSubscribed = true,
+    )
+
+    private val episodes = (1..20).map {
+        Episode(
+            id = "e$it", podcastId = "p", title = "Episode $it", description = null, audioUrl = "a",
+            imageUrl = null, duration = 60, publishDate = 0, isPlayed = false, playbackPosition = 0,
+            isDownloaded = false, fileSize = null,
+        )
+    }
+
+    @Test
+    fun theBarNamesThePodcastOnceItsHeaderScrollsAway() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Episode 1"))
+        onAllNodesWithText(text(Res.string.podcast)).assertCountEquals(0)
+        onAllNodesWithText("Hipsters Ponto Tech").assertCountEquals(1)
+
+        onNode(hasScrollToIndexAction() and hasAnyDescendant(hasText("Episode 1"))).performScrollToIndex(15)
+
+        // The header is gone and the bar carries the name instead.
+        onAllNodesWithText("Hipsters Ponto Tech").assertCountEquals(1)
+    }
+
+    @Test
+    fun aLongDescriptionIsCollapsedUntilAsked() = runComposeUiTest {
+        val long = (1..40).joinToString(" ") { "Uma frase longa sobre tecnologia e carreira número $it." }
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(description = long), isLoading = false),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(),
+                )
+            }
+        }
+
+        onNodeWithText(text(Res.string.show_more)).performClick()
+
+        onNodeWithText(text(Res.string.show_less)).assertExists()
+    }
+}

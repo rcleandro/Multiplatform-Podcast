@@ -31,6 +31,11 @@ import androidx.compose.ui.test.performScrollToIndex
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_first_added
 import kotlin.test.Test
+import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import kotlin.test.assertTrue
+import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -56,7 +61,8 @@ class LibraryContentTest {
             PodcastTheme { LibraryContent(state = LibraryUiState(), actions = LibraryActions(onAddClick = { addClicks++ })) }
         }
         onNodeWithText(text(Res.string.no_podcasts_found)).assertExists()
-        // The empty state button and the floating button share the label; the empty state one is a text button.
+        // One way to add while empty: the button in the message, no floating "+" next to it.
+        onAllNodesWithContentDescription(text(Res.string.add_podcast)).assertCountEquals(0)
         onNodeWithText(text(Res.string.add_podcast)).performClick()
         assertEquals(1, addClicks)
     }
@@ -190,6 +196,29 @@ class LibraryContentTest {
         onNodeWithContentDescription(text(Res.string.paste)).performClick()
 
         assertEquals("https://feeds.example.com/rss", typed)
+    }
+
+    @Test
+    fun theAddButtonDoesNotCoverTheLastPodcast() = runComposeUiTest {
+        val entries = (1..12).map {
+            LibraryEntry(Podcast("id-$it", "Podcast $it", "", null, null, null, emptyList(), "url$it", null, 0, true), 0, null)
+        }
+        // With something playing, the mini player pushes the "+" up.
+        setContent {
+            PodcastTheme {
+                CompositionLocalProvider(LocalMiniPlayerInset provides Sizes.miniPlayerHeight) {
+                    LibraryContent(
+                        state = LibraryUiState(podcasts = entries, layout = LibraryLayout.LIST),
+                        actions = LibraryActions(),
+                    )
+                }
+            }
+        }
+        onNode(hasScrollToIndexAction() and hasAnyDescendant(hasText("Podcast 1"))).performScrollToIndex(entries.lastIndex)
+
+        val last = onNodeWithText("Podcast 12").getBoundsInRoot()
+        val add = onNodeWithContentDescription(text(Res.string.add_podcast)).getBoundsInRoot()
+        assertTrue(last.bottom <= add.top, "${last.bottom} vs ${add.top}")
     }
 
     @Test

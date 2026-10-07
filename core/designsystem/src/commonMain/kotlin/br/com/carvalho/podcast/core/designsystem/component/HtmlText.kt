@@ -11,13 +11,17 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 
 /** Feed descriptions: paragraphs, lists, bold, italics and clickable links. */
 @Composable
 fun HtmlText(
     html: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    maxLines: Int = Int.MAX_VALUE,
+    onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
     val linkColor = MaterialTheme.colorScheme.primary
     val annotatedString = remember(html, linkColor) {
@@ -26,7 +30,10 @@ fun HtmlText(
     Text(
         text = annotatedString,
         modifier = modifier,
-        style = MaterialTheme.typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+        onTextLayout = onTextLayout,
     )
 }
 

@@ -15,7 +15,7 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
-import br.com.carvalho.podcast.core.ui.generated.resources.remaining_min
+import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
 import org.jetbrains.compose.resources.stringResource
 
 /** Maps an [Episode] and its download status to the design system [EpisodeRow]. */
@@ -36,13 +36,7 @@ fun EpisodeListItem(
 ) {
     val durationMs = episode.duration * AppConfig.MILLIS_PER_SECOND
     val progress = if (durationMs > 0) episode.playbackPosition.toFloat() / durationMs else 0f
-    val remaining = if (!episode.isPlayed && episode.playbackPosition > 0 && durationMs > 0) {
-        val minutes = ((durationMs - episode.playbackPosition) / (AppConfig.MILLIS_PER_SECOND * SECONDS_PER_MINUTE))
-            .coerceAtLeast(1)
-        stringResource(Res.string.remaining_min, minutes)
-    } else {
-        null
-    }
+    val remaining = episode.remainingDuration()?.let { stringResource(Res.string.remaining_time, it) }
     val published = relativeTime(episode.publishDate, getCurrentTimestamp())?.text()
     val metadata = listOfNotNull(podcastTitle, published, remaining ?: episode.duration.toDuration())
         .joinToString(" · ")
@@ -78,3 +72,12 @@ internal fun DownloadStatus.toDownloadState(isDownloaded: Boolean): DownloadStat
 }
 
 private const val SECONDS_PER_MINUTE = 60
+
+/** What is left of a started episode, in the same style as its length ("1h 5min"); null when not started or done. */
+internal fun Episode.remainingDuration(): String? {
+    val durationMs = duration * AppConfig.MILLIS_PER_SECOND
+    if (isPlayed || playbackPosition <= 0 || durationMs <= 0) return null
+    val leftSeconds = ((durationMs - playbackPosition) / AppConfig.MILLIS_PER_SECOND)
+        .coerceAtLeast(SECONDS_PER_MINUTE.toLong())
+    return leftSeconds.toDuration()
+}
