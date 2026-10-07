@@ -52,11 +52,13 @@ fun PlayerSlider(
 ) {
     var dragging by remember { mutableStateOf<Float?>(null) }
     val shown = dragging?.toLong() ?: positionMs
+    // Without a duration there is nothing to measure against: an empty bar, not a full one at "−0:00".
+    val known = durationMs > 0
     val description = stringResource(Res.string.ds_position_of_duration, formatTime(shown), formatTime(durationMs))
 
     Column(modifier = modifier) {
         Slider(
-            value = shown.toFloat(),
+            value = if (known) shown.toFloat() else 0f,
             onValueChange = { dragging = it },
             onValueChangeFinished = {
                 dragging?.let { onSeek(it.toLong()) }
@@ -72,11 +74,13 @@ fun PlayerSlider(
                 style = PodcastTheme.typography.timer,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(
-                text = "−" + formatTime((durationMs - shown).coerceAtLeast(0L)),
-                style = PodcastTheme.typography.timer,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (known) {
+                Text(
+                    text = "−" + formatTime((durationMs - shown).coerceAtLeast(0L)),
+                    style = PodcastTheme.typography.timer,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

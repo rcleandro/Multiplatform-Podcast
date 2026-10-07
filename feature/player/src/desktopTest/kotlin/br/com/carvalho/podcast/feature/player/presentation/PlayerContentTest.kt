@@ -43,6 +43,36 @@ class PlayerContentTest {
     )
 
     @Test
+    fun beforeTheAudioLoadsTheBarUsesTheFeedDuration() = runComposeUiTest {
+        // 60 s in the feed; the player has not reported a duration yet.
+        val queue = listOf(episode("1"))
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = queue.first(), queue = queue, position = 22_000L, duration = null),
+                    actions = PlayerActions(),
+                )
+            }
+        }
+        onNodeWithText("−0:38").assertExists()
+    }
+
+    @Test
+    fun withoutAnyDurationTheBarIsEmptyAndShowsNoRemainingTime() = runComposeUiTest {
+        val queue = listOf(episode("1").copy(duration = 0))
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = queue.first(), queue = queue, position = 22_000L, duration = null),
+                    actions = PlayerActions(),
+                )
+            }
+        }
+        onNodeWithText("−0:00").assertDoesNotExist()
+        onNodeWithText("0:22").assertExists()
+    }
+
+    @Test
     fun aShortWindowStillReachesTheBottomButtons() = runComposeUiTest {
         val queue = listOf(episode("1"))
         setContent {

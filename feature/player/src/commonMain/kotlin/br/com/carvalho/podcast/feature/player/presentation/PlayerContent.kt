@@ -102,7 +102,7 @@ fun PlayerContent(state: PlayerState, actions: PlayerActions, modifier: Modifier
                 PlayerHeader(state.currentEpisode)
                 PlayerSlider(
                     positionMs = state.position,
-                    durationMs = state.duration ?: 0L,
+                    durationMs = state.knownDurationMs(),
                     onSeek = actions.onSeek,
                     formatTime = { it.toTime() },
                 )
@@ -112,6 +112,12 @@ fun PlayerContent(state: PlayerState, actions: PlayerActions, modifier: Modifier
         }
     }
 }
+
+private const val MS_PER_SECOND = 1000L
+
+/** The player's duration once the audio loads; until then, the one the feed gave (seconds). 0 when neither knows. */
+private fun PlayerState.knownDurationMs(): Long =
+    duration?.takeIf { it > 0 } ?: ((currentEpisode?.duration ?: 0L) * MS_PER_SECOND)
 
 @Composable
 private fun PlayerHeader(episode: Episode?) {
