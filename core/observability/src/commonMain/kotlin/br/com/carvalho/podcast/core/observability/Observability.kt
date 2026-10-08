@@ -4,7 +4,7 @@ import br.com.carvalho.podcast.core.util.AppLogger
 
 /** Product analytics events. The Firebase implementation lives in `firebaseMain` (Android and iOS). */
 interface Analytics {
-    fun logEvent(name: String, params: Map<String, Any?> = emptyMap())
+    fun logEvent(event: AnalyticsEvent)
 }
 
 /** Crash and error reporting; receives the logs [AppLogger] forwards. */
@@ -15,8 +15,8 @@ interface CrashReporter {
 
 /** Desktop and Web have no analytics backend: events only go to the log. */
 class LogAnalytics : Analytics {
-    override fun logEvent(name: String, params: Map<String, Any?>) {
-        AppLogger.d(TAG, if (params.isEmpty()) name else "$name $params")
+    override fun logEvent(event: AnalyticsEvent) {
+        AppLogger.d(TAG, if (event.params.isEmpty()) event.name else "${event.name} ${event.params}")
     }
 
     private companion object {

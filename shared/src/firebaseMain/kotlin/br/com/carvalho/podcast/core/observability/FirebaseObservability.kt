@@ -11,10 +11,10 @@ import dev.gitlive.firebase.crashlytics.crashlytics
 internal expect fun isFirebaseConfigured(): Boolean
 
 class FirebaseAnalytics : Analytics {
-    override fun logEvent(name: String, params: Map<String, Any?>) {
+    override fun logEvent(event: AnalyticsEvent) {
         if (!isFirebaseConfigured()) return
-        val values = params.filterValues { it != null }.mapValues { it.value!! }
-        Firebase.analytics.logEvent(name, values.ifEmpty { null })
+        val values = event.params.filterValues { it != null }.mapValues { it.value!! }
+        Firebase.analytics.logEvent(event.name, values.ifEmpty { null })
     }
 }
 

@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.feature.episode.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.core.observability.Analytics
+import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -64,17 +65,14 @@ class EpisodeDetailViewModel(
     private fun loadEpisode() {
         _uiState.update { it.copy(isLoading = true, loadFailed = false) }
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("load_episode_detail", mapOf("episode_id" to episodeId))
+            analytics.logEvent(AnalyticsEvent.LoadEpisodeDetail(episodeId))
             AppLogger.d(TAG, "Loading episode detail for id: $episodeId")
             try {
                 val episode = repository.getEpisodeById(episodeId)
                 _uiState.update { it.copy(episode = episode, isLoading = false) }
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error loading episode detail", e)
-                analytics.logEvent(
-                    "load_episode_detail_error",
-                    mapOf("episode_id" to episodeId, "error" to e::class.simpleName)
-                )
+                analytics.logEvent(AnalyticsEvent.LoadEpisodeDetailError(episodeId, e))
                 _uiState.update { it.copy(isLoading = false, loadFailed = true) }
             }
         }
@@ -91,7 +89,7 @@ class EpisodeDetailViewModel(
             state.isPlaying -> audioPlayer.pause()
             audioPlayer.playerState.value.currentEpisode?.id == episodeId -> audioPlayer.resume()
             else -> withEpisode {
-                analytics.logEvent("play_episode_from_episode_detail", mapOf("episode_id" to it.id))
+                analytics.logEvent(AnalyticsEvent.PlayEpisode(it.id, AnalyticsEvent.PlaySource.EPISODE))
                 playEpisode(it)
             }
         }

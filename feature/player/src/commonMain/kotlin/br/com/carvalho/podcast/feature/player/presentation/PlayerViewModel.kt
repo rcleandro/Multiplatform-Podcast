@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.observability.Analytics
+import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
@@ -38,56 +39,56 @@ class PlayerViewModel(
     }
 
     private fun play(episode: Episode) = viewModelScope.launch(dispatchers.io) {
-        analytics.logEvent("play_episode", mapOf("episode_id" to episode.id))
+        analytics.logEvent(AnalyticsEvent.PlayInPlayer(episode.id))
         // Picked from the queue: keep the queue as it is.
         playEpisode(episode, queue = playerState.value.queue)
     }
 
     private fun pause() {
-        analytics.logEvent("pause_episode")
+        analytics.logEvent(AnalyticsEvent.Pause)
         audioPlayer.pause()
     }
 
     private fun resume() {
-        analytics.logEvent("resume_episode")
+        analytics.logEvent(AnalyticsEvent.Resume)
         audioPlayer.resume()
     }
 
     private fun seekTo(positionMs: Long) {
-        analytics.logEvent("seek_episode", mapOf("position_ms" to positionMs))
+        analytics.logEvent(AnalyticsEvent.Seek(positionMs))
         audioPlayer.seekTo(positionMs)
     }
 
     private fun skipForward() {
-        analytics.logEvent("skip_forward")
+        analytics.logEvent(AnalyticsEvent.SkipForward)
         audioPlayer.skipForward(seconds = AppConfig.SKIP_FORWARD_SECONDS)
     }
 
     private fun skipBackward() {
-        analytics.logEvent("skip_backward")
+        analytics.logEvent(AnalyticsEvent.SkipBackward)
         audioPlayer.skipBackward(seconds = AppConfig.SKIP_BACKWARD_SECONDS)
     }
 
     private fun setSpeed(speed: Float) {
-        analytics.logEvent("set_speed", mapOf("speed" to speed))
+        analytics.logEvent(AnalyticsEvent.SetSpeed(speed))
         audioPlayer.setSpeed(speed)
     }
 
     private fun playNext() {
-        analytics.logEvent("play_next")
+        analytics.logEvent(AnalyticsEvent.PlayNext)
         audioPlayer.playNext()
     }
 
     private fun playPrevious() {
-        analytics.logEvent("play_previous")
+        analytics.logEvent(AnalyticsEvent.PlayPrevious)
         audioPlayer.playPrevious()
     }
 
     private fun setSleepTimer(timer: SleepTimer?) {
         when (timer) {
-            null -> analytics.logEvent("cancel_sleep_timer")
-            is SleepTimer.Minutes -> analytics.logEvent("set_sleep_timer", mapOf("minutes" to timer.minutes))
-            SleepTimer.EndOfEpisode -> analytics.logEvent("set_sleep_timer", mapOf("minutes" to "end_of_episode"))
+            null -> analytics.logEvent(AnalyticsEvent.CancelSleepTimer)
+            is SleepTimer.Minutes -> analytics.logEvent(AnalyticsEvent.SetSleepTimer(timer.minutes))
+            SleepTimer.EndOfEpisode -> analytics.logEvent(AnalyticsEvent.SetSleepTimer(null))
         }
         audioPlayer.setSleepTimer(timer)
     }
