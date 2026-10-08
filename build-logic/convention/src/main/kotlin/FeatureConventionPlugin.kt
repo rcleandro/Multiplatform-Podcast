@@ -46,7 +46,8 @@ class FeatureConventionPlugin : Plugin<Project> {
             configurations.flatMap { configuration ->
                 configuration.dependencies.withType(ProjectDependency::class.java)
                     .map { it.path }
-                    .filter { it.startsWith(":feature:") || it in DATA_LAYER_MODULES }
+                    // A test source set depends on its own module, which is not another feature.
+                    .filter { it != target.path && (it.startsWith(":feature:") || it in DATA_LAYER_MODULES) }
                     .map { "${configuration.name} -> $it" }
             }.distinct()
         }

@@ -1,9 +1,12 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
+import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
+import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
+import br.com.carvalho.podcast.core.designsystem.PaneLayout
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,10 +50,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import br.com.carvalho.podcast.core.AppConfig
-import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.ArtworkBackdrop
@@ -64,7 +64,6 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.minimize
 import br.com.carvalho.podcast.core.ui.generated.resources.next
-import br.com.carvalho.podcast.core.ui.generated.resources.no_episode_selected
 import br.com.carvalho.podcast.core.ui.generated.resources.now_playing
 import br.com.carvalho.podcast.core.ui.generated.resources.playback_speed
 import br.com.carvalho.podcast.core.ui.generated.resources.previous
@@ -104,27 +103,47 @@ fun PlayerContent(
                 onNavigate = actions.onMinimize,
                 title = stringResource(Res.string.now_playing),
             )
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(Spacing.xl),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Spacing.xl, vertical = Spacing.l),
-            ) {
-                PlayerHeader(state.currentEpisode, artworkModifier)
-                PlayerSlider(
-                    positionMs = state.position,
-                    durationMs = state.knownDurationMs(),
-                    onSeek = actions.onSeek,
-                    formatTime = { it.toTime() },
-                    wavy = state.isPlaying,
-                )
-                PlayerControls(state, actions)
-                PlayerAuxRow(state, actions)
+            val isShort = currentWindowIsShort()
+            val paneLayout = currentPaneLayout()
+            val fold = LocalTabletopFold.current
+            if (fold != null) {
+                TabletopPlayer(state, actions, fold, artworkModifier)
+            } else if (isShort && paneLayout == PaneLayout.COMPACT) {
+                CoverScreenPlayer(state, actions)
+            } else if (paneLayout != PaneLayout.COMPACT || isShort) {
+                // Wider than a phone held upright, or low: the cover beside the rest instead of above it (21.1,
+                // 21.2), so the play button is in view without scrolling.
+                SideBySidePlayer(state, actions, artworkModifier, isShort)
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(Spacing.xl),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                ) {
+                    PlayerArtwork(state.currentEpisode, artworkModifier)
+                    PlayerInfoAndControls(state, actions)
+                }
             }
         }
     }
+}
+
+/** Title, progress and controls: under the cover on a phone, beside it on a wide window. */
+@Composable
+internal fun PlayerInfoAndControls(state: PlayerState, actions: PlayerActions, showTitle: Boolean = true) {
+    if (showTitle) PlayerTitle(state.currentEpisode)
+    PlayerSlider(
+        positionMs = state.position,
+        durationMs = state.knownDurationMs(),
+        onSeek = actions.onSeek,
+        formatTime = { it.toTime() },
+        wavy = state.isPlaying,
+    )
+    PlayerControls(state, actions)
+    PlayerAuxRow(state, actions)
 }
 
 private const val MS_PER_SECOND = 1000L
@@ -134,34 +153,19 @@ private fun PlayerState.knownDurationMs(): Long =
     duration?.takeIf { it > 0 } ?: ((currentEpisode?.duration ?: 0L) * MS_PER_SECOND)
 
 @Composable
-private fun PlayerHeader(episode: Episode?, artworkModifier: Modifier) {
+internal fun PlayerArtwork(episode: Episode?, artworkModifier: Modifier) {
     // The cover takes the phone's width (24.2), up to a size that still leaves the controls in view on a tablet.
     val artworkMax = 360.dp
     PodcastArtwork(
         imageUrl = episode?.imageUrl,
         contentDescription = episode?.title,
         shape = MaterialTheme.shapes.extraLarge,
-        modifier = artworkModifier.widthIn(max = artworkMax).fillMaxWidth().aspectRatio(1f),
+        // Beside the controls the height bounds it too, so a low window shows the whole cover.
+        modifier = artworkModifier
+            .widthIn(max = artworkMax)
+            .fillMaxWidth()
+            .aspectRatio(1f, matchHeightConstraintsFirst = true),
     )
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        Text(
-            text = episode?.title ?: stringResource(Res.string.no_episode_selected),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.semantics { heading() },
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        episode?.podcastTitle?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.labelLarge,
-                color = PodcastTheme.colors.accentText,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-            )
-        }
-    }
 }
 
 @Composable

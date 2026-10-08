@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.presentation.navigation
 
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
@@ -16,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
@@ -42,7 +42,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.window.core.layout.WindowSizeClass
+import br.com.carvalho.podcast.core.designsystem.PaneLayout
+import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
+import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
 import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import br.com.carvalho.podcast.core.designsystem.Motion
 import br.com.carvalho.podcast.core.designsystem.Sizes
@@ -71,7 +73,7 @@ import br.com.carvalho.podcast.core.util.NetworkMonitor
 /** Draws [RootComponent.state]: tabs, the list/detail/extra panes of the selected tab, mini player and player. */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun RootContent(component: RootComponent) {
+fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
     val playerViewModel: PlayerViewModel = koinViewModel()
     val playerState by playerViewModel.playerState.collectAsState()
     val state by component.state.subscribeAsState()
@@ -79,15 +81,17 @@ fun RootContent(component: RootComponent) {
     LaunchedEffect(component) {
         if (!networkMonitor.isOnline()) component.onOpenedOffline()
     }
-    val isWide = currentWindowAdaptiveInfo().windowSizeClass
-        .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    // Bar on a compact window, rail from 600 dp (21.1) and on a low one, where a bar would take a quarter of the
+    // height, like a flip phone's cover screen (21.5).
+    val hasRail = currentPaneLayout() != PaneLayout.COMPACT || currentWindowIsShort()
 
     // The player and "Organize library" cover the tabs too (ADR 0005): the bar is for moving between tabs only.
     // Opening the player grows the mini player's cover into the player's, and minimizing shrinks it back (24.2).
-    SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+    val shortcuts = if (keyboardShortcuts) appShortcuts(component, playerViewModel) else Modifier
+    SharedTransitionLayout(modifier = Modifier.fillMaxSize().then(shortcuts)) {
         val sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier = { coverShared(it) }
         NavigationSuiteScaffold(
-            layoutType = if (isWide) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
+            layoutType = if (hasRail) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
             containerColor = MaterialTheme.colorScheme.surface,
             navigationSuiteColors = NavigationSuiteDefaults.colors(
                 navigationBarContainerColor = MaterialTheme.colorScheme.surface,
@@ -131,6 +135,18 @@ fun RootContent(component: RootComponent) {
     }
 }
 
+/** Space plays or pauses, the arrows skip and Escape goes back, wherever the app is (21.7). */
+@Composable
+private fun appShortcuts(component: RootComponent, playerViewModel: PlayerViewModel): Modifier =
+    Modifier.keyboardShortcuts { shortcut ->
+        when (shortcut) {
+            Shortcut.PLAY_PAUSE -> playerViewModel.onIntent(PlayerIntent.PlayPause)
+            Shortcut.SKIP_BACKWARD -> playerViewModel.onIntent(PlayerIntent.SkipBackward)
+            Shortcut.SKIP_FORWARD -> playerViewModel.onIntent(PlayerIntent.SkipForward)
+            Shortcut.BACK -> component.onBackClicked()
+        }
+    }
+
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 private fun TabContent(
@@ -140,7 +156,9 @@ private fun TabContent(
     onPlayPause: () -> Unit,
     sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier,
 ) {
-    val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
+    val navigator = rememberListDetailPaneScaffoldNavigator<Any>(
+        scaffoldDirective = paneDirective(currentWindowAdaptiveInfo()),
+    )
     var isMiniPlayerShown by remember { mutableStateOf(true) }
     val hideMiniPlayerOnScroll = remember {
         object : NestedScrollConnection {

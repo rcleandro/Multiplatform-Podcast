@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 // Roles from docs/adr/0001-identidade-visual.md, built from [Palette]. Every role is set so none falls back to the
 // Material 3 baseline purple; ColorContrastTest checks the usage pairs against WCAG AA.
 
-internal val LightColorScheme = lightColorScheme(
+val LightColorScheme = lightColorScheme(
     primary = Color(Palette.AMBER_50),
     onPrimary = Color(Palette.NEUTRAL_10),
     primaryContainer = Color(Palette.AMBER_90),
@@ -58,7 +58,7 @@ internal val LightColorScheme = lightColorScheme(
     onTertiaryFixedVariant = Color(Palette.SLATE_30),
 )
 
-internal val DarkColorScheme = darkColorScheme(
+val DarkColorScheme = darkColorScheme(
     primary = Color(Palette.AMBER_70),
     onPrimary = Color(Palette.NEUTRAL_10),
     primaryContainer = Color(Palette.AMBER_25),

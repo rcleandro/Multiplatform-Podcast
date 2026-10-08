@@ -16,6 +16,8 @@ androidx-activity = "1.13.0"
 androidx-appcompat = "1.8.0"
 androidx-lifecycle = "2.10.0"
 androidx-work = "2.12.0"
+androidx-window = "1.5.0"
+glance = "1.2.0"
 material-icons-extended = "1.7.3"
 material3-adaptive = "1.2.0"
 material3-adaptive-navigation-suite = "1.9.0"
@@ -169,6 +171,10 @@ androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmode
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidx-work" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+androidx-window = { module = "androidx.window:window", version.ref = "androidx-window" }
+glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
+glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glance" }
+glance-appwidget-testing = { module = "androidx.glance:glance-appwidget-testing", version.ref = "glance" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 
 # Media

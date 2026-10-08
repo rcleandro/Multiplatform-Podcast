@@ -1,5 +1,13 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.minimize
+import br.com.carvalho.podcast.core.designsystem.Spacing
+import kotlin.math.abs
+import br.com.carvalho.podcast.core.designsystem.TabletopFold
+import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
+import androidx.compose.runtime.CompositionLocalProvider
+import kotlin.test.assertTrue
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -44,6 +52,24 @@ import org.jetbrains.compose.resources.getString
 @OptIn(ExperimentalTestApi::class)
 class PlayerContentTest {
 
+    private companion object {
+        const val WIDE = 1200
+        const val PHONE = 400
+        const val NARROW_TABLET = 620
+        const val TALL = 900
+        const val SIDEWAYS_WIDTH = 780
+        const val SIDEWAYS_HEIGHT = 360
+        const val FOLD_TOP = 360
+
+        /** The window an app gets on the Razr 60's cover screen, in dp. */
+        const val COVER_WIDTH = 469
+        const val COVER_HEIGHT = 318
+        const val FOLD_THICKNESS = 20
+
+        /** The aux row under the controls moves them up a bit from the exact center. */
+        const val CENTER_TOLERANCE = 60f
+    }
+
     private fun text(res: StringResource) = runBlocking { getString(res) }
 
     private fun episode(id: String) = Episode(
@@ -66,6 +92,153 @@ class PlayerContentTest {
         }
         onNodeWithTag("cover").assertExists()
     }
+
+    @Test
+    fun aWideWindowPutsTheCoverBesideTheControls() = runDesktopComposeUiTest(width = WIDE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                    actions = PlayerActions(),
+                    artworkModifier = Modifier.testTag("cover"),
+                )
+            }
+        }
+        val cover = onNodeWithTag("cover").getBoundsInRoot()
+        val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+        assertTrue(cover.right <= play.left, "cover $cover should be left of the play button $play")
+    }
+
+    @Test
+    fun aTabletHeldUprightPutsTheCoverBesideEveryControl() =
+        runDesktopComposeUiTest(width = NARROW_TABLET, height = TALL) {
+            setContent {
+                PodcastTheme {
+                    PlayerContent(
+                        state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                        actions = PlayerActions(),
+                        artworkModifier = Modifier.testTag("cover"),
+                    )
+                }
+            }
+            val window = onRoot().getBoundsInRoot()
+            val cover = onNodeWithTag("cover").getBoundsInRoot()
+            val previous = onNodeWithContentDescription(text(Res.string.previous)).getBoundsInRoot()
+            val next = onNodeWithContentDescription(text(Res.string.next)).getBoundsInRoot()
+
+            assertTrue(cover.right <= previous.left, "cover $cover should be left of the controls $previous")
+            assertTrue(next.right <= window.right, "next $next is cut off by the window $window")
+        }
+
+    @Test
+    fun aWideWindowCentersTheControlsVertically() = runDesktopComposeUiTest(width = WIDE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(state = PlayerState(currentEpisode = episode("e1"), isPlaying = true), actions = PlayerActions())
+            }
+        }
+        val window = onRoot().getBoundsInRoot()
+        val topBar = onNodeWithContentDescription(text(Res.string.minimize)).getBoundsInRoot()
+        val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+        // Centered in the room under the top bar; the title above weighs a bit more than the row below.
+        val playCenter = (play.top.value + play.bottom.value) / 2
+        val roomCenter = (topBar.bottom.value + window.bottom.value) / 2
+        assertTrue(abs(playCenter - roomCenter) < CENTER_TOLERANCE, "play at $playCenter, room centered at $roomCenter")
+    }
+
+    @Test
+    fun aPhoneWindowPutsTheCoverAboveTheControls() = runDesktopComposeUiTest(width = PHONE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                    actions = PlayerActions(),
+                    artworkModifier = Modifier.testTag("cover"),
+                )
+            }
+        }
+        val cover = onNodeWithTag("cover").getBoundsInRoot()
+        val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+        assertTrue(cover.bottom <= play.top, "cover $cover should be above the play button $play")
+    }
+
+    @Test
+    fun aPhoneOnItsSideShowsTheWholeCoverAndThePlayButtonWithoutScrolling() =
+        runDesktopComposeUiTest(width = SIDEWAYS_WIDTH, height = SIDEWAYS_HEIGHT) {
+            setContent {
+                PodcastTheme {
+                    PlayerContent(
+                        state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                        actions = PlayerActions(),
+                        artworkModifier = Modifier.testTag("cover"),
+                    )
+                }
+            }
+            val window = onRoot().getBoundsInRoot()
+            val cover = onNodeWithTag("cover").getBoundsInRoot()
+            val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+            assertTrue(cover.right <= play.left, "cover $cover should be left of the play button $play")
+            assertTrue(cover.bottom <= window.bottom, "cover $cover should fit in the window $window")
+            assertTrue(play.bottom <= window.bottom, "play button $play should be in the window $window")
+        }
+
+    @Test
+    fun aCoverScreenShowsEveryControlWithoutTheCover() = runDesktopComposeUiTest(width = COVER_WIDTH, height = COVER_HEIGHT) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                    actions = PlayerActions(),
+                    artworkModifier = Modifier.testTag("cover"),
+                )
+            }
+        }
+        val window = onRoot().getBoundsInRoot()
+
+        onNodeWithTag("cover").assertDoesNotExist()
+        listOf(Res.string.previous, Res.string.pause, Res.string.next).forEach { control ->
+            val bounds = onNodeWithContentDescription(text(control)).getBoundsInRoot()
+            assertTrue(bounds.right <= window.right && bounds.bottom <= window.bottom, "$control at $bounds is cut off")
+        }
+    }
+
+    @Test
+    fun halfOpenOnATableTheCoverIsAboveTheFoldAndTheControlsBelow() =
+        runDesktopComposeUiTest(width = PHONE, height = TALL) {
+            // Density 1 in the test window: the fold's pixels are dp. High enough that the phone layout's cover
+            // would cross it.
+            val fold = TabletopFold(top = FOLD_TOP, bottom = FOLD_TOP + FOLD_THICKNESS)
+            setContent {
+                PodcastTheme {
+                    CompositionLocalProvider(LocalTabletopFold provides fold) {
+                        PlayerContent(
+                            state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                            actions = PlayerActions(),
+                            artworkModifier = Modifier.testTag("cover"),
+                        )
+                    }
+                }
+            }
+            val cover = onNodeWithTag("cover").getBoundsInRoot()
+            val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+            assertTrue(cover.bottom.value <= fold.top, "cover $cover should be above the fold at ${fold.top}")
+            assertTrue(play.top.value >= fold.bottom, "play button $play should be below the fold at ${fold.bottom}")
+            val podcastName = onNodeWithText("Podcast").getBoundsInRoot()
+            assertTrue(
+                podcastName.bottom.value <= fold.top - Spacing.l.value,
+                "the podcast's name ends at ${podcastName.bottom}, too close to the fold at ${fold.top}",
+            )
+            // Centered on the lower half: about as much room above the play button as below it.
+            val window = onRoot().getBoundsInRoot()
+            val playCenter = (play.top.value + play.bottom.value) / 2
+            val halfCenter = (fold.bottom + window.bottom.value) / 2
+            assertTrue(abs(playCenter - halfCenter) < CENTER_TOLERANCE, "play at $playCenter, half centered at $halfCenter")
+        }
 
     @Test
     fun thePlayButtonIsSquareWhilePlayingAndRoundWhenPaused() = runComposeUiTest {

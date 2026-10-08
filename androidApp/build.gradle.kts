@@ -32,6 +32,10 @@ android {
         baseline = file("lint-baseline.xml")
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -43,7 +47,18 @@ dependencies {
     implementation(project(":core:observability"))
     implementation(project(":domain"))
     implementation(project(":core:player"))
+    implementation(project(":core:designsystem"))
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.window)
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material3)
+    implementation(libs.media3.session)
+    implementation(libs.coil.compose)
+    implementation(project(":core:common"))
+    implementation(project(":core:ui"))
+    testImplementation(libs.junit)
+    testImplementation(libs.glance.appwidget.testing)
+    testImplementation(libs.robolectric)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.appcompat)
     implementation(libs.decompose)

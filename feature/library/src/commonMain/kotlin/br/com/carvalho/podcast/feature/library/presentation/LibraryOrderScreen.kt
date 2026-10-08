@@ -3,7 +3,6 @@ package br.com.carvalho.podcast.feature.library.presentation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,6 +32,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.designsystem.component.PodcastListItem
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
@@ -83,7 +83,7 @@ fun LibraryOrderContent(entries: List<LibraryEntry>, onReorder: (List<String>) -
                     stringResource(Res.string.library_organize_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = Spacing.s, end = Spacing.s, bottom = Spacing.s),
+                    modifier = Modifier.readableWidth().padding(start = Spacing.s, end = Spacing.s, bottom = Spacing.s),
                 )
             }
             itemsIndexed(items = shown, key = { _, entry -> entry.podcast.id }) { index, entry ->
@@ -95,7 +95,7 @@ fun LibraryOrderContent(entries: List<LibraryEntry>, onReorder: (List<String>) -
                         imageUrl = podcast.imageUrl,
                         supportingText = null,
                         onClick = {},
-                        modifier = Modifier.fillMaxWidth().moveActions(shown, index, onReorder),
+                        modifier = Modifier.readableWidth().moveActions(shown, index, onReorder),
                         dragHandle = {
                             Icon(
                                 Icons.Rounded.DragHandle,

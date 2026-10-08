@@ -76,6 +76,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.ErrorState
@@ -181,7 +182,7 @@ fun SearchContent(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            Column(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
+            Column(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).readableWidth()) {
                 Text(
                     text = stringResource(Res.string.episodes_tab),
                     style = MaterialTheme.typography.headlineMedium,
@@ -302,7 +303,7 @@ private fun SearchResults(
                     text = stringResource(Res.string.downloads_storage_used, storageSize(state.usedBytes).text()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.s),
+                    modifier = Modifier.readableWidth().padding(horizontal = Spacing.l, vertical = Spacing.s),
                 )
             }
         }
@@ -320,6 +321,7 @@ private fun SearchResults(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.background)
+                            .readableWidth()
                             .padding(horizontal = Spacing.l, vertical = Spacing.s),
                     )
                 }
@@ -411,6 +413,7 @@ private fun EpisodeRowAt(
         EpisodeListItem(
             episode = episode,
             podcastTitle = episode.podcastTitle,
+            modifier = Modifier.readableWidth(),
             isBuffering = isCurrent && playerState.isBuffering,
             isPlaying = isCurrent && playerState.isPlaying,
             downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
