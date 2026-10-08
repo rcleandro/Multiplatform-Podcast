@@ -69,12 +69,18 @@ jobs:
               if: hashFiles('core/designsystem/snapshots/*.png') != ''
               run: ./gradlew :core:designsystem:verifyRoborazziAndroidHostTest
 
+            - name: Verify player snapshots
+              if: hashFiles('feature/player/snapshots/*.png') != ''
+              run: ./gradlew :feature:player:verifyRoborazziAndroidHostTest
+
             - name: Upload snapshot diffs
               if: failure()
               uses: actions/upload-artifact@v7
               with:
                   name: snapshot-diffs
-                  path: core/designsystem/build/outputs/roborazzi/
+                  path: |
+                      core/designsystem/build/outputs/roborazzi/
+                      feature/player/build/outputs/roborazzi/
 
             - name: Upload test reports
               if: always()
