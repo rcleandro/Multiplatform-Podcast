@@ -58,6 +58,10 @@ class PlayerContentTest {
         const val SIDEWAYS_WIDTH = 780
         const val SIDEWAYS_HEIGHT = 360
         const val FOLD_TOP = 360
+
+        /** The window an app gets on the Razr 60's cover screen, in dp. */
+        const val COVER_WIDTH = 469
+        const val COVER_HEIGHT = 318
         const val FOLD_THICKNESS = 20
 
         /** The aux row under the controls moves them up a bit from the exact center. */
@@ -141,6 +145,26 @@ class PlayerContentTest {
             assertTrue(cover.bottom <= window.bottom, "cover $cover should fit in the window $window")
             assertTrue(play.bottom <= window.bottom, "play button $play should be in the window $window")
         }
+
+    @Test
+    fun aCoverScreenShowsEveryControlWithoutTheCover() = runDesktopComposeUiTest(width = COVER_WIDTH, height = COVER_HEIGHT) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                    actions = PlayerActions(),
+                    artworkModifier = Modifier.testTag("cover"),
+                )
+            }
+        }
+        val window = onRoot().getBoundsInRoot()
+
+        onNodeWithTag("cover").assertDoesNotExist()
+        listOf(Res.string.previous, Res.string.pause, Res.string.next).forEach { control ->
+            val bounds = onNodeWithContentDescription(text(control)).getBoundsInRoot()
+            assertTrue(bounds.right <= window.right && bounds.bottom <= window.bottom, "$control at $bounds is cut off")
+        }
+    }
 
     @Test
     fun halfOpenOnATableTheCoverIsAboveTheFoldAndTheControlsBelow() =

@@ -106,10 +106,13 @@ fun PlayerContent(
                 title = stringResource(Res.string.now_playing),
             )
             val isShort = currentWindowIsShort()
+            val paneLayout = currentPaneLayout()
             val fold = LocalTabletopFold.current
             if (fold != null) {
                 TabletopPlayer(state, actions, fold, artworkModifier)
-            } else if (currentPaneLayout() == PaneLayout.EXPANDED || isShort) {
+            } else if (isShort && paneLayout == PaneLayout.COMPACT) {
+                CoverScreenPlayer(state, actions)
+            } else if (paneLayout == PaneLayout.EXPANDED || isShort) {
                 // A wide or a short window puts the cover beside the rest instead of above it (21.1, 21.2), so
                 // the play button is in view without scrolling.
                 Row(

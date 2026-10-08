@@ -86,6 +86,24 @@ internal fun TabletopPlayer(
     }
 }
 
+/**
+ * The player of a narrow and low window, like a flip phone's cover screen (21.5): no room for the cover beside the
+ * controls, and the controls are what matter there.
+ */
+@Composable
+internal fun CoverScreenPlayer(state: PlayerState, actions: PlayerActions) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Spacing.m),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = Spacing.l, vertical = Spacing.s),
+    ) {
+        PlayerInfoAndControls(state, actions)
+    }
+}
+
 /** The episode's title over its podcast's. */
 @Composable
 internal fun PlayerTitle(episode: Episode?) {

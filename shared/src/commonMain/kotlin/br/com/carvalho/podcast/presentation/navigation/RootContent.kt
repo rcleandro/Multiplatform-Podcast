@@ -44,6 +44,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import br.com.carvalho.podcast.core.designsystem.PaneLayout
 import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
+import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
 import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import br.com.carvalho.podcast.core.designsystem.Motion
 import br.com.carvalho.podcast.core.designsystem.Sizes
@@ -80,8 +81,9 @@ fun RootContent(component: RootComponent) {
     LaunchedEffect(component) {
         if (!networkMonitor.isOnline()) component.onOpenedOffline()
     }
-    // Bar on a compact window, rail from 600 dp (21.1).
-    val hasRail = currentPaneLayout() != PaneLayout.COMPACT
+    // Bar on a compact window, rail from 600 dp (21.1) and on a low one, where a bar would take a quarter of the
+    // height, like a flip phone's cover screen (21.5).
+    val hasRail = currentPaneLayout() != PaneLayout.COMPACT || currentWindowIsShort()
 
     // The player and "Organize library" cover the tabs too (ADR 0005): the bar is for moving between tabs only.
     // Opening the player grows the mini player's cover into the player's, and minimizing shrinks it back (24.2).
