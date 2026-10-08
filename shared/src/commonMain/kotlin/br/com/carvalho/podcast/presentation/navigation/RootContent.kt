@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.presentation.navigation
 
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
@@ -140,7 +141,9 @@ private fun TabContent(
     onPlayPause: () -> Unit,
     sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier,
 ) {
-    val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
+    val navigator = rememberListDetailPaneScaffoldNavigator<Any>(
+        scaffoldDirective = paneDirective(currentWindowAdaptiveInfo()),
+    )
     var isMiniPlayerShown by remember { mutableStateOf(true) }
     val hideMiniPlayerOnScroll = remember {
         object : NestedScrollConnection {
