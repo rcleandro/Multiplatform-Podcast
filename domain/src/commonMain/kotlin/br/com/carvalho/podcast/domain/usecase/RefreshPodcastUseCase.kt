@@ -3,7 +3,9 @@ package br.com.carvalho.podcast.domain.usecase
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppLogger
+import kotlin.time.TimeSource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -25,6 +27,8 @@ class RefreshPodcastUseCase(
             ?: return Result.failure(AppError.NotFound)
 
         AppLogger.i(TAG, "Refreshing podcast: ${podcast.title}")
+        val start = TimeSource.Monotonic.markNow()
+        var outcome = "unchanged"
         return feedSource.fetchIfChanged(podcast.feedUrl, podcast.feedVersion, podcast.id)
             .mapCatching { feed ->
                 if (feed == null) {
@@ -33,22 +37,31 @@ class RefreshPodcastUseCase(
                     // The id never changes; the address follows the feed when it moves.
                     val feedUrl = movedFeedUrl(podcast.feedUrl, feed.movedTo) ?: podcast.feedUrl
                     podcastRepository.saveFeed(feed.podcast.copy(id = podcast.id, feedUrl = feedUrl), feed.episodes)
+                    outcome = "updated"
                     AppLogger.d(TAG, "Podcast ${podcast.title} updated with ${feed.episodes.size} episodes")
                 }
             }.onFailure { e ->
+                outcome = "failed"
                 AppLogger.e(TAG, "Failed to refresh podcast: ${podcast.title}", e)
+            }.also {
+                Metrics.record(Metrics.FEED_REFRESH, start.elapsedNow(), "outcome" to outcome)
             }
     }
 
     /** Refreshes every podcast, even after one fails, and says how many failed and why. */
     suspend fun refreshAll(): RefreshSummary {
         AppLogger.i(TAG, "Starting refresh for all podcasts")
+        val start = TimeSource.Monotonic.markNow()
         val podcasts = podcastRepository.getPodcasts().first()
         val permits = Semaphore(MAX_CONCURRENT_REFRESHES)
         val results = coroutineScope {
             podcasts.map { async { permits.withPermit { invoke(it.id) } } }.awaitAll()
         }
-        return RefreshSummary(total = results.size, failures = results.mapNotNull { it.exceptionOrNull() })
+        return RefreshSummary(total = results.size, failures = results.mapNotNull { it.exceptionOrNull() }).also {
+            Metrics.record(
+                Metrics.REFRESH_ALL, start.elapsedNow(), "podcasts" to it.total, "failed" to it.failures.size,
+            )
+        }
     }
 }
 

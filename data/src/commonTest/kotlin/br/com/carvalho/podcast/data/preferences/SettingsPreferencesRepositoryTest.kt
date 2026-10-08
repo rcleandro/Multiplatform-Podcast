@@ -5,6 +5,8 @@ import br.com.carvalho.podcast.domain.model.LibrarySort
 import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class SettingsPreferencesRepositoryTest {
     private val settings = MapSettings()
@@ -37,6 +39,15 @@ class SettingsPreferencesRepositoryTest {
         SettingsPreferencesRepository(settings).setLibrarySort(LibrarySort.LATEST_EPISODE)
 
         assertEquals(LibrarySort.LATEST_EPISODE, SettingsPreferencesRepository(settings).librarySort.value)
+    }
+
+    @Test
+    fun telemetryStartsOnAndTurningItOffIsKept() {
+        assertTrue(SettingsPreferencesRepository(settings).telemetryEnabled.value)
+
+        SettingsPreferencesRepository(settings).setTelemetryEnabled(false)
+
+        assertFalse(SettingsPreferencesRepository(settings).telemetryEnabled.value)
     }
 
     @Test

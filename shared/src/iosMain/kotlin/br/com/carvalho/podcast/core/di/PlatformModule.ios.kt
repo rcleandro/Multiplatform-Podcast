@@ -4,6 +4,8 @@ import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.observability.FirebaseAnalytics
 import br.com.carvalho.podcast.core.observability.FirebaseCrashReporter
+import br.com.carvalho.podcast.core.observability.whenAllowed
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.core.player.PlatformPlayer
@@ -27,8 +29,14 @@ actual val platformModule = module {
     single(createdAtStart = true) { createAppDatabase(get()) }
     single<PlatformPlayer> { IosPlatformPlayer() }
     single { AppDirectories(FileSystem.SYSTEM, documentsDirectory()) }
-    single<Analytics> { FirebaseAnalytics() }
-    single<CrashReporter> { FirebaseCrashReporter() }
+    single<Analytics> {
+        val preferences = get<PreferencesRepository>()
+        FirebaseAnalytics().whenAllowed { preferences.telemetryEnabled.value }
+    }
+    single<CrashReporter> {
+        val preferences = get<PreferencesRepository>()
+        FirebaseCrashReporter().whenAllowed { preferences.telemetryEnabled.value }
+    }
     single(createdAtStart = true) { UrlSessionEpisodeDownloader(get(), get()) }
     single<EpisodeDownloader> { get<UrlSessionEpisodeDownloader>() }
     single<NetworkMonitor> { IosNetworkMonitor() }

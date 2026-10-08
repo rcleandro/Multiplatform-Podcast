@@ -4,6 +4,8 @@ import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.observability.FirebaseAnalytics
 import br.com.carvalho.podcast.core.observability.FirebaseCrashReporter
+import br.com.carvalho.podcast.core.observability.whenAllowed
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.core.util.AndroidNetworkMonitor
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.NetworkMonitor
@@ -25,8 +27,14 @@ actual val platformModule = module {
     single(createdAtStart = true) { createAppDatabase(androidContext(), get()) }
     single<PlatformPlayer> { AndroidPlatformPlayer(androidContext()) }
     single { AppDirectories(FileSystem.SYSTEM, androidContext().filesDir.absolutePath.toPath()) }
-    single<Analytics> { FirebaseAnalytics() }
-    single<CrashReporter> { FirebaseCrashReporter() }
+    single<Analytics> {
+        val preferences = get<PreferencesRepository>()
+        FirebaseAnalytics().whenAllowed { preferences.telemetryEnabled.value }
+    }
+    single<CrashReporter> {
+        val preferences = get<PreferencesRepository>()
+        FirebaseCrashReporter().whenAllowed { preferences.telemetryEnabled.value }
+    }
     single<EpisodeDownloader> { WorkManagerEpisodeDownloader(get(), WorkManager.getInstance(androidContext())) }
     single<NetworkMonitor> { AndroidNetworkMonitor(androidContext()) }
 }

@@ -17,6 +17,11 @@ kotlin {
             implementation(libs.ktor.encoding)
             api(libs.kotlinx.serialization)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.mock)
+        }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }

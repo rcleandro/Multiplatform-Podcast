@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.data.download
 
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
@@ -22,6 +23,7 @@ import okio.IOException
 import okio.Path
 import okio.buffer
 import okio.use
+import kotlin.time.TimeSource
 
 private const val TAG = "KtorEpisodeDownloader"
 private const val PART_SUFFIX = ".part"
@@ -70,6 +72,7 @@ class KtorEpisodeDownloader(
 
         // The episode only appears under its final name once it is whole; a failure leaves just the .part.
         val partPath = directories.downloadPath("$episodeId$PART_SUFFIX")
+        val start = TimeSource.Monotonic.markNow()
         try {
             updateStatus(episodeId, DownloadStatus.Queued())
 
@@ -96,6 +99,8 @@ class KtorEpisodeDownloader(
             } ?: return
 
             markDownloaded(episodeId, fileName)
+            val bytes = fileSystem.metadataOrNull(directories.downloadPath(fileName))?.size ?: 0L
+            Metrics.record(Metrics.DOWNLOAD, start.elapsedNow(), "bytes" to bytes)
         } catch (e: CancellationException) {
             AppLogger.d(TAG, "Download canceled for $episodeId")
             updateStatus(episodeId, DownloadStatus.Idle)

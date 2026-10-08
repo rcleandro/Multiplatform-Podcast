@@ -13,4 +13,9 @@ interface PreferencesRepository {
     val librarySort: StateFlow<LibrarySort>
 
     fun setLibrarySort(sort: LibrarySort)
+
+    /** Analytics and crash reports; on by default, the user can turn them off (16.4). */
+    val telemetryEnabled: StateFlow<Boolean>
+
+    fun setTelemetryEnabled(enabled: Boolean)
 }

@@ -18,6 +18,7 @@ import br.com.carvalho.podcast.presentation.component.OlderMark
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import br.com.carvalho.podcast.core.observability.Analytics
+import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.util.NetworkMonitor
@@ -113,7 +114,7 @@ class SearchViewModel(
 
     private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("play_episode_from_search", mapOf("episode_id" to episode.id))
+            analytics.logEvent(AnalyticsEvent.PlayEpisode(episode.id, AnalyticsEvent.PlaySource.SEARCH))
             playEpisode(episode)
         }
     }

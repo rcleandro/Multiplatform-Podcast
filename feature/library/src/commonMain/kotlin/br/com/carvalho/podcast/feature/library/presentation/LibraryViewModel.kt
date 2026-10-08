@@ -27,6 +27,8 @@ import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.observability.Analytics
+import br.com.carvalho.podcast.core.observability.AnalyticsEvent
+import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.observability.urlHost
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -60,7 +62,8 @@ class LibraryViewModel(
 
     init {
         viewModelScope.launch(dispatchers.io) {
-            combine(repository.getLibrary().onStart { emit(emptyList()) }, preferences.librarySort) { podcasts, sort ->
+            val library = repository.getLibrary().onEach { Metrics.recordAppStart("podcasts" to it.size) }
+            combine(library.onStart { emit(emptyList()) }, preferences.librarySort) { podcasts, sort ->
                 podcasts.sortedFor(sort) to sort
             }.collect { (podcasts, sort) ->
                 _uiState.update { it.copy(podcasts = podcasts, sort = sort, isLoading = false) }
@@ -84,7 +87,7 @@ class LibraryViewModel(
             LibraryIntent.ToggleLayout -> toggleLayout()
             is LibraryIntent.ChangeSort -> preferences.setLibrarySort(intent.sort)
             is LibraryIntent.Play -> viewModelScope.launch(dispatchers.io) {
-                analytics.logEvent("play_episode_from_library", mapOf("episode_id" to intent.episode.id))
+                analytics.logEvent(AnalyticsEvent.PlayEpisode(intent.episode.id, AnalyticsEvent.PlaySource.LIBRARY))
                 playEpisode(intent.episode)
             }
         }
@@ -99,7 +102,7 @@ class LibraryViewModel(
     private fun confirmDelete() {
         val podcast = _uiState.value.podcastToDelete ?: return
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("delete_podcast", mapOf("host" to urlHost(podcast.feedUrl)))
+            analytics.logEvent(AnalyticsEvent.DeletePodcast(urlHost(podcast.feedUrl)))
             deletePodcastUseCase(podcast.id)
             _uiState.update { it.copy(podcastToDelete = null) }
         }
@@ -107,7 +110,7 @@ class LibraryViewModel(
 
     private fun refreshAll() {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent("refresh_all_podcasts")
+            analytics.logEvent(AnalyticsEvent.RefreshAllPodcasts)
             _uiState.update { it.copy(isRefreshing = true) }
             AppLogger.i(TAG, "Refreshing all podcasts")
             val summary = refreshPodcastUseCase.refreshAll()
@@ -132,14 +135,14 @@ class LibraryViewModel(
         viewModelScope.launch(dispatchers.io) {
             // Only the host: the typed text may lack the scheme, which the logger needs to spot (and cut) a URL.
             val host = urlHost(validFeedUrl(url) ?: url)
-            analytics.logEvent("add_podcast_attempt", mapOf("host" to host))
+            analytics.logEvent(AnalyticsEvent.AddPodcastAttempt(host))
             _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false) }
             AppLogger.i(TAG, "Adding podcast from host: $host")
             addPodcastUseCase(url).onSuccess {
-                analytics.logEvent("add_podcast_success", mapOf("host" to host))
+                analytics.logEvent(AnalyticsEvent.AddPodcastSuccess(host))
             }.onFailure { e ->
                 AppLogger.e(TAG, "Failed to add podcast from host: $host", e)
-                analytics.logEvent("add_podcast_failure", mapOf("host" to host, "error" to e::class.simpleName))
+                analytics.logEvent(AnalyticsEvent.AddPodcastFailure(host, e))
                 _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_add_podcast)))
             }
             _uiState.update { it.copy(isRefreshing = false, addUrl = "") }

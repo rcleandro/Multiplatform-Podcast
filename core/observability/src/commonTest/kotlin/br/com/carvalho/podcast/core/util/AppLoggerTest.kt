@@ -37,12 +37,19 @@ class AppLoggerTest {
     }
 
     @Test
+    fun debugLinesStayOutOfTheCrashReporter() {
+        AppLogger.d("HTTP Client", "REQUEST: https://feeds.example.com/")
+
+        assertEquals(emptyList(), messages)
+    }
+
+    @Test
     fun feedUrlsReachTheCrashReporterAsHostOnly() {
-        AppLogger.d("Tag", "Fetching $PRIVATE_FEED now")
+        AppLogger.i("Tag", "Fetching $PRIVATE_FEED now")
         AppLogger.e("Tag", "Failed: $PRIVATE_FEED")
 
         assertEquals(
-            listOf("[DEBUG] Tag: Fetching https://feeds.example.com/… now", "[ERROR] Tag: Failed: https://feeds.example.com/…"),
+            listOf("[INFO] Tag: Fetching https://feeds.example.com/… now", "[ERROR] Tag: Failed: https://feeds.example.com/…"),
             messages,
         )
     }
