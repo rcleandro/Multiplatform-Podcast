@@ -2,18 +2,7 @@ plugins {
     alias(libs.plugins.podcast.kmp.library)
     alias(libs.plugins.podcast.kmp.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kover)
     alias(libs.plugins.kotlin.cocoapods)
-}
-
-kover {
-    reports {
-        total {
-            log {
-                onCheck = true
-            }
-        }
-    }
 }
 
 kotlin {

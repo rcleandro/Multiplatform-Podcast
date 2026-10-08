@@ -65,6 +65,9 @@ jobs:
             - name: Run tests
               run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest
 
+            - name: Verify coverage floors
+              run: ./gradlew koverVerify
+
             - name: Verify design system snapshots
               if: hashFiles('core/designsystem/snapshots/*.png') != ''
               run: ./gradlew :core:designsystem:verifyRoborazziAndroidHostTest

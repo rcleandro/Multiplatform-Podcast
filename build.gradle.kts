@@ -32,3 +32,50 @@ subprojects {
         "detektPlugins"(rootProject.libs.detekt.formatting)
     }
 }
+
+// Line coverage of the JVM tests (desktop), per module, without Compose UI: screens are checked by the snapshot and
+// interaction tests of 17.4 instead. Each floor is the coverage the module had when it was set (17.2), so a drop
+// fails `koverVerify`; raise it as tests are added. Goals: domain and data ≥ 90%, features ≥ 70%.
+val coverageFloors = mapOf(
+    ":core:common" to 29,
+    ":core:database" to 60,
+    ":core:designsystem" to 92,
+    ":core:network" to 87,
+    ":core:observability" to 92,
+    ":core:player" to 46,
+    ":core:ui" to 59,
+    ":data" to 94,
+    ":domain" to 89,
+    ":feature:episode" to 82,
+    ":feature:library" to 97,
+    ":feature:player" to 54,
+    ":feature:podcast" to 88,
+    ":feature:search" to 85,
+    ":shared" to 46,
+)
+
+subprojects {
+    pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
+        apply(plugin = "org.jetbrains.kotlinx.kover")
+        configure<kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension> {
+            reports {
+                filters {
+                    excludes {
+                        annotatedBy(
+                            "androidx.compose.runtime.Composable",
+                            "androidx.compose.ui.tooling.preview.Preview",
+                            "org.jetbrains.compose.ui.tooling.preview.Preview",
+                        )
+                        // Compose resources and lambdas, and the code Room generates for the database.
+                        classes("*.generated.resources.*", "*ComposableSingletons*", "*_Impl", "*_Impl$*")
+                    }
+                }
+                verify {
+                    rule {
+                        minBound(coverageFloors[path] ?: 0)
+                    }
+                }
+            }
+        }
+    }
+}
