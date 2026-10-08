@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.core.player
 
 import br.com.carvalho.podcast.core.AppConfig
+import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
@@ -23,6 +24,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 private const val TAG = "PlaybackController"
 
@@ -48,6 +51,9 @@ class PlaybackController(
     private var sleepTimerJob: Job? = null
     private var lastSavedPosition: Long? = null
 
+    /** Set when an episode is asked to play, cleared by the first sound; feeds [Metrics.TIME_TO_AUDIO]. */
+    private var playRequest: Pair<TimeMark, String>? = null
+
     init {
         engine.setListener { event -> scope.launch { onEvent(event) } }
         scope.launch {
@@ -57,7 +63,9 @@ class PlaybackController(
     }
 
     override suspend fun play(episode: Episode) {
+        val requested = TimeSource.Monotonic.markNow()
         val playable = withLocalFile(episode)
+        playRequest = requested to if (playable.localPath != null) "local" else "stream"
         _playerState.update { it.copy(currentEpisode = playable, position = 0, duration = null, isBuffering = true) }
         lastSavedPosition = null
         withContext(dispatchers.main) {
@@ -149,6 +157,10 @@ class PlaybackController(
     private suspend fun onPlayingChanged(isPlaying: Boolean) {
         _playerState.update { it.copy(isPlaying = isPlaying, isBuffering = if (isPlaying) false else it.isBuffering) }
         if (isPlaying) {
+            playRequest?.let { (requested, source) ->
+                Metrics.record(Metrics.TIME_TO_AUDIO, requested.elapsedNow(), "source" to source)
+            }
+            playRequest = null
             startProgress()
         } else {
             progressJob?.cancel()

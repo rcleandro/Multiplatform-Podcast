@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.core.player
 
+import br.com.carvalho.podcast.core.observability.CrashReporter
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -33,6 +35,29 @@ class PlaybackControllerTest {
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher),
         scope = backgroundScope,
     ).also { runCurrent() }
+
+    @Test
+    fun theTimeToAudioIsMeasuredOncePerEpisodeUpToTheFirstSound() = runTest(dispatcher) {
+        val lines = mutableListOf<String>()
+        AppLogger.crashReporter = object : CrashReporter {
+            override fun log(message: String) { lines += message }
+            override fun recordException(throwable: Throwable) = Unit
+        }
+        try {
+            val controller = controller()
+            controller.play(first)
+            runCurrent()
+            controller.pause()
+            controller.resume()
+            runCurrent()
+
+            val measured = lines.filter { "metric=time_to_audio" in it }
+            assertEquals(1, measured.size, lines.toString())
+            assertTrue(measured.single().endsWith("source=stream"), measured.single())
+        } finally {
+            AppLogger.crashReporter = null
+        }
+    }
 
     @Test
     fun theEndOfAnEpisodeMarksItPlayedAndMovesToTheNextOne() = runTest(dispatcher) {

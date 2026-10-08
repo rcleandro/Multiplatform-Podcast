@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.core.di
 import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.observability.followTelemetryConsent
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import dev.gitlive.firebase.Firebase
@@ -18,6 +19,7 @@ private const val TAG = "Koin"
 private var isKoinInitialized = false
 
 actual fun initKoin(appDeclaration: KoinAppDeclaration) {
+    Metrics.markProcessStart()
     if (isKoinInitialized) {
         AppLogger.i(TAG, "Koin already initialized for Android, skipping.")
         return

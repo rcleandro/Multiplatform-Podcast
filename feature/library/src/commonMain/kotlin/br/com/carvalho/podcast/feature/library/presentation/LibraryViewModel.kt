@@ -28,6 +28,7 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
+import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.observability.urlHost
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -61,7 +62,8 @@ class LibraryViewModel(
 
     init {
         viewModelScope.launch(dispatchers.io) {
-            combine(repository.getLibrary().onStart { emit(emptyList()) }, preferences.librarySort) { podcasts, sort ->
+            val library = repository.getLibrary().onEach { Metrics.recordAppStart("podcasts" to it.size) }
+            combine(library.onStart { emit(emptyList()) }, preferences.librarySort) { podcasts, sort ->
                 podcasts.sortedFor(sort) to sort
             }.collect { (podcasts, sort) ->
                 _uiState.update { it.copy(podcasts = podcasts, sort = sort, isLoading = false) }
