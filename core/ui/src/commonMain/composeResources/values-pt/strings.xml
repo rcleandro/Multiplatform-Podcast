@@ -1,6 +1,7 @@
 <resources>
     <string name="library_title">Biblioteca</string>
     <string name="continue_listening">Continuar ouvindo</string>
+    <string name="widget_nothing_playing">Nada tocando</string>
     <string name="play_latest">Mais recente</string>
     <plurals name="podcast_episode_count">
         <item quantity="one">%1$d episódio</item>

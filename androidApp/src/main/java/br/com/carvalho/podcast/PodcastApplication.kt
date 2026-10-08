@@ -3,6 +3,8 @@ package br.com.carvalho.podcast
 import android.app.Application
 import br.com.carvalho.podcast.core.di.initKoin
 import org.koin.android.ext.koin.androidContext
+import br.com.carvalho.podcast.widget.PlayerWidget
+import kotlinx.coroutines.MainScope
 import org.koin.android.ext.koin.androidLogger
 
 /**
@@ -10,11 +12,15 @@ import org.koin.android.ext.koin.androidLogger
  * ON_DESTROY observer used to, but Android never dispatches that event.)
  */
 class PodcastApplication : Application() {
+    /** Work that lasts as long as the process, like keeping the player widget current. */
+    private val scope = MainScope()
+
     override fun onCreate() {
         super.onCreate()
         initKoin {
             androidLogger()
             androidContext(this@PodcastApplication)
         }
+        PlayerWidget.keepUpdated(this, scope)
     }
 }

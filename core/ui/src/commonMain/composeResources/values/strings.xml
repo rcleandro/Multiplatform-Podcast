@@ -2,6 +2,7 @@
     <string name="app_name">Podcast KMP</string>
     <string name="library_title">Library</string>
     <string name="continue_listening">Continue listening</string>
+    <string name="widget_nothing_playing">Nothing playing</string>
     <string name="play_latest">Latest</string>
     <plurals name="podcast_episode_count">
         <item quantity="one">%1$d episode</item>
