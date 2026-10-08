@@ -2,11 +2,13 @@ package br.com.carvalho.podcast.feature.player.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -56,7 +58,11 @@ internal fun TabletopPlayer(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.m),
-            modifier = Modifier.fillMaxWidth().height(aboveFold).padding(horizontal = Spacing.xl, vertical = Spacing.s),
+            // More room under the podcast's name, so it does not sit on the fold.
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(aboveFold)
+                .padding(start = Spacing.xl, end = Spacing.xl, top = Spacing.s, bottom = Spacing.l),
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)) {
                 PlayerArtwork(state.currentEpisode, artworkModifier)
@@ -64,15 +70,18 @@ internal fun TabletopPlayer(
             PlayerTitle(state.currentEpisode)
         }
         Spacer(modifier = Modifier.height(foldHeight))
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.l),
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = Spacing.xl, vertical = Spacing.l),
-        ) {
-            PlayerInfoAndControls(state, actions, showTitle = false)
+        // Centered on the lower half while it fits, scrolling when it does not.
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Spacing.l, Alignment.CenterVertically),
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(min = maxHeight)
+                    .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+            ) {
+                PlayerInfoAndControls(state, actions, showTitle = false)
+            }
         }
     }
 }

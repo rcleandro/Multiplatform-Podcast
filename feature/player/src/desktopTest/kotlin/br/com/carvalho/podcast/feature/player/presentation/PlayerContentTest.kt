@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.designsystem.Spacing
+import kotlin.math.abs
 import br.com.carvalho.podcast.core.designsystem.TabletopFold
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import androidx.compose.runtime.CompositionLocalProvider
@@ -57,6 +59,9 @@ class PlayerContentTest {
         const val SIDEWAYS_HEIGHT = 360
         const val FOLD_TOP = 360
         const val FOLD_THICKNESS = 20
+
+        /** The aux row under the controls moves them up a bit from the exact center. */
+        const val CENTER_TOLERANCE = 60f
     }
 
     private fun text(res: StringResource) = runBlocking { getString(res) }
@@ -159,6 +164,16 @@ class PlayerContentTest {
 
             assertTrue(cover.bottom.value <= fold.top, "cover $cover should be above the fold at ${fold.top}")
             assertTrue(play.top.value >= fold.bottom, "play button $play should be below the fold at ${fold.bottom}")
+            val podcastName = onNodeWithText("Podcast").getBoundsInRoot()
+            assertTrue(
+                podcastName.bottom.value <= fold.top - Spacing.l.value,
+                "the podcast's name ends at ${podcastName.bottom}, too close to the fold at ${fold.top}",
+            )
+            // Centered on the lower half: about as much room above the play button as below it.
+            val window = onRoot().getBoundsInRoot()
+            val playCenter = (play.top.value + play.bottom.value) / 2
+            val halfCenter = (fold.bottom + window.bottom.value) / 2
+            assertTrue(abs(playCenter - halfCenter) < CENTER_TOLERANCE, "play at $playCenter, half centered at $halfCenter")
         }
 
     @Test
