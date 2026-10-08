@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.designsystem.TabletopFold
+import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
+import androidx.compose.runtime.CompositionLocalProvider
 import kotlin.test.assertTrue
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.runtime.getValue
@@ -52,6 +55,8 @@ class PlayerContentTest {
         const val TALL = 900
         const val SIDEWAYS_WIDTH = 780
         const val SIDEWAYS_HEIGHT = 360
+        const val FOLD_TOP = 360
+        const val FOLD_THICKNESS = 20
     }
 
     private fun text(res: StringResource) = runBlocking { getString(res) }
@@ -130,6 +135,30 @@ class PlayerContentTest {
             assertTrue(cover.right <= play.left, "cover $cover should be left of the play button $play")
             assertTrue(cover.bottom <= window.bottom, "cover $cover should fit in the window $window")
             assertTrue(play.bottom <= window.bottom, "play button $play should be in the window $window")
+        }
+
+    @Test
+    fun halfOpenOnATableTheCoverIsAboveTheFoldAndTheControlsBelow() =
+        runDesktopComposeUiTest(width = PHONE, height = TALL) {
+            // Density 1 in the test window: the fold's pixels are dp. High enough that the phone layout's cover
+            // would cross it.
+            val fold = TabletopFold(top = FOLD_TOP, bottom = FOLD_TOP + FOLD_THICKNESS)
+            setContent {
+                PodcastTheme {
+                    CompositionLocalProvider(LocalTabletopFold provides fold) {
+                        PlayerContent(
+                            state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                            actions = PlayerActions(),
+                            artworkModifier = Modifier.testTag("cover"),
+                        )
+                    }
+                }
+            }
+            val cover = onNodeWithTag("cover").getBoundsInRoot()
+            val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+            assertTrue(cover.bottom.value <= fold.top, "cover $cover should be above the fold at ${fold.top}")
+            assertTrue(play.top.value >= fold.bottom, "play button $play should be below the fold at ${fold.bottom}")
         }
 
     @Test
