@@ -10,6 +10,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.toMessage
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
@@ -76,11 +77,11 @@ class PodcastDetailViewModel(
                 _uiState.update { it.copy(deleteEpisodeConfirmation = intent.episode) }
             is PodcastDetailIntent.ConfirmDeleteDownload -> deleteDownload(intent.episode.id)
             PodcastDetailIntent.DismissDeleteDownload -> _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
-            is PodcastDetailIntent.SelectEpisode -> _uiState.update { it.copy(selectedEpisode = intent.episode) }
-            PodcastDetailIntent.DismissMarkPlayed -> _uiState.update { it.copy(selectedEpisode = null) }
+            is PodcastDetailIntent.RequestMarkOlder -> _uiState.update { it.copy(olderMark = intent.mark) }
+            PodcastDetailIntent.DismissMarkOlder -> _uiState.update { it.copy(olderMark = null) }
             is PodcastDetailIntent.MarkPlayed -> markAsPlayed(intent.episode.id)
             is PodcastDetailIntent.MarkUnplayed -> markAsUnplayed(intent.episode.id)
-            is PodcastDetailIntent.MarkOlderPlayed -> markOlderAsPlayed(intent.episode.publishDate)
+            is PodcastDetailIntent.ConfirmMarkOlder -> markOlder(intent.mark)
         }
     }
 
@@ -133,7 +134,6 @@ class PodcastDetailViewModel(
 
     private fun markAsPlayed(episodeId: String) {
         analytics.logEvent("mark_as_played", mapOf("episode_id" to episodeId))
-        _uiState.update { it.copy(selectedEpisode = null) }
         viewModelScope.launch(dispatchers.io) {
             repository.markEpisodeAsPlayed(episodeId)
         }
@@ -146,11 +146,19 @@ class PodcastDetailViewModel(
         }
     }
 
-    private fun markOlderAsPlayed(publishDate: Long) {
-        analytics.logEvent("mark_older_as_played", mapOf("host" to urlHost(podcastId), "publish_date" to publishDate))
-        _uiState.update { it.copy(selectedEpisode = null) }
+    private fun markOlder(mark: OlderMark) {
+        val publishDate = mark.episode.publishDate
+        analytics.logEvent(
+            if (mark.played) "mark_older_as_played" else "mark_older_as_unplayed",
+            mapOf("host" to urlHost(podcastId), "publish_date" to publishDate),
+        )
+        _uiState.update { it.copy(olderMark = null) }
         viewModelScope.launch(dispatchers.io) {
-            repository.markOlderEpisodesAsPlayed(podcastId, publishDate)
+            if (mark.played) {
+                repository.markOlderEpisodesAsPlayed(podcastId, publishDate)
+            } else {
+                repository.markOlderEpisodesAsUnplayed(podcastId, publishDate)
+            }
         }
     }
 }
@@ -162,7 +170,8 @@ data class PodcastDetailUiState(
     val latestUnplayed: Episode? = null,
     val podcast: Podcast? = null,
     val filter: EpisodeFilter = EpisodeFilter.ALL,
-    val selectedEpisode: Episode? = null,
+    /** Marking many episodes at once, waiting for confirmation. */
+    val olderMark: OlderMark? = null,
     val deleteEpisodeConfirmation: Episode? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
@@ -177,9 +186,9 @@ sealed interface PodcastDetailIntent {
     data class RequestDeleteDownload(val episode: Episode) : PodcastDetailIntent
     data class ConfirmDeleteDownload(val episode: Episode) : PodcastDetailIntent
     data object DismissDeleteDownload : PodcastDetailIntent
-    data class SelectEpisode(val episode: Episode) : PodcastDetailIntent
-    data object DismissMarkPlayed : PodcastDetailIntent
+    data class RequestMarkOlder(val mark: OlderMark) : PodcastDetailIntent
+    data object DismissMarkOlder : PodcastDetailIntent
     data class MarkPlayed(val episode: Episode) : PodcastDetailIntent
     data class MarkUnplayed(val episode: Episode) : PodcastDetailIntent
-    data class MarkOlderPlayed(val episode: Episode) : PodcastDetailIntent
+    data class ConfirmMarkOlder(val mark: OlderMark) : PodcastDetailIntent
 }

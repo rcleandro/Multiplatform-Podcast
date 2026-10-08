@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -108,6 +109,26 @@ class PodcastDetailViewModelTest {
             
             assertEquals(podcastId, feedSource.fetchCalledWith)
         }
+    }
+
+    @Test
+    fun `confirming marks the episode and the older ones unplayed, leaving the newer`() = runTest(testDispatcher) {
+        val older = sampleEpisode.copy(id = "old", publishDate = 1, isPlayed = true)
+        val chosen = sampleEpisode.copy(id = "chosen", publishDate = 2, isPlayed = true)
+        val newer = sampleEpisode.copy(id = "new", publishDate = 3, isPlayed = true)
+        repository.episodes.value = listOf(newer, chosen, older)
+        val viewModel = createViewModel()
+        val mark = OlderMark(chosen, played = false)
+
+        viewModel.onIntent(PodcastDetailIntent.RequestMarkOlder(mark))
+        assertEquals(mark, viewModel.uiState.value.olderMark)
+        viewModel.onIntent(PodcastDetailIntent.ConfirmMarkOlder(mark))
+
+        assertEquals(null, viewModel.uiState.value.olderMark)
+        assertEquals(
+            mapOf("new" to true, "chosen" to false, "old" to false),
+            repository.episodes.value.associate { it.id to it.isPlayed },
+        )
     }
 
     @Test

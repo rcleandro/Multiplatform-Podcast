@@ -138,4 +138,8 @@ class PodcastRepositoryImpl(
     override suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long) {
         episodeDao.markOlderAsPlayed(podcastId, publishDate)
     }
+
+    override suspend fun markOlderEpisodesAsUnplayed(podcastId: String, publishDate: Long) {
+        episodeDao.markOlderAsUnplayed(podcastId, publishDate)
+    }
 }

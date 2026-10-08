@@ -14,6 +14,7 @@ import kotlinx.coroutines.channels.Channel
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.failureMessages
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import br.com.carvalho.podcast.core.observability.Analytics
@@ -85,6 +86,28 @@ class SearchViewModel(
                 _uiState.update { it.copy(deleteEpisodeConfirmation = intent.episode) }
             is SearchIntent.ConfirmDeleteDownload -> deleteDownload(intent.episode.id)
             SearchIntent.DismissDeleteDownload -> _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
+            is SearchIntent.SetPlayed -> setPlayed(intent.episode, intent.played)
+            is SearchIntent.RequestMarkOlder -> _uiState.update { it.copy(olderMark = intent.mark) }
+            SearchIntent.DismissMarkOlder -> _uiState.update { it.copy(olderMark = null) }
+            is SearchIntent.ConfirmMarkOlder -> markOlder(intent.mark)
+        }
+    }
+
+    private fun setPlayed(episode: Episode, played: Boolean) {
+        viewModelScope.launch(dispatchers.io) {
+            if (played) repository.markEpisodeAsPlayed(episode.id) else repository.markEpisodeAsUnplayed(episode.id)
+        }
+    }
+
+    private fun markOlder(mark: OlderMark) {
+        _uiState.update { it.copy(olderMark = null) }
+        val episode = mark.episode
+        viewModelScope.launch(dispatchers.io) {
+            if (mark.played) {
+                repository.markOlderEpisodesAsPlayed(episode.podcastId, episode.publishDate)
+            } else {
+                repository.markOlderEpisodesAsUnplayed(episode.podcastId, episode.publishDate)
+            }
         }
     }
 
@@ -122,7 +145,9 @@ data class SearchUiState(
     val filter: EpisodeListFilter = EpisodeListFilter.ALL,
     /** Disk space the downloads take, shown with the "Downloaded" filter. */
     val usedBytes: Long = 0,
-    val deleteEpisodeConfirmation: Episode? = null
+    val deleteEpisodeConfirmation: Episode? = null,
+    /** Marking many episodes at once, waiting for confirmation. */
+    val olderMark: OlderMark? = null,
 )
 
 sealed interface SearchIntent {
@@ -135,4 +160,8 @@ sealed interface SearchIntent {
     data class RequestDeleteDownload(val episode: Episode) : SearchIntent
     data class ConfirmDeleteDownload(val episode: Episode) : SearchIntent
     data object DismissDeleteDownload : SearchIntent
+    data class SetPlayed(val episode: Episode, val played: Boolean) : SearchIntent
+    data class RequestMarkOlder(val mark: OlderMark) : SearchIntent
+    data class ConfirmMarkOlder(val mark: OlderMark) : SearchIntent
+    data object DismissMarkOlder : SearchIntent
 }

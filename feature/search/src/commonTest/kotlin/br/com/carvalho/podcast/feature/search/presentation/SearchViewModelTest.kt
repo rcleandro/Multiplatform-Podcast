@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import app.cash.turbine.test
 import br.com.carvalho.podcast.core.AppError
@@ -67,6 +68,45 @@ class SearchViewModelTest {
 
         assertEquals(EpisodeListFilter.ALL, viewModel.uiState.value.filter)
     }
+
+    @Test
+    fun `episodes are marked played and unplayed from the tab`() = runTest(testDispatcher) {
+        val episode = episode("e1", publishDate = 1)
+        repository.episodes.value = listOf(episode)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(SearchIntent.SetPlayed(episode, played = true))
+        assertEquals(true, repository.episodes.value.single().isPlayed)
+        viewModel.onIntent(SearchIntent.SetPlayed(episode, played = false))
+        assertEquals(false, repository.episodes.value.single().isPlayed)
+    }
+
+    @Test
+    fun `confirming marks the episode and the older ones of its podcast unplayed`() = runTest(testDispatcher) {
+        val chosen = episode("chosen", publishDate = 2)
+        repository.episodes.value = listOf(
+            episode("new", publishDate = 3), chosen, episode("old", publishDate = 1),
+            episode("other", publishDate = 1, podcastId = "p2"),
+        )
+        val viewModel = createViewModel()
+        val mark = OlderMark(chosen, played = false)
+
+        viewModel.onIntent(SearchIntent.RequestMarkOlder(mark))
+        assertEquals(mark, viewModel.uiState.value.olderMark)
+        viewModel.onIntent(SearchIntent.ConfirmMarkOlder(mark))
+
+        assertEquals(null, viewModel.uiState.value.olderMark)
+        assertEquals(
+            mapOf("new" to true, "chosen" to false, "old" to false, "other" to true),
+            repository.episodes.value.associate { it.id to it.isPlayed },
+        )
+    }
+
+    private fun episode(id: String, publishDate: Long, podcastId: String = "p1") = Episode(
+        id = id, podcastId = podcastId, title = id, description = null, audioUrl = "a", imageUrl = null,
+        duration = 0, publishDate = publishDate, isPlayed = true, playbackPosition = 0, isDownloaded = false,
+        fileSize = null,
+    )
 
     @Test
     fun `initial state is correct`() = runTest(testDispatcher) {

@@ -50,8 +50,9 @@ data class EpisodePlayback(
 
 /**
  * The one episode row for podcast detail and the Episodes tab. Tapping it opens the episode; everything else
- * (play, download, mark as played) is in its "⋮" menu, also opened by a long press or a right click. [metadata] is
- * the already formatted line ("3 days · 47min"); the row adds the "Playing", "New", "Played" and download markers.
+ * (play, download, mark as played) is in the sheet of its "⋮" button, also opened by a long press or a right click.
+ * [metadata] is the already formatted line ("3 days · 47min"); the row adds the "Playing", "New", "Played" and
+ * download markers.
  * A null [downloadState] leaves out the download markers, for platforms without downloads.
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -104,7 +105,16 @@ fun EpisodeRow(
                 EpisodeProgressBar(progress = playback.progress, modifier = Modifier.padding(top = Spacing.xs))
             }
         }
-        ItemActionsButton(actions, actionsLabel, expanded = menuOpen, onExpandedChange = { menuOpen = it })
+        MoreOptionsButton(actionsLabel, onClick = { menuOpen = true })
+    }
+    if (menuOpen) {
+        ItemActionsSheet(
+            title = title,
+            subtitle = metadata,
+            imageUrl = imageUrl,
+            actions = actions,
+            onDismiss = { menuOpen = false },
+        )
     }
 }
 

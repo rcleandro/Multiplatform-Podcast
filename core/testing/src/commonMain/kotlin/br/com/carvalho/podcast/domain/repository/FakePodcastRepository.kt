@@ -106,7 +106,17 @@ class FakePodcastRepository : PodcastRepository {
 
     override suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long) {
         episodes.value = episodes.value.map {
-            if (it.podcastId == podcastId && it.publishDate < publishDate) it.copy(isPlayed = true) else it
+            if (it.podcastId == podcastId && it.publishDate <= publishDate) it.copy(isPlayed = true) else it
+        }
+    }
+
+    override suspend fun markOlderEpisodesAsUnplayed(podcastId: String, publishDate: Long) {
+        episodes.value = episodes.value.map {
+            if (it.podcastId == podcastId && it.publishDate <= publishDate) {
+                it.copy(isPlayed = false, playbackPosition = 0)
+            } else {
+                it
+            }
         }
     }
 }

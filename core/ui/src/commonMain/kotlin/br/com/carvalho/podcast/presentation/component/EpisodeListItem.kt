@@ -1,5 +1,17 @@
 package br.com.carvalho.podcast.presentation.component
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Podcasts
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.RemoveCircleOutline
+import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import br.com.carvalho.podcast.core.AppConfig
@@ -19,9 +31,11 @@ import br.com.carvalho.podcast.core.ui.generated.resources.cancel_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
 import br.com.carvalho.podcast.core.ui.generated.resources.download_cd
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
+import br.com.carvalho.podcast.core.ui.generated.resources.go_to_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
 import br.com.carvalho.podcast.core.ui.generated.resources.retry_download
@@ -30,8 +44,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Maps an [Episode] and its download status to the design system [EpisodeRow], with its "⋮" menu: play or pause,
- * the download action of its state, and, where the screen offers them, mark as played or unplayed and mark older
- * as played.
+ * the download action of its state, and, where the screen offers them, mark as played or unplayed, mark it and the
+ * older ones as played or unplayed and go to its podcast.
  */
 @Composable
 fun EpisodeListItem(
@@ -49,6 +63,8 @@ fun EpisodeListItem(
     onMarkPlayed: (() -> Unit)? = null,
     onMarkUnplayed: (() -> Unit)? = null,
     onMarkOlderPlayed: (() -> Unit)? = null,
+    onMarkOlderUnplayed: (() -> Unit)? = null,
+    onGoToPodcast: (() -> Unit)? = null,
 ) {
     val durationMs = episode.duration * AppConfig.MILLIS_PER_SECOND
     val progress = if (durationMs > 0) episode.playbackPosition.toFloat() / durationMs else 0f
@@ -59,13 +75,22 @@ fun EpisodeListItem(
     val downloadState = downloadStatus.toDownloadState(episode.isDownloaded).takeIf { supportsDownloads }
 
     val actions = listOfNotNull(
-        ItemAction(stringResource(if (isPlaying) Res.string.pause else Res.string.play), onPlayClick),
+        if (isPlaying) {
+            ItemAction(stringResource(Res.string.pause), Icons.Rounded.Pause, onPlayClick)
+        } else {
+            ItemAction(stringResource(Res.string.play), Icons.Rounded.PlayArrow, onPlayClick)
+        },
         downloadState?.let { downloadAction(it, onDownloadClick, onCancelDownloadClick, onDeleteClick) },
         // Played or not, the menu offers the opposite.
-        onMarkPlayed?.takeIf { !episode.isPlayed }?.let { ItemAction(stringResource(Res.string.mark_as_played), it) },
+        onMarkPlayed?.takeIf { !episode.isPlayed }
+            ?.let { ItemAction(stringResource(Res.string.mark_as_played), Icons.Rounded.Done, it) },
         onMarkUnplayed?.takeIf { episode.isPlayed }
-            ?.let { ItemAction(stringResource(Res.string.mark_as_unplayed), it) },
-        onMarkOlderPlayed?.let { ItemAction(stringResource(Res.string.mark_older_as_played), it) },
+            ?.let { ItemAction(stringResource(Res.string.mark_as_unplayed), Icons.Rounded.RemoveCircleOutline, it) },
+        onMarkOlderPlayed
+            ?.let { ItemAction(stringResource(Res.string.mark_older_as_played), Icons.Rounded.DoneAll, it) },
+        onMarkOlderUnplayed
+            ?.let { ItemAction(stringResource(Res.string.mark_older_as_unplayed), Icons.Rounded.RemoveDone, it) },
+        onGoToPodcast?.let { ItemAction(stringResource(Res.string.go_to_podcast), Icons.Rounded.Podcasts, it) },
     )
 
     EpisodeRow(
@@ -94,11 +119,11 @@ fun downloadAction(
     onCancel: () -> Unit,
     onRemove: () -> Unit,
 ): ItemAction = when (state) {
-    DownloadState.Idle -> ItemAction(stringResource(Res.string.download_cd), onDownload)
+    DownloadState.Idle -> ItemAction(stringResource(Res.string.download_cd), Icons.Rounded.Download, onDownload)
     DownloadState.Queued, is DownloadState.Downloading ->
-        ItemAction(stringResource(Res.string.cancel_download), onCancel)
-    DownloadState.Downloaded -> ItemAction(stringResource(Res.string.delete_download), onRemove)
-    DownloadState.Failed -> ItemAction(stringResource(Res.string.retry_download), onDownload)
+        ItemAction(stringResource(Res.string.cancel_download), Icons.Rounded.Close, onCancel)
+    DownloadState.Downloaded -> ItemAction(stringResource(Res.string.delete_download), Icons.Rounded.Delete, onRemove)
+    DownloadState.Failed -> ItemAction(stringResource(Res.string.retry_download), Icons.Rounded.Refresh, onDownload)
 }
 
 fun DownloadStatus.toDownloadState(isDownloaded: Boolean): DownloadState = when (this) {

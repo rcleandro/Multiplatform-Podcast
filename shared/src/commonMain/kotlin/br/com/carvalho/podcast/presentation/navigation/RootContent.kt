@@ -206,7 +206,10 @@ private fun ListPane(component: RootComponent, tab: Tab) {
             onOrganize = component::onOrganizeLibrary,
             onPodcastClick = component::onPodcastSelected,
         )
-        Tab.Episodes -> SearchScreen(onEpisodeClick = component::onEpisodeSelected)
+        Tab.Episodes -> SearchScreen(
+            onEpisodeClick = component::onEpisodeSelected,
+            onPodcastClick = component::onPodcastSelected,
+        )
     }
 }
 

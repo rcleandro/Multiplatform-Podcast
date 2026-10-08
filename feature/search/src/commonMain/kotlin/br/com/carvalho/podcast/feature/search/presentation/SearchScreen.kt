@@ -80,6 +80,8 @@ import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.clear
@@ -98,7 +100,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = koinViewModel(),
-    onEpisodeClick: (String, String) -> Unit
+    onEpisodeClick: (String, String) -> Unit,
+    onPodcastClick: (String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagedResults = viewModel.pagedResults.collectAsLazyPagingItems()
@@ -124,6 +127,12 @@ fun SearchScreen(
             onRemoveDownload = { viewModel.onIntent(SearchIntent.RequestDeleteDownload(it)) },
             onConfirmRemoveDownload = { viewModel.onIntent(SearchIntent.ConfirmDeleteDownload(it)) },
             onDismissRemoveDownload = { viewModel.onIntent(SearchIntent.DismissDeleteDownload) },
+            onMarkPlayed = { viewModel.onIntent(SearchIntent.SetPlayed(it, played = true)) },
+            onMarkUnplayed = { viewModel.onIntent(SearchIntent.SetPlayed(it, played = false)) },
+            onRequestMarkOlder = { viewModel.onIntent(SearchIntent.RequestMarkOlder(it)) },
+            onConfirmMarkOlder = { viewModel.onIntent(SearchIntent.ConfirmMarkOlder(it)) },
+            onDismissMarkOlder = { viewModel.onIntent(SearchIntent.DismissMarkOlder) },
+            onPodcastClick = { onPodcastClick(it.podcastId) },
         ),
         snackbarHostState = snackbarHostState,
     )
@@ -139,6 +148,12 @@ data class SearchActions(
     val onRemoveDownload: (Episode) -> Unit = {},
     val onConfirmRemoveDownload: (Episode) -> Unit = {},
     val onDismissRemoveDownload: () -> Unit = {},
+    val onMarkPlayed: (Episode) -> Unit = {},
+    val onMarkUnplayed: (Episode) -> Unit = {},
+    val onRequestMarkOlder: (OlderMark) -> Unit = {},
+    val onConfirmMarkOlder: (OlderMark) -> Unit = {},
+    val onDismissMarkOlder: () -> Unit = {},
+    val onPodcastClick: (Episode) -> Unit = {},
 )
 
 @Composable
@@ -204,6 +219,7 @@ fun SearchContent(
                 onDismiss = actions.onDismissRemoveDownload,
             )
         }
+        state.olderMark?.let { MarkOlderDialog(it, actions.onConfirmMarkOlder, actions.onDismissMarkOlder) }
     }
 }
 
@@ -376,7 +392,12 @@ private fun EpisodeRowAt(
             onPlayClick = { actions.onPlay(episode) },
             onDownloadClick = { actions.onDownload(episode) },
             onCancelDownloadClick = { actions.onCancelDownload(episode) },
-            onDeleteClick = { actions.onRemoveDownload(episode) }
+            onDeleteClick = { actions.onRemoveDownload(episode) },
+            onMarkPlayed = { actions.onMarkPlayed(episode) },
+            onMarkUnplayed = { actions.onMarkUnplayed(episode) },
+            onMarkOlderPlayed = { actions.onRequestMarkOlder(OlderMark(episode, played = true)) },
+            onMarkOlderUnplayed = { actions.onRequestMarkOlder(OlderMark(episode, played = false)) },
+            onGoToPodcast = { actions.onPodcastClick(episode) },
         )
     }
 }

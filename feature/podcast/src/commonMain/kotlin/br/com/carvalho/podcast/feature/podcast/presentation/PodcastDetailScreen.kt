@@ -76,6 +76,8 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
@@ -85,9 +87,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.delete_download_confi
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_unplayed
-import br.com.carvalho.podcast.core.ui.generated.resources.mark
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_confirmation
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
 import br.com.carvalho.podcast.core.ui.generated.resources.show_more
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh
@@ -121,7 +120,7 @@ fun PodcastDetailScreen(
             onRefresh = { viewModel.onIntent(PodcastDetailIntent.Refresh) },
             onFilterSelected = { viewModel.onIntent(PodcastDetailIntent.SetFilter(it)) },
             onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
-            onEpisodeLongClick = { viewModel.onIntent(PodcastDetailIntent.SelectEpisode(it)) },
+            onRequestMarkOlder = { viewModel.onIntent(PodcastDetailIntent.RequestMarkOlder(it)) },
             onPlay = { viewModel.onIntent(PodcastDetailIntent.Play(it)) },
             onDownload = { viewModel.onIntent(PodcastDetailIntent.Download(it)) },
             onCancelDownload = { viewModel.onIntent(PodcastDetailIntent.CancelDownload(it)) },
@@ -130,8 +129,8 @@ fun PodcastDetailScreen(
             onDismissRemoveDownload = { viewModel.onIntent(PodcastDetailIntent.DismissDeleteDownload) },
             onMarkPlayed = { viewModel.onIntent(PodcastDetailIntent.MarkPlayed(it)) },
             onMarkUnplayed = { viewModel.onIntent(PodcastDetailIntent.MarkUnplayed(it)) },
-            onMarkOlderPlayed = { viewModel.onIntent(PodcastDetailIntent.MarkOlderPlayed(it)) },
-            onDismissMarkPlayed = { viewModel.onIntent(PodcastDetailIntent.DismissMarkPlayed) },
+            onConfirmMarkOlder = { viewModel.onIntent(PodcastDetailIntent.ConfirmMarkOlder(it)) },
+            onDismissMarkOlder = { viewModel.onIntent(PodcastDetailIntent.DismissMarkOlder) },
         ),
     )
 }
@@ -141,7 +140,7 @@ data class PodcastDetailActions(
     val onRefresh: () -> Unit = {},
     val onFilterSelected: (EpisodeFilter) -> Unit = {},
     val onEpisodeClick: (Episode) -> Unit = {},
-    val onEpisodeLongClick: (Episode) -> Unit = {},
+    val onRequestMarkOlder: (OlderMark) -> Unit = {},
     val onPlay: (Episode) -> Unit = {},
     val onDownload: (Episode) -> Unit = {},
     val onCancelDownload: (Episode) -> Unit = {},
@@ -150,8 +149,8 @@ data class PodcastDetailActions(
     val onDismissRemoveDownload: () -> Unit = {},
     val onMarkPlayed: (Episode) -> Unit = {},
     val onMarkUnplayed: (Episode) -> Unit = {},
-    val onMarkOlderPlayed: (Episode) -> Unit = {},
-    val onDismissMarkPlayed: () -> Unit = {},
+    val onConfirmMarkOlder: (OlderMark) -> Unit = {},
+    val onDismissMarkOlder: () -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -272,7 +271,8 @@ private fun EpisodeList(
                     onPlayClick = { actions.onPlay(episode) },
                     onMarkPlayed = { actions.onMarkPlayed(episode) },
                     onMarkUnplayed = { actions.onMarkUnplayed(episode) },
-                    onMarkOlderPlayed = { actions.onEpisodeLongClick(episode) },
+                    onMarkOlderPlayed = { actions.onRequestMarkOlder(OlderMark(episode, played = true)) },
+                    onMarkOlderUnplayed = { actions.onRequestMarkOlder(OlderMark(episode, played = false)) },
                     onDownloadClick = { actions.onDownload(episode) },
                     onCancelDownloadClick = { actions.onCancelDownload(episode) },
                     onDeleteClick = { actions.onRemoveDownload(episode) }
@@ -284,17 +284,7 @@ private fun EpisodeList(
 
 @Composable
 private fun PodcastDetailDialogs(state: PodcastDetailUiState, actions: PodcastDetailActions) {
-    state.selectedEpisode?.let { episode ->
-        // Marking one episode is done straight from the menu; this one changes many, so it asks first.
-        ConfirmDialog(
-            title = stringResource(Res.string.mark_older_as_played),
-            message = stringResource(Res.string.mark_older_confirmation, episode.title),
-            confirmLabel = stringResource(Res.string.mark),
-            dismissLabel = stringResource(Res.string.cancel),
-            onConfirm = { actions.onMarkOlderPlayed(episode) },
-            onDismiss = actions.onDismissMarkPlayed,
-        )
-    }
+    state.olderMark?.let { MarkOlderDialog(it, actions.onConfirmMarkOlder, actions.onDismissMarkOlder) }
     state.deleteEpisodeConfirmation?.let { episode ->
         ConfirmDialog(
             title = stringResource(Res.string.delete_download),

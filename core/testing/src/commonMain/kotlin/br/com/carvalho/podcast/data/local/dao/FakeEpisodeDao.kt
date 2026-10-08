@@ -129,6 +129,16 @@ class FakeEpisodeDao : EpisodeDao {
             if (it.podcastId == podcastId && it.publishDate <= publishDate) it.copy(isPlayed = true) else it
         }
     }
+
+    override suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long) {
+        episodes.value = episodes.value.map {
+            if (it.podcastId == podcastId && it.publishDate <= publishDate) {
+                it.copy(isPlayed = false, playbackPosition = 0)
+            } else {
+                it
+            }
+        }
+    }
 }
 
 private fun EpisodeEntity.matches(query: String) = title.contains(query) || description?.contains(query) == true

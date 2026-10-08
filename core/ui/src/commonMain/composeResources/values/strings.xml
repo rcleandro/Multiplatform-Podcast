@@ -79,6 +79,9 @@
     <string name="retry_download">Retry download</string>
     <string name="mark_older_as_played">Mark this and older as played</string>
     <string name="mark_older_confirmation">Mark “%1$s” and every older episode as played?</string>
+    <string name="mark_older_as_unplayed">Mark this and older as unplayed</string>
+    <string name="mark_older_unplayed_confirmation">Mark “%1$s” and every older episode as unplayed?</string>
+    <string name="go_to_podcast">Go to podcast</string>
     <string name="mark">Mark</string>
     <string name="mark_as_played_description">Choose an option for episode “%1$s”</string>
     <string name="only_this_one">Only this one</string>

@@ -170,6 +170,13 @@ interface EpisodeDao {
     """)
     suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long)
 
+    @Query("""
+        UPDATE episodes
+        SET isPlayed = 0, playbackPosition = 0
+        WHERE podcastId = :podcastId AND publishDate <= :publishDate
+    """)
+    suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long)
+
     private companion object {
         /** Row id an IGNOREd insert returns. */
         const val NOT_INSERTED = -1L

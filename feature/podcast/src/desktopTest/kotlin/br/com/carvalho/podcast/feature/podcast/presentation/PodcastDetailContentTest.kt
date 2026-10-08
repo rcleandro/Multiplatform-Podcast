@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_unplayed_confirmation
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasAnyDescendant
@@ -49,7 +52,7 @@ import org.jetbrains.compose.resources.getString
 @OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class PodcastDetailContentTest {
 
-    private fun text(res: StringResource) = runBlocking { getString(res) }
+    private fun text(res: StringResource, vararg args: Any) = runBlocking { getString(res, *args) }
 
     // The paging items collect on Dispatchers.Main, which a desktop test does not have.
     @BeforeTest
@@ -145,11 +148,11 @@ class PodcastDetailContentTest {
         setContent {
             PodcastTheme {
                 PodcastDetailContent(
-                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false, selectedEpisode = episodes.first()),
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false, olderMark = OlderMark(episodes.first(), played = true)),
                     episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
                     playerState = PlayerState(),
                     activeDownloads = emptyMap(),
-                    actions = PodcastDetailActions(onDismissMarkPlayed = { cancelled++ }),
+                    actions = PodcastDetailActions(onDismissMarkOlder = { cancelled++ }),
                 )
             }
         }
@@ -161,7 +164,7 @@ class PodcastDetailContentTest {
 
     @Test
     fun eachEpisodeHasItsActionsInAMenu() = runComposeUiTest {
-        var older: Episode? = null
+        var older: OlderMark? = null
         setContent {
             PodcastTheme {
                 PodcastDetailContent(
@@ -169,7 +172,7 @@ class PodcastDetailContentTest {
                     episodes = flowOf(PagingData.from(episodes.take(1))).collectAsLazyPagingItems(),
                     playerState = PlayerState(),
                     activeDownloads = emptyMap(),
-                    actions = PodcastDetailActions(onEpisodeLongClick = { older = it }),
+                    actions = PodcastDetailActions(onRequestMarkOlder = { older = it }),
                 )
             }
         }
@@ -179,7 +182,53 @@ class PodcastDetailContentTest {
         onNodeWithText(text(Res.string.play)).assertExists()
         onNodeWithText(text(Res.string.mark_older_as_played)).performClick()
 
-        assertEquals("e1", older?.id)
+        assertEquals(OlderMark(episodes.first(), played = true), older)
+        // Older ones may be played even when this one is not.
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.mark_older_as_unplayed)).performClick()
+        assertEquals(OlderMark(episodes.first(), played = false), older)
+    }
+
+    @Test
+    fun aPlayedEpisodeAndTheOlderOnesCanBeMarkedUnplayed() = runComposeUiTest {
+        var older: OlderMark? = null
+        val played = episodes.first().copy(isPlayed = true)
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false),
+                    episodes = flowOf(PagingData.from(listOf(played))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onRequestMarkOlder = { older = it }),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Episode 1"))
+
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.mark_older_as_unplayed)).performClick()
+
+        assertEquals(OlderMark(played, played = false), older)
+    }
+
+    @Test
+    fun markingOlderAsUnplayedAsksWithItsOwnMessage() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(
+                        podcast = podcast(), isLoading = false, olderMark = OlderMark(episodes.first(), played = false)
+                    ),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(),
+                )
+            }
+        }
+
+        onNodeWithText(text(Res.string.mark_older_unplayed_confirmation, "Episode 1")).assertExists()
     }
 
     @Test

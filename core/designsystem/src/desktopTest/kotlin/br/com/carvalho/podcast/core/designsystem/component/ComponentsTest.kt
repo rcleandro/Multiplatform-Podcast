@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_player
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import androidx.compose.material.icons.rounded.Mic
@@ -179,6 +181,28 @@ class ComponentsTest {
         onNodeWithText("Play").performClick()
 
         assertEquals(1, plays)
+    }
+
+    @Test
+    fun theMenuSheetNamesTheEpisodeItActsOn() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                EpisodeRow(
+                    title = "Como funciona o Pix",
+                    metadata = "12 set · 1h 8min",
+                    imageUrl = null,
+                    playback = EpisodePlayback(),
+                    downloadState = null,
+                    onClick = {}, actions = listOf(ItemAction("Play") {}), actionsLabel = "Options",
+                )
+            }
+        }
+        onAllNodesWithText("Como funciona o Pix").assertCountEquals(1)
+
+        onNodeWithContentDescription("Options").performClick()
+
+        onAllNodesWithText("Como funciona o Pix").assertCountEquals(2)
+        onAllNodesWithText("12 set · 1h 8min").assertCountEquals(2)
     }
 
     @Test

@@ -77,6 +77,9 @@
     <string name="retry_download">Reintentar descarga</string>
     <string name="mark_older_as_played">Marcar este y los anteriores como escuchados</string>
     <string name="mark_older_confirmation">¿Marcar “%1$s” y todos los episodios anteriores como escuchados?</string>
+    <string name="mark_older_as_unplayed">Marcar este y los anteriores como no escuchados</string>
+    <string name="mark_older_unplayed_confirmation">¿Marcar “%1$s” y todos los episodios anteriores como no escuchados?</string>
+    <string name="go_to_podcast">Ir al podcast</string>
     <string name="mark">Marcar</string>
     <string name="mark_as_played_description">Elige una opción para el episodio “%1$s”</string>
     <string name="only_this_one">Solo este</string>

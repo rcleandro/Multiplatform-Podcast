@@ -1,5 +1,12 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import androidx.compose.ui.test.performTouchInput
+import br.com.carvalho.podcast.core.ui.generated.resources.go_to_podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
+import androidx.compose.ui.test.onNodeWithContentDescription
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsDisplayed
@@ -95,6 +102,44 @@ class SearchContentTest {
         onNode(isHeading() and hasText(text(Res.string.date_group_last_24_hours), ignoreCase = true)).assertExists()
         onNode(isHeading() and hasText(text(Res.string.date_group_older), ignoreCase = true)).assertExists()
         onNode(isHeading() and hasText(text(Res.string.date_group_last_30_days), ignoreCase = true)).assertDoesNotExist()
+    }
+
+    @Test
+    fun anEpisodeMenuMarksItAndTheOlderOnesAndGoesToItsPodcast() = runComposeUiTest {
+        val played = Episode(
+            id = "e1", podcastId = "p", title = "Played episode", description = null, audioUrl = "a", imageUrl = null,
+            duration = 0, publishDate = 0, isPlayed = true, playbackPosition = 0, isDownloaded = false, fileSize = null
+        )
+        var unplayed: Episode? = null
+        var older: OlderMark? = null
+        var podcast: Episode? = null
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(),
+                    results = flowOf(PagingData.from(listOf(played))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(
+                        onMarkUnplayed = { unplayed = it },
+                        onRequestMarkOlder = { older = it },
+                        onPodcastClick = { podcast = it },
+                    ),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Played episode"))
+
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.mark_as_unplayed)).performClick()
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.mark_older_as_unplayed)).performClick()
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.go_to_podcast)).performClick()
+
+        assertEquals("e1", unplayed?.id)
+        assertEquals(OlderMark(played, played = false), older)
+        assertEquals("e1", podcast?.id)
     }
 
     @Test

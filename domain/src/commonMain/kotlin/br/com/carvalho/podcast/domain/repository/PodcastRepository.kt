@@ -46,4 +46,7 @@ interface PodcastRepository {
     suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>)
     suspend fun deletePodcast(id: String)
     suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long)
+
+    /** Back to not played, from the start, for the episode published at [publishDate] and every older one. */
+    suspend fun markOlderEpisodesAsUnplayed(podcastId: String, publishDate: Long)
 }
