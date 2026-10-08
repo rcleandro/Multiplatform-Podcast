@@ -2,28 +2,7 @@ package br.com.carvalho.podcast.core.network
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.js.Js
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.serialization.kotlinx.json.json
-
-private const val MAX_RETRIES = 3
 
 actual fun createHttpClient(): HttpClient = HttpClient(Js) {
-    install(ContentNegotiation) {
-        json(commonJson)
-    }
-    install(HttpTimeout) {
-        requestTimeoutMillis = 30_000
-        connectTimeoutMillis = 15_000
-        socketTimeoutMillis = 30_000
-    }
-    install(HttpRequestRetry) {
-        retryOnServerErrors(maxRetries = MAX_RETRIES)
-        exponentialDelay()
-    }
-    install(Logging) {
-        podcastLogging()
-    }
+    podcastDefaults(platform = null)
 }
