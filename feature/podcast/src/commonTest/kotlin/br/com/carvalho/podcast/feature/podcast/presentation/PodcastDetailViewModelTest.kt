@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -60,6 +61,22 @@ class PodcastDetailViewModelTest {
     )
 
     @Test
+    fun `the header counts the episodes and finds the newest unplayed one`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(
+            sampleEpisode.copy(id = "played", publishDate = 300, isPlayed = true),
+            sampleEpisode.copy(id = "latest", publishDate = 200),
+            sampleEpisode.copy(id = "older", publishDate = 100),
+        )
+        val viewModel = createViewModel()
+
+        assertEquals(3, viewModel.uiState.value.episodeCount)
+        assertEquals("latest", viewModel.uiState.value.latestUnplayed?.id)
+        viewModel.onIntent(PodcastDetailIntent.Play(viewModel.uiState.value.latestUnplayed!!))
+
+        assertEquals("latest", audioPlayer.playCalledWith?.id)
+    }
+
+    @Test
     fun `initial state loads the podcast`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
 
@@ -95,6 +112,26 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
+    fun `confirming marks the episode and the older ones unplayed, leaving the newer`() = runTest(testDispatcher) {
+        val older = sampleEpisode.copy(id = "old", publishDate = 1, isPlayed = true)
+        val chosen = sampleEpisode.copy(id = "chosen", publishDate = 2, isPlayed = true)
+        val newer = sampleEpisode.copy(id = "new", publishDate = 3, isPlayed = true)
+        repository.episodes.value = listOf(newer, chosen, older)
+        val viewModel = createViewModel()
+        val mark = OlderMark(chosen, played = false)
+
+        viewModel.onIntent(PodcastDetailIntent.RequestMarkOlder(mark))
+        assertEquals(mark, viewModel.uiState.value.olderMark)
+        viewModel.onIntent(PodcastDetailIntent.ConfirmMarkOlder(mark))
+
+        assertEquals(null, viewModel.uiState.value.olderMark)
+        assertEquals(
+            mapOf("new" to true, "chosen" to false, "old" to false),
+            repository.episodes.value.associate { it.id to it.isPlayed },
+        )
+    }
+
+    @Test
     fun `playing an episode queues it and the newer ones oldest first`() = runTest(testDispatcher) {
         val older = sampleEpisode.copy(id = "old", publishDate = 1)
         val chosen = sampleEpisode.copy(id = "chosen", publishDate = 2)
@@ -119,6 +156,17 @@ class PodcastDetailViewModelTest {
         
         assertEquals(listOf(sampleEpisode), audioPlayer.queueSet)
         assertEquals(sampleEpisode.id, audioPlayer.playCalledWith?.id)
+    }
+
+    @Test
+    fun `marking unplayed reaches the repository`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode.copy(isPlayed = true, playbackPosition = 50))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.MarkUnplayed(sampleEpisode))
+
+        assertEquals(false, repository.episodes.value.single().isPlayed)
+        assertEquals(0L, repository.episodes.value.single().playbackPosition)
     }
 
     @Test

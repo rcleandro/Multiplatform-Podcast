@@ -13,10 +13,17 @@ import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.LibraryEntry
+import br.com.carvalho.podcast.domain.model.LibraryLayout
+import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +43,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModelTest {
     private val repository = FakePodcastRepository()
+    private val audioPlayer = FakeAudioPlayer()
     private val feedSource = FakeFeedSource()
     private val addPodcastUseCase = AddPodcastFromUrlUseCase(feedSource, repository)
     private val refreshPodcastUseCase = RefreshPodcastUseCase(feedSource, repository)
@@ -55,8 +63,81 @@ class LibraryViewModelTest {
 
     private val analytics = FakeAnalytics()
 
+    private val preferences = FakePreferencesRepository()
+
     private fun createViewModel(): LibraryViewModel {
-        return LibraryViewModel(repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, dispatchers, analytics)
+        return LibraryViewModel(
+            repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, preferences,
+            PlayEpisodeUseCase(audioPlayer, repository), dispatchers, analytics
+        )
+    }
+
+    @Test
+    fun `continue listening shows the started episodes and plays the tapped one`() = runTest(testDispatcher) {
+        val started = Episode(
+            id = "e1", podcastId = "p1", title = "Started", description = null, audioUrl = "a", imageUrl = null,
+            duration = 600, publishDate = 0, isPlayed = false, playbackPosition = 120_000, isDownloaded = false,
+            fileSize = null,
+        )
+        repository.episodes.value = listOf(started, started.copy(id = "e2", playbackPosition = 0))
+        val viewModel = createViewModel()
+
+        assertEquals(listOf("e1"), viewModel.uiState.value.inProgress.map { it.id })
+        viewModel.onIntent(LibraryIntent.Play(started))
+
+        assertEquals("e1", audioPlayer.playCalledWith?.id)
+    }
+
+    @Test
+    fun `the sort choice is saved and orders the library`() = runTest(testDispatcher) {
+        fun podcast(title: String, subscribedAt: Long) = Podcast(
+            id = title, title = title, description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), feedUrl = title, siteUrl = null, lastUpdated = 0, isSubscribed = true,
+            subscribedAt = subscribedAt,
+        )
+        repository.podcasts.value = listOf(podcast("A", subscribedAt = 1), podcast("B", subscribedAt = 2))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ChangeSort(LibrarySort.RECENTLY_ADDED))
+
+        assertEquals(LibrarySort.RECENTLY_ADDED, preferences.librarySort.value)
+        assertEquals(LibrarySort.RECENTLY_ADDED, viewModel.uiState.value.sort)
+        assertEquals(listOf("B", "A"), viewModel.uiState.value.podcasts.map { it.podcast.title })
+    }
+
+    @Test
+    fun `the layout choice is saved and shown`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.ToggleLayout)
+
+        assertEquals(LibraryLayout.LIST, preferences.libraryLayout.value)
+        assertEquals(LibraryLayout.LIST, viewModel.uiState.value.layout)
+
+        viewModel.onIntent(LibraryIntent.ToggleLayout)
+
+        assertEquals(LibraryLayout.GRID, viewModel.uiState.value.layout)
+    }
+
+    @Test
+    fun `the library opens in the saved layout with the unplayed counts`() = runTest(testDispatcher) {
+        preferences.setLibraryLayout(LibraryLayout.LIST)
+        val podcast = Podcast(
+            id = "p", title = "P", description = "", imageUrl = null, author = null, language = null,
+            categories = emptyList(), feedUrl = "p", siteUrl = null, lastUpdated = 0, isSubscribed = true
+        )
+        repository.podcasts.value = listOf(podcast)
+        repository.episodes.value = listOf(
+            Episode(
+                id = "e1", podcastId = "p", title = "E1", description = null, audioUrl = "a", imageUrl = null,
+                duration = 0, publishDate = 5, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null
+            )
+        )
+
+        val viewModel = createViewModel()
+
+        assertEquals(LibraryLayout.LIST, viewModel.uiState.value.layout)
+        assertEquals(listOf(LibraryEntry(podcast, unplayedCount = 1, latestEpisodeDate = 5)), viewModel.uiState.value.podcasts)
     }
 
     @Test

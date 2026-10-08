@@ -65,13 +65,13 @@ kotlin {
             implementation(project(":feature:podcast"))
             implementation(project(":feature:episode"))
             implementation(project(":feature:search"))
-            implementation(project(":feature:downloads"))
             implementation(project(":feature:player"))
             implementation(project(":core:database"))
             implementation(project(":core:designsystem"))
             implementation(project(":core:network"))
             implementation(project(":core:player"))
             implementation(project(":core:ui"))
+            implementation(libs.multiplatform.settings.no.arg)
             implementation(project(":core:observability"))
 
             // Compose

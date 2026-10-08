@@ -1,6 +1,32 @@
 <resources>
     <string name="app_name">Podcast KMP</string>
     <string name="library_title">Library</string>
+    <string name="continue_listening">Continue listening</string>
+    <string name="play_latest">Latest</string>
+    <plurals name="podcast_episode_count">
+        <item quantity="one">%1$d episode</item>
+        <item quantity="other">%1$d episodes</item>
+    </plurals>
+    <string name="library_podcasts">Podcasts</string>
+    <string name="library_show_list">Show as list</string>
+    <string name="library_show_grid">Show as grid</string>
+    <string name="library_sort">Sort</string>
+    <string name="library_sort_title">Name (A–Z)</string>
+    <string name="library_sort_recently_added">Recently added</string>
+    <string name="library_sort_first_added">First added</string>
+    <string name="library_sort_latest_episode">Latest episode</string>
+    <string name="library_sort_most_unplayed">Most unplayed</string>
+    <string name="library_sort_custom">Custom</string>
+    <string name="library_reorder">Drag to reorder</string>
+    <string name="library_move_up">Move up</string>
+    <string name="library_move_down">Move down</string>
+    <string name="library_organize">Organize…</string>
+    <string name="library_organize_title">Organize library</string>
+    <string name="library_organize_hint">Drag ☰ to change the order. It is saved as you go.</string>
+    <plurals name="library_unplayed">
+        <item quantity="one">%1$d unplayed</item>
+        <item quantity="other">%1$d unplayed</item>
+    </plurals>
     <string name="refresh_all">Refresh All</string>
     <string name="add_podcast">Add Podcast</string>
     <string name="search_placeholder">Search your episodes…</string>
@@ -10,14 +36,21 @@
     <string name="delete">Delete</string>
     <string name="add">Add</string>
     <string name="rss_url_placeholder">https://...</string>
-    <string name="rss_url_label">Enter RSS feed URL:</string>
+    <string name="rss_url_label">Feed address</string>
+    <string name="paste">Paste</string>
     <string name="now_playing">NOW PLAYING</string>
     <string name="minimize">Minimize</string>
     <string name="playback_speed">Playback speed</string>
     <string name="sleep_timer">Sleep Timer</string>
     <string name="queue">Queue</string>
+    <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->
+    <string name="queue_short">Queue</string>
+    <string name="sleep_timer_short">Timer</string>
     <string name="finished">Finished</string>
-    <string name="remaining_min">%1$d min remaining</string>
+    <string name="remaining_time">%1$s left</string>
+    <string name="resume_remaining">Resume · %1$s left</string>
+    <string name="show_more">Show more</string>
+    <string name="show_less">Show less</string>
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="next">Next</string>
@@ -41,12 +74,25 @@
     <string name="podcast">Podcast</string>
     <string name="back">Back</string>
     <string name="mark_as_played">Mark as played</string>
+    <string name="mark_as_unplayed">Mark as unplayed</string>
+    <string name="cancel_download">Cancel download</string>
+    <string name="retry_download">Retry download</string>
+    <string name="mark_older_as_played">Mark this and older as played</string>
+    <string name="mark_older_confirmation">Mark “%1$s” and every older episode as played?</string>
+    <string name="mark_older_as_unplayed">Mark this and older as unplayed</string>
+    <string name="mark_older_unplayed_confirmation">Mark “%1$s” and every older episode as unplayed?</string>
+    <string name="go_to_podcast">Go to podcast</string>
+    <string name="mark">Mark</string>
     <string name="mark_as_played_description">Choose an option for episode “%1$s”</string>
     <string name="only_this_one">Only this one</string>
     <string name="this_and_all_below">This and all below</string>
     <string name="filter_all">All</string>
     <string name="filter_unplayed">Unplayed</string>
     <string name="filter_downloaded">Downloaded</string>
+    <string name="filter_in_progress">In progress</string>
+    <string name="episodes_tab">Episodes</string>
+    <string name="in_progress_empty_title">Nothing in progress</string>
+    <string name="in_progress_empty_message">Episodes you start listening to show up here.</string>
     <string name="downloads">Downloads</string>
     <string name="no_downloads">No downloaded episodes</string>
     <string name="episode">Episode</string>
@@ -84,6 +130,10 @@
         <item quantity="other">%1$d h ago</item>
     </plurals>
     <string name="time_yesterday">Yesterday</string>
+    <string name="date_group_last_24_hours">Last 24 hours</string>
+    <string name="date_group_last_7_days">Last 7 days</string>
+    <string name="date_group_last_30_days">Last 30 days</string>
+    <string name="date_group_older">Older</string>
     <plurals name="time_days_ago">
         <item quantity="one">%1$d day ago</item>
         <item quantity="other">%1$d days ago</item>
@@ -93,10 +143,10 @@
     <string name="tray_next">Next episode</string>
     <string name="tray_previous">Previous episode</string>
     <string name="tray_quit">Quit</string>
-    <string name="library_empty_message">Tap + and paste the address of a podcast RSS feed to start your library.</string>
+    <string name="library_empty_message">Add the address of a podcast feed to start your library.</string>
     <string name="search_empty_title">No episodes found</string>
     <string name="search_empty_message">Try other words. The search looks at the episodes of the podcasts in your library.</string>
-    <string name="downloads_empty_message">Downloaded episodes play without internet. Tap the download button on any episode.</string>
+    <string name="downloads_empty_message">Downloaded episodes play without internet. Download one from its ⋮ menu.</string>
     <string name="state_on">On</string>
     <string name="error_download">Could not download the episode</string>
     <string name="downloads_storage_used">%1$s used</string>

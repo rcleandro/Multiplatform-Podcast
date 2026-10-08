@@ -2,6 +2,10 @@ package br.com.carvalho.podcast.presentation.format
 
 import androidx.compose.runtime.Composable
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_older
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_30_days
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_7_days
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_24_hours
 import br.com.carvalho.podcast.core.ui.generated.resources.date_short
 import br.com.carvalho.podcast.core.ui.generated.resources.time_days_ago
 import br.com.carvalho.podcast.core.ui.generated.resources.time_hours_ago
@@ -56,3 +60,33 @@ fun RelativeTime.text(): String = when (this) {
     is RelativeTime.Days -> pluralStringResource(Res.plurals.time_days_ago, count, count)
     is RelativeTime.Date -> stringResource(Res.string.date_short, day, month, year)
 }
+
+/**
+ * Where an episode goes in a list divided by date. The windows count elapsed time, like [relativeTime], so an
+ * episode that reads "6 days ago" sits under "Last 7 days".
+ */
+enum class DateGroup { LAST_24_HOURS, LAST_7_DAYS, LAST_30_DAYS, OLDER }
+
+private const val MONTH_DAYS = 30
+
+/** Without a date (timestamp 0 or negative) an episode goes with the oldest. */
+fun dateGroup(timestampMs: Long, nowMs: Long): DateGroup {
+    if (timestampMs <= 0) return DateGroup.OLDER
+    val elapsed = (nowMs - timestampMs).coerceAtLeast(0).milliseconds
+    return when {
+        elapsed < 1.days -> DateGroup.LAST_24_HOURS
+        elapsed < DAYS_SHOWN_AS_COUNT.days -> DateGroup.LAST_7_DAYS
+        elapsed < MONTH_DAYS.days -> DateGroup.LAST_30_DAYS
+        else -> DateGroup.OLDER
+    }
+}
+
+@Composable
+fun DateGroup.text(): String = stringResource(
+    when (this) {
+        DateGroup.LAST_24_HOURS -> Res.string.date_group_last_24_hours
+        DateGroup.LAST_7_DAYS -> Res.string.date_group_last_7_days
+        DateGroup.LAST_30_DAYS -> Res.string.date_group_last_30_days
+        DateGroup.OLDER -> Res.string.date_group_older
+    }
+)

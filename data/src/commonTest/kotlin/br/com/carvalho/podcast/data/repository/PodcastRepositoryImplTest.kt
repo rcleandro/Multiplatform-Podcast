@@ -13,6 +13,7 @@ import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import androidx.paging.testing.asSnapshot
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import androidx.paging.PagingSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -24,6 +25,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 class PodcastRepositoryImplTest {
@@ -178,6 +180,50 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `the podcast header counts its episodes and finds the newest unplayed one`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(
+            listOf(
+                episodeEntity.copy(id = "newest", publishDate = 300L, isPlayed = true),
+                episodeEntity.copy(id = "unplayed", publishDate = 200L),
+                episodeEntity.copy(id = "oldest", publishDate = 100L),
+            )
+        )
+
+        assertEquals(3, repository.getEpisodeCount(podcastId).first())
+        assertEquals("unplayed", repository.getLatestUnplayedEpisode(podcastId).first()?.id)
+    }
+
+    @Test
+    fun `in progress episodes are the started ones not yet played`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(
+            listOf(
+                episodeEntity.copy(id = "new"),
+                episodeEntity.copy(id = "started", playbackPosition = 300L),
+                episodeEntity.copy(id = "finished", playbackPosition = 0L, isPlayed = true),
+            )
+        )
+
+        assertEquals(listOf("started"), repository.getInProgressEpisodes().first().map { it.id })
+    }
+
+    @Test
+    fun `marking an episode as unplayed starts it over`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(listOf(episodeEntity.copy(isPlayed = true, playbackPosition = 900L)))
+
+        repository.markEpisodeAsUnplayed("e1")
+
+        val retrieved = database.episodeDao().getById("e1")!!
+        assertFalse(retrieved.isPlayed)
+        assertEquals(0L, retrieved.playbackPosition)
+    }
+
+    @Test
     fun `searchEpisodes returns results from dao`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
@@ -206,6 +252,54 @@ class PodcastRepositoryImplTest {
         assertTrue(saved.isPlayed)
         assertEquals(500L, saved.playbackPosition)
         assertTrue(saved.isDownloaded)
+    }
+
+    @Test
+    fun `a custom order is saved and a new podcast goes to its end`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        repository.saveFeed(podcastEntity.toDomain().copy(id = "a", title = "A"), emptyList())
+        repository.saveFeed(podcastEntity.toDomain().copy(id = "b", title = "B"), emptyList())
+
+        repository.reorderLibrary(listOf("b", "a"))
+        repository.saveFeed(podcastEntity.toDomain().copy(id = "c", title = "C"), emptyList())
+        // Refreshing keeps the place the user gave it.
+        repository.saveFeed(podcastEntity.toDomain().copy(id = "b", title = "B again"), emptyList())
+
+        val order = repository.getLibrary().first().sortedBy { it.podcast.position }.map { it.podcast.id }
+        assertEquals(listOf("b", "a", "c"), order)
+    }
+
+    @Test
+    fun `refreshing a feed keeps the date the podcast was added`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        repository.saveFeed(podcastEntity.toDomain().copy(subscribedAt = 1_000L), emptyList())
+
+        repository.saveFeed(podcastEntity.toDomain().copy(title = "Renamed", subscribedAt = 9_000L), emptyList())
+
+        val saved = repository.getPodcastById(podcastId)!!
+        assertEquals("Renamed", saved.title)
+        assertEquals(1_000L, saved.subscribedAt)
+    }
+
+    @Test
+    fun `the library counts unplayed episodes and finds the latest one`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.podcastDao().insert(podcastEntity.copy(id = "empty", title = "Empty"))
+        database.episodeDao().insertAll(
+            listOf(
+                episodeEntity.copy(id = "old", publishDate = 100L, isPlayed = true),
+                episodeEntity.copy(id = "new", publishDate = 300L),
+                episodeEntity.copy(id = "mid", publishDate = 200L),
+            )
+        )
+
+        val library = repository.getLibrary().first().associateBy { it.podcast.id }
+
+        assertEquals(2, library.getValue(podcastId).unplayedCount)
+        assertEquals(300L, library.getValue(podcastId).latestEpisodeDate)
+        assertEquals(0, library.getValue("empty").unplayedCount)
+        assertNull(library.getValue("empty").latestEpisodeDate)
     }
 
     @Test
@@ -261,6 +355,26 @@ class PodcastRepositoryImplTest {
         val shown = repository.getEpisodesPaged(podcastId, EpisodeFilter.DOWNLOADED).asSnapshot()
 
         assertEquals(listOf("downloaded"), shown.map { it.id })
+    }
+
+    @Test
+    fun `the episodes tab filters started and downloaded episodes`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(
+            listOf(
+                episodeEntity.copy(id = "new"),
+                episodeEntity.copy(id = "started", playbackPosition = 1_000L),
+                episodeEntity.copy(id = "finished", playbackPosition = 1_000L, isPlayed = true),
+                episodeEntity.copy(id = "downloaded", isDownloaded = true),
+            )
+        )
+
+        val started = repository.searchEpisodesPaged(null, EpisodeListFilter.IN_PROGRESS).asSnapshot()
+        val downloaded = repository.searchEpisodesPaged(null, EpisodeListFilter.DOWNLOADED).asSnapshot()
+
+        assertEquals(listOf("started"), started.map { it.id })
+        assertEquals(listOf("downloaded"), downloaded.map { it.id })
     }
 
     @Test

@@ -88,6 +88,25 @@ class DaoIntegrationTest {
         assertEquals("e2", results2[0].id)
     }
 
+    @Test
+    fun `marking older as unplayed resets the episode and the older ones only`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        podcastDao.insert("p1".createPodcastEntity())
+        episodeDao.insertAll(
+            listOf("old" to 1L, "chosen" to 2L, "new" to 3L).map { (id, date) ->
+                createEpisodeEntity(id, "p1").copy(publishDate = date, isPlayed = true, playbackPosition = 500L)
+            }
+        )
+
+        episodeDao.markOlderAsUnplayed("p1", publishDate = 2L)
+
+        val byId = episodeDao.getByPodcast("p1").first().associateBy { it.id }
+        assertEquals(false, byId.getValue("old").isPlayed)
+        assertEquals(0L, byId.getValue("chosen").playbackPosition)
+        assertEquals(false, byId.getValue("chosen").isPlayed)
+        assertEquals(true, byId.getValue("new").isPlayed)
+    }
+
     private fun String.createPodcastEntity() = PodcastEntity(
         id = this,
         title = "Title $this",

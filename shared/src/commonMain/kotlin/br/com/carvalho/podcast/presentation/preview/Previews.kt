@@ -8,9 +8,9 @@ import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
-import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesContent
-import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesUiState
+import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailActions
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailContent
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailUiState
 import br.com.carvalho.podcast.feature.library.presentation.LibraryActions
@@ -59,9 +59,12 @@ private fun episodesPaging() = flowOf(PagingData.from(sampleEpisodes)).collectAs
 @Composable
 internal fun LibraryContentPreview() = PodcastTheme(darkTheme = false) {
     LibraryContent(
-        state = LibraryUiState(podcasts = samplePodcasts),
+        state = LibraryUiState(
+            podcasts = samplePodcasts.mapIndexed { index, podcast ->
+                LibraryEntry(podcast, unplayedCount = index, latestEpisodeDate = null)
+            },
+        ),
         actions = LibraryActions(),
-        isPlayerVisible = true,
     )
 }
 
@@ -103,19 +106,11 @@ internal fun SearchContentPreview() = PodcastTheme(darkTheme = false) {
 
 @Preview
 @Composable
-internal fun DownloadsEmptyPreview() = PodcastTheme(darkTheme = false) {
-    DownloadedEpisodesContent(
-        state = DownloadedEpisodesUiState(),
-        playerState = PlayerState(),
-        activeDownloads = emptyMap(),
-        onEpisodeClick = {}, onPlay = {}, onRemove = {}, onConfirmRemove = {}, onDismissRemove = {},
-    )
-}
-
-@Preview
-@Composable
 internal fun EpisodeDetailPreview() = PodcastTheme(darkTheme = true) {
-    EpisodeDetailContent(state = EpisodeDetailUiState(episode = sampleEpisodes.first()), onBack = {}, onPlay = {})
+    EpisodeDetailContent(
+        state = EpisodeDetailUiState(episode = sampleEpisodes.first()),
+        actions = EpisodeDetailActions(),
+    )
 }
 
 @Preview

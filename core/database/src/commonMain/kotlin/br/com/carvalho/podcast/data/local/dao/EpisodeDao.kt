@@ -10,6 +10,8 @@ import androidx.room3.Query
 import androidx.room3.Update
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.data.local.entity.PodcastFeedFields
+import br.com.carvalho.podcast.data.local.entity.feedFields
 import kotlinx.coroutines.flow.Flow
 
 import androidx.room3.Transaction
@@ -36,10 +38,16 @@ interface EpisodeDao {
 
     @Query("""
         SELECT * FROM episodes
-        WHERE :query = '' OR title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%'
+        WHERE (:query = '' OR title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%')
+        AND (:onlyInProgress = 0 OR (playbackPosition > 0 AND isPlayed = 0))
+        AND (:onlyDownloaded = 0 OR isDownloaded = 1)
         ORDER BY publishDate DESC
     """)
-    fun searchPagingSource(query: String): PagingSource<Int, EpisodeEntity>
+    fun searchPagingSource(
+        query: String,
+        onlyInProgress: Boolean = false,
+        onlyDownloaded: Boolean = false,
+    ): PagingSource<Int, EpisodeEntity>
 
     @Query("SELECT * FROM episodes WHERE podcastId = :podcastId AND publishDate >= :publishDate ORDER BY publishDate")
     suspend fun getSince(podcastId: String, publishDate: Long): List<EpisodeEntity>
@@ -49,6 +57,14 @@ interface EpisodeDao {
 
     @Query("SELECT * FROM episodes WHERE isPlayed = 0 ORDER BY publishDate DESC")
     fun getUnplayed(): Flow<List<EpisodeEntity>>
+
+    // ponytail: newest first, since nothing records when an episode was last played; add that column if the
+    // library should show the most recently heard first.
+    @Query("""
+        SELECT * FROM episodes WHERE playbackPosition > 0 AND isPlayed = 0
+        ORDER BY publishDate DESC LIMIT :limit
+    """)
+    fun getInProgress(limit: Int): Flow<List<EpisodeEntity>>
 
     @Query("""
         SELECT * FROM episodes
@@ -85,13 +101,19 @@ interface EpisodeDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPodcastIfNew(podcast: PodcastEntity): Long
 
-    @Update
-    suspend fun updatePodcast(podcast: PodcastEntity)
+    @Query("SELECT COALESCE(MAX(position), -1) + 1 FROM podcasts")
+    suspend fun nextPodcastPosition(): Int
+
+    @Update(entity = PodcastEntity::class)
+    suspend fun updatePodcast(fields: PodcastFeedFields)
 
     /** A feed read from the network: the podcast and its episodes, all or nothing. */
     @Transaction
     suspend fun saveFeed(podcast: PodcastEntity, episodes: List<EpisodeEntity>) {
-        if (insertPodcastIfNew(podcast) == NOT_INSERTED) updatePodcast(podcast)
+        // A new podcast goes to the end of the custom order; a known one keeps its place.
+        if (insertPodcastIfNew(podcast.copy(position = nextPodcastPosition())) == NOT_INSERTED) {
+            updatePodcast(podcast.feedFields())
+        }
         deleteWithoutAudio(podcast.id)
         saveFromFeed(episodes)
     }
@@ -127,6 +149,12 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE isDownloaded = 1 ORDER BY publishDate DESC")
     fun getDownloaded(): Flow<List<EpisodeEntity>>
 
+    @Query("SELECT COUNT(*) FROM episodes WHERE podcastId = :podcastId")
+    fun countByPodcast(podcastId: String): Flow<Int>
+
+    @Query("SELECT * FROM episodes WHERE podcastId = :podcastId AND isPlayed = 0 ORDER BY publishDate DESC LIMIT 1")
+    fun getLatestUnplayed(podcastId: String): Flow<EpisodeEntity?>
+
     @Query("SELECT COUNT(*) FROM episodes WHERE podcastId = :podcastId AND isPlayed = 0")
     fun getUnplayedCount(podcastId: String): Flow<Int>
 
@@ -141,6 +169,13 @@ interface EpisodeDao {
         WHERE podcastId = :podcastId AND publishDate <= :publishDate
     """)
     suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long)
+
+    @Query("""
+        UPDATE episodes
+        SET isPlayed = 0, playbackPosition = 0
+        WHERE podcastId = :podcastId AND publishDate <= :publishDate
+    """)
+    suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long)
 
     private companion object {
         /** Row id an IGNOREd insert returns. */

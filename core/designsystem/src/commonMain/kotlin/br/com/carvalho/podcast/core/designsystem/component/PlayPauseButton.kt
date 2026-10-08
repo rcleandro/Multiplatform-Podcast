@@ -13,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,6 +53,7 @@ fun PlayPauseButton(
     style: PlayButtonStyle = PlayButtonStyle.Filled,
     size: Dp = Sizes.touchTarget,
     progress: Float = 0f,
+    shape: Shape = CircleShape,
 ) {
     val showRing = style == PlayButtonStyle.Tonal && progress > 0f && !isPlaying
     val label = when {
@@ -69,7 +71,7 @@ fun PlayPauseButton(
     Surface(
         onClick = onClick,
         enabled = !isLoading,
-        shape = CircleShape,
+        shape = shape,
         color = container,
         contentColor = content,
         modifier = modifier

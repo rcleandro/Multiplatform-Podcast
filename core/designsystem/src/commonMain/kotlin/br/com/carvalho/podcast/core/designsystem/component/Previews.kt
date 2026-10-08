@@ -41,6 +41,8 @@ internal fun ButtonsSample() {
         PlayPauseButton(isPlaying = false, onClick = {}, style = PlayButtonStyle.Tonal, progress = 0.62f)
         PlayPauseButton(isPlaying = false, onClick = {}, size = Sizes.playButtonLarge)
     }
+    // The player's button while playing: a square with large corners (24.2). Its own row, so the image keeps it.
+    PlayPauseButton(isPlaying = true, onClick = {}, size = Sizes.playButtonLarge, shape = morphingShape(round = false))
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         listOf(
             DownloadState.Idle,
@@ -61,7 +63,7 @@ internal fun EpisodeRowsSample() {
         isNew = true,
         playback = EpisodePlayback(),
         downloadState = DownloadState.Idle,
-        onClick = {}, onPlay = {}, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+        onClick = {}, actions = emptyList(), actionsLabel = "",
     )
     EpisodeRow(
         title = "Kotlin Multiplatform em produção",
@@ -69,7 +71,7 @@ internal fun EpisodeRowsSample() {
         imageUrl = null,
         playback = EpisodePlayback(progress = 0.62f),
         downloadState = DownloadState.Downloaded,
-        onClick = {}, onPlay = {}, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+        onClick = {}, actions = emptyList(), actionsLabel = "",
     )
     EpisodeRow(
         title = "Como funciona o Pix por dentro",
@@ -77,7 +79,7 @@ internal fun EpisodeRowsSample() {
         imageUrl = null,
         playback = EpisodePlayback(isPlayed = true),
         downloadState = DownloadState.Downloading(0.3f),
-        onClick = {}, onPlay = {}, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+        onClick = {}, actions = emptyList(), actionsLabel = "",
     )
 }
 
@@ -94,6 +96,14 @@ internal fun PlayerPartsSample() {
         onClick = {},
     )
     PlayerSlider(positionMs = 725_000, durationMs = 2_850_000, onSeek = {}, formatTime = { "${it / 60_000}:00" })
+    PlayerSlider(
+        positionMs = 1_425_000, durationMs = 2_850_000, onSeek = {}, formatTime = { "${it / 60_000}:00" }, wavy = true,
+    )
+    SectionTitle("Continuar ouvindo")
+    ContinueCard(
+        title = "Kotlin Multiplatform em produção", imageUrl = null, progress = 0.62f, caption = "18min restantes",
+        onClick = {}, onClickLabel = "Tocar",
+    )
     FilterChipRow(
         options = listOf(FilterOption("Todos"), FilterOption("Tecnologia", 5), FilterOption("Comédia", 3)),
         selectedIndex = 0,

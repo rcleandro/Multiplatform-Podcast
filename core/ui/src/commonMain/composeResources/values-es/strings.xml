@@ -1,5 +1,31 @@
 <resources>
     <string name="library_title">Biblioteca</string>
+    <string name="continue_listening">Seguir escuchando</string>
+    <string name="play_latest">Más reciente</string>
+    <plurals name="podcast_episode_count">
+        <item quantity="one">%1$d episodio</item>
+        <item quantity="other">%1$d episodios</item>
+    </plurals>
+    <string name="library_podcasts">Podcasts</string>
+    <string name="library_show_list">Mostrar en lista</string>
+    <string name="library_show_grid">Mostrar en cuadrícula</string>
+    <string name="library_sort">Ordenar</string>
+    <string name="library_sort_title">Nombre (A–Z)</string>
+    <string name="library_sort_recently_added">Añadidos recientemente</string>
+    <string name="library_sort_first_added">Añadidos primero</string>
+    <string name="library_sort_latest_episode">Episodio más reciente</string>
+    <string name="library_sort_most_unplayed">Más sin escuchar</string>
+    <string name="library_sort_custom">Personalizado</string>
+    <string name="library_reorder">Arrastra para reordenar</string>
+    <string name="library_move_up">Mover hacia arriba</string>
+    <string name="library_move_down">Mover hacia abajo</string>
+    <string name="library_organize">Organizar…</string>
+    <string name="library_organize_title">Organizar biblioteca</string>
+    <string name="library_organize_hint">Arrastra desde ☰ para cambiar el orden. Se guarda al instante.</string>
+    <plurals name="library_unplayed">
+        <item quantity="one">%1$d sin escuchar</item>
+        <item quantity="other">%1$d sin escuchar</item>
+    </plurals>
     <string name="refresh_all">Actualizar todo</string>
     <string name="add_podcast">Añadir podcast</string>
     <string name="search_placeholder">Buscar en tus episodios…</string>
@@ -8,14 +34,21 @@
     <string name="cancel">Cancelar</string>
     <string name="delete">Eliminar</string>
     <string name="add">Añadir</string>
-    <string name="rss_url_label">Introduce la URL del feed RSS:</string>
+    <string name="rss_url_label">Dirección del feed</string>
+    <string name="paste">Pegar</string>
     <string name="now_playing">REPRODUCIENDO AHORA</string>
     <string name="minimize">Minimizar</string>
     <string name="playback_speed">Velocidad de reproducción</string>
     <string name="sleep_timer">Temporizador de apagado</string>
     <string name="queue">Cola de reproducción</string>
+    <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->
+    <string name="queue_short">Cola</string>
+    <string name="sleep_timer_short">Temporizador</string>
     <string name="finished">Finalizado</string>
-    <string name="remaining_min">%1$d min restante</string>
+    <string name="remaining_time">Quedan %1$s</string>
+    <string name="resume_remaining">Continuar · quedan %1$s</string>
+    <string name="show_more">Ver más</string>
+    <string name="show_less">Ver menos</string>
     <string name="play">Reproducir</string>
     <string name="pause">Pausar</string>
     <string name="next">Siguiente</string>
@@ -39,12 +72,25 @@
     <string name="podcast">Podcast</string>
     <string name="back">Volver</string>
     <string name="mark_as_played">Marcar como escuchado</string>
+    <string name="mark_as_unplayed">Marcar como no escuchado</string>
+    <string name="cancel_download">Cancelar descarga</string>
+    <string name="retry_download">Reintentar descarga</string>
+    <string name="mark_older_as_played">Marcar este y los anteriores como escuchados</string>
+    <string name="mark_older_confirmation">¿Marcar “%1$s” y todos los episodios anteriores como escuchados?</string>
+    <string name="mark_older_as_unplayed">Marcar este y los anteriores como no escuchados</string>
+    <string name="mark_older_unplayed_confirmation">¿Marcar “%1$s” y todos los episodios anteriores como no escuchados?</string>
+    <string name="go_to_podcast">Ir al podcast</string>
+    <string name="mark">Marcar</string>
     <string name="mark_as_played_description">Elige una opción para el episodio “%1$s”</string>
     <string name="only_this_one">Solo este</string>
     <string name="this_and_all_below">Este y todos los de abajo</string>
     <string name="filter_all">Todos</string>
     <string name="filter_unplayed">No escuchados</string>
     <string name="filter_downloaded">Descargados</string>
+    <string name="filter_in_progress">En curso</string>
+    <string name="episodes_tab">Episodios</string>
+    <string name="in_progress_empty_title">Nada en curso</string>
+    <string name="in_progress_empty_message">Los episodios que empieces a escuchar aparecen aquí.</string>
     <string name="downloads">Descargas</string>
     <string name="no_downloads">No hay episodios descargados</string>
     <string name="episode">Episodio</string>
@@ -84,6 +130,10 @@
         <item quantity="other">Hace %1$d h</item>
     </plurals>
     <string name="time_yesterday">Ayer</string>
+    <string name="date_group_last_24_hours">Últimas 24 horas</string>
+    <string name="date_group_last_7_days">Últimos 7 días</string>
+    <string name="date_group_last_30_days">Últimos 30 días</string>
+    <string name="date_group_older">Más antiguos</string>
     <plurals name="time_days_ago">
         <item quantity="one">Hace %1$d día</item>
         <item quantity="other">Hace %1$d días</item>
@@ -92,10 +142,10 @@
     <string name="tray_next">Siguiente episodio</string>
     <string name="tray_previous">Episodio anterior</string>
     <string name="tray_quit">Salir</string>
-    <string name="library_empty_message">Toca + y pega la dirección del feed RSS de un podcast para empezar tu biblioteca.</string>
+    <string name="library_empty_message">Añade la dirección del feed de un podcast para empezar tu biblioteca.</string>
     <string name="search_empty_title">No se encontraron episodios</string>
     <string name="search_empty_message">Prueba otras palabras. La búsqueda mira los episodios de los podcasts de tu biblioteca.</string>
-    <string name="downloads_empty_message">Los episodios descargados se reproducen sin internet. Toca el botón de descarga de cualquier episodio.</string>
+    <string name="downloads_empty_message">Los episodios descargados se reproducen sin internet. Descarga uno desde su menú ⋮.</string>
     <string name="state_on">Activado</string>
     <string name="error_download">No se pudo descargar el episodio</string>
     <string name="downloads_storage_used">%1$s en uso</string>

@@ -7,7 +7,17 @@ import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import androidx.lifecycle.ViewModel
 import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
+import br.com.carvalho.podcast.domain.model.LibraryEntry
+import br.com.carvalho.podcast.domain.model.LibraryLayout
+import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.sortedFor
+import kotlinx.coroutines.flow.combine
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.presentation.toMessage
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
@@ -29,17 +39,20 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "LibraryViewModel"
 
+@Suppress("LongParameterList") // one dependency per thing the screen does (list, add, refresh, delete, layout, play)
 class LibraryViewModel(
     private val repository: PodcastRepository,
     private val addPodcastUseCase: AddPodcastFromUrlUseCase,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
     private val deletePodcastUseCase: DeletePodcastUseCase,
+    private val preferences: PreferencesRepository,
+    private val playEpisode: PlayEpisodeUseCase,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics
 ) : ViewModel() {
 
 
-    private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true))
+    private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true, layout = preferences.libraryLayout.value))
     val uiState: StateFlow<LibraryUiState> = _uiState
 
     private val _messages = Channel<UiMessage>(Channel.BUFFERED)
@@ -47,10 +60,15 @@ class LibraryViewModel(
 
     init {
         viewModelScope.launch(dispatchers.io) {
-            repository.getPodcasts().onStart { emit(emptyList()) }.collect { podcasts ->
-                _uiState.update { it.copy(podcasts = podcasts, isLoading = false) }
+            combine(repository.getLibrary().onStart { emit(emptyList()) }, preferences.librarySort) { podcasts, sort ->
+                podcasts.sortedFor(sort) to sort
+            }.collect { (podcasts, sort) ->
+                _uiState.update { it.copy(podcasts = podcasts, sort = sort, isLoading = false) }
             }
         }
+        repository.getInProgressEpisodes()
+            .onEach { episodes -> _uiState.update { it.copy(inProgress = episodes) } }
+            .launchIn(viewModelScope)
     }
 
     fun onIntent(intent: LibraryIntent) {
@@ -63,7 +81,19 @@ class LibraryViewModel(
             LibraryIntent.DismissAddDialog -> _uiState.update { it.copy(isAddDialogOpen = false, addUrl = "") }
             is LibraryIntent.ChangeUrl -> _uiState.update { it.copy(addUrl = intent.url) }
             LibraryIntent.ConfirmAdd -> addPodcast()
+            LibraryIntent.ToggleLayout -> toggleLayout()
+            is LibraryIntent.ChangeSort -> preferences.setLibrarySort(intent.sort)
+            is LibraryIntent.Play -> viewModelScope.launch(dispatchers.io) {
+                analytics.logEvent("play_episode_from_library", mapOf("episode_id" to intent.episode.id))
+                playEpisode(intent.episode)
+            }
         }
+    }
+
+    private fun toggleLayout() {
+        val layout = if (_uiState.value.layout == LibraryLayout.GRID) LibraryLayout.LIST else LibraryLayout.GRID
+        preferences.setLibraryLayout(layout)
+        _uiState.update { it.copy(layout = layout) }
     }
 
     private fun confirmDelete() {
@@ -118,7 +148,11 @@ class LibraryViewModel(
 }
 
 data class LibraryUiState(
-    val podcasts: List<Podcast> = emptyList(),
+    val podcasts: List<LibraryEntry> = emptyList(),
+    /** "Continue listening": started episodes, shown above the podcasts while there is any. */
+    val inProgress: List<Episode> = emptyList(),
+    val layout: LibraryLayout = LibraryLayout.GRID,
+    val sort: LibrarySort = LibrarySort.TITLE,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val isAddDialogOpen: Boolean = false,
@@ -131,6 +165,9 @@ sealed interface LibraryIntent {
     data object OpenAddDialog : LibraryIntent
     data class ChangeUrl(val url: String) : LibraryIntent
     data object ConfirmAdd : LibraryIntent
+    data object ToggleLayout : LibraryIntent
+    data class ChangeSort(val sort: LibrarySort) : LibraryIntent
+    data class Play(val episode: Episode) : LibraryIntent
     data object DismissAddDialog : LibraryIntent
     data class RequestDelete(val podcast: Podcast) : LibraryIntent
     data object ConfirmDelete : LibraryIntent

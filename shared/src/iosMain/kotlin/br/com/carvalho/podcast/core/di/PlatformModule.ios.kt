@@ -12,6 +12,9 @@ import br.com.carvalho.podcast.data.download.UrlSessionEpisodeDownloader
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import com.russhwolf.settings.Settings
+import br.com.carvalho.podcast.core.util.IosNetworkMonitor
+import br.com.carvalho.podcast.core.util.NetworkMonitor
 import org.koin.dsl.module
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
@@ -19,6 +22,8 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 
 actual val platformModule = module {
+    // Default store of the platform (SharedPreferences, NSUserDefaults, localStorage), ADR 0006.
+    single<Settings> { Settings() }
     single(createdAtStart = true) { createAppDatabase(get()) }
     single<PlatformPlayer> { IosPlatformPlayer() }
     single { AppDirectories(FileSystem.SYSTEM, documentsDirectory()) }
@@ -26,6 +31,7 @@ actual val platformModule = module {
     single<CrashReporter> { FirebaseCrashReporter() }
     single(createdAtStart = true) { UrlSessionEpisodeDownloader(get(), get()) }
     single<EpisodeDownloader> { get<UrlSessionEpisodeDownloader>() }
+    single<NetworkMonitor> { IosNetworkMonitor() }
 }
 
 private fun documentsDirectory() =

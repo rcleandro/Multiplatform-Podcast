@@ -16,6 +16,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
+import br.com.carvalho.podcast.domain.download.DownloadStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -39,10 +40,53 @@ class EpisodeDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private val downloader = FakeEpisodeDownloader()
+    private val sampleEpisode = Episode(
+        id = episodeId, podcastId = "p", title = "Episode", description = null, audioUrl = "a", imageUrl = null,
+        duration = 60, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null,
+    )
+
     private fun createViewModel() = EpisodeDetailViewModel(
-        episodeId, repository, PlayEpisodeUseCase(audioPlayer, repository), dispatchers,
+        episodeId, repository, PlayEpisodeUseCase(audioPlayer, repository), audioPlayer, downloader, dispatchers,
         FakeAnalytics()
     )
+
+    @Test
+    fun `the main button pauses the episode that is playing`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode)
+        val viewModel = createViewModel()
+        viewModel.onIntent(EpisodeDetailIntent.PlayPause)
+        assertEquals(true, viewModel.uiState.value.isPlaying)
+
+        viewModel.onIntent(EpisodeDetailIntent.PlayPause)
+
+        assertEquals(true, audioPlayer.pauseCalled)
+        assertEquals(false, viewModel.uiState.value.isPlaying)
+    }
+
+    @Test
+    fun `marking played and unplayed shows on the screen`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(EpisodeDetailIntent.MarkPlayed)
+        assertEquals(true, viewModel.uiState.value.episode?.isPlayed)
+
+        viewModel.onIntent(EpisodeDetailIntent.MarkUnplayed)
+        assertEquals(false, viewModel.uiState.value.episode?.isPlayed)
+    }
+
+    @Test
+    fun `the download button follows the download`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(EpisodeDetailIntent.Download)
+        downloader.activeDownloads.value = mapOf(sampleEpisode.id to DownloadStatus.Downloading(0.5f, 50, 100))
+
+        assertEquals(sampleEpisode.id, downloader.downloadCalledWith?.id)
+        assertEquals(DownloadStatus.Downloading(0.5f, 50, 100), viewModel.uiState.value.downloadStatus)
+    }
 
     @Test
     fun `loads episode detail on init`() = runTest(testDispatcher) {
@@ -66,9 +110,10 @@ class EpisodeDetailViewModelTest {
 
         viewModel.uiState.test {
             awaitItem()
-            viewModel.onIntent(EpisodeDetailIntent.Play)
+            viewModel.onIntent(EpisodeDetailIntent.PlayPause)
 
             assertEquals(episodeId, audioPlayer.playCalledWith?.id)
+            cancelAndIgnoreRemainingEvents()
         }
     }
 

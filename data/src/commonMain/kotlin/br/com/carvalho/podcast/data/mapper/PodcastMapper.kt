@@ -18,6 +18,8 @@ fun PodcastEntity.toDomain(): Podcast = Podcast(
     isSubscribed = true,
     lastUpdated = lastUpdated,
     feedVersion = if (etag == null && lastModified == null) null else FeedVersion(etag, lastModified),
+    subscribedAt = subscribedAt,
+    position = position,
 )
 
 fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
@@ -34,4 +36,6 @@ fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
     isSubscribed = true,
     etag = feedVersion?.etag,
     lastModified = feedVersion?.lastModified,
+    subscribedAt = subscribedAt,
+    position = position,
 )

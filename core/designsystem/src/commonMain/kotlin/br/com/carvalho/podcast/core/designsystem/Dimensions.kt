@@ -28,6 +28,9 @@ object Sizes {
     /** Bottom padding of scrolling lists so the last item is not hidden behind the mini player. */
     val listBottomInset = miniPlayerHeight + Spacing.l
 
+    /** Extra bottom padding of lists under a floating action button: its height (56) and its margin. */
+    val fabClearance = 56.dp + Spacing.l
+
     val iconS = 18.dp
     val iconM = 24.dp
     val iconL = 32.dp

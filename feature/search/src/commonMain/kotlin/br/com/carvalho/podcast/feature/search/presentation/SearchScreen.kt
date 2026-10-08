@@ -1,6 +1,23 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.rounded.DownloadDone
+import androidx.compose.material.icons.rounded.PlayArrow
+import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
+import br.com.carvalho.podcast.core.designsystem.component.FilterOption
+import br.com.carvalho.podcast.core.util.supportsDownloads
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.presentation.format.storageSize
+import br.com.carvalho.podcast.presentation.format.text
+import br.com.carvalho.podcast.core.ui.generated.resources.downloads_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
+import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_title
+import br.com.carvalho.podcast.core.ui.generated.resources.no_downloads
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,17 +40,40 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarState
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layout
+import kotlin.math.roundToInt
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
+import br.com.carvalho.podcast.presentation.format.dateGroup
+import br.com.carvalho.podcast.presentation.format.DateGroup
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.foundation.background
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemContentType
-import androidx.paging.compose.itemKey
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
@@ -43,10 +83,12 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.presentation.MessageEffect
 import androidx.compose.runtime.remember
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarHost
+import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.clear
@@ -65,7 +107,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = koinViewModel(),
-    onEpisodeClick: (String, String) -> Unit
+    onEpisodeClick: (String, String) -> Unit,
+    onPodcastClick: (String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagedResults = viewModel.pagedResults.collectAsLazyPagingItems()
@@ -83,6 +126,7 @@ fun SearchScreen(
         activeDownloads = activeDownloads,
         actions = SearchActions(
             onQueryChange = { viewModel.onIntent(SearchIntent.ChangeQuery(it)) },
+            onFilterChange = { viewModel.onIntent(SearchIntent.ChangeFilter(it)) },
             onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
             onPlay = { viewModel.onIntent(SearchIntent.Play(it)) },
             onDownload = { viewModel.onIntent(SearchIntent.Download(it)) },
@@ -90,6 +134,12 @@ fun SearchScreen(
             onRemoveDownload = { viewModel.onIntent(SearchIntent.RequestDeleteDownload(it)) },
             onConfirmRemoveDownload = { viewModel.onIntent(SearchIntent.ConfirmDeleteDownload(it)) },
             onDismissRemoveDownload = { viewModel.onIntent(SearchIntent.DismissDeleteDownload) },
+            onMarkPlayed = { viewModel.onIntent(SearchIntent.SetPlayed(it, played = true)) },
+            onMarkUnplayed = { viewModel.onIntent(SearchIntent.SetPlayed(it, played = false)) },
+            onRequestMarkOlder = { viewModel.onIntent(SearchIntent.RequestMarkOlder(it)) },
+            onConfirmMarkOlder = { viewModel.onIntent(SearchIntent.ConfirmMarkOlder(it)) },
+            onDismissMarkOlder = { viewModel.onIntent(SearchIntent.DismissMarkOlder) },
+            onPodcastClick = { onPodcastClick(it.podcastId) },
         ),
         snackbarHostState = snackbarHostState,
     )
@@ -97,6 +147,7 @@ fun SearchScreen(
 
 data class SearchActions(
     val onQueryChange: (String) -> Unit = {},
+    val onFilterChange: (EpisodeListFilter) -> Unit = {},
     val onEpisodeClick: (Episode) -> Unit = {},
     val onPlay: (Episode) -> Unit = {},
     val onDownload: (Episode) -> Unit = {},
@@ -104,8 +155,15 @@ data class SearchActions(
     val onRemoveDownload: (Episode) -> Unit = {},
     val onConfirmRemoveDownload: (Episode) -> Unit = {},
     val onDismissRemoveDownload: () -> Unit = {},
+    val onMarkPlayed: (Episode) -> Unit = {},
+    val onMarkUnplayed: (Episode) -> Unit = {},
+    val onRequestMarkOlder: (OlderMark) -> Unit = {},
+    val onConfirmMarkOlder: (OlderMark) -> Unit = {},
+    val onDismissMarkOlder: () -> Unit = {},
+    val onPodcastClick: (Episode) -> Unit = {},
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchContent(
     state: SearchUiState,
@@ -116,10 +174,33 @@ fun SearchContent(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
+    val listState = rememberLazyListState()
+    val onFilterChange = rememberScrollToTopOnFilterChange(state.filter, results, listState, actions.onFilterChange)
+    // Search and filters leave the room to the list while it scrolls down and come back as soon as it scrolls up.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
-        modifier = modifier,
-        topBar = { SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange) },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            Column(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
+                Text(
+                    text = stringResource(Res.string.episodes_tab),
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier
+                        .padding(start = Spacing.l, end = Spacing.l, top = Spacing.l)
+                        .semantics { heading() },
+                )
+                Column(modifier = Modifier.collapsingWith(scrollBehavior.state)) {
+                    SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange)
+                    FilterChipRow(
+                        options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
+                        selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
+                        onSelected = { onFilterChange(filters[it].first) },
+                        modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
+                    )
+                }
+            }
+        },
+        snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
     ) { padding ->
@@ -133,13 +214,11 @@ fun SearchContent(
                 onAction = results::retry,
                 modifier = Modifier.padding(padding),
             )
-            results.itemCount == 0 && refresh is LoadState.NotLoading -> EmptyState(
-                icon = Icons.Rounded.Search,
-                title = stringResource(Res.string.search_empty_title),
-                message = stringResource(Res.string.search_empty_message),
-                modifier = Modifier.padding(padding),
+            results.itemCount == 0 && refresh is LoadState.NotLoading ->
+                EmptyFilter(state, Modifier.padding(padding))
+            else -> SearchResults(
+                state, results, playerState, activeDownloads, actions, listState, Modifier.padding(padding)
             )
-            else -> SearchResults(results, playerState, activeDownloads, actions, Modifier.padding(padding))
         }
 
         state.deleteEpisodeConfirmation?.let { episode ->
@@ -152,40 +231,101 @@ fun SearchContent(
                 onDismiss = actions.onDismissRemoveDownload,
             )
         }
+        state.olderMark?.let { MarkOlderDialog(it, actions.onConfirmMarkOlder, actions.onDismissMarkOlder) }
+    }
+}
+
+/**
+ * Shrinks the content by [state]'s offset, as a top app bar does, so the nested scroll of an enter-always behavior
+ * slides it away and back. Its full height is the limit of the offset.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+private fun Modifier.collapsingWith(state: TopAppBarState): Modifier =
+    clipToBounds().layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints)
+        val limit = -placeable.height.toFloat()
+        if (state.heightOffsetLimit != limit) state.heightOffsetLimit = limit
+        val offset = state.heightOffset.roundToInt()
+        layout(placeable.width, (placeable.height + offset).coerceAtLeast(0)) { placeable.place(0, offset) }
+    }
+
+// "Downloaded" only where downloads survive (not on the Web).
+private val filters = listOfNotNull(
+    EpisodeListFilter.ALL to Res.string.filter_all,
+    EpisodeListFilter.IN_PROGRESS to Res.string.filter_in_progress,
+    (EpisodeListFilter.DOWNLOADED to Res.string.filter_downloaded).takeIf { supportsDownloads },
+)
+
+/** Each filter says why it is empty; a search that finds nothing says so whatever the filter. */
+@Composable
+private fun EmptyFilter(state: SearchUiState, modifier: Modifier) {
+    when {
+        state.searchQuery.isNotBlank() || state.filter == EpisodeListFilter.ALL -> EmptyState(
+            icon = Icons.Rounded.Search,
+            title = stringResource(Res.string.search_empty_title),
+            message = stringResource(Res.string.search_empty_message),
+            modifier = modifier,
+        )
+        state.filter == EpisodeListFilter.IN_PROGRESS -> EmptyState(
+            icon = Icons.Rounded.PlayArrow,
+            title = stringResource(Res.string.in_progress_empty_title),
+            message = stringResource(Res.string.in_progress_empty_message),
+            modifier = modifier,
+        )
+        else -> EmptyState(
+            icon = Icons.Rounded.DownloadDone,
+            title = stringResource(Res.string.no_downloads),
+            message = stringResource(Res.string.downloads_empty_message),
+            modifier = modifier,
+        )
     }
 }
 
 @Composable
 private fun SearchResults(
+    state: SearchUiState,
     results: LazyPagingItems<Episode>,
     playerState: PlayerState,
     activeDownloads: Map<String, DownloadStatus>,
     actions: SearchActions,
+    listState: LazyListState,
     modifier: Modifier,
 ) {
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
     ) {
-        items(
-            count = results.itemCount,
-            key = results.itemKey { it.id },
-            contentType = results.itemContentType { "episode" }
-        ) { index ->
-            results[index]?.let { episode ->
-                val isCurrent = playerState.currentEpisode?.id == episode.id
-                EpisodeListItem(
-                    episode = episode,
-                    podcastTitle = episode.podcastTitle,
-                    isBuffering = isCurrent && playerState.isBuffering,
-                    isPlaying = isCurrent && playerState.isPlaying,
-                    downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
-                    onClick = { actions.onEpisodeClick(episode) },
-                    onPlayClick = { actions.onPlay(episode) },
-                    onDownloadClick = { actions.onDownload(episode) },
-                    onCancelDownloadClick = { actions.onCancelDownload(episode) },
-                    onDeleteClick = { actions.onRemoveDownload(episode) }
+        if (state.filter == EpisodeListFilter.DOWNLOADED) {
+            item {
+                Text(
+                    text = stringResource(Res.string.downloads_storage_used, storageSize(state.usedBytes).text()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.s),
                 )
+            }
+        }
+        // A header wherever the date group changes, held at the top while its episodes scroll by. Peeking does not
+        // load pages; episodes not loaded yet stay in the group before them.
+        var group: DateGroup? = null
+        val now = getCurrentTimestamp()
+        for (index in 0 until results.itemCount) {
+            val episodeGroup = results.peek(index)?.let { dateGroup(it.publishDate, now) }
+            if (episodeGroup != null && episodeGroup != group) {
+                group = episodeGroup
+                stickyHeader(key = "group-$episodeGroup", contentType = "group") {
+                    SectionTitle(
+                        text = episodeGroup.text(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background)
+                            .padding(horizontal = Spacing.l, vertical = Spacing.s),
+                    )
+                }
+            }
+            item(key = results.peek(index)?.id ?: "placeholder-$index", contentType = "episode") {
+                EpisodeRowAt(index, results, playerState, activeDownloads, actions)
             }
         }
         if (results.loadState.append is LoadState.Loading) {
@@ -195,6 +335,34 @@ private fun SearchResults(
                 }
             }
         }
+    }
+}
+
+/**
+ * Another filter starts at its top. Its items arrive after the query's debounce, and until then the old filter's
+ * items stay on screen; scrolling right away would let the list follow the old top item into the new order. So the
+ * wait for the next refresh (loading, then done) starts before the filter is changed, and the scroll comes after it.
+ */
+@Composable
+private fun rememberScrollToTopOnFilterChange(
+    current: EpisodeListFilter,
+    results: LazyPagingItems<Episode>,
+    listState: LazyListState,
+    onFilterChange: (EpisodeListFilter) -> Unit,
+): (EpisodeListFilter) -> Unit {
+    val scope = rememberCoroutineScope()
+    var pending by remember { mutableStateOf<Job?>(null) }
+    return { filter ->
+        if (filter != current) {
+            pending?.cancel()
+            pending = scope.launch {
+                snapshotFlow { results.loadState.refresh }
+                    .dropWhile { it !is LoadState.Loading }
+                    .first { it is LoadState.NotLoading }
+                listState.scrollToItem(0)
+            }
+        }
+        onFilterChange(filter)
     }
 }
 
@@ -226,7 +394,36 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.statusBars)
             .padding(horizontal = Spacing.l, vertical = Spacing.m),
     )
+}
+
+@Composable
+private fun EpisodeRowAt(
+    index: Int,
+    results: LazyPagingItems<Episode>,
+    playerState: PlayerState,
+    activeDownloads: Map<String, DownloadStatus>,
+    actions: SearchActions,
+) {
+    results[index]?.let { episode ->
+        val isCurrent = playerState.currentEpisode?.id == episode.id
+        EpisodeListItem(
+            episode = episode,
+            podcastTitle = episode.podcastTitle,
+            isBuffering = isCurrent && playerState.isBuffering,
+            isPlaying = isCurrent && playerState.isPlaying,
+            downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
+            onClick = { actions.onEpisodeClick(episode) },
+            onPlayClick = { actions.onPlay(episode) },
+            onDownloadClick = { actions.onDownload(episode) },
+            onCancelDownloadClick = { actions.onCancelDownload(episode) },
+            onDeleteClick = { actions.onRemoveDownload(episode) },
+            onMarkPlayed = { actions.onMarkPlayed(episode) },
+            onMarkUnplayed = { actions.onMarkUnplayed(episode) },
+            onMarkOlderPlayed = { actions.onRequestMarkOlder(OlderMark(episode, played = true)) },
+            onMarkOlderUnplayed = { actions.onRequestMarkOlder(OlderMark(episode, played = false)) },
+            onGoToPodcast = { actions.onPodcastClick(episode) },
+        )
+    }
 }

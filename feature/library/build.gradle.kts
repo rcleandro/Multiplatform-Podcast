@@ -6,4 +6,10 @@ kotlin {
     android {
         namespace = "br.com.carvalho.podcast.feature.library"
     }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.reorderable)
+        }
+    }
 }

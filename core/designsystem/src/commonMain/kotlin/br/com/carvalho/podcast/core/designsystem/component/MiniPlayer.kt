@@ -37,6 +37,8 @@ fun MiniPlayer(
     onPlayPause: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Lets the navigation share the cover with the full player. */
+    artworkModifier: Modifier = Modifier,
 ) {
     val artworkSize = 44.dp
     val elevation = 3.dp
@@ -61,7 +63,7 @@ fun MiniPlayer(
                     imageUrl = imageUrl,
                     contentDescription = null,
                     shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.size(artworkSize),
+                    modifier = artworkModifier.size(artworkSize),
                 )
                 Spacer(Modifier.width(Spacing.m))
                 Column(modifier = Modifier.weight(1f)) {

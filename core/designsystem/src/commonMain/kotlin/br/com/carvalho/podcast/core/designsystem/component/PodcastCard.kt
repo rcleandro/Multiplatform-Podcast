@@ -6,6 +6,11 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,14 +40,17 @@ fun PodcastCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     unplayedCount: Int = 0,
-    onLongClick: (() -> Unit)? = null,
-    onLongClickLabel: String? = null,
+    actions: List<ItemAction> = emptyList(),
+    actionsLabel: String? = null,
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
+    val openMenu = { menuOpen = true }.takeIf { actions.isNotEmpty() }
     Column(
         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         modifier = modifier
             .clip(MaterialTheme.shapes.medium)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = onLongClickLabel)
+            .then(if (openMenu != null) Modifier.onSecondaryClick(openMenu) else Modifier)
+            .combinedClickable(onClick = onClick, onLongClick = openMenu, onLongClickLabel = actionsLabel)
             .padding(Spacing.xs),
     ) {
         Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f)) {
@@ -66,6 +74,20 @@ fun PodcastCard(
                 )
             }
         }
+        Row(verticalAlignment = Alignment.Top) {
+            CardCaption(title, author, Modifier.weight(1f))
+            if (actions.isNotEmpty()) {
+                ItemActionsButton(
+                    actions, actionsLabel.orEmpty(), expanded = menuOpen, onExpandedChange = { menuOpen = it },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CardCaption(title: String, author: String?, modifier: Modifier) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs), modifier = modifier) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,

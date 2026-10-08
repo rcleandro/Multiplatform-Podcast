@@ -34,8 +34,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_short
+import br.com.carvalho.podcast.core.ui.generated.resources.queue_short
+import br.com.carvalho.podcast.core.designsystem.component.morphingShape
+import androidx.compose.ui.unit.dp
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -82,7 +90,12 @@ data class PlayerActions(
 
 /** Stateless full-screen player. */
 @Composable
-fun PlayerContent(state: PlayerState, actions: PlayerActions, modifier: Modifier = Modifier) {
+fun PlayerContent(
+    state: PlayerState,
+    actions: PlayerActions,
+    modifier: Modifier = Modifier,
+    artworkModifier: Modifier = Modifier,
+) {
     ArtworkBackdrop(imageUrl = state.currentEpisode?.imageUrl, modifier = modifier.fillMaxSize()) {
         Column {
             PodcastTopBar(
@@ -99,12 +112,13 @@ fun PlayerContent(state: PlayerState, actions: PlayerActions, modifier: Modifier
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = Spacing.xl, vertical = Spacing.l),
             ) {
-                PlayerHeader(state.currentEpisode)
+                PlayerHeader(state.currentEpisode, artworkModifier)
                 PlayerSlider(
                     positionMs = state.position,
-                    durationMs = state.duration ?: 0L,
+                    durationMs = state.knownDurationMs(),
                     onSeek = actions.onSeek,
                     formatTime = { it.toTime() },
+                    wavy = state.isPlaying,
                 )
                 PlayerControls(state, actions)
                 PlayerAuxRow(state, actions)
@@ -113,13 +127,21 @@ fun PlayerContent(state: PlayerState, actions: PlayerActions, modifier: Modifier
     }
 }
 
+private const val MS_PER_SECOND = 1000L
+
+/** The player's duration once the audio loads; until then, the one the feed gave (seconds). 0 when neither knows. */
+private fun PlayerState.knownDurationMs(): Long =
+    duration?.takeIf { it > 0 } ?: ((currentEpisode?.duration ?: 0L) * MS_PER_SECOND)
+
 @Composable
-private fun PlayerHeader(episode: Episode?) {
+private fun PlayerHeader(episode: Episode?, artworkModifier: Modifier) {
+    // The cover takes the phone's width (24.2), up to a size that still leaves the controls in view on a tablet.
+    val artworkMax = 360.dp
     PodcastArtwork(
         imageUrl = episode?.imageUrl,
         contentDescription = episode?.title,
         shape = MaterialTheme.shapes.extraLarge,
-        modifier = Modifier.widthIn(max = Sizes.artworkL).fillMaxWidth().aspectRatio(1f),
+        modifier = artworkModifier.widthIn(max = artworkMax).fillMaxWidth().aspectRatio(1f),
     )
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         Text(
@@ -145,6 +167,7 @@ private fun PlayerHeader(episode: Episode?) {
 @Composable
 private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
     val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
+    val playButtonSize = 80.dp
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
         ControlButton(
             icon = Icons.Rounded.SkipPrevious,
@@ -157,11 +180,13 @@ private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
             label = stringResource(Res.string.skip_backward, AppConfig.SKIP_BACKWARD_SECONDS),
             onClick = actions.onSkipBackward,
         )
+        // A square with large corners while playing, a circle when paused (24.2).
         PlayPauseButton(
             isPlaying = state.isPlaying,
             isLoading = state.isBuffering,
             onClick = actions.onPlayPause,
-            size = Sizes.playButtonLarge,
+            size = playButtonSize,
+            shape = morphingShape(round = !state.isPlaying),
         )
         ControlButton(
             icon = skipForwardIcon(AppConfig.SKIP_FORWARD_SECONDS),
@@ -179,7 +204,10 @@ private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
 
 @Composable
 private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
         AuxButton(
             icon = Icons.Rounded.Speed,
             label = formatSpeed(state.speed),
@@ -189,15 +217,15 @@ private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
         )
         AuxButton(
             icon = Icons.AutoMirrored.Rounded.QueueMusic,
-            label = stringResource(Res.string.queue),
-            description = null,
+            label = stringResource(Res.string.queue_short),
+            description = stringResource(Res.string.queue),
             active = false,
             onClick = actions.onQueueClick,
         )
         AuxButton(
             icon = Icons.Rounded.Timer,
-            label = stringResource(Res.string.sleep_timer),
-            description = null,
+            label = stringResource(Res.string.sleep_timer_short),
+            description = stringResource(Res.string.sleep_timer),
             active = state.sleepTimer != null,
             onClick = actions.onSleepTimerClick,
         )
@@ -211,17 +239,26 @@ private fun ControlButton(icon: ImageVector, label: String, onClick: () -> Unit,
     }
 }
 
-/** Secondary player action: icon over a short label; amber while the setting is on. */
+/** Secondary player action: a tonal pill with icon and short label, amber while the setting is on. */
 @Composable
 private fun AuxButton(icon: ImageVector, label: String, description: String?, active: Boolean, onClick: () -> Unit) {
-    val color = if (active) PodcastTheme.colors.accentText else MaterialTheme.colorScheme.onSurfaceVariant
     // Color alone does not tell a screen reader user that the setting is on.
     val onLabel = stringResource(Res.string.state_on)
-    TextButton(onClick = onClick, modifier = Modifier.semantics { if (active) stateDescription = onLabel }) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = description, tint = color, modifier = Modifier.size(Sizes.iconM))
-            Text(label, style = MaterialTheme.typography.labelMedium, color = color)
-        }
+    FilledTonalButton(
+        onClick = onClick,
+        colors = if (active) {
+            ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        } else {
+            ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+        },
+        modifier = Modifier.semantics { if (active) stateDescription = onLabel },
+    ) {
+        Icon(icon, contentDescription = description, modifier = Modifier.size(Sizes.iconS))
+        Spacer(modifier = Modifier.width(Spacing.s))
+        Text(label, style = MaterialTheme.typography.labelLarge)
     }
 }
 

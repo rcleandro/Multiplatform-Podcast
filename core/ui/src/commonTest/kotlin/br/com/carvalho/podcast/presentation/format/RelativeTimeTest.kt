@@ -39,4 +39,18 @@ class RelativeTimeTest {
     fun futureDatesCountAsNow() {
         assertEquals(RelativeTime.JustNow, ago((-2).hours))
     }
+
+    private fun groupOf(duration: Duration) = dateGroup(now - duration.inWholeMilliseconds, now)
+
+    @Test
+    fun episodesGroupByTheTimeSinceTheyCameOut() {
+        assertEquals(DateGroup.LAST_24_HOURS, groupOf(13.hours))
+        // Reads "6 days ago" in its row, so it stays with the last 7 days.
+        assertEquals(DateGroup.LAST_7_DAYS, groupOf(6.days + 20.hours))
+        assertEquals(DateGroup.LAST_30_DAYS, groupOf(10.days))
+        assertEquals(DateGroup.OLDER, groupOf(40.days))
+        assertEquals(DateGroup.OLDER, dateGroup(0, now))
+        assertEquals(DateGroup.LAST_24_HOURS, dateGroup(now + 1.hours.inWholeMilliseconds, now))
+        assertEquals(RelativeTime.Days(6), ago(6.days + 20.hours))
+    }
 }

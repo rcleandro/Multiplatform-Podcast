@@ -2,10 +2,13 @@ package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 class FakePodcastRepository : PodcastRepository {
@@ -19,6 +22,17 @@ class FakePodcastRepository : PodcastRepository {
     var getEpisodeError: Exception? = null
 
     override fun getPodcasts(): Flow<List<Podcast>> = podcasts
+
+    override suspend fun reorderLibrary(podcastIds: List<String>) {
+        podcasts.value = podcasts.value.map { it.copy(position = podcastIds.indexOf(it.id)) }
+    }
+
+    override fun getLibrary(): Flow<List<LibraryEntry>> = combine(podcasts, episodes) { podcasts, episodes ->
+        podcasts.sortedBy { it.title.lowercase() }.map { podcast ->
+            val own = episodes.filter { it.podcastId == podcast.id }
+            LibraryEntry(podcast, own.count { !it.isPlayed }, own.maxOfOrNull { it.publishDate })
+        }
+    }
 
     override suspend fun getPodcastById(id: String): Podcast? = podcasts.value.find { it.id == id }
 
@@ -37,6 +51,16 @@ class FakePodcastRepository : PodcastRepository {
 
     override fun getUnplayedEpisodes(): Flow<List<Episode>> = episodes.map { list -> list.filter { !it.isPlayed } }
 
+    override fun getEpisodeCount(podcastId: String): Flow<Int> =
+        episodes.map { list -> list.count { it.podcastId == podcastId } }
+
+    override fun getLatestUnplayedEpisode(podcastId: String): Flow<Episode?> = episodes.map { list ->
+        list.filter { it.podcastId == podcastId && !it.isPlayed }.maxByOrNull { it.publishDate }
+    }
+
+    override fun getInProgressEpisodes(): Flow<List<Episode>> =
+        episodes.map { list -> list.filter { it.playbackPosition > 0 && !it.isPlayed } }
+
     override suspend fun getEpisodeById(id: String): Episode? {
         getEpisodeError?.let { throw it }
         return episodes.value.find { it.id == id }
@@ -44,7 +68,7 @@ class FakePodcastRepository : PodcastRepository {
 
     override fun searchEpisodes(query: String): Flow<List<Episode>> = episodes.map { it.filter { e -> e.title.contains(query, ignoreCase = true) } }
 
-    override fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>> {
+    override fun searchEpisodesPaged(query: String?, filter: EpisodeListFilter): Flow<PagingData<Episode>> {
         throw NotImplementedError("Paging not supported in fake")
     }
 
@@ -57,6 +81,12 @@ class FakePodcastRepository : PodcastRepository {
     override suspend fun markEpisodeAsPlayed(id: String) {
         episodes.value = episodes.value.map {
             if (it.id == id) it.copy(isPlayed = true) else it
+        }
+    }
+
+    override suspend fun markEpisodeAsUnplayed(id: String) {
+        episodes.value = episodes.value.map {
+            if (it.id == id) it.copy(isPlayed = false, playbackPosition = 0) else it
         }
     }
 
@@ -76,7 +106,17 @@ class FakePodcastRepository : PodcastRepository {
 
     override suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long) {
         episodes.value = episodes.value.map {
-            if (it.podcastId == podcastId && it.publishDate < publishDate) it.copy(isPlayed = true) else it
+            if (it.podcastId == podcastId && it.publishDate <= publishDate) it.copy(isPlayed = true) else it
+        }
+    }
+
+    override suspend fun markOlderEpisodesAsUnplayed(podcastId: String, publishDate: Long) {
+        episodes.value = episodes.value.map {
+            if (it.podcastId == podcastId && it.publishDate <= publishDate) {
+                it.copy(isPlayed = false, playbackPosition = 0)
+            } else {
+                it
+            }
         }
     }
 }

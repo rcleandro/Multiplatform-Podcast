@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_player
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import androidx.compose.material.icons.rounded.Mic
@@ -37,7 +39,26 @@ import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_unplayed
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getPluralString
 import org.jetbrains.compose.resources.getString
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.graphics.toPixelMap
+import br.com.carvalho.podcast.core.designsystem.Motion
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import kotlin.test.Test
+import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.rightClick
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
@@ -122,42 +143,88 @@ class ComponentsTest {
 
     @Test
     fun episodeRowShowsPlayedAndDownloadedMarkers() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                EpisodeRow(
+                    title = "Como funciona o Pix",
+                    metadata = "12 set · 1h 8min",
+                    imageUrl = null,
+                    playback = EpisodePlayback(isPlayed = true, progress = 0.5f),
+                    downloadState = DownloadState.Downloaded,
+                    onClick = {}, actions = emptyList(), actionsLabel = "Options",
+                )
+            }
+        }
+        // Played wins over downloaded: one marker, the most useful.
+        onNodeWithText(text(Res.string.ds_played)).assertExists()
+    }
+
+    @Test
+    fun episodeRowHasNoButtonsOtherThanItsMenu() = runComposeUiTest {
         var plays = 0
         setContent {
             PodcastTheme {
                 EpisodeRow(
                     title = "Como funciona o Pix",
-                    metadata = "12 set · 1 h 08 min",
+                    metadata = "12 set · 1h 8min",
                     imageUrl = null,
-                    playback = EpisodePlayback(isPlayed = true, progress = 0.5f),
-                    downloadState = DownloadState.Downloaded,
-                    onClick = {}, onPlay = { plays++ }, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+                    playback = EpisodePlayback(),
+                    downloadState = DownloadState.Idle,
+                    onClick = {}, actions = listOf(ItemAction("Play") { plays++ }), actionsLabel = "Options",
                 )
             }
         }
-        onNodeWithText(text(Res.string.ds_played)).assertExists()
-        onNodeWithText(text(Res.string.ds_downloaded_label)).assertExists()
-        // A played episode offers a plain replay, not "resume at 50%".
-        onNodeWithContentDescription(text(Res.string.ds_play)).performClick()
+        onNodeWithContentDescription(text(Res.string.ds_play)).assertDoesNotExist()
+        onNodeWithContentDescription(text(Res.string.ds_download)).assertDoesNotExist()
+
+        onNodeWithContentDescription("Options").performClick()
+        onNodeWithText("Play").performClick()
+
         assertEquals(1, plays)
     }
 
     @Test
-    fun episodeRowWithoutDownloadStateHasNoDownloadButton() = runComposeUiTest {
+    fun theMenuSheetNamesTheEpisodeItActsOn() = runComposeUiTest {
         setContent {
             PodcastTheme {
                 EpisodeRow(
                     title = "Como funciona o Pix",
-                    metadata = "12 set · 1 h 08 min",
+                    metadata = "12 set · 1h 8min",
                     imageUrl = null,
                     playback = EpisodePlayback(),
                     downloadState = null,
-                    onClick = {}, onPlay = {}, onDownload = {}, onCancelDownload = {}, onRemoveDownload = {},
+                    onClick = {}, actions = listOf(ItemAction("Play") {}), actionsLabel = "Options",
                 )
             }
         }
-        onNodeWithContentDescription(text(Res.string.ds_download)).assertDoesNotExist()
-        onNodeWithContentDescription(text(Res.string.ds_play)).assertExists()
+        onAllNodesWithText("Como funciona o Pix").assertCountEquals(1)
+
+        onNodeWithContentDescription("Options").performClick()
+
+        onAllNodesWithText("Como funciona o Pix").assertCountEquals(2)
+        onAllNodesWithText("12 set · 1h 8min").assertCountEquals(2)
+    }
+
+    @Test
+    fun aLongPressOrARightClickOpensTheSameMenu() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                EpisodeRow(
+                    title = "Como funciona o Pix",
+                    metadata = "12 set · 1h 8min",
+                    imageUrl = null,
+                    playback = EpisodePlayback(),
+                    downloadState = null,
+                    onClick = {}, actions = listOf(ItemAction("Play") {}), actionsLabel = "Options",
+                )
+            }
+        }
+        onNodeWithText("Como funciona o Pix").performTouchInput { longClick() }
+        onNodeWithText("Play").assertExists()
+        onNodeWithText("Play").performClick()
+
+        onNodeWithText("Como funciona o Pix").performMouseInput { rightClick() }
+        onNodeWithText("Play").assertExists()
     }
 
     @Test
@@ -235,5 +302,51 @@ class ComponentsTest {
             PodcastTheme { EmptyState(icon = androidx.compose.material.icons.Icons.Rounded.Mic, title = "Vazio", message = null) }
         }
         onNode(isHeading() and hasText("Vazio")).assertExists()
+    }
+
+    @Test
+    fun theArtworkBackdropColorsItsContentForItsOwnBackground() = runComposeUiTest {
+        var content = Color.Unspecified
+        var expected = Color.Unspecified
+        // The player is drawn over everything, outside any Scaffold that would set the content color.
+        setContent {
+            PodcastTheme(darkTheme = true) {
+                expected = MaterialTheme.colorScheme.onBackground
+                ArtworkBackdrop(imageUrl = null) { content = LocalContentColor.current }
+            }
+        }
+        waitForIdle()
+
+        assertEquals(expected, content)
+    }
+
+    @Test
+    fun theMorphingShapeRoundsItsCornersWhenAsked() = runComposeUiTest {
+        var round by mutableStateOf(false)
+        setContent {
+            Box(Modifier.size(100.dp).testTag("shape").clip(morphingShape(round)).background(Color.Black))
+        }
+        // (10, 10) is inside a corner of 30% and outside a circle.
+        fun cornerPixel() = onNodeWithTag("shape").captureToImage().toPixelMap().let { it[it.width / 10, it.height / 10] }
+        assertEquals(Color.Black, cornerPixel())
+
+        round = true
+        mainClock.advanceTimeBy(Motion.LONG.toLong())
+
+        assertEquals(Color.Transparent, cornerPixel())
+    }
+
+    @Test
+    fun theMiniPlayerHandsItsCoverModifierToTheCover() = runComposeUiTest {
+        // The navigation shares the cover with the full player through this modifier.
+        setContent {
+            PodcastTheme {
+                MiniPlayer(
+                    title = "Episode", subtitle = null, imageUrl = null, isPlaying = false, isLoading = false,
+                    progress = 0f, onPlayPause = {}, onClick = {}, artworkModifier = Modifier.testTag("cover"),
+                )
+            }
+        }
+        onNodeWithTag("cover", useUnmergedTree = true).assertWidthIsEqualTo(44.dp)
     }
 }

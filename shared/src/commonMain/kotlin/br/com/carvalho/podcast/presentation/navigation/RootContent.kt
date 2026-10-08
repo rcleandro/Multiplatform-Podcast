@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,6 +24,11 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaul
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,18 +43,18 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.window.core.layout.WindowSizeClass
+import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import br.com.carvalho.podcast.core.designsystem.Motion
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.component.MiniPlayer
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.downloads
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
-import br.com.carvalho.podcast.core.ui.generated.resources.player
-import br.com.carvalho.podcast.core.ui.generated.resources.search
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
 import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import br.com.carvalho.podcast.domain.model.PlayerState
-import br.com.carvalho.podcast.feature.downloads.presentation.DownloadedEpisodesScreen
-import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
+import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
@@ -61,54 +64,69 @@ import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import br.com.carvalho.podcast.core.util.NetworkMonitor
 
 /** Draws [RootComponent.state]: tabs, the list/detail/extra panes of the selected tab, mini player and player. */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun RootContent(component: RootComponent) {
     val playerViewModel: PlayerViewModel = koinViewModel()
     val playerState by playerViewModel.playerState.collectAsState()
     val state by component.state.subscribeAsState()
+    val networkMonitor: NetworkMonitor = koinInject()
+    LaunchedEffect(component) {
+        if (!networkMonitor.isOnline()) component.onOpenedOffline()
+    }
     val isWide = currentWindowAdaptiveInfo().windowSizeClass
         .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 
-    NavigationSuiteScaffold(
-        layoutType = if (isWide) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
-        containerColor = MaterialTheme.colorScheme.surface,
-        navigationSuiteColors = NavigationSuiteDefaults.colors(
-            navigationBarContainerColor = MaterialTheme.colorScheme.surface,
-            navigationRailContainerColor = MaterialTheme.colorScheme.surface
-        ),
-        navigationSuiteItems = {
-            TABS.forEach { (tab, icon, label) ->
-                item(
-                    selected = !state.isPlayerOpen && state.selectedTab == tab,
-                    onClick = { component.onTabClicked(tab) },
-                    icon = { Icon(icon, contentDescription = stringResource(label)) },
-                    label = { Text(stringResource(label)) }
-                )
+    // The player and "Organize library" cover the tabs too (ADR 0005): the bar is for moving between tabs only.
+    // Opening the player grows the mini player's cover into the player's, and minimizing shrinks it back (24.2).
+    SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+        val sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier = { coverShared(it) }
+        NavigationSuiteScaffold(
+            layoutType = if (isWide) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
+            containerColor = MaterialTheme.colorScheme.surface,
+            navigationSuiteColors = NavigationSuiteDefaults.colors(
+                navigationBarContainerColor = MaterialTheme.colorScheme.surface,
+                navigationRailContainerColor = MaterialTheme.colorScheme.surface
+            ),
+            navigationSuiteItems = {
+                TABS.forEach { (tab, icon, label) ->
+                    item(
+                        selected = state.selectedTab == tab,
+                        onClick = { component.onTabClicked(tab) },
+                        icon = { Icon(icon, contentDescription = stringResource(label)) },
+                        label = { Text(stringResource(label)) }
+                    )
+                }
             }
-            item(
-                selected = state.isPlayerOpen,
-                onClick = component::onPlayerClicked,
-                icon = { Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(Res.string.player)) },
-                label = { Text(stringResource(Res.string.player)) }
+        ) {
+            TabContent(
+                component = component,
+                state = state,
+                playerState = playerState,
+                onPlayPause = { playerViewModel.onIntent(PlayerIntent.PlayPause) },
+                sharedCover = sharedCover,
             )
         }
-    ) {
-        TabContent(
-            component = component,
-            state = state,
-            playerState = playerState,
-            onPlayPause = { playerViewModel.onIntent(PlayerIntent.PlayPause) },
-        )
+
+        AnimatedVisibility(
+            visible = state.isOrganizingLibrary,
+            enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
+            exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
+        ) {
+            LibraryOrderScreen(onBack = component::onBackClicked)
+        }
 
         AnimatedVisibility(
             visible = state.isPlayerOpen,
             enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
             exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
         ) {
-            PlayerScreen(onBackClick = component::onBackClicked)
+            PlayerScreen(onBackClick = component::onBackClicked, artworkModifier = sharedCover(this))
         }
     }
 }
@@ -120,6 +138,7 @@ private fun TabContent(
     state: NavigationState,
     playerState: PlayerState,
     onPlayPause: () -> Unit,
+    sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier,
 ) {
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
     var isMiniPlayerShown by remember { mutableStateOf(true) }
@@ -148,35 +167,49 @@ private fun TabContent(
         modifier = Modifier.nestedScroll(hideMiniPlayerOnScroll),
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            ListDetailPaneScaffold(
-                directive = navigator.scaffoldDirective,
-                value = navigator.scaffoldValue,
-                listPane = { ListPane(component, state.selectedTab, isPlayerVisible = showMiniPlayer) },
-                detailPane = { DetailPane(component, state.podcast) },
-                extraPane = {
-                    state.episode?.let {
-                        EpisodeDetailScreen(episodeId = it.episodeId, onBackClick = component::onBackClicked)
+            // Screens move their messages and buttons above the mini player drawn over them.
+            val miniPlayerInset = if (showMiniPlayer) Sizes.miniPlayerHeight else 0.dp
+            CompositionLocalProvider(LocalMiniPlayerInset provides miniPlayerInset) {
+                ListDetailPaneScaffold(
+                    directive = navigator.scaffoldDirective,
+                    value = navigator.scaffoldValue,
+                    listPane = { ListPane(component, state.selectedTab) },
+                    detailPane = { DetailPane(component, state.podcast) },
+                    extraPane = {
+                        state.episode?.let {
+                            EpisodeDetailScreen(episodeId = it.episodeId, onBackClick = component::onBackClicked)
+                        }
                     }
-                }
-            )
+                )
+            }
             AnimatedVisibility(
                 visible = showMiniPlayer,
                 enter = slideInVertically(tween(Motion.MEDIUM, easing = Motion.Standard)) { it },
                 exit = slideOutVertically(tween(Motion.MEDIUM, easing = Motion.Standard)) { it },
                 modifier = Modifier.align(Alignment.BottomCenter)
             ) {
-                MiniPlayerBar(playerState, onPlayPause = onPlayPause, onClick = component::onPlayerClicked)
+                MiniPlayerBar(
+                    playerState,
+                    onPlayPause = onPlayPause,
+                    onClick = component::onPlayerClicked,
+                    artworkModifier = sharedCover(this),
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ListPane(component: RootComponent, tab: Tab, isPlayerVisible: Boolean) {
+private fun ListPane(component: RootComponent, tab: Tab) {
     when (tab) {
-        Tab.Library -> LibraryScreen(isPlayerVisible = isPlayerVisible, onPodcastClick = component::onPodcastSelected)
-        Tab.Search -> SearchScreen(onEpisodeClick = component::onEpisodeSelected)
-        Tab.Downloads -> DownloadedEpisodesScreen(onEpisodeClick = component::onEpisodeSelected)
+        Tab.Library -> LibraryScreen(
+            onOrganize = component::onOrganizeLibrary,
+            onPodcastClick = component::onPodcastSelected,
+        )
+        Tab.Episodes -> SearchScreen(
+            onEpisodeClick = component::onEpisodeSelected,
+            onPodcastClick = component::onPodcastSelected,
+        )
     }
 }
 
@@ -196,7 +229,12 @@ private fun DetailPane(component: RootComponent, podcast: Detail.Podcast?) {
 }
 
 @Composable
-private fun MiniPlayerBar(playerState: PlayerState, onPlayPause: () -> Unit, onClick: () -> Unit) {
+private fun MiniPlayerBar(
+    playerState: PlayerState,
+    onPlayPause: () -> Unit,
+    onClick: () -> Unit,
+    artworkModifier: Modifier,
+) {
     val episode = playerState.currentEpisode ?: return
     val duration = playerState.duration
     MiniPlayer(
@@ -207,15 +245,26 @@ private fun MiniPlayerBar(playerState: PlayerState, onPlayPause: () -> Unit, onC
         isLoading = playerState.isBuffering,
         progress = if (duration != null && duration > 0) playerState.position.toFloat() / duration else 0f,
         onPlayPause = onPlayPause,
-        onClick = onClick
+        onClick = onClick,
+        artworkModifier = artworkModifier,
     )
 }
+
+private const val SHARED_COVER_KEY = "player-cover"
+
+/** The cover that the mini player and the player share, moving in step with the player sliding up. */
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+private fun SharedTransitionScope.coverShared(visibility: AnimatedVisibilityScope): Modifier = Modifier.sharedElement(
+    sharedContentState = rememberSharedContentState(SHARED_COVER_KEY),
+    animatedVisibilityScope = visibility,
+    boundsTransform = { _, _ -> tween(Motion.LONG, easing = Motion.Emphasized) },
+)
 
 /** Scroll distance, in pixels per frame, that hides or shows the mini player; ignores jitter. */
 private const val SCROLL_THRESHOLD = 1f
 
 private val TABS: List<Triple<Tab, ImageVector, StringResource>> = listOf(
     Triple(Tab.Library, Icons.Rounded.Home, Res.string.library_title),
-    Triple(Tab.Search, Icons.Rounded.Search, Res.string.search),
-    Triple(Tab.Downloads, Icons.Rounded.DownloadDone, Res.string.downloads),
-).filter { (tab) -> supportsDownloads || tab != Tab.Downloads }
+    Triple(Tab.Episodes, Icons.Rounded.Podcasts, Res.string.episodes_tab),
+)

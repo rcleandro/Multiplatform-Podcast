@@ -112,6 +112,23 @@ sobre o âmbar da marca (`#F2A93B`), 8,6:1. Fontes vetoriais em [`docs/brand/`](
 `favicon.svg`. O glifo ocupa 75% do quadro de 108 para as ondas ficarem dentro da zona segura de 66 do ícone
 adaptativo do Android. `docs/brand/generate-icons.sh` regenera os PNG, `.icns` e `.ico`; o Android usa vetores.
 
+### Layout das telas (24.2)
+
+Revisão aceita em 2026-10-07, desenhada na seção "Telas" da referência visual, sobre a navegação da ADR 0005:
+
+- **Hierarquia:** títulos de seção ("Continuar ouvindo", "Podcasts", datas) e título grande que encolhe ao rolar.
+- **Cabeçalho de capa:** o detalhe do podcast e a tela do episódio abrem com a capa centrada, maior, sobre o fundo
+  tingido pela cor dela (`ArtworkBackdrop`, o mesmo do player).
+- **Biblioteca:** faixa "Continuar ouvindo" com os episódios começados no topo, só quando há algum.
+- **Episódios:** lista dividida por data, com o cabeçalho preso ao rolar.
+- **Player:** capa na largura toda; o play é um quadrado de cantos grandes tocando e um círculo pausado; o progresso
+  é ondulado tocando e reto pausado; velocidade, timer e fila em pílulas.
+- **Capa compartilhada:** a capa do mini player cresce até a do player (`SharedTransitionLayout`, `Motion.long`
+  enfatizada).
+- **Material 3 Expressive:** os componentes prontos só existem em versões alfa do Material 3 (a 1.9.0 estável do
+  Compose Multiplatform traz só os tokens). Pela ADR 0002 ficamos na estável e fazemos à mão só o botão que muda de
+  forma e o progresso ondulado; trocar pelos oficiais quando saírem em versão estável.
+
 ## Consequências
 
 - No tema claro, um botão `primary` só pode ficar sobre `background`, `surfaceContainerLowest` ou `surfaceContainer`.

@@ -23,7 +23,7 @@ import kotlin.test.assertTrue
 class MigrationTest {
     private val databaseFile: Path = Files.createTempFile("migration", ".db")
     private val directories = AppDirectories(FakeFileSystem(), "/app".toPath())
-    private val migrations = listOf(EpisodeIdMigration(directories), QueueItemsMigration, DownloadFileMigration)
+    private val migrations = listOf(EpisodeIdMigration(directories), QueueItemsMigration, DownloadFileMigration, SubscribedAtMigration, PositionMigration)
     private val helper = MigrationTestHelper(
         schemaDirectoryPath = Paths.get("schemas"),
         databasePath = databaseFile,
@@ -123,12 +123,48 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version8DatesThePodcastsInTheOrderTheyWereAdded() = runTest {
+        helper.createDatabase(SUBSCRIBED_AT_VERSION - 1).use { connection ->
+            connection.insertLibrary(queueJson = null, episodeId = E1)
+            connection.execSQL(
+                "INSERT INTO podcasts (id, title, description, categories, feedUrl, lastUpdated, isSubscribed) " +
+                    "VALUES ('p0', 'Added later', '', '[]', 'https://later', 0, 1)"
+            )
+        }
+
+        helper.runMigrationsAndValidate(SUBSCRIBED_AT_VERSION, migrations).use { connection ->
+            assertEquals(
+                "p1,p0", connection.text("SELECT group_concat(id) FROM (SELECT id FROM podcasts ORDER BY subscribedAt)")
+            )
+            assertEquals("0", connection.text("SELECT COUNT(*) FROM podcasts WHERE subscribedAt <= 0"))
+        }
+    }
+
+    @Test
+    fun version9PlacesThePodcastsInTheOrderTheyWereAdded() = runTest {
+        helper.createDatabase(POSITION_VERSION - 1).use { connection ->
+            connection.insertLibrary(queueJson = null, episodeId = E1)
+            connection.execSQL(
+                "INSERT INTO podcasts (id, title, description, categories, feedUrl, lastUpdated, isSubscribed) " +
+                    "VALUES ('p0', 'Added later', '', '[]', 'https://later', 0, 1)"
+            )
+        }
+
+        helper.runMigrationsAndValidate(POSITION_VERSION, migrations).use { connection ->
+            assertEquals(
+                "p1,p0", connection.text("SELECT group_concat(id) FROM (SELECT id FROM podcasts ORDER BY position)")
+            )
+        }
+    }
+
     private fun SQLiteConnection.insertLibrary(queueJson: String? = "[]", episodeId: String = "e1") {
         execSQL(
-            "INSERT INTO podcasts VALUES ('p1', 'Podcast', '', NULL, NULL, NULL, '', 'https://feed', NULL, 0, 1)"
+            "INSERT INTO podcasts (id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, " +
+                "lastUpdated, isSubscribed) VALUES ('p1', 'Podcast', '', NULL, NULL, NULL, '', 'https://feed', NULL, 0, 1)"
         )
         execSQL(
-            // Named columns: later versions add more (downloadFile in 6).
+            // Named columns: later versions add more (downloadFile in 6; etag, lastModified, subscribedAt in podcasts).
             "INSERT INTO episodes (id, podcastId, podcastTitle, title, description, audioUrl, imageUrl, duration, " +
                 "publishDate, isPlayed, playbackPosition, isDownloaded, fileSize) VALUES " +
                 "('$episodeId', 'p1', 'Podcast', 'Episode', NULL, 'https://audio', NULL, 60, 0, 1, 42000, 1, NULL)"
@@ -149,7 +185,9 @@ class MigrationTest {
         const val QUEUE_TABLE_VERSION = 5
         const val DOWNLOAD_FILE_VERSION = 6
         const val FEED_VERSION_VERSION = 7
-        const val CURRENT_VERSION = 7
+        const val SUBSCRIBED_AT_VERSION = 8
+        const val POSITION_VERSION = 9
+        const val CURRENT_VERSION = 9
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

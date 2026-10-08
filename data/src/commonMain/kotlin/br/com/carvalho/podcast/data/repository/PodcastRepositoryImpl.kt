@@ -5,6 +5,7 @@ import br.com.carvalho.podcast.data.local.dao.PodcastDao
 import br.com.carvalho.podcast.data.mapper.toDomain
 import br.com.carvalho.podcast.data.mapper.toEntity
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -15,10 +16,12 @@ import androidx.paging.PagingSource
 import androidx.paging.map
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 private const val PAGE_SIZE = 20
+private const val IN_PROGRESS_LIMIT = 10
 
 private const val TAG = "PodcastRepository"
 
@@ -26,6 +29,12 @@ class PodcastRepositoryImpl(
     private val podcastDao: PodcastDao,
     private val episodeDao: EpisodeDao
 ) : PodcastRepository {
+
+    override fun getLibrary(): Flow<List<LibraryEntry>> = podcastDao.getLibrary().map { rows ->
+        rows.map { LibraryEntry(it.podcast.toDomain(), it.unplayedCount, it.latestEpisodeDate) }
+    }
+
+    override suspend fun reorderLibrary(podcastIds: List<String>) = podcastDao.reorder(podcastIds)
 
     override fun getPodcasts(): Flow<List<Podcast>> {
         return podcastDao.getAll().map { entities ->
@@ -69,8 +78,14 @@ class PodcastRepositoryImpl(
         }
     }
 
-    override fun searchEpisodesPaged(query: String?): Flow<PagingData<Episode>> =
-        pagedEpisodes { episodeDao.searchPagingSource(query.orEmpty()) }
+    override fun searchEpisodesPaged(query: String?, filter: EpisodeListFilter): Flow<PagingData<Episode>> =
+        pagedEpisodes {
+            episodeDao.searchPagingSource(
+                query.orEmpty(),
+                onlyInProgress = filter == EpisodeListFilter.IN_PROGRESS,
+                onlyDownloaded = filter == EpisodeListFilter.DOWNLOADED,
+            )
+        }
 
     private fun pagedEpisodes(source: () -> PagingSource<Int, EpisodeEntity>): Flow<PagingData<Episode>> =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = source)
@@ -82,6 +97,14 @@ class PodcastRepositoryImpl(
             entities.map { it.toDomain() }
         }
     }
+
+    override fun getEpisodeCount(podcastId: String): Flow<Int> = episodeDao.countByPodcast(podcastId)
+
+    override fun getLatestUnplayedEpisode(podcastId: String): Flow<Episode?> =
+        episodeDao.getLatestUnplayed(podcastId).map { it?.toDomain() }
+
+    override fun getInProgressEpisodes(): Flow<List<Episode>> =
+        episodeDao.getInProgress(IN_PROGRESS_LIMIT).map { entities -> entities.map { it.toDomain() } }
 
     override fun getUnplayedEpisodes(): Flow<List<Episode>> {
         return episodeDao.getUnplayed().map { entities ->
@@ -97,6 +120,10 @@ class PodcastRepositoryImpl(
         episodeDao.updatePlayback(id, true, 0L)
     }
 
+    override suspend fun markEpisodeAsUnplayed(id: String) {
+        episodeDao.updatePlayback(id, false, 0L)
+    }
+
     override suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>) {
         AppLogger.d(TAG, "Saving podcast ${podcast.title} with ${episodes.size} episodes")
         episodeDao.saveFeed(podcast.toEntity(), episodes.map { it.toEntity() })
@@ -110,5 +137,9 @@ class PodcastRepositoryImpl(
 
     override suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long) {
         episodeDao.markOlderAsPlayed(podcastId, publishDate)
+    }
+
+    override suspend fun markOlderEpisodesAsUnplayed(podcastId: String, publishDate: Long) {
+        episodeDao.markOlderAsUnplayed(podcastId, publishDate)
     }
 }

@@ -16,6 +16,7 @@ kotlin {
             implementation(project(":core:common"))
             api(libs.components.resources)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.composeIconsExtended)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
