@@ -13,6 +13,8 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
         return
     }
     isKoinInitialized = true
+    // No build types here and no crash reporter: everything stays on the local console.
+    AppLogger.isDebugBuild = true
     AppLogger.i(TAG, "Initializing Koin for Wasm...")
     startKoin {
         appDeclaration()

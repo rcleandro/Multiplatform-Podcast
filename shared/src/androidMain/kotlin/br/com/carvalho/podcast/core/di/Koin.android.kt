@@ -10,6 +10,7 @@ import org.koin.dsl.KoinAppDeclaration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import android.content.Context
+import android.content.pm.ApplicationInfo
 
 private const val TAG = "Koin"
 private var isKoinInitialized = false
@@ -30,6 +31,7 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
     val koin = koinApp.koin
     AppLogger.crashReporter = koin.getOrNull<CrashReporter>()
     val context = koin.get<Context>()
+    AppLogger.isDebugBuild = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
     val dispatchers = koin.get<CoroutineDispatchers>()
 
     CoroutineScope(dispatchers.default).launch {

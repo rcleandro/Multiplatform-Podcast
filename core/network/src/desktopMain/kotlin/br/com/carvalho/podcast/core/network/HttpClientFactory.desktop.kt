@@ -5,7 +5,6 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 
@@ -25,7 +24,6 @@ actual fun createHttpClient(): HttpClient = HttpClient(CIO) {
         exponentialDelay()
     }
     install(Logging) {
-        logger = KtorLogger
-        level = LogLevel.INFO
+        podcastLogging()
     }
 }

@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.core.util
 import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.observability.redactUrls
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Severity
 
 /**
  * Static logging facade over Kermit. The crash reporter is plugged in at startup (`initKoin`), so this object
@@ -11,10 +12,20 @@ import co.touchlab.kermit.Logger
 object AppLogger {
     var crashReporter: CrashReporter? = null
 
+    /** Debug builds log everything, HTTP included; release builds start at info. Set before `startKoin`. */
+    var isDebugBuild: Boolean = false
+        set(value) {
+            field = value
+            Logger.setMinSeverity(if (value) Severity.Verbose else Severity.Info)
+        }
+
+    init {
+        Logger.setMinSeverity(Severity.Info)
+    }
+
+    /** Console only: debug lines (HTTP among them) would flood the crash reporter's breadcrumbs. */
     fun d(tag: String, message: String) {
-        val safe = redactUrls(message)
-        Logger.withTag(tag).d { safe }
-        crashReporter?.log("[DEBUG] $tag: $safe")
+        Logger.withTag(tag).d { redactUrls(message) }
     }
 
     fun i(tag: String, message: String) {
