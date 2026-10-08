@@ -25,6 +25,10 @@ violations unless the user explicitly allows it. After touching platform code, a
 ## Code rules
 
 - New tests go in `commonTest` with hand-written fakes (no MockK there), so they run on Native and Wasm.
+- Every new or changed screen handles each screen type the app supports: compact, medium and expanded width
+  (`currentPaneLayout()`), short windows (`currentWindowIsShort()`), a flip phone's cover screen (~469×318 dp),
+  tabletop posture (`LocalTabletopFold`), hinges, and resizable Desktop/Web windows with a keyboard. Lists and text
+  use `Modifier.readableWidth()`; nothing essential needs scrolling. See the permanent rule in phase 21 of the roadmap.
 - Code, identifiers, comments and log messages in English. User-facing text only in `composeResources`
   (`values`, `values-pt`, `values-es`), never in Kotlin; view models emit `StringResource`s, screens resolve them.
 - No loose numbers: named `SNAKE_CASE` constants; spacing and shared sizes from design system tokens; a size owned

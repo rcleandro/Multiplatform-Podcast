@@ -1076,6 +1076,17 @@ dobra.
 **Critério de conclusão:** nenhuma tela esticada de ponta a ponta em tablet ou Desktop; o player usável sem rolagem
 no celular deitado e na postura mesa; abrir e fechar um dobrável durante a reprodução não perde nada.
 
+**Regra permanente (pedido do usuário em 07/10/2026):** toda tela nova, e toda mudança numa tela existente, leva em
+conta os tipos de tela que o app suporta, conferidos no teste e, quando der, no aparelho:
+- **compacto** (celular em pé, < 600 dp), **médio** (600–840 dp) e **expandido** (> 840 dp, painéis lado a lado),
+  pela `currentPaneLayout()`;
+- **janela baixa** (< 480 dp de altura: celular deitado), pela `currentWindowIsShort()`;
+- **tela externa de flip** (estreita e baixa, ~469×318 dp no Razr 60);
+- **postura mesa** (`LocalTabletopFold`) e **dobradiça** (os painéis não ficam em cima dela);
+- **Desktop e Web**: janela redimensionável a partir de 360×320 dp e teclado (atalhos e foco).
+Listas e textos com `Modifier.readableWidth()`; nada essencial, como o botão de play, pode exigir rolagem nos
+tamanhos acima.
+
 ---
 
 ## Fase 22 — Segurança
