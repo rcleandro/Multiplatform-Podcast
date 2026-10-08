@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 private const val LIBRARY_LAYOUT = "library_layout"
 private const val LIBRARY_SORT = "library_sort"
+private const val TELEMETRY_ENABLED = "telemetry_enabled"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
@@ -30,6 +31,14 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setLibrarySort(sort: LibrarySort) {
         settings.putString(LIBRARY_SORT, sort.name)
         this.sort.value = sort
+    }
+
+    private val telemetry = MutableStateFlow(settings.getBoolean(TELEMETRY_ENABLED, defaultValue = true))
+    override val telemetryEnabled: StateFlow<Boolean> = telemetry.asStateFlow()
+
+    override fun setTelemetryEnabled(enabled: Boolean) {
+        settings.putBoolean(TELEMETRY_ENABLED, enabled)
+        telemetry.value = enabled
     }
 }
 

@@ -16,4 +16,10 @@ class FakePreferencesRepository : PreferencesRepository {
     override fun setLibrarySort(sort: LibrarySort) {
         librarySort.value = sort
     }
+
+    override val telemetryEnabled = MutableStateFlow(true)
+
+    override fun setTelemetryEnabled(enabled: Boolean) {
+        telemetryEnabled.value = enabled
+    }
 }
