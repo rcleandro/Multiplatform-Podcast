@@ -2,17 +2,17 @@ package br.com.carvalho.podcast.core.di
 
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.LogAnalytics
-import br.com.carvalho.podcast.core.util.AppDirectories
-import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.core.player.PlatformPlayer
 import br.com.carvalho.podcast.core.player.WebPlatformPlayer
-import okio.Path.Companion.toPath
-import okio.fakefilesystem.FakeFileSystem
+import br.com.carvalho.podcast.core.util.AlwaysOnline
+import br.com.carvalho.podcast.core.util.AppDirectories
+import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
+import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import com.russhwolf.settings.Settings
-import br.com.carvalho.podcast.core.util.AlwaysOnline
-import br.com.carvalho.podcast.core.util.NetworkMonitor
+import okio.Path.Companion.toPath
+import okio.fakefilesystem.FakeFileSystem
 import org.koin.dsl.module
 
 actual val platformModule = module {

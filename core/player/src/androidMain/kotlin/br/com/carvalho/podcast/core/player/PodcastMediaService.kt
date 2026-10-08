@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
-import br.com.carvalho.podcast.core.AppConfig
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -19,6 +18,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionCommands
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import com.google.common.collect.ImmutableList
@@ -117,7 +117,6 @@ class PodcastMediaService : MediaLibraryService() {
                     .setDisplayName(getString(R.string.skip_backward, backward))
                     .build()
             )
-
 
             return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                 .setAvailableSessionCommands(availableSessionCommands)
@@ -235,7 +234,6 @@ class PodcastMediaService : MediaLibraryService() {
         }
         super.onTaskRemoved(rootIntent)
     }
-
 }
 
 /** Media3's icon with the jump's number when there is one; a plain arrow otherwise. */

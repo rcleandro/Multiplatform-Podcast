@@ -104,6 +104,7 @@ sealed interface PlayerIntent {
     data object Next : PlayerIntent
     data object Previous : PlayerIntent
     data class SetSpeed(val speed: Float) : PlayerIntent
+
     /** `null` cancels the timer. */
     data class SetSleepTimer(val timer: SleepTimer?) : PlayerIntent
 }

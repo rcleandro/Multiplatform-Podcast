@@ -1,19 +1,19 @@
 package br.com.carvalho.podcast.core.di
 
-import br.com.carvalho.podcast.core.observability.CrashReporter
-import br.com.carvalho.podcast.core.observability.followTelemetryConsent
-import br.com.carvalho.podcast.domain.repository.PreferencesRepository
-import br.com.carvalho.podcast.core.observability.Metrics
-import br.com.carvalho.podcast.core.util.AppLogger
-import br.com.carvalho.podcast.core.util.CoroutineDispatchers
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.initialize
-import org.koin.core.context.startKoin
-import org.koin.dsl.KoinAppDeclaration
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import br.com.carvalho.podcast.core.observability.CrashReporter
+import br.com.carvalho.podcast.core.observability.Metrics
+import br.com.carvalho.podcast.core.observability.followTelemetryConsent
+import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.initialize
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.koin.core.context.startKoin
+import org.koin.dsl.KoinAppDeclaration
 
 private const val TAG = "Koin"
 private var isKoinInitialized = false

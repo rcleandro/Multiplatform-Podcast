@@ -3,18 +3,17 @@ package br.com.carvalho.podcast.data.local.dao
 import androidx.paging.PagingSource
 import androidx.room3.Dao
 import androidx.room3.DaoReturnTypeConverters
-import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import androidx.room3.Transaction
 import androidx.room3.Update
+import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastFeedFields
 import br.com.carvalho.podcast.data.local.entity.feedFields
 import kotlinx.coroutines.flow.Flow
-
-import androidx.room3.Transaction
 
 @Dao
 @DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
@@ -24,26 +23,30 @@ interface EpisodeDao {
     fun getByPodcast(podcastId: String): Flow<List<EpisodeEntity>>
 
     // Room's paging sources reload by themselves when the table changes (played, downloaded, refreshed).
-    @Query("""
+    @Query(
+        """
         SELECT * FROM episodes
         WHERE podcastId = :podcastId
         AND (:onlyUnplayed = 0 OR isPlayed = 0)
         AND (:onlyDownloaded = 0 OR isDownloaded = 1)
         ORDER BY publishDate DESC
-    """)
+    """
+    )
     fun pagingSourceByPodcast(
         podcastId: String,
         onlyUnplayed: Boolean,
         onlyDownloaded: Boolean,
     ): PagingSource<Int, EpisodeEntity>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM episodes
         WHERE (:query = '' OR title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%')
         AND (:onlyInProgress = 0 OR (playbackPosition > 0 AND isPlayed = 0))
         AND (:onlyDownloaded = 0 OR isDownloaded = 1)
         ORDER BY publishDate DESC
-    """)
+    """
+    )
     fun searchPagingSource(
         query: String,
         onlyInProgress: Boolean = false,
@@ -61,30 +64,36 @@ interface EpisodeDao {
 
     // ponytail: newest first, since nothing records when an episode was last played; add that column if the
     // library should show the most recently heard first.
-    @Query("""
+    @Query(
+        """
         SELECT * FROM episodes WHERE playbackPosition > 0 AND isPlayed = 0
         ORDER BY publishDate DESC LIMIT :limit
-    """)
+    """
+    )
     fun getInProgress(limit: Int): Flow<List<EpisodeEntity>>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM episodes
         WHERE title LIKE '%' || :query || '%'
         OR description LIKE '%' || :query || '%'
         ORDER BY publishDate DESC
-    """)
+    """
+    )
     fun search(query: String): Flow<List<EpisodeEntity>>
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(episodes: List<EpisodeEntity>)
 
-    @Query("""
+    @Query(
+        """
         UPDATE episodes
         SET podcastTitle = :podcastTitle, title = :title, description = :description, audioUrl = :audioUrl,
             imageUrl = :imageUrl, duration = :duration, publishDate = :publishDate
         WHERE id = :id
-    """)
+    """
+    )
     @Suppress("LongParameterList") // one parameter per column the feed owns
     suspend fun updateFeedFields(
         id: String,
@@ -132,7 +141,14 @@ interface EpisodeDao {
         insertAll(episodes)
         episodes.forEach {
             updateFeedFields(
-                it.id, it.podcastTitle, it.title, it.description, it.audioUrl, it.imageUrl, it.duration, it.publishDate
+                it.id,
+                it.podcastTitle,
+                it.title,
+                it.description,
+                it.audioUrl,
+                it.imageUrl,
+                it.duration,
+                it.publishDate
             )
         }
     }
@@ -140,11 +156,13 @@ interface EpisodeDao {
     @Query("SELECT EXISTS(SELECT 1 FROM episodes WHERE id = :id)")
     suspend fun exists(id: String): Boolean
 
-    @Query("""
+    @Query(
+        """
         UPDATE episodes
         SET isPlayed = :played, playbackPosition = :position
         WHERE id = :id
-    """)
+    """
+    )
     suspend fun updatePlayback(id: String, played: Boolean, position: Long)
 
     @Query("SELECT * FROM episodes WHERE isDownloaded = 1 ORDER BY publishDate DESC")
@@ -164,18 +182,22 @@ interface EpisodeDao {
     suspend fun updateDownloadFile(id: String, fileName: String?)
 
     @Transaction
-    @Query("""
+    @Query(
+        """
         UPDATE episodes
         SET isPlayed = 1, playbackPosition = 0
         WHERE podcastId = :podcastId AND publishDate <= :publishDate
-    """)
+    """
+    )
     suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long)
 
-    @Query("""
+    @Query(
+        """
         UPDATE episodes
         SET isPlayed = 0, playbackPosition = 0
         WHERE podcastId = :podcastId AND publishDate <= :publishDate
-    """)
+    """
+    )
     suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long)
 
     private companion object {

@@ -3,19 +3,13 @@ package br.com.carvalho.podcast.data.download
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.Metrics
-import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.AppDirectories
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.data.remote.toAppError
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
-import kotlinx.coroutines.CancellationException
-import okio.IOException
-import okio.Path
-import okio.buffer
-import okio.use
-import kotlin.time.TimeSource
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeoutConfig
 import io.ktor.client.plugins.onDownload
@@ -29,6 +23,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readAvailable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -37,9 +32,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -47,6 +39,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okio.IOException
+import okio.Path
+import okio.buffer
+import okio.use
+import kotlin.time.TimeSource
 
 private const val TAG = "KtorEpisodeDownloader"
 private const val PART_SUFFIX = ".part"

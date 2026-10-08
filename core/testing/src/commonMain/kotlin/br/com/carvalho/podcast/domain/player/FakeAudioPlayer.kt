@@ -10,7 +10,6 @@ class FakeAudioPlayer : AudioPlayer {
     private val _playerState = MutableStateFlow(PlayerState())
     override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
-
     var playCalledWith: Episode? = null
     var pauseCalled = false
     var resumeCalled = false
@@ -27,7 +26,6 @@ class FakeAudioPlayer : AudioPlayer {
         _playerState.value = _playerState.value.copy(currentEpisode = episode, isPlaying = true)
     }
 
-
     override fun pause() {
         pauseCalled = true
         _playerState.value = _playerState.value.copy(isPlaying = false)
@@ -37,7 +35,6 @@ class FakeAudioPlayer : AudioPlayer {
         resumeCalled = true
         _playerState.value = _playerState.value.copy(isPlaying = true)
     }
-
 
     override fun seekTo(positionMs: Long) {
         seekToCalledWith = positionMs
@@ -70,5 +67,4 @@ class FakeAudioPlayer : AudioPlayer {
     override fun playNext() {}
 
     override fun playPrevious() {}
-
 }

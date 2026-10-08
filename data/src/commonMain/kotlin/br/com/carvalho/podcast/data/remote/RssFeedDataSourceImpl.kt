@@ -1,10 +1,10 @@
 package br.com.carvalho.podcast.data.remote
 
 import br.com.carvalho.podcast.core.AppError
-import br.com.carvalho.podcast.data.remote.model.RssFeed
-import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.data.remote.model.RssFeed
+import br.com.carvalho.podcast.domain.model.FeedVersion
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -13,8 +13,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
-import io.ktor.http.takeFrom
 import io.ktor.http.isSuccess
+import io.ktor.http.takeFrom
 import kotlinx.coroutines.withContext
 
 private const val TAG = "RssFeedDataSource"

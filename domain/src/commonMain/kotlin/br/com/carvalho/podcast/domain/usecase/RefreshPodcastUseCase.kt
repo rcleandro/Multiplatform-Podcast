@@ -1,17 +1,17 @@
 package br.com.carvalho.podcast.domain.usecase
 
 import br.com.carvalho.podcast.core.AppError
-import br.com.carvalho.podcast.domain.repository.FeedSource
-import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppLogger
-import kotlin.time.TimeSource
+import br.com.carvalho.podcast.domain.repository.FeedSource
+import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlin.time.TimeSource
 
 private const val TAG = "RefreshUseCase"
 
@@ -59,7 +59,10 @@ class RefreshPodcastUseCase(
         }
         return RefreshSummary(total = results.size, failures = results.mapNotNull { it.exceptionOrNull() }).also {
             Metrics.record(
-                Metrics.REFRESH_ALL, start.elapsedNow(), "podcasts" to it.total, "failed" to it.failures.size,
+                Metrics.REFRESH_ALL,
+                start.elapsedNow(),
+                "podcasts" to it.total,
+                "failed" to it.failures.size,
             )
         }
     }

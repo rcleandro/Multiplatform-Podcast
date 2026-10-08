@@ -1,6 +1,5 @@
 package br.com.carvalho.podcast.data.mapper
 
-import io.ktor.http.Url
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.episodeId
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
@@ -8,6 +7,7 @@ import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
+import io.ktor.http.Url
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.format.DateTimeComponents
 import kotlinx.datetime.format.MonthNames
@@ -34,7 +34,6 @@ fun RssFeed.toPodcast(feedUrl: String): Podcast = Podcast(
     // Only kept for a new podcast: refreshing an existing one does not rewrite this column.
     subscribedAt = getCurrentTimestamp(),
 )
-
 
 fun RssEpisode.toEpisode(podcastId: String, podcastTitle: String? = null): Episode = Episode(
     id = episodeId(podcastId, guid, enclosureUrl),
@@ -102,8 +101,11 @@ private fun parseDuration(duration: String?): Long {
         if (duration.contains(":")) {
             // "mm:ss" or "hh:mm:ss": each part counts sixty of the next one.
             val parts = duration.split(":").map { it.trim().toLong() }
-            if (parts.size > MAX_DURATION_PARTS) 0
-            else parts.fold(0L) { total, part -> total * SECONDS_PER_MINUTE + part }
+            if (parts.size > MAX_DURATION_PARTS) {
+                0
+            } else {
+                parts.fold(0L) { total, part -> total * SECONDS_PER_MINUTE + part }
+            }
         } else {
             duration.toLong()
         }

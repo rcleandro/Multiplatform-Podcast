@@ -7,11 +7,11 @@ import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
-import br.com.carvalho.podcast.data.local.dao.PodcastDao
 import br.com.carvalho.podcast.data.local.dao.PlaybackStateDao
+import br.com.carvalho.podcast.data.local.dao.PodcastDao
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
-import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.data.local.entity.PlaybackStateEntity
+import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.data.local.entity.QueueItemEntity
 
 @Database(
@@ -37,10 +37,12 @@ expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
     override fun initialize(): AppDatabase
 }
 
-
 /** The manual migrations every platform's builder needs; the automatic ones come from `@Database`. */
 fun RoomDatabase.Builder<AppDatabase>.addAppMigrations(directories: AppDirectories): RoomDatabase.Builder<AppDatabase> =
     addMigrations(
-        EpisodeIdMigration(directories), QueueItemsMigration, DownloadFileMigration, SubscribedAtMigration,
+        EpisodeIdMigration(directories),
+        QueueItemsMigration,
+        DownloadFileMigration,
+        SubscribedAtMigration,
         PositionMigration,
     )

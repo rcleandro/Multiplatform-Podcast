@@ -28,4 +28,7 @@ subprojects {
         parallel = true
         source.setFrom(files("src/commonMain/kotlin", "src/firebaseMain/kotlin", "src/jvmCommonMain/kotlin", "src/androidMain/kotlin", "src/desktopMain/kotlin", "src/iosMain/kotlin", "src/wasmJsMain/kotlin"))
     }
+    dependencies {
+        "detektPlugins"(rootProject.libs.detekt.formatting)
+    }
 }

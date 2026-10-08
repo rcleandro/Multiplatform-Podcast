@@ -15,6 +15,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,18 +29,14 @@ import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.generated.resources.Res
-import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_downloaded_label
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_download_failed_label
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_downloaded_label
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_downloading_label
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_loading
-import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_playing
-import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_queued_label
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_new
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_played
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_playing
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_queued_label
 import org.jetbrains.compose.resources.stringResource
 
 /** What the row knows about playback of its episode. */

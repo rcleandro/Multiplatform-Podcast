@@ -43,7 +43,9 @@ class UrlSessionEpisodeDownloader(
     private val directories: AppDirectories,
 ) : EpisodeDownloader by downloader {
     private val session = NSURLSession.sessionWithConfiguration(
-        NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(SESSION_ID), SessionDelegate(), null
+        NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(SESSION_ID),
+        SessionDelegate(),
+        null
     )
 
     // Both touched only on the main queue.
@@ -102,7 +104,8 @@ class UrlSessionEpisodeDownloader(
             if (totalBytesExpectedToWrite <= 0) return
             val progress = totalBytesWritten.toFloat() / totalBytesExpectedToWrite.toFloat()
             downloader.updateStatus(
-                episodeId, DownloadStatus.Downloading(progress, totalBytesWritten, totalBytesExpectedToWrite)
+                episodeId,
+                DownloadStatus.Downloading(progress, totalBytesWritten, totalBytesExpectedToWrite)
             )
         }
 

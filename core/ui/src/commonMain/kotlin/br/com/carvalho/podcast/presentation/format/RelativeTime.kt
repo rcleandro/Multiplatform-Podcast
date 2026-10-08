@@ -2,10 +2,10 @@ package br.com.carvalho.podcast.presentation.format
 
 import androidx.compose.runtime.Composable
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.date_group_older
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_24_hours
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_30_days
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_7_days
-import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_24_hours
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_older
 import br.com.carvalho.podcast.core.ui.generated.resources.date_short
 import br.com.carvalho.podcast.core.ui.generated.resources.time_days_ago
 import br.com.carvalho.podcast.core.ui.generated.resources.time_hours_ago

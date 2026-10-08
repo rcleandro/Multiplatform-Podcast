@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.core.player
 
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.Episode
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -26,7 +27,6 @@ import platform.MediaPlayer.MPNowPlayingInfoPropertyElapsedPlaybackTime
 import platform.MediaPlayer.MPNowPlayingInfoPropertyPlaybackRate
 import platform.MediaPlayer.MPRemoteCommandCenter
 import platform.MediaPlayer.MPRemoteCommandHandlerStatusSuccess
-import br.com.carvalho.podcast.core.AppConfig
 
 private const val TAG = "IosPlatformPlayer"
 private const val MILLIS = 1000

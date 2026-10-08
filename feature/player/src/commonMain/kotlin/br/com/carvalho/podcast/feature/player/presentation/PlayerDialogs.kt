@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -23,13 +22,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Spacing
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.model.PlayerState
-import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.close
@@ -43,6 +40,9 @@ import br.com.carvalho.podcast.core.ui.generated.resources.timer_5_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_60_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_disabled
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_end_of_episode
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.player.SleepTimer
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -209,7 +209,7 @@ private fun formatRemainingTime(millis: Long?): String {
     val totalSeconds = millis / AppConfig.MILLIS_PER_SECOND
     val minutes = totalSeconds / SECONDS_PER_MINUTE
     val seconds = totalSeconds % SECONDS_PER_MINUTE
-    return "${minutes}:${seconds.toString().padStart(2, '0')}"
+    return "$minutes:${seconds.toString().padStart(2, '0')}"
 }
 
 /** "1×", "1.5×", "0.8×": no trailing ".0". */

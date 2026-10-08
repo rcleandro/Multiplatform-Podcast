@@ -1,6 +1,5 @@
 package br.com.carvalho.podcast.domain.model
 
-
 data class Podcast(
     val id: String,
     val title: String,

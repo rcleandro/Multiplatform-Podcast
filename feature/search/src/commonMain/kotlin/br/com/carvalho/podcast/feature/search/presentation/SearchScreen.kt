@@ -1,23 +1,8 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material.icons.rounded.DownloadDone
-import androidx.compose.material.icons.rounded.PlayArrow
-import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
-import br.com.carvalho.podcast.core.designsystem.component.FilterOption
-import br.com.carvalho.podcast.core.util.supportsDownloads
-import br.com.carvalho.podcast.domain.model.EpisodeListFilter
-import br.com.carvalho.podcast.presentation.format.storageSize
-import br.com.carvalho.podcast.presentation.format.text
-import br.com.carvalho.podcast.core.ui.generated.resources.downloads_empty_message
-import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
-import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
-import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
-import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
-import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_message
-import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_title
-import br.com.carvalho.podcast.core.ui.generated.resources.no_downloads
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,84 +11,99 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.DownloadDone
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarState
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.layout
-import kotlin.math.roundToInt
-import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
-import br.com.carvalho.podcast.presentation.format.dateGroup
-import br.com.carvalho.podcast.presentation.format.DateGroup
-import br.com.carvalho.podcast.core.util.getCurrentTimestamp
-import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.heading
-import androidx.compose.foundation.background
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
-import kotlinx.coroutines.flow.dropWhile
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
-import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.ErrorState
-import br.com.carvalho.podcast.domain.download.DownloadStatus
-import br.com.carvalho.podcast.presentation.MessageEffect
-import androidx.compose.runtime.remember
-import androidx.compose.material3.SnackbarHostState
+import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
+import br.com.carvalho.podcast.core.designsystem.component.FilterOption
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.model.PlayerState
-import br.com.carvalho.podcast.presentation.component.EpisodeListItem
-import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
-import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
+import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.clear
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download_confirmation
+import br.com.carvalho.podcast.core.ui.generated.resources.downloads_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
 import br.com.carvalho.podcast.core.ui.generated.resources.error_loading_results
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
+import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_title
+import br.com.carvalho.podcast.core.ui.generated.resources.no_downloads
 import br.com.carvalho.podcast.core.ui.generated.resources.search
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.core.util.supportsDownloads
+import br.com.carvalho.podcast.domain.download.DownloadStatus
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.presentation.MessageEffect
+import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
+import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.format.DateGroup
+import br.com.carvalho.podcast.presentation.format.dateGroup
+import br.com.carvalho.podcast.presentation.format.storageSize
+import br.com.carvalho.podcast.presentation.format.text
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.math.roundToInt
 
 @Composable
 fun SearchScreen(
@@ -164,6 +164,35 @@ data class SearchActions(
     val onPodcastClick: (Episode) -> Unit = {},
 )
 
+/** The fixed "Episodes" title over the search field and filters, which collapse with [scrollState]. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SearchTopBar(
+    state: SearchUiState,
+    scrollState: TopAppBarState,
+    onQueryChange: (String) -> Unit,
+    onFilterChange: (EpisodeListFilter) -> Unit,
+) {
+    Column(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).readableWidth()) {
+        Text(
+            text = stringResource(Res.string.episodes_tab),
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier
+                .padding(start = Spacing.l, end = Spacing.l, top = Spacing.l)
+                .semantics { heading() },
+        )
+        Column(modifier = Modifier.collapsingWith(scrollState)) {
+            SearchField(query = state.searchQuery, onQueryChange = onQueryChange)
+            FilterChipRow(
+                options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
+                selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
+                onSelected = { onFilterChange(filters[it].first) },
+                modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchContent(
@@ -181,26 +210,7 @@ fun SearchContent(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            Column(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).readableWidth()) {
-                Text(
-                    text = stringResource(Res.string.episodes_tab),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier
-                        .padding(start = Spacing.l, end = Spacing.l, top = Spacing.l)
-                        .semantics { heading() },
-                )
-                Column(modifier = Modifier.collapsingWith(scrollBehavior.state)) {
-                    SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange)
-                    FilterChipRow(
-                        options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
-                        selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
-                        onSelected = { onFilterChange(filters[it].first) },
-                        modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
-                    )
-                }
-            }
-        },
+        topBar = { SearchTopBar(state, scrollBehavior.state, actions.onQueryChange, onFilterChange) },
         snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
@@ -218,7 +228,13 @@ fun SearchContent(
             results.itemCount == 0 && refresh is LoadState.NotLoading ->
                 EmptyFilter(state, Modifier.padding(padding))
             else -> SearchResults(
-                state, results, playerState, activeDownloads, actions, listState, Modifier.padding(padding)
+                state,
+                results,
+                playerState,
+                activeDownloads,
+                actions,
+                listState,
+                Modifier.padding(padding)
             )
         }
 

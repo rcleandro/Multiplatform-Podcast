@@ -1,30 +1,29 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
 import androidx.lifecycle.ViewModel
-import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import androidx.lifecycle.viewModelScope
-import br.com.carvalho.podcast.domain.repository.PodcastRepository
-import br.com.carvalho.podcast.core.AppConfig
-import br.com.carvalho.podcast.core.util.AppLogger
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.model.EpisodeListFilter
-import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
-import kotlinx.coroutines.channels.Channel
-import br.com.carvalho.podcast.domain.download.EpisodeDownloader
-import br.com.carvalho.podcast.presentation.UiMessage
-import br.com.carvalho.podcast.presentation.failureMessages
-import br.com.carvalho.podcast.presentation.component.OlderMark
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
-import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.util.NetworkMonitor
+import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.failureMessages
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +39,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 private const val TAG = "SearchViewModel"
 

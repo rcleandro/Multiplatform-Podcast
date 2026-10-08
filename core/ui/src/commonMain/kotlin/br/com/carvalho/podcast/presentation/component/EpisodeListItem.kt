@@ -19,13 +19,7 @@ import br.com.carvalho.podcast.core.designsystem.component.DownloadState
 import br.com.carvalho.podcast.core.designsystem.component.EpisodePlayback
 import br.com.carvalho.podcast.core.designsystem.component.EpisodeRow
 import br.com.carvalho.podcast.core.designsystem.component.ItemAction
-import br.com.carvalho.podcast.core.util.getCurrentTimestamp
-import br.com.carvalho.podcast.presentation.format.relativeTime
-import br.com.carvalho.podcast.presentation.format.text
 import br.com.carvalho.podcast.core.extensions.toDuration
-import br.com.carvalho.podcast.core.util.supportsDownloads
-import br.com.carvalho.podcast.domain.download.DownloadStatus
-import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
@@ -38,8 +32,14 @@ import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
-import br.com.carvalho.podcast.core.ui.generated.resources.retry_download
 import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
+import br.com.carvalho.podcast.core.ui.generated.resources.retry_download
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.core.util.supportsDownloads
+import br.com.carvalho.podcast.domain.download.DownloadStatus
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.presentation.format.relativeTime
+import br.com.carvalho.podcast.presentation.format.text
 import org.jetbrains.compose.resources.stringResource
 
 /**

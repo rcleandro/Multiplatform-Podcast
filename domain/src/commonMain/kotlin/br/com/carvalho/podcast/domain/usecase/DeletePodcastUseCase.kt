@@ -1,8 +1,8 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
-import br.com.carvalho.podcast.core.util.AppLogger
 import kotlinx.coroutines.flow.first
 
 private const val TAG = "DeleteUseCase"

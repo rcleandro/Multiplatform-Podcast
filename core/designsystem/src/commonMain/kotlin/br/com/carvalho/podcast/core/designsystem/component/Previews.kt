@@ -71,7 +71,9 @@ internal fun EpisodeRowsSample() {
         imageUrl = null,
         playback = EpisodePlayback(progress = 0.62f),
         downloadState = DownloadState.Downloaded,
-        onClick = {}, actions = emptyList(), actionsLabel = "",
+        onClick = {},
+        actions = emptyList(),
+        actionsLabel = "",
     )
     EpisodeRow(
         title = "Como funciona o Pix por dentro",
@@ -79,7 +81,9 @@ internal fun EpisodeRowsSample() {
         imageUrl = null,
         playback = EpisodePlayback(isPlayed = true),
         downloadState = DownloadState.Downloading(0.3f),
-        onClick = {}, actions = emptyList(), actionsLabel = "",
+        onClick = {},
+        actions = emptyList(),
+        actionsLabel = "",
     )
 }
 
@@ -97,12 +101,20 @@ internal fun PlayerPartsSample() {
     )
     PlayerSlider(positionMs = 725_000, durationMs = 2_850_000, onSeek = {}, formatTime = { "${it / 60_000}:00" })
     PlayerSlider(
-        positionMs = 1_425_000, durationMs = 2_850_000, onSeek = {}, formatTime = { "${it / 60_000}:00" }, wavy = true,
+        positionMs = 1_425_000,
+        durationMs = 2_850_000,
+        onSeek = {},
+        formatTime = { "${it / 60_000}:00" },
+        wavy = true,
     )
     SectionTitle("Continuar ouvindo")
     ContinueCard(
-        title = "Kotlin Multiplatform em produção", imageUrl = null, progress = 0.62f, caption = "18min restantes",
-        onClick = {}, onClickLabel = "Tocar",
+        title = "Kotlin Multiplatform em produção",
+        imageUrl = null,
+        progress = 0.62f,
+        caption = "18min restantes",
+        onClick = {},
+        onClickLabel = "Tocar",
     )
     FilterChipRow(
         options = listOf(FilterOption("Todos"), FilterOption("Tecnologia", 5), FilterOption("Comédia", 3)),
@@ -110,10 +122,21 @@ internal fun PlayerPartsSample() {
         onSelected = {},
     )
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-        PodcastCard(title = "Hipsters Ponto Tech", author = "Alura", imageUrl = null, unplayedCount = 3, onClick = {},
-            modifier = Modifier.width(Sizes.artworkM))
-        PodcastCard(title = "Café da Manhã", author = "Folha de S.Paulo", imageUrl = null, onClick = {},
-            modifier = Modifier.width(Sizes.artworkM))
+        PodcastCard(
+            title = "Hipsters Ponto Tech",
+            author = "Alura",
+            imageUrl = null,
+            unplayedCount = 3,
+            onClick = {},
+            modifier = Modifier.width(Sizes.artworkM)
+        )
+        PodcastCard(
+            title = "Café da Manhã",
+            author = "Folha de S.Paulo",
+            imageUrl = null,
+            onClick = {},
+            modifier = Modifier.width(Sizes.artworkM)
+        )
     }
 }
 

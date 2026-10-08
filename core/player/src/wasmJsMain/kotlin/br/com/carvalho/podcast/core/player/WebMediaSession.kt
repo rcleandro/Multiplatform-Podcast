@@ -1,7 +1,8 @@
 package br.com.carvalho.podcast.core.player
 
 @OptIn(ExperimentalWasmJsInterop::class)
-@JsFun("""(title, artist, artworkUrl) => {
+@JsFun(
+    """(title, artist, artworkUrl) => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: title,
@@ -11,11 +12,13 @@ package br.com.carvalho.podcast.core.player
             ]
         });
     }
-}""")
+}"""
+)
 external fun updateMediaSessionMetadata(title: String, artist: String, artworkUrl: String)
 
 @OptIn(ExperimentalWasmJsInterop::class)
-@JsFun("""(onPlay, onPause, onSeekBackward, onSeekForward, onPreviousTrack, onNextTrack) => {
+@JsFun(
+    """(onPlay, onPause, onSeekBackward, onSeekForward, onPreviousTrack, onNextTrack) => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => onPlay());
         navigator.mediaSession.setActionHandler('pause', () => onPause());
@@ -24,7 +27,8 @@ external fun updateMediaSessionMetadata(title: String, artist: String, artworkUr
         navigator.mediaSession.setActionHandler('previoustrack', () => onPreviousTrack());
         navigator.mediaSession.setActionHandler('nexttrack', () => onNextTrack());
     }
-}""")
+}"""
+)
 @Suppress("LongParameterList") // one callback per Media Session action the JS side registers
 external fun setupMediaSessionActions(
     onPlay: () -> Unit,
@@ -36,9 +40,11 @@ external fun setupMediaSessionActions(
 )
 
 @OptIn(ExperimentalWasmJsInterop::class)
-@JsFun("""(state) => {
+@JsFun(
+    """(state) => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = state;
     }
-}""")
+}"""
+)
 external fun updateMediaSessionPlaybackState(state: String)

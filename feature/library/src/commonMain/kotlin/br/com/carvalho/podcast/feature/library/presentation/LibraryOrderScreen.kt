@@ -32,8 +32,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
-import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.designsystem.component.PodcastListItem
+import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.library_move_down
@@ -137,9 +137,15 @@ private fun Modifier.moveActions(entries: List<LibraryEntry>, index: Int, onReor
     val down = stringResource(Res.string.library_move_down)
     return semantics {
         customActions = listOfNotNull(
-            CustomAccessibilityAction(up) { onReorder(entries.moved(index, index - 1).ids()); true }
+            CustomAccessibilityAction(up) {
+                onReorder(entries.moved(index, index - 1).ids())
+                true
+            }
                 .takeIf { index > 0 },
-            CustomAccessibilityAction(down) { onReorder(entries.moved(index, index + 1).ids()); true }
+            CustomAccessibilityAction(down) {
+                onReorder(entries.moved(index, index + 1).ids())
+                true
+            }
                 .takeIf { index < entries.lastIndex },
         )
     }
