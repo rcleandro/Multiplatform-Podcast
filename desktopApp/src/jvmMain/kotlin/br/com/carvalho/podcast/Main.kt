@@ -21,8 +21,13 @@ import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import java.awt.Dimension
 import org.koin.mp.KoinPlatform.getKoin
+
+private const val MIN_WINDOW_WIDTH = 360
+private const val MIN_WINDOW_HEIGHT = 320
 
 fun main() {
     initKoin()
@@ -64,9 +69,11 @@ fun main() {
             title = stringResource(Res.string.app_name),
             icon = painterResource(Res.drawable.app_icon),
         ) {
+            // As small as the smallest layout the app has, a flip phone's cover screen (21.5, 21.7).
+            LaunchedEffect(Unit) { window.minimumSize = Dimension(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT) }
             val lifecycle = remember { LifecycleRegistry() }
             val root = remember { RootComponent(DefaultComponentContext(lifecycle = lifecycle)) }
-            App(root)
+            App(root, keyboardShortcuts = true)
         }
     }
 }

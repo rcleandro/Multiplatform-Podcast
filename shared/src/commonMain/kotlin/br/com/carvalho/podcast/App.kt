@@ -7,13 +7,14 @@ import br.com.carvalho.podcast.presentation.navigation.RootContent
 import br.com.carvalho.podcast.core.image.createImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 
+/** [keyboardShortcuts] on a computer, where a keyboard is the rule (21.7). */
 @Composable
-fun App(root: RootComponent) {
+fun App(root: RootComponent, keyboardShortcuts: Boolean = false) {
     setSingletonImageLoaderFactory { context ->
         createImageLoader(context)
     }
 
     PodcastTheme {
-        RootContent(root)
+        RootContent(root, keyboardShortcuts)
     }
 }

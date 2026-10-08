@@ -73,7 +73,7 @@ import br.com.carvalho.podcast.core.util.NetworkMonitor
 /** Draws [RootComponent.state]: tabs, the list/detail/extra panes of the selected tab, mini player and player. */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun RootContent(component: RootComponent) {
+fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
     val playerViewModel: PlayerViewModel = koinViewModel()
     val playerState by playerViewModel.playerState.collectAsState()
     val state by component.state.subscribeAsState()
@@ -87,7 +87,8 @@ fun RootContent(component: RootComponent) {
 
     // The player and "Organize library" cover the tabs too (ADR 0005): the bar is for moving between tabs only.
     // Opening the player grows the mini player's cover into the player's, and minimizing shrinks it back (24.2).
-    SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+    val shortcuts = if (keyboardShortcuts) appShortcuts(component, playerViewModel) else Modifier
+    SharedTransitionLayout(modifier = Modifier.fillMaxSize().then(shortcuts)) {
         val sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier = { coverShared(it) }
         NavigationSuiteScaffold(
             layoutType = if (hasRail) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
@@ -133,6 +134,18 @@ fun RootContent(component: RootComponent) {
         }
     }
 }
+
+/** Space plays or pauses, the arrows skip and Escape goes back, wherever the app is (21.7). */
+@Composable
+private fun appShortcuts(component: RootComponent, playerViewModel: PlayerViewModel): Modifier =
+    Modifier.keyboardShortcuts { shortcut ->
+        when (shortcut) {
+            Shortcut.PLAY_PAUSE -> playerViewModel.onIntent(PlayerIntent.PlayPause)
+            Shortcut.SKIP_BACKWARD -> playerViewModel.onIntent(PlayerIntent.SkipBackward)
+            Shortcut.SKIP_FORWARD -> playerViewModel.onIntent(PlayerIntent.SkipForward)
+            Shortcut.BACK -> component.onBackClicked()
+        }
+    }
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable

@@ -12,6 +12,6 @@ fun main() {
     ComposeViewport {
         val lifecycle = remember { LifecycleRegistry() }
         val root = remember { RootComponent(DefaultComponentContext(lifecycle = lifecycle)) }
-        App(root)
+        App(root, keyboardShortcuts = true)
     }
 }
