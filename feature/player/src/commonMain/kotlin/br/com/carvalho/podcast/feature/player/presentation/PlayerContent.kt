@@ -1,5 +1,9 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
+import br.com.carvalho.podcast.core.designsystem.PaneLayout
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Box
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
@@ -104,45 +108,45 @@ fun PlayerContent(
                 onNavigate = actions.onMinimize,
                 title = stringResource(Res.string.now_playing),
             )
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(Spacing.xl),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Spacing.xl, vertical = Spacing.l),
-            ) {
-                PlayerHeader(state.currentEpisode, artworkModifier)
-                PlayerSlider(
-                    positionMs = state.position,
-                    durationMs = state.knownDurationMs(),
-                    onSeek = actions.onSeek,
-                    formatTime = { it.toTime() },
-                    wavy = state.isPlaying,
-                )
-                PlayerControls(state, actions)
-                PlayerAuxRow(state, actions)
+            if (currentPaneLayout() == PaneLayout.EXPANDED) {
+                // A wide window puts the cover beside the rest instead of above it (21.1).
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.xxl),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                ) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)) {
+                        PlayerArtwork(state.currentEpisode, artworkModifier)
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(Spacing.xl, Alignment.CenterVertically),
+                        modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
+                    ) {
+                        PlayerInfoAndControls(state, actions)
+                    }
+                }
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(Spacing.xl),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                ) {
+                    PlayerArtwork(state.currentEpisode, artworkModifier)
+                    PlayerInfoAndControls(state, actions)
+                }
             }
         }
     }
 }
 
-private const val MS_PER_SECOND = 1000L
-
-/** The player's duration once the audio loads; until then, the one the feed gave (seconds). 0 when neither knows. */
-private fun PlayerState.knownDurationMs(): Long =
-    duration?.takeIf { it > 0 } ?: ((currentEpisode?.duration ?: 0L) * MS_PER_SECOND)
-
+/** Title, progress and controls: under the cover on a phone, beside it on a wide window. */
 @Composable
-private fun PlayerHeader(episode: Episode?, artworkModifier: Modifier) {
-    // The cover takes the phone's width (24.2), up to a size that still leaves the controls in view on a tablet.
-    val artworkMax = 360.dp
-    PodcastArtwork(
-        imageUrl = episode?.imageUrl,
-        contentDescription = episode?.title,
-        shape = MaterialTheme.shapes.extraLarge,
-        modifier = artworkModifier.widthIn(max = artworkMax).fillMaxWidth().aspectRatio(1f),
-    )
+private fun PlayerInfoAndControls(state: PlayerState, actions: PlayerActions) {
+    val episode = state.currentEpisode
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         Text(
             text = episode?.title ?: stringResource(Res.string.no_episode_selected),
@@ -162,6 +166,33 @@ private fun PlayerHeader(episode: Episode?, artworkModifier: Modifier) {
             )
         }
     }
+    PlayerSlider(
+        positionMs = state.position,
+        durationMs = state.knownDurationMs(),
+        onSeek = actions.onSeek,
+        formatTime = { it.toTime() },
+        wavy = state.isPlaying,
+    )
+    PlayerControls(state, actions)
+    PlayerAuxRow(state, actions)
+}
+
+private const val MS_PER_SECOND = 1000L
+
+/** The player's duration once the audio loads; until then, the one the feed gave (seconds). 0 when neither knows. */
+private fun PlayerState.knownDurationMs(): Long =
+    duration?.takeIf { it > 0 } ?: ((currentEpisode?.duration ?: 0L) * MS_PER_SECOND)
+
+@Composable
+private fun PlayerArtwork(episode: Episode?, artworkModifier: Modifier) {
+    // The cover takes the phone's width (24.2), up to a size that still leaves the controls in view on a tablet.
+    val artworkMax = 360.dp
+    PodcastArtwork(
+        imageUrl = episode?.imageUrl,
+        contentDescription = episode?.title,
+        shape = MaterialTheme.shapes.extraLarge,
+        modifier = artworkModifier.widthIn(max = artworkMax).fillMaxWidth().aspectRatio(1f),
+    )
 }
 
 @Composable

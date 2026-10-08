@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
 import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -145,6 +147,32 @@ class SearchContentTest {
         assertEquals("e1", unplayed?.id)
         assertEquals(OlderMark(played, played = false), older)
         assertEquals("e1", podcast?.id)
+    }
+
+    @Test
+    fun onAWideWindowTheListKeepsAReadableWidth() = runDesktopComposeUiTest(width = 1200, height = 800) {
+        val episode = Episode(
+            id = "e1", podcastId = "p", title = "Wide episode", description = null, audioUrl = "a", imageUrl = null,
+            duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null
+        )
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(),
+                    results = flowOf(PagingData.from(listOf(episode))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Wide episode"))
+        val window = onRoot().getBoundsInRoot()
+        val options = onNodeWithContentDescription(text(Res.string.episode_options)).getBoundsInRoot()
+
+        // The row's "⋮" sits at the end of the readable width, not at the window's edge.
+        val readableEnd = (window.right + Sizes.readableWidth) / 2
+        assertTrue(options.right <= readableEnd, "row ends at ${options.right}, past $readableEnd")
     }
 
     @Test

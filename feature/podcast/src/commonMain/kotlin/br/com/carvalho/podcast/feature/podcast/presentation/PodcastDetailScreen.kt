@@ -62,6 +62,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
 import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
 import br.com.carvalho.podcast.core.designsystem.component.FilterOption
@@ -252,7 +253,7 @@ private fun EpisodeList(
                 ),
                 selectedIndex = state.filter.ordinal,
                 onSelected = { actions.onFilterSelected(EpisodeFilter.entries[it]) },
-                modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.s),
+                modifier = Modifier.readableWidth().padding(horizontal = Spacing.l, vertical = Spacing.s),
             )
         }
         items(
@@ -264,6 +265,7 @@ private fun EpisodeList(
                 val isCurrent = playerState.currentEpisode?.id == episode.id
                 EpisodeListItem(
                     episode = episode,
+                    modifier = Modifier.readableWidth(),
                     isBuffering = isCurrent && playerState.isBuffering,
                     isPlaying = isCurrent && playerState.isPlaying,
                     downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
@@ -314,6 +316,7 @@ private fun PodcastHeader(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.m),
             modifier = Modifier
+                .readableWidth()
                 .padding(horizontal = Spacing.l)
                 .padding(top = topInset + Spacing.m, bottom = Spacing.m),
         ) {

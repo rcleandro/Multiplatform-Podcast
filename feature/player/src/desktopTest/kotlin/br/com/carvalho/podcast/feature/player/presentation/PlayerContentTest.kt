@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import kotlin.test.assertTrue
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -44,6 +46,12 @@ import org.jetbrains.compose.resources.getString
 @OptIn(ExperimentalTestApi::class)
 class PlayerContentTest {
 
+    private companion object {
+        const val WIDE = 1200
+        const val PHONE = 400
+        const val TALL = 900
+    }
+
     private fun text(res: StringResource) = runBlocking { getString(res) }
 
     private fun episode(id: String) = Episode(
@@ -65,6 +73,40 @@ class PlayerContentTest {
             }
         }
         onNodeWithTag("cover").assertExists()
+    }
+
+    @Test
+    fun aWideWindowPutsTheCoverBesideTheControls() = runDesktopComposeUiTest(width = WIDE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                    actions = PlayerActions(),
+                    artworkModifier = Modifier.testTag("cover"),
+                )
+            }
+        }
+        val cover = onNodeWithTag("cover").getBoundsInRoot()
+        val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+        assertTrue(cover.right <= play.left, "cover $cover should be left of the play button $play")
+    }
+
+    @Test
+    fun aPhoneWindowPutsTheCoverAboveTheControls() = runDesktopComposeUiTest(width = PHONE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                    actions = PlayerActions(),
+                    artworkModifier = Modifier.testTag("cover"),
+                )
+            }
+        }
+        val cover = onNodeWithTag("cover").getBoundsInRoot()
+        val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+        assertTrue(cover.bottom <= play.top, "cover $cover should be above the play button $play")
     }
 
     @Test

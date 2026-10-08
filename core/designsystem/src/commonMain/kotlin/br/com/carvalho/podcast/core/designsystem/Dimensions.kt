@@ -38,6 +38,9 @@ object Sizes {
 
     /** Stroke of the small circular progress indicators inside buttons. */
     val progressStroke = 2.dp
+
+    /** Widest that lists and text get on a large window (21.1); their background still takes the window. */
+    val readableWidth = 640.dp
 }
 
 object Alpha {

@@ -67,6 +67,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
+import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
@@ -189,6 +190,7 @@ private fun EpisodeDetailBody(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(Spacing.m),
                 modifier = Modifier
+                    .readableWidth()
                     .padding(horizontal = Spacing.l)
                     .padding(top = topInset + Spacing.m, bottom = Spacing.l),
             ) {
@@ -220,7 +222,9 @@ private fun EpisodeDetailBody(
         Column(
             verticalArrangement = Arrangement.spacedBy(Spacing.s),
             // The end of the description stays clear of the mini player.
-            modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Sizes.listBottomInset),
+            modifier = Modifier
+                .readableWidth()
+                .padding(start = Spacing.l, end = Spacing.l, bottom = Sizes.listBottomInset),
         ) {
             SectionTitle(stringResource(Res.string.description))
             HtmlText(html = episode.description ?: stringResource(Res.string.no_description))
