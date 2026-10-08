@@ -1,5 +1,10 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
+import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
+import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.performTouchInput
 import br.com.carvalho.podcast.core.ui.generated.resources.go_to_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
@@ -221,6 +226,39 @@ class SearchContentTest {
 
         waitUntilExactlyOneExists(hasText("Episode 1"))
         onNodeWithText("Episode 1").assertIsDisplayed()
+    }
+
+    @Test
+    fun searchAndFiltersHideWhileTheListScrollsDownAndComeBackUp() = runComposeUiTest {
+        val episodes = (1..30).map {
+            Episode(
+                id = "e$it", podcastId = "p", title = "Episode $it", description = null, audioUrl = "a",
+                imageUrl = null, duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0,
+                isDownloaded = false, fileSize = null,
+            )
+        }
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(),
+                    results = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Episode 1"))
+        val list = onNode(hasScrollToIndexAction() and hasAnyDescendant(hasText("Episode", substring = true)))
+
+        list.performTouchInput { swipeUp() }
+        onNodeWithText(text(Res.string.search_placeholder)).assertIsNotDisplayed()
+        onNodeWithText(text(Res.string.filter_in_progress)).assertIsNotDisplayed()
+        onNodeWithText(text(Res.string.episodes_tab)).assertIsDisplayed()
+
+        list.performTouchInput { swipeDown(endY = centerY) }
+        onNodeWithText(text(Res.string.search_placeholder)).assertIsDisplayed()
+        onNodeWithText(text(Res.string.filter_in_progress)).assertIsDisplayed()
     }
 
     @Test

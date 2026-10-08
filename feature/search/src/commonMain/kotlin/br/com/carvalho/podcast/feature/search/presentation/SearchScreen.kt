@@ -40,6 +40,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarState
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layout
+import kotlin.math.roundToInt
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
 import br.com.carvalho.podcast.presentation.format.dateGroup
 import br.com.carvalho.podcast.presentation.format.DateGroup
@@ -156,6 +163,7 @@ data class SearchActions(
     val onPodcastClick: (Episode) -> Unit = {},
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchContent(
     state: SearchUiState,
@@ -168,8 +176,10 @@ fun SearchContent(
 ) {
     val listState = rememberLazyListState()
     val onFilterChange = rememberScrollToTopOnFilterChange(state.filter, results, listState, actions.onFilterChange)
+    // Search and filters leave the room to the list while it scrolls down and come back as soon as it scrolls up.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             Column(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
                 Text(
@@ -179,13 +189,15 @@ fun SearchContent(
                         .padding(start = Spacing.l, end = Spacing.l, top = Spacing.l)
                         .semantics { heading() },
                 )
-                SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange)
-                FilterChipRow(
-                    options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
-                    selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
-                    onSelected = { onFilterChange(filters[it].first) },
-                    modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
-                )
+                Column(modifier = Modifier.collapsingWith(scrollBehavior.state)) {
+                    SearchField(query = state.searchQuery, onQueryChange = actions.onQueryChange)
+                    FilterChipRow(
+                        options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
+                        selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
+                        onSelected = { onFilterChange(filters[it].first) },
+                        modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
+                    )
+                }
             }
         },
         snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
@@ -222,6 +234,20 @@ fun SearchContent(
         state.olderMark?.let { MarkOlderDialog(it, actions.onConfirmMarkOlder, actions.onDismissMarkOlder) }
     }
 }
+
+/**
+ * Shrinks the content by [state]'s offset, as a top app bar does, so the nested scroll of an enter-always behavior
+ * slides it away and back. Its full height is the limit of the offset.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+private fun Modifier.collapsingWith(state: TopAppBarState): Modifier =
+    clipToBounds().layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints)
+        val limit = -placeable.height.toFloat()
+        if (state.heightOffsetLimit != limit) state.heightOffsetLimit = limit
+        val offset = state.heightOffset.roundToInt()
+        layout(placeable.width, (placeable.height + offset).coerceAtLeast(0)) { placeable.place(0, offset) }
+    }
 
 // "Downloaded" only where downloads survive (not on the Web).
 private val filters = listOfNotNull(
