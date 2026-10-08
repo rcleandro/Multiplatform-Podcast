@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 
+@Suppress("TooManyFunctions") // one function per library query or change
 interface PodcastRepository {
     fun getPodcasts(): Flow<List<Podcast>>
     fun getLibrary(): Flow<List<LibraryEntry>>

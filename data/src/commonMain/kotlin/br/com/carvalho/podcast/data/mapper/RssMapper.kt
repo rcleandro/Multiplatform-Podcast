@@ -93,20 +93,21 @@ private fun parsePubDate(pubDate: String): Long {
     }
 }
 
+private const val MAX_DURATION_PARTS = 3
+private const val SECONDS_PER_MINUTE = 60
+
 private fun parseDuration(duration: String?): Long {
     if (duration == null) return 0
     return try {
         if (duration.contains(":")) {
+            // "mm:ss" or "hh:mm:ss": each part counts sixty of the next one.
             val parts = duration.split(":").map { it.trim().toLong() }
-            when (parts.size) {
-                2 -> parts[0] * 60 + parts[1]
-                3 -> parts[0] * 3600 + parts[1] * 60 + parts[2]
-                else -> 0
-            }
+            if (parts.size > MAX_DURATION_PARTS) 0
+            else parts.fold(0L) { total, part -> total * SECONDS_PER_MINUTE + part }
         } else {
             duration.toLong()
         }
-    } catch (e: Exception) {
+    } catch (e: NumberFormatException) {
         AppLogger.e(TAG, "Failed to parse duration: '$duration'", e)
         0L
     }

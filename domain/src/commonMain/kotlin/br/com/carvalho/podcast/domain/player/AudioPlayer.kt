@@ -5,6 +5,7 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import kotlinx.coroutines.flow.StateFlow
 
 /** The app's player. One instance for the whole process; restoring the last session is its job, not the screens'. */
+@Suppress("TooManyFunctions") // one function per player command
 interface AudioPlayer {
     val playerState: StateFlow<PlayerState>
     suspend fun play(episode: Episode)

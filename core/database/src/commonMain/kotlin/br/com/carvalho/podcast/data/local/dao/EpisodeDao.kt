@@ -18,6 +18,7 @@ import androidx.room3.Transaction
 
 @Dao
 @DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
+@Suppress("TooManyFunctions") // one function per query
 interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE podcastId = :podcastId ORDER BY publishDate DESC")
     fun getByPodcast(podcastId: String): Flow<List<EpisodeEntity>>

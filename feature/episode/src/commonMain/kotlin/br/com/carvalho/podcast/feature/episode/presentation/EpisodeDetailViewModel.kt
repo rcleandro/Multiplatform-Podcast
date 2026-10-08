@@ -62,6 +62,7 @@ class EpisodeDetailViewModel(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught") // any database failure shows the error state with a retry
     private fun loadEpisode() {
         _uiState.update { it.copy(isLoading = true, loadFailed = false) }
         viewModelScope.launch(dispatchers.io) {

@@ -3,7 +3,6 @@ package br.com.carvalho.podcast.core.player
 import android.content.Intent
 import android.os.Bundle
 import androidx.annotation.OptIn
-import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import br.com.carvalho.podcast.core.AppConfig
 import androidx.media3.common.C
@@ -14,7 +13,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.LibraryResult
-import androidx.media3.session.MediaConstants
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
@@ -29,7 +27,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.withContext
@@ -42,6 +39,7 @@ private const val CUSTOM_COMMAND_SKIP_BACKWARD = "CUSTOM_COMMAND_SKIP_BACKWARD"
 class PodcastMediaService : MediaLibraryService() {
     private var mediaLibrarySession: MediaLibrarySession? = null
     private val podcastRepository: PodcastRepository by inject()
+    private val tree by lazy { MediaTree(podcastRepository) { getString(R.string.library_title) } }
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     @OptIn(UnstableApi::class)
@@ -152,7 +150,7 @@ class PodcastMediaService : MediaLibraryService() {
         ): ListenableFuture<LibraryResult<MediaItem>> {
             AppLogger.d(TAG, "onGetLibraryRoot")
             val rootItem = MediaItem.Builder()
-                .setMediaId("root")
+                .setMediaId(ROOT_ID)
                 .setMediaMetadata(
                     MediaMetadata.Builder()
                         .setIsBrowsable(true)
@@ -175,83 +173,7 @@ class PodcastMediaService : MediaLibraryService() {
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
             AppLogger.d(TAG, "onGetChildren parentId = $parentId")
             return serviceScope.future {
-                val items = withContext(Dispatchers.IO) {
-                    when (parentId) {
-                        "root" -> {
-                            listOf(
-                                MediaItem.Builder()
-                                    .setMediaId("library_node")
-                                    .setMediaMetadata(
-                                        MediaMetadata.Builder()
-                                            .setTitle(getString(R.string.library_title))
-                                            .setIsBrowsable(true)
-                                            .setIsPlayable(false)
-                                            .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS)
-                                            .setExtras(Bundle().apply {
-                                                putInt(
-                                                    MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE,
-                                                    MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM
-                                                )
-                                            })
-                                            .build()
-                                    )
-                                    .build()
-                            )
-                        }
-
-                        "library_node" -> {
-                            podcastRepository.getPodcasts().first().map { podcast ->
-                                MediaItem.Builder()
-                                    .setMediaId("podcast_${podcast.id}")
-                                    .setMediaMetadata(
-                                        MediaMetadata.Builder()
-                                            .setTitle(podcast.title)
-                                            .setArtist(podcast.author)
-                                            .setArtworkUri(podcast.imageUrl?.toUri())
-                                            .setIsBrowsable(true)
-                                            .setIsPlayable(false)
-                                            .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS)
-                                            .setExtras(Bundle().apply {
-                                                putInt(
-                                                    MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE,
-                                                    MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM
-                                                )
-                                            })
-                                            .build()
-                                    )
-                                    .build()
-                            }
-                        }
-
-                        else -> {
-                            if (parentId.startsWith("podcast_")) {
-                                val podcastId = parentId.removePrefix("podcast_")
-                                val podcast = podcastRepository.getPodcastById(podcastId)
-                                podcastRepository.getEpisodes(podcastId).first().map { episode ->
-                                    MediaItem.Builder()
-                                        .setMediaId(episode.id)
-                                        .setUri(episode.audioUrl)
-                                        .setMediaMetadata(
-                                            MediaMetadata.Builder()
-                                                .setTitle(episode.title)
-                                                .setArtist(podcast?.title ?: "")
-                                                .setArtworkUri(
-                                                    episode.imageUrl?.toUri()
-                                                        ?: podcast?.imageUrl?.toUri()
-                                                )
-                                                .setIsBrowsable(false)
-                                                .setIsPlayable(true)
-                                                .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
-                                                .build()
-                                        )
-                                        .build()
-                                }
-                            } else {
-                                emptyList()
-                            }
-                        }
-                    }
-                }
+                val items = withContext(Dispatchers.IO) { tree.children(parentId) }
                 LibraryResult.ofItemList(items, params)
             }
         }
@@ -265,67 +187,7 @@ class PodcastMediaService : MediaLibraryService() {
             AppLogger.d(TAG, "onGetItem mediaId = $mediaId")
             return serviceScope.future {
                 val item = withContext(Dispatchers.IO) {
-                    when {
-                        mediaId == "root" -> {
-                            onGetLibraryRoot(session, browser, null).get().value
-                        }
-
-                        mediaId == "library_node" -> {
-                            MediaItem.Builder()
-                                .setMediaId("library_node")
-                                .setMediaMetadata(
-                                    MediaMetadata.Builder()
-                                        .setTitle(getString(R.string.library_title))
-                                        .setIsBrowsable(true)
-                                        .setIsPlayable(false)
-                                        .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS)
-                                        .build()
-                                ).build()
-                        }
-
-                        mediaId.startsWith("podcast_") -> {
-                            val podcastId = mediaId.removePrefix("podcast_")
-                            val podcast = podcastRepository.getPodcastById(podcastId)
-                            podcast?.let {
-                                MediaItem.Builder()
-                                    .setMediaId(mediaId)
-                                    .setMediaMetadata(
-                                        MediaMetadata.Builder()
-                                            .setTitle(it.title)
-                                            .setArtist(it.author)
-                                            .setArtworkUri(it.imageUrl?.toUri())
-                                            .setIsBrowsable(true)
-                                            .setIsPlayable(false)
-                                            .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS)
-                                            .build()
-                                    )
-                                    .build()
-                            }
-                        }
-
-                        else -> {
-                            val episode = podcastRepository.getEpisodeById(mediaId)
-                            episode?.let { ep ->
-                                val podcast = podcastRepository.getPodcastById(ep.podcastId)
-                                MediaItem.Builder()
-                                    .setMediaId(ep.id)
-                                    .setUri(ep.audioUrl)
-                                    .setMediaMetadata(
-                                        MediaMetadata.Builder()
-                                            .setTitle(ep.title)
-                                            .setArtist(podcast?.title ?: "")
-                                            .setArtworkUri(
-                                                ep.imageUrl?.toUri() ?: podcast?.imageUrl?.toUri()
-                                            )
-                                            .setIsBrowsable(false)
-                                            .setIsPlayable(true)
-                                            .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
-                                            .build()
-                                    )
-                                    .build()
-                            }
-                        }
-                    }
+                    if (mediaId == ROOT_ID) onGetLibraryRoot(session, browser, null).get().value else tree.item(mediaId)
                 }
 
                 if (item != null) {
@@ -373,6 +235,7 @@ class PodcastMediaService : MediaLibraryService() {
         }
         super.onTaskRemoved(rootIntent)
     }
+
 }
 
 /** Media3's icon with the jump's number when there is one; a plain arrow otherwise. */

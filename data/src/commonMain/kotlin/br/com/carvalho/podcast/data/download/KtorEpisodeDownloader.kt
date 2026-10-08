@@ -10,20 +10,43 @@ import br.com.carvalho.podcast.data.remote.toAppError
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
-import io.ktor.client.*
-import io.ktor.client.plugins.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.CancellationException
 import okio.IOException
 import okio.Path
 import okio.buffer
 import okio.use
 import kotlin.time.TimeSource
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeoutConfig
+import io.ktor.client.plugins.onDownload
+import io.ktor.client.plugins.timeout
+import io.ktor.client.request.prepareGet
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.http.ContentType
+import io.ktor.http.Url
+import io.ktor.http.contentLength
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.readAvailable
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 
 private const val TAG = "KtorEpisodeDownloader"
 private const val PART_SUFFIX = ".part"
@@ -58,6 +81,7 @@ class KtorEpisodeDownloader(
      * Downloads in the caller's coroutine, so the caller decides how long it lives: this process ([download]) or an
      * Android worker that outlives the app. Cancelling the caller stops it and removes the partial file.
      */
+    @Suppress("TooGenericExceptionCaught") // the boundary where any failure becomes a Failed status
     suspend fun transfer(episodeId: String, audioUrl: String) {
         val self = currentCoroutineContext().job
         var added = false
@@ -131,6 +155,7 @@ class KtorEpisodeDownloader(
         delete(episodeId)
     }
 
+    @Suppress("TooGenericExceptionCaught") // a file or database failure is only logged; the row stays as it was
     override suspend fun delete(episodeId: String) {
         withContext(Dispatchers.Default) {
             try {

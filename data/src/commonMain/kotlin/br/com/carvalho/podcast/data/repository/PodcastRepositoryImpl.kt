@@ -25,6 +25,7 @@ private const val IN_PROGRESS_LIMIT = 10
 
 private const val TAG = "PodcastRepository"
 
+@Suppress("TooManyFunctions") // implements PodcastRepository
 class PodcastRepositoryImpl(
     private val podcastDao: PodcastDao,
     private val episodeDao: EpisodeDao

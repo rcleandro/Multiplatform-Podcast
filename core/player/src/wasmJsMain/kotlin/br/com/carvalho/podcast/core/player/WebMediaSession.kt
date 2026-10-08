@@ -25,6 +25,7 @@ external fun updateMediaSessionMetadata(title: String, artist: String, artworkUr
         navigator.mediaSession.setActionHandler('nexttrack', () => onNextTrack());
     }
 }""")
+@Suppress("LongParameterList") // one callback per Media Session action the JS side registers
 external fun setupMediaSessionActions(
     onPlay: () -> Unit,
     onPause: () -> Unit,

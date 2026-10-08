@@ -63,7 +63,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Run tests
-              run: ./gradlew desktopTest :shared:testAndroidHostTest :androidApp:testDebugUnitTest
+              run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest
 
             - name: Verify design system snapshots
               if: hashFiles('core/designsystem/snapshots/*.png') != ''
