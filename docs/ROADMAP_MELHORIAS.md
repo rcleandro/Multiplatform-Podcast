@@ -360,7 +360,7 @@ um visual por tela. Componentes do design system, todos sem estado e com preview
   do Compose respeitam a escala de animação do sistema no Android. Testes: alvo de toque mínimo (play e download),
   rótulo do mini player, título do estado vazio como cabeçalho (`ComponentsTest`), título da biblioteca como
   cabeçalho e timer ativo anunciado (`ScreenContentTest`). Os quatro últimos falham no código anterior e passam no
-  novo. **Fica para a 21.6/21.7:** atalhos de teclado e ordem de foco entre painéis no iPad, Desktop e Web.
+  novo. **Fica para a 21.7 (Desktop e Web) e a 25.9 (iPad):** atalhos de teclado e ordem de foco entre painéis.
 
 ### 9.13 Ícone do app no novo design ✔ (falta conferir no launcher) — M
 - **Problema:** cada plataforma tem um ícone diferente e nenhum segue a identidade da 9.1. O Android usa um ícone
@@ -1050,12 +1050,12 @@ envolver serviço externo ou dependência nova.
 
 ---
 
-## Fase 21 — Layout responsivo e dobráveis (Android e iOS)
+## Fase 21 — Layout responsivo e dobráveis (Android, Desktop e Web)
 
 **Objetivo:** o app aproveita qualquer janela, do celular deitado ao tablet, das telas externa e interna dos
-dobráveis Android (Razr, Flip, Fold) ao iPad em Split View e à janela redimensionável do Desktop e da Web. A
-decisão de layout vem do **tamanho da janela**, não do modelo do aparelho, e por isso vale também para
-dispositivos que ainda não existem.
+dobráveis Android (Razr, Flip, Fold) à janela redimensionável do Desktop e da Web. A decisão de layout vem do
+**tamanho da janela**, não do modelo do aparelho, e por isso vale também para dispositivos que ainda não existem.
+O iPad e o iPhone ficam para a fase 25 (25.9), com a interface em SwiftUI.
 
 **Hoje:** o `RootContent` troca barra por rail a partir de 600 dp (`NavigationSuiteScaffold`) e usa
 `ListDetailPaneScaffold`; as telas não têm largura máxima de leitura, o player é sempre uma coluna e nada reage à
@@ -1068,7 +1068,7 @@ dobra.
 | 21.3 Postura mesa | ✅ | Dobrável meio aberto com a dobra na horizontal (Razr, Flip, Fold deitado): `WindowInfoTracker`/`FoldingFeature` do `androidx.window` preenche um `LocalTabletopFold` no design system (nulo por padrão, então iOS, Desktop e Web não mudam), e o player põe capa e título acima da dobra e slider e controles abaixo. Teste com `window-testing` + Robolectric e conferência no Razr 60 meio aberto | M |
 | 21.4 Postura livro e dobradiça | 🔎 | Fold aberto com a dobra na vertical: os painéis do `ListDetailPaneScaffold` não podem ficar em cima da dobradiça (`calculatePaneScaffoldDirective` com política de dobradiça); conferir no emulador do Pixel Fold | P |
 | 21.5 Tela externa e continuidade | 🔎 | Razr/Flip: o app roda na tela externa com o layout compacto, e abrir ou fechar o aparelho não pode perder tela, posição de rolagem nem reprodução (o estado do Decompose e do player sobrevive à troca de configuração); conferir no Razr 60 abrindo e fechando durante a reprodução | P |
-| 21.6 iPad e iPhone | ✅ | Split View, Slide Over e Stage Manager mudam o tamanho da janela, e as faixas da 21.1 cobrem isso sem código de plataforma; iPhone deitado usa a 21.2; teclado físico no iPad (atalhos de play/pause e avanço, como no Desktop) | M |
+| 21.6 iPad e iPhone | Movida para a fase 25 | Em 07/10/2026 o usuário decidiu deixar o que é de iOS para a fase 25 (interface em SwiftUI), onde Split View, Slide Over, Stage Manager e o iPhone deitado são tratados pelas telas nativas: virou a 25.9 | — |
 | 21.7 Desktop e Web | ✅ | Tamanho mínimo de janela, as mesmas faixas ao redimensionar e navegação por teclado entre painéis | P |
 | 21.8 Snapshots por tamanho | ✅ | O `DesignSystemSnapshotTest` e os previews ganham as telas principais em compacto, médio, expandido e postura mesa (qualificadores do Robolectric), gravadas no Linux como na 9.11 | M |
 
@@ -1198,6 +1198,7 @@ dele; esta fase a substitui.
 | 25.6 Episódios | 🔎 | Busca (`searchable`), filtros, lista por data, abrir em "Baixados" sem rede (24.15) | M |
 | 25.7 Player | 🔎 | Player em tela cheia com capa, progresso arrastável, saltos, velocidade, timer e fila; o player do sistema (Now Playing, Central de Controle) continua o de hoje | M |
 | 25.8 Acabamento | 🔎 | VoiceOver e Dynamic Type em todas as telas, testes de UI das telas principais, remover o Compose do app iOS se a 25.1 decidir, e conferir num iPhone com iOS 26 e num com iOS anterior | M |
+| 25.9 iPad e iPhone (era a 21.6) | 🔎 | Split View, Slide Over e Stage Manager mudam o tamanho da janela: as telas em SwiftUI seguem as mesmas faixas de largura da 21.1 (`horizontalSizeClass` e largura da cena), com `NavigationSplitView` no iPad; iPhone deitado com o player em duas colunas, como a 21.2; teclado físico no iPad com atalhos de play/pause e avanço, como no Desktop | M |
 
 **Critério de conclusão:** nenhuma tela do iOS em Compose; as mesmas funcionalidades das outras plataformas; Liquid
 Glass na barra de abas e nas barras de título do iOS 26; VoiceOver e Dynamic Type conferidos.
