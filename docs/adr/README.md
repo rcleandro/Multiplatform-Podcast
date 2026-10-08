@@ -13,6 +13,7 @@ one to "substituída por ADR NNNN" instead of deleting it.
 | [0006](0006-preferencias.md) | Preferências do usuário: multiplatform-settings atrás de `PreferencesRepository` |
 | [0007](0007-reordenar-listas.md) | Reordenar listas arrastando: Reorderable, com alça e ações de acessibilidade |
 | [0008](0008-liquid-glass-no-ios.md) | Liquid Glass no iOS: `UITabBar` nativo por cima do Compose, só no iOS 26+ (a ser substituída pela fase 25, iOS em SwiftUI) |
+| [0009](0009-feeds-e-audio-em-http.md) | Feeds e áudio em `http://`: tentar `https` primeiro e cair para `http`; texto claro liberado no Android e no iOS |
 
 ## Modelo
 

@@ -6,6 +6,7 @@ import io.ktor.client.engine.mock.respondOk
 import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.get
 import io.ktor.http.HttpHeaders
+import io.ktor.http.URLProtocol
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,6 +28,41 @@ class PodcastDefaultsTest {
 
         assertNull(request.headers[HttpHeaders.UserAgent])
         assertNull(request.headers[HttpHeaders.AcceptEncoding])
+    }
+
+    @Test
+    fun anHttpAddressIsTriedOverHttpsFirst() = runTest {
+        val tried = mutableListOf<String>()
+        val client = HttpClient(MockEngine { tried += it.url.toString(); respondOk() }) { podcastDefaults("Android") }
+
+        client.get("http://feeds.example.com/rss")
+
+        assertEquals(listOf("https://feeds.example.com/rss"), tried)
+    }
+
+    @Test
+    fun anHttpAddressFallsBackToClearTextWhenHttpsFails() = runTest {
+        val tried = mutableListOf<String>()
+        val client = HttpClient(
+            MockEngine {
+                tried += it.url.toString()
+                if (it.url.protocol == URLProtocol.HTTPS) error("TLS handshake failed") else respondOk()
+            }
+        ) { podcastDefaults("Android") }
+
+        client.get("http://feeds.example.com/rss")
+
+        assertEquals(listOf("https://feeds.example.com/rss", "http://feeds.example.com/rss"), tried)
+    }
+
+    @Test
+    fun anExplicitPortIsLeftAlone() = runTest {
+        val tried = mutableListOf<String>()
+        val client = HttpClient(MockEngine { tried += it.url.toString(); respondOk() }) { podcastDefaults("Android") }
+
+        client.get("http://localhost:8080/rss")
+
+        assertEquals(listOf("http://localhost:8080/rss"), tried)
     }
 
     private suspend fun sentRequest(platform: String?): HttpRequestData {

@@ -6,6 +6,8 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.UserAgent
+import io.ktor.client.plugins.api.Send
+import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
@@ -13,6 +15,8 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.LoggingConfig
 import io.ktor.http.HttpHeaders
+import io.ktor.http.URLProtocol
+import kotlinx.coroutines.CancellationException
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -46,6 +50,8 @@ fun HttpClientConfig<*>.podcastDefaults(platform: String?) {
         retryOnServerErrors(maxRetries = MAX_RETRIES)
         exponentialDelay()
     }
+    // After the retry, so it runs inside each attempt: a failed https falls back at once instead of being retried.
+    install(HttpsFirst)
     install(Logging) {
         podcastLogging()
     }
@@ -59,6 +65,32 @@ fun HttpClientConfig<*>.podcastDefaults(platform: String?) {
         }
     }
 }
+
+/**
+ * An `http://` address is tried as `https://` first and only sent in clear text if that fails (ADR 0009): many hosts
+ * already serve both, and the rest still work. Addresses with an explicit port are left alone.
+ */
+// ponytail: falls back on connection and TLS failures only, not on an https error status; add that if a host
+// answers 404 over https and 200 over http.
+internal val HttpsFirst = createClientPlugin("HttpsFirst") {
+    on(Send) { request ->
+        val upgradable = request.url.protocol == URLProtocol.HTTP && request.url.port in DEFAULT_PORTS
+        if (!upgradable) return@on proceed(request)
+        request.url.protocol = URLProtocol.HTTPS
+        request.url.port = 0
+        @Suppress("TooGenericExceptionCaught")
+        try {
+            proceed(request)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            request.url.protocol = URLProtocol.HTTP
+            proceed(request)
+        }
+    }
+}
+
+private val DEFAULT_PORTS = setOf(0, URLProtocol.HTTP.defaultPort)
 
 object KtorLogger : Logger {
     override fun log(message: String) {

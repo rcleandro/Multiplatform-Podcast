@@ -15,7 +15,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Podcast">
+        android:theme="@style/Theme.Podcast"
+        android:usesCleartextTraffic="true">
 
         <!-- Off until the app reads the user's telemetry choice (followTelemetryConsent). -->
         <meta-data
