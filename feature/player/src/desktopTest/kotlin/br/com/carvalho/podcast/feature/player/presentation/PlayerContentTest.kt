@@ -50,6 +50,8 @@ class PlayerContentTest {
         const val WIDE = 1200
         const val PHONE = 400
         const val TALL = 900
+        const val SIDEWAYS_WIDTH = 780
+        const val SIDEWAYS_HEIGHT = 360
     }
 
     private fun text(res: StringResource) = runBlocking { getString(res) }
@@ -108,6 +110,27 @@ class PlayerContentTest {
 
         assertTrue(cover.bottom <= play.top, "cover $cover should be above the play button $play")
     }
+
+    @Test
+    fun aPhoneOnItsSideShowsTheWholeCoverAndThePlayButtonWithoutScrolling() =
+        runDesktopComposeUiTest(width = SIDEWAYS_WIDTH, height = SIDEWAYS_HEIGHT) {
+            setContent {
+                PodcastTheme {
+                    PlayerContent(
+                        state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                        actions = PlayerActions(),
+                        artworkModifier = Modifier.testTag("cover"),
+                    )
+                }
+            }
+            val window = onRoot().getBoundsInRoot()
+            val cover = onNodeWithTag("cover").getBoundsInRoot()
+            val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+            assertTrue(cover.right <= play.left, "cover $cover should be left of the play button $play")
+            assertTrue(cover.bottom <= window.bottom, "cover $cover should fit in the window $window")
+            assertTrue(play.bottom <= window.bottom, "play button $play should be in the window $window")
+        }
 
     @Test
     fun thePlayButtonIsSquareWhilePlayingAndRoundWhenPaused() = runComposeUiTest {

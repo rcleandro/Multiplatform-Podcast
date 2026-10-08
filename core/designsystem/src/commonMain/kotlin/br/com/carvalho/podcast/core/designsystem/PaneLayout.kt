@@ -32,6 +32,14 @@ enum class PaneLayout {
 @Composable
 fun currentPaneLayout(): PaneLayout = PaneLayout.from(currentWindowAdaptiveInfo().windowSizeClass)
 
+/** A phone on its side or a low window (under 480 dp of height, 21.2): screens trade height for width. */
+fun isShortWindow(sizeClass: WindowSizeClass): Boolean =
+    !sizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
+
+/** Whether the current window is short; see [isShortWindow]. */
+@Composable
+fun currentWindowIsShort(): Boolean = isShortWindow(currentWindowAdaptiveInfo().windowSizeClass)
+
 /**
  * Takes the whole width but keeps the content within [Sizes.readableWidth], centered: on a phone nothing changes,
  * on a large window a list item or a block of text stops stretching from edge to edge. Applied per item rather

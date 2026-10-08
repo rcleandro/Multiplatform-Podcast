@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
 import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
 import br.com.carvalho.podcast.core.designsystem.PaneLayout
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -108,19 +109,24 @@ fun PlayerContent(
                 onNavigate = actions.onMinimize,
                 title = stringResource(Res.string.now_playing),
             )
-            if (currentPaneLayout() == PaneLayout.EXPANDED) {
-                // A wide window puts the cover beside the rest instead of above it (21.1).
+            val isShort = currentWindowIsShort()
+            if (currentPaneLayout() == PaneLayout.EXPANDED || isShort) {
+                // A wide or a short window puts the cover beside the rest instead of above it (21.1, 21.2), so
+                // the play button is in view without scrolling.
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.xxl),
-                    modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = Spacing.xl, vertical = if (isShort) Spacing.s else Spacing.l),
                 ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f).fillMaxHeight()) {
                         PlayerArtwork(state.currentEpisode, artworkModifier)
                     }
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xl, Alignment.CenterVertically),
+                        // Tighter on a short window, so speed, queue and timer fit under the controls too.
+                        verticalArrangement = Arrangement.spacedBy(if (isShort) Spacing.m else Spacing.xl),
                         modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
                     ) {
                         PlayerInfoAndControls(state, actions)
@@ -191,7 +197,11 @@ private fun PlayerArtwork(episode: Episode?, artworkModifier: Modifier) {
         imageUrl = episode?.imageUrl,
         contentDescription = episode?.title,
         shape = MaterialTheme.shapes.extraLarge,
-        modifier = artworkModifier.widthIn(max = artworkMax).fillMaxWidth().aspectRatio(1f),
+        // Beside the controls the height bounds it too, so a low window shows the whole cover.
+        modifier = artworkModifier
+            .widthIn(max = artworkMax)
+            .fillMaxWidth()
+            .aspectRatio(1f, matchHeightConstraintsFirst = true),
     )
 }
 
