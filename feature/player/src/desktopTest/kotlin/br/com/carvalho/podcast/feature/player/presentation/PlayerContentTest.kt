@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.minimize
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import kotlin.math.abs
 import br.com.carvalho.podcast.core.designsystem.TabletopFold
@@ -54,6 +55,7 @@ class PlayerContentTest {
     private companion object {
         const val WIDE = 1200
         const val PHONE = 400
+        const val NARROW_TABLET = 620
         const val TALL = 900
         const val SIDEWAYS_WIDTH = 780
         const val SIDEWAYS_HEIGHT = 360
@@ -106,6 +108,44 @@ class PlayerContentTest {
         val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
 
         assertTrue(cover.right <= play.left, "cover $cover should be left of the play button $play")
+    }
+
+    @Test
+    fun aTabletHeldUprightPutsTheCoverBesideEveryControl() =
+        runDesktopComposeUiTest(width = NARROW_TABLET, height = TALL) {
+            setContent {
+                PodcastTheme {
+                    PlayerContent(
+                        state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                        actions = PlayerActions(),
+                        artworkModifier = Modifier.testTag("cover"),
+                    )
+                }
+            }
+            val window = onRoot().getBoundsInRoot()
+            val cover = onNodeWithTag("cover").getBoundsInRoot()
+            val previous = onNodeWithContentDescription(text(Res.string.previous)).getBoundsInRoot()
+            val next = onNodeWithContentDescription(text(Res.string.next)).getBoundsInRoot()
+
+            assertTrue(cover.right <= previous.left, "cover $cover should be left of the controls $previous")
+            assertTrue(next.right <= window.right, "next $next is cut off by the window $window")
+        }
+
+    @Test
+    fun aWideWindowCentersTheControlsVertically() = runDesktopComposeUiTest(width = WIDE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(state = PlayerState(currentEpisode = episode("e1"), isPlaying = true), actions = PlayerActions())
+            }
+        }
+        val window = onRoot().getBoundsInRoot()
+        val topBar = onNodeWithContentDescription(text(Res.string.minimize)).getBoundsInRoot()
+        val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+        // Centered in the room under the top bar; the title above weighs a bit more than the row below.
+        val playCenter = (play.top.value + play.bottom.value) / 2
+        val roomCenter = (topBar.bottom.value + window.bottom.value) / 2
+        assertTrue(abs(playCenter - roomCenter) < CENTER_TOLERANCE, "play at $playCenter, room centered at $roomCenter")
     }
 
     @Test

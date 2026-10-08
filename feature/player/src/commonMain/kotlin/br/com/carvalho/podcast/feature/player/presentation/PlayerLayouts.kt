@@ -1,5 +1,9 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -101,6 +105,45 @@ internal fun CoverScreenPlayer(state: PlayerState, actions: PlayerActions) {
             .padding(horizontal = Spacing.l, vertical = Spacing.s),
     ) {
         PlayerInfoAndControls(state, actions)
+    }
+}
+
+/**
+ * The cover on the left and the rest on the right, both centered. The controls always get the width they need, so
+ * none is cut off; on a window too narrow for two equal halves the cover is the one that shrinks.
+ */
+@Composable
+internal fun SideBySidePlayer(state: PlayerState, actions: PlayerActions, artworkModifier: Modifier, isShort: Boolean) {
+    // Five controls with the large play button between them, plus some air.
+    val controlsWidth = 320.dp
+    val spacing = Spacing.xxl
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = Spacing.xl, vertical = if (isShort) Spacing.s else Spacing.l),
+    ) {
+        val detailsWidth = maxOf((maxWidth - spacing) / 2, controlsWidth).coerceAtMost(maxWidth)
+        val height = maxHeight
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(spacing)) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f).fillMaxHeight()) {
+                PlayerArtwork(state.currentEpisode, artworkModifier)
+            }
+            // Centered while it fits, scrolling when it does not.
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                // Tighter on a short window, so speed, queue and timer fit under the controls too.
+                verticalArrangement = Arrangement.spacedBy(
+                    if (isShort) Spacing.m else Spacing.xl,
+                    Alignment.CenterVertically,
+                ),
+                modifier = Modifier
+                    .width(detailsWidth)
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(min = height),
+            ) {
+                PlayerInfoAndControls(state, actions)
+            }
+        }
     }
 }
 

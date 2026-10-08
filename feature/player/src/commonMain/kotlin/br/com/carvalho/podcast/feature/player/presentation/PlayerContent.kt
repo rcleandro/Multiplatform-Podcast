@@ -4,8 +4,6 @@ import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
 import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
 import br.com.carvalho.podcast.core.designsystem.PaneLayout
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.Box
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
@@ -112,28 +110,10 @@ fun PlayerContent(
                 TabletopPlayer(state, actions, fold, artworkModifier)
             } else if (isShort && paneLayout == PaneLayout.COMPACT) {
                 CoverScreenPlayer(state, actions)
-            } else if (paneLayout == PaneLayout.EXPANDED || isShort) {
-                // A wide or a short window puts the cover beside the rest instead of above it (21.1, 21.2), so
-                // the play button is in view without scrolling.
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.xxl),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = Spacing.xl, vertical = if (isShort) Spacing.s else Spacing.l),
-                ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f).fillMaxHeight()) {
-                        PlayerArtwork(state.currentEpisode, artworkModifier)
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        // Tighter on a short window, so speed, queue and timer fit under the controls too.
-                        verticalArrangement = Arrangement.spacedBy(if (isShort) Spacing.m else Spacing.xl),
-                        modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
-                    ) {
-                        PlayerInfoAndControls(state, actions)
-                    }
-                }
+            } else if (paneLayout != PaneLayout.COMPACT || isShort) {
+                // Wider than a phone held upright, or low: the cover beside the rest instead of above it (21.1,
+                // 21.2), so the play button is in view without scrolling.
+                SideBySidePlayer(state, actions, artworkModifier, isShort)
             } else {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
