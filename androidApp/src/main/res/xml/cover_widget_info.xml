@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The player widget sized for a flip phone's cover screen (21.9): the keyguard category is what its panels list
+     apart from the home screen widgets, and the default size fills a panel, with room for the episodes to continue. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_description"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:minWidth="300dp"
+    android:minHeight="116dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="116dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="4"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="keyguard" />

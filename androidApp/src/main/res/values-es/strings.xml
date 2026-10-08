@@ -1,3 +1,4 @@
 <resources>
     <string name="widget_description">Controles del episodio en reproducción y de los que puedes continuar</string>
+    <string name="widget_cover_label">Podcast – pantalla externa</string>
 </resources>
