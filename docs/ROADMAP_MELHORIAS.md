@@ -940,6 +940,10 @@ Razr).
 **Critério de conclusão:** nenhum dado pessoal ou token nos eventos e logs (verificado por teste no catálogo);
 o usuário pode desligar a telemetria.
 
+**Fase 16 concluída (08/10/2026).** Critério conferido: o `AnalyticsEventTest` passa por todos os eventos e nenhum
+leva URL; o `AppLogger` corta URLs de toda mensagem e exceção; o log HTTP sai do release e mascara credenciais. O
+desligar existe e é respeitado antes do primeiro evento (16.4), mas o interruptor só aparece na tela da 18.5.
+
 ---
 
 ## Fase 17 — Gates de qualidade e testes
