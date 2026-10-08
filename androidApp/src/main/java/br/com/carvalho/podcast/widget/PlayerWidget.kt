@@ -124,14 +124,6 @@ class PlayerWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = PlayerWidget()
 }
 
-/**
- * The same widget offered apart for a flip phone's cover screen, filling a panel by default; [PlayerWidget.updateAll]
- * redraws both, since they share the widget class.
- */
-class CoverScreenWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget = PlayerWidget()
-}
-
 /** Loads covers small enough for a widget, through the app's image loader and its cache. */
 private class Artwork(private val context: Context) {
     private val loader = createImageLoader(context)

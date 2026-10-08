@@ -1,5 +1,4 @@
 <resources>
     <string name="app_name">Podcast</string>
     <string name="widget_description">Controls for the episode playing and the ones to continue</string>
-    <string name="widget_cover_label">Podcast – cover screen</string>
 </resources>
