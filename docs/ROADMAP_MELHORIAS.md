@@ -1071,6 +1071,7 @@ dobra.
 | 21.6 iPad e iPhone | Movida para a fase 25 | Em 07/10/2026 o usuário decidiu deixar o que é de iOS para a fase 25 (interface em SwiftUI), onde Split View, Slide Over, Stage Manager e o iPhone deitado são tratados pelas telas nativas: virou a 25.9 | — |
 | 21.7 Desktop e Web | ✅ | Tamanho mínimo de janela, as mesmas faixas ao redimensionar e navegação por teclado entre painéis | P |
 | 21.8 Snapshots por tamanho | ✅ | O `DesignSystemSnapshotTest` e os previews ganham as telas principais em compacto, médio, expandido e postura mesa (qualificadores do Robolectric), gravadas no Linux como na 9.11 | M |
+| 21.9 Widget para a tela externa | 🔎 | Pedido do usuário em 07/10/2026. Primeiro um estudo curto: o que a tela externa do Razr já mostra com a `MediaSession` do Media3 (os controles de mídia do sistema podem bastar) e se os painéis da Motorola aceitam widgets comuns do Android. Depois, se valer, um widget em Jetpack Glance no `androidApp` (episódio atual com capa, play/pause, saltos e talvez "Continuar ouvindo"), que serve também na tela inicial; lê o estado do player pelo `MediaController` e manda os comandos ao serviço. A Flex Window do Galaxy Flip exige marcação própria da Samsung e um aparelho para testar | M |
 
 **Critério de conclusão:** nenhuma tela esticada de ponta a ponta em tablet ou Desktop; o player usável sem rolagem
 no celular deitado e na postura mesa; abrir e fechar um dobrável durante a reprodução não perde nada.
