@@ -1,0 +1,37 @@
+# 18.7: subscribing puts the latest episode in "New", the Episodes tab opens there, and dismissing empties it.
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/new-episodes.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Episódios"
+# Only the latest episode, not the whole archive: one menu, and "Dismiss all" above it.
+- extendedWaitUntil:
+    visible: "Dispensar todos"
+    timeout: 10000
+- assertVisible:
+    text: "Opções do episódio"
+    index: 0
+- assertNotVisible:
+    text: "Opções do episódio"
+    index: 1
+- tapOn: "Opções do episódio"
+- tapOn: "Dispensar"
+- assertVisible: "Nada novo"
+# Still in the library: "All" lists the archive.
+- tapOn: "Todos"
+- assertVisible:
+    text: "Opções do episódio"
+    index: 1

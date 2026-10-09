@@ -55,8 +55,13 @@ class FakePodcastRepository : PodcastRepository {
             PagingData.from(matching.sortedByDescending { it.publishDate })
         }
 
-    override suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode> =
-        episodes.value.filter { it.podcastId == podcastId && it.publishDate >= publishDate }.sortedBy { it.publishDate }
+    override suspend fun dismissNewEpisode(id: String) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false) else it }
+    }
+
+    override suspend fun dismissAllNewEpisodes() {
+        episodes.value = episodes.value.map { it.copy(isNew = false) }
+    }
 
     override fun getDownloadedEpisodes(): Flow<List<Episode>> = episodes.map { list -> list.filter { it.isDownloaded } }
 

@@ -70,3 +70,5 @@ Alternativas consideradas:
 - **Implementação (06/10/2026):** as duas abas e os filtros Todos, Em andamento e Baixados estão no app. Faltam o filtro
   Novos, que depende da 18.7 (guardar a última visita), e abrir em Baixados sem rede (24.15), que depende de detectar
   a rede; até lá, Episódios abre em Todos.
+- **Novos (09/10/2026, 18.7):** o filtro chegou como caixa de entrada, não como "desde a última visita": um episódio
+  fica em Novos até ser tocado, marcado como ouvido ou dispensado. Episódios abre em Novos; sem rede, em Baixados.

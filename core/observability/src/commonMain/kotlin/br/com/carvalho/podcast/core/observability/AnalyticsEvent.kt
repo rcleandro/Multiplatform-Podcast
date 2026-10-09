@@ -44,6 +44,9 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
 
     class SetEpisodeFilter(filter: String) : AnalyticsEvent("set_episode_filter", mapOf("filter" to filter))
 
+    /** An episode, or all of them, taken out of "New" without hearing it (18.7). */
+    class DismissNew(all: Boolean) : AnalyticsEvent(if (all) "dismiss_all_new_episodes" else "dismiss_new_episode")
+
     class DownloadEpisode(episodeId: String) :
         AnalyticsEvent("download_episode_from_detail", mapOf(EPISODE_ID to episodeId))
 

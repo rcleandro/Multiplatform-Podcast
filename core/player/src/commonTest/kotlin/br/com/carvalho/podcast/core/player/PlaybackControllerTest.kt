@@ -276,6 +276,17 @@ class PlaybackControllerTest {
     }
 
     @Test
+    fun aStartedEpisodeLeavesNew() = runTest(dispatcher) {
+        podcastRepository.episodes.value = listOf(first.copy(isNew = true))
+        val controller = controller()
+
+        controller.play(first)
+        runCurrent()
+
+        assertFalse(podcastRepository.episodes.value.single().isNew)
+    }
+
+    @Test
     fun aHeardEpisodeStartsOver() = runTest(dispatcher) {
         podcastRepository.episodes.value = listOf(first.copy(isPlayed = true, playbackPosition = 754_000))
         val controller = controller()

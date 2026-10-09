@@ -107,9 +107,18 @@ class SearchViewModel(
             is SearchIntent.ConfirmDeleteDownload -> deleteDownload(intent.episode.id)
             SearchIntent.DismissDeleteDownload -> _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
             is SearchIntent.SetPlayed -> setPlayed(intent.episode, intent.played)
+            is SearchIntent.DismissNew -> dismissNew(intent.episode)
             is SearchIntent.RequestMarkOlder -> _uiState.update { it.copy(olderMark = intent.mark) }
             SearchIntent.DismissMarkOlder -> _uiState.update { it.copy(olderMark = null) }
             is SearchIntent.ConfirmMarkOlder -> markOlder(intent.mark)
+        }
+    }
+
+    /** Out of "New" without hearing it (18.7): one episode, or all of them when [episode] is null. */
+    private fun dismissNew(episode: Episode?) {
+        analytics.logEvent(AnalyticsEvent.DismissNew(all = episode == null))
+        viewModelScope.launch(dispatchers.io) {
+            if (episode == null) repository.dismissAllNewEpisodes() else repository.dismissNewEpisode(episode.id)
         }
     }
 
@@ -166,7 +175,8 @@ class SearchViewModel(
 
 data class SearchUiState(
     val searchQuery: String = "",
-    val filter: EpisodeListFilter = EpisodeListFilter.ALL,
+    /** "New" first: what arrived and is waiting to be heard (18.7, ADR 0005). */
+    val filter: EpisodeListFilter = EpisodeListFilter.NEW,
     /** Disk space the downloads take, shown with the "Downloaded" filter. */
     val usedBytes: Long = 0,
     val deleteEpisodeConfirmation: Episode? = null,
@@ -188,6 +198,9 @@ sealed interface SearchIntent {
     data class ConfirmDeleteDownload(val episode: Episode) : SearchIntent
     data object DismissDeleteDownload : SearchIntent
     data class SetPlayed(val episode: Episode, val played: Boolean) : SearchIntent
+
+    /** Takes [episode] out of "New", or every episode when null (18.7). */
+    data class DismissNew(val episode: Episode?) : SearchIntent
     data class RequestMarkOlder(val mark: OlderMark) : SearchIntent
     data class ConfirmMarkOlder(val mark: OlderMark) : SearchIntent
     data object DismissMarkOlder : SearchIntent

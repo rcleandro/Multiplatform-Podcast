@@ -15,8 +15,10 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.RemoveFromQueue
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.component.DownloadState
 import br.com.carvalho.podcast.core.designsystem.component.EpisodePlayback
@@ -27,6 +29,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
+import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_new
 import br.com.carvalho.podcast.core.ui.generated.resources.download_cd
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
 import br.com.carvalho.podcast.core.ui.generated.resources.go_to_podcast
@@ -47,6 +50,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.presentation.format.explicitLabel
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -75,6 +79,7 @@ fun EpisodeListItem(
     onRemoveFromQueue: (() -> Unit)? = null,
     onPlayNext: (() -> Unit)? = null,
     onAddToQueue: (() -> Unit)? = null,
+    onDismissNew: (() -> Unit)? = null,
 ) {
     val durationMs = episode.duration * AppConfig.MILLIS_PER_SECOND
     val progress = if (durationMs > 0) episode.playbackPosition.toFloat() / durationMs else 0f
@@ -95,22 +100,21 @@ fun EpisodeListItem(
         } else {
             ItemAction(stringResource(Res.string.play), Icons.Rounded.PlayArrow, onPlayClick)
         },
-        onPlayNext?.let { ItemAction(stringResource(Res.string.play_next), Icons.Rounded.QueuePlayNext, it) },
-        onAddToQueue
-            ?.let { ItemAction(stringResource(Res.string.add_to_queue), Icons.AutoMirrored.Rounded.PlaylistAdd, it) },
+        optionalAction(Res.string.play_next, Icons.Rounded.QueuePlayNext, onPlayNext),
+        optionalAction(Res.string.add_to_queue, Icons.AutoMirrored.Rounded.PlaylistAdd, onAddToQueue),
         downloadState?.let { downloadAction(it, onDownloadClick, onCancelDownloadClick, onDeleteClick) },
         // Played or not, the menu offers the opposite.
-        onMarkPlayed?.takeIf { !episode.isPlayed }
-            ?.let { ItemAction(stringResource(Res.string.mark_as_played), Icons.Rounded.Done, it) },
-        onMarkUnplayed?.takeIf { episode.isPlayed }
-            ?.let { ItemAction(stringResource(Res.string.mark_as_unplayed), Icons.Rounded.RemoveCircleOutline, it) },
-        onMarkOlderPlayed
-            ?.let { ItemAction(stringResource(Res.string.mark_older_as_played), Icons.Rounded.DoneAll, it) },
-        onMarkOlderUnplayed
-            ?.let { ItemAction(stringResource(Res.string.mark_older_as_unplayed), Icons.Rounded.RemoveDone, it) },
-        onGoToPodcast?.let { ItemAction(stringResource(Res.string.go_to_podcast), Icons.Rounded.Podcasts, it) },
-        onRemoveFromQueue
-            ?.let { ItemAction(stringResource(Res.string.remove_from_queue), Icons.Rounded.RemoveFromQueue, it) },
+        optionalAction(Res.string.mark_as_played, Icons.Rounded.Done, onMarkPlayed.takeIf { !episode.isPlayed }),
+        optionalAction(
+            Res.string.mark_as_unplayed,
+            Icons.Rounded.RemoveCircleOutline,
+            onMarkUnplayed.takeIf { episode.isPlayed },
+        ),
+        optionalAction(Res.string.mark_older_as_played, Icons.Rounded.DoneAll, onMarkOlderPlayed),
+        optionalAction(Res.string.mark_older_as_unplayed, Icons.Rounded.RemoveDone, onMarkOlderUnplayed),
+        optionalAction(Res.string.dismiss_new, Icons.Rounded.VisibilityOff, onDismissNew),
+        optionalAction(Res.string.go_to_podcast, Icons.Rounded.Podcasts, onGoToPodcast),
+        optionalAction(Res.string.remove_from_queue, Icons.Rounded.RemoveFromQueue, onRemoveFromQueue),
     )
 
     EpisodeRow(
@@ -130,6 +134,11 @@ fun EpisodeListItem(
         modifier = modifier,
     )
 }
+
+/** An action the screen may leave out: none when it passes no [onClick]. */
+@Composable
+private fun optionalAction(label: StringResource, icon: ImageVector, onClick: (() -> Unit)?): ItemAction? =
+    onClick?.let { ItemAction(stringResource(label), icon, it) }
 
 /** The one download action that makes sense in [state]; the episode screen shows it as a button. */
 @Composable

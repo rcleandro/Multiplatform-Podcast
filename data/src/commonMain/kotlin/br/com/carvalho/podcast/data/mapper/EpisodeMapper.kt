@@ -19,6 +19,7 @@ fun EpisodeEntity.toDomain(): Episode = Episode(
     fileSize = fileSize,
     link = link,
     explicit = explicit,
+    isNew = isNew,
 )
 
 fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
@@ -37,4 +38,5 @@ fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
     fileSize = fileSize,
     link = link,
     explicit = explicit,
+    isNew = isNew,
 )

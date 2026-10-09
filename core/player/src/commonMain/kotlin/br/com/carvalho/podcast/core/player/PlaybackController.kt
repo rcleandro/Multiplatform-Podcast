@@ -90,6 +90,8 @@ class PlaybackController(
             )
         }
         lastSavedPosition = null
+        // Started: no longer waiting in "New" (18.7).
+        runCatching { podcastRepository.dismissNewEpisode(episode.id) }
         withContext(dispatchers.main) {
             engine.load(playable, positionMs = start, playWhenReady = true)
             engine.setSpeed(_playerState.value.speed)

@@ -244,4 +244,9 @@
     <string name="settings_show_explicit">Mostrar conteúdo explícito</string>
     <string name="settings_show_explicit_description">Desligado, os podcasts marcados como explícitos não aparecem na busca, nos populares e nas sugestões.</string>
     <string name="explicit">Explícito</string>
+    <string name="filter_new">Novos</string>
+    <string name="new_empty_title">Nada novo</string>
+    <string name="new_empty_message">Os episódios que chegarem nos seus podcasts aparecem aqui até você ouvir ou dispensar.</string>
+    <string name="dismiss_new">Dispensar</string>
+    <string name="dismiss_all_new">Dispensar todos</string>
 </resources>

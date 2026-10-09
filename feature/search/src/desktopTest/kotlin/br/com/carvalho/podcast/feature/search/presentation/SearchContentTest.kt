@@ -1,5 +1,11 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
+import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_title
+import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_all_new
+import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_new
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_new
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
@@ -173,6 +179,54 @@ class SearchContentTest {
         // The row's "⋮" sits at the end of the readable width, not at the window's edge.
         val readableEnd = (window.right + Sizes.readableWidth) / 2
         assertTrue(options.right <= readableEnd, "row ends at ${options.right}, past $readableEnd")
+    }
+
+    @Test
+    fun newEpisodesAreDismissedOneByOneOrAllAtOnce() = runComposeUiTest {
+        val new = Episode(
+            id = "e1", podcastId = "p", title = "New episode", description = null, audioUrl = "a", imageUrl = null,
+            duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null,
+            isNew = true,
+        )
+        val dismissed = mutableListOf<String?>()
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(),
+                    results = flowOf(PagingData.from(listOf(new))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(onDismissNew = { dismissed += it?.id }),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("New episode"))
+        onNode(hasText(text(Res.string.filter_new)) and isSelected()).assertExists()
+
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.dismiss_new)).performClick()
+        onNodeWithText(text(Res.string.dismiss_all_new)).performClick()
+
+        assertEquals(listOf("e1", null), dismissed)
+    }
+
+    @Test
+    fun anEmptyNewSaysWhatWillShowUpThere() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(),
+                    results = Pager(PagingConfig(pageSize = 10)) { ListPagingSource(emptyList<Episode>()) }.flow
+                        .collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(),
+                )
+            }
+        }
+
+        waitUntilExactlyOneExists(hasText(text(Res.string.new_empty_title)))
+        onAllNodesWithText(text(Res.string.dismiss_all_new)).assertCountEquals(0)
     }
 
     @Test

@@ -18,5 +18,7 @@ data class Episode(
     /** The episode's page on the podcast's site, when the feed gives one (18.4). */
     val link: String? = null,
     /** The feed marks this episode as explicit (`itunes:explicit` on the item, 18.5). */
-    val explicit: Boolean = false
+    val explicit: Boolean = false,
+    /** In "New" until heard or dismissed (18.7). */
+    val isNew: Boolean = false
 )

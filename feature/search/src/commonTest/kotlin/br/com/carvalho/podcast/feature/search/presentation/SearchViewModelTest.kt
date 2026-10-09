@@ -65,10 +65,10 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `with network the episodes start on all of them`() = runTest(testDispatcher) {
+    fun `with network the episodes start on the new ones`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
-        assertEquals(EpisodeListFilter.ALL, viewModel.uiState.value.filter)
+        assertEquals(EpisodeListFilter.NEW, viewModel.uiState.value.filter)
     }
 
     @Test
@@ -269,5 +269,20 @@ class SearchViewModelTest {
             assertEquals(UiMessage(Res.string.queued_last), awaitItem())
         }
         assertEquals(listOf("queued", "chosen"), audioPlayer.playerState.value.queue.map { it.id })
+    }
+
+    @Test
+    fun `new episodes are dismissed one by one or all at once`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(
+            episode("one", publishDate = 0).copy(isNew = true),
+            episode("two", publishDate = 0).copy(isNew = true),
+        )
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(SearchIntent.DismissNew(repository.episodes.value.first()))
+        assertEquals(listOf(false, true), repository.episodes.value.map { it.isNew })
+
+        viewModel.onIntent(SearchIntent.DismissNew(null))
+        assertEquals(listOf(false, false), repository.episodes.value.map { it.isNew })
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.DownloadDone
+import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarState
 import androidx.compose.runtime.Composable
@@ -60,6 +62,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download_confirmation
+import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_all_new
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
@@ -67,8 +70,11 @@ import br.com.carvalho.podcast.core.ui.generated.resources.error_loading_results
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_new
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_title
+import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.no_downloads
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_title
@@ -129,6 +135,7 @@ fun SearchScreen(
             onConfirmRemoveDownload = { viewModel.onIntent(SearchIntent.ConfirmDeleteDownload(it)) },
             onDismissRemoveDownload = { viewModel.onIntent(SearchIntent.DismissDeleteDownload) },
             onMarkPlayed = { viewModel.onIntent(SearchIntent.SetPlayed(it, played = true)) },
+            onDismissNew = { viewModel.onIntent(SearchIntent.DismissNew(it)) },
             onMarkUnplayed = { viewModel.onIntent(SearchIntent.SetPlayed(it, played = false)) },
             onRequestMarkOlder = { viewModel.onIntent(SearchIntent.RequestMarkOlder(it)) },
             onConfirmMarkOlder = { viewModel.onIntent(SearchIntent.ConfirmMarkOlder(it)) },
@@ -152,6 +159,8 @@ data class SearchActions(
     val onConfirmRemoveDownload: (Episode) -> Unit = {},
     val onDismissRemoveDownload: () -> Unit = {},
     val onMarkPlayed: (Episode) -> Unit = {},
+    /** Takes an episode out of "New", or all of them with null (18.7). */
+    val onDismissNew: (Episode?) -> Unit = {},
     val onMarkUnplayed: (Episode) -> Unit = {},
     val onRequestMarkOlder: (OlderMark) -> Unit = {},
     val onConfirmMarkOlder: (OlderMark) -> Unit = {},
@@ -267,9 +276,10 @@ private fun Modifier.collapsingWith(state: TopAppBarState): Modifier =
 
 // "Downloaded" only where downloads survive (not on the Web).
 private val filters = listOfNotNull(
-    EpisodeListFilter.ALL to Res.string.filter_all,
+    EpisodeListFilter.NEW to Res.string.filter_new,
     EpisodeListFilter.IN_PROGRESS to Res.string.filter_in_progress,
     (EpisodeListFilter.DOWNLOADED to Res.string.filter_downloaded).takeIf { supportsDownloads },
+    EpisodeListFilter.ALL to Res.string.filter_all,
 )
 
 /** Each filter says why it is empty; a search that finds nothing says so whatever the filter. */
@@ -280,6 +290,12 @@ private fun EmptyFilter(state: SearchUiState, modifier: Modifier) {
             icon = Icons.Rounded.Search,
             title = stringResource(Res.string.search_empty_title),
             message = stringResource(Res.string.search_empty_message),
+            modifier = modifier,
+        )
+        state.filter == EpisodeListFilter.NEW -> EmptyState(
+            icon = Icons.Rounded.Inbox,
+            title = stringResource(Res.string.new_empty_title),
+            message = stringResource(Res.string.new_empty_message),
             modifier = modifier,
         )
         state.filter == EpisodeListFilter.IN_PROGRESS -> EmptyState(
@@ -312,6 +328,15 @@ private fun SearchResults(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
     ) {
+        if (state.filter == EpisodeListFilter.NEW && results.itemCount > 0) {
+            item(key = DISMISS_ALL_KEY) {
+                Box(Modifier.readableWidth().padding(horizontal = Spacing.s), contentAlignment = Alignment.CenterEnd) {
+                    TextButton(onClick = { actions.onDismissNew(null) }) {
+                        Text(stringResource(Res.string.dismiss_all_new))
+                    }
+                }
+            }
+        }
         if (state.filter == EpisodeListFilter.DOWNLOADED) {
             item {
                 Text(
@@ -409,6 +434,7 @@ private fun EpisodeRowAt(
             onCancelDownloadClick = { actions.onCancelDownload(episode) },
             onDeleteClick = { actions.onRemoveDownload(episode) },
             onMarkPlayed = { actions.onMarkPlayed(episode) },
+            onDismissNew = { actions.onDismissNew(episode) }.takeIf { episode.isNew },
             onMarkUnplayed = { actions.onMarkUnplayed(episode) },
             onMarkOlderPlayed = { actions.onRequestMarkOlder(OlderMark(episode, played = true)) },
             onMarkOlderUnplayed = { actions.onRequestMarkOlder(OlderMark(episode, played = false)) },
@@ -416,3 +442,5 @@ private fun EpisodeRowAt(
         )
     }
 }
+
+private const val DISMISS_ALL_KEY = "dismiss-all-new"

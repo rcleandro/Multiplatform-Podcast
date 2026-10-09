@@ -245,4 +245,9 @@
     <string name="settings_show_explicit">Show explicit content</string>
     <string name="settings_show_explicit_description">When off, podcasts marked as explicit stay out of search, the charts and the suggestions.</string>
     <string name="explicit">Explicit</string>
+    <string name="filter_new">New</string>
+    <string name="new_empty_title">Nothing new</string>
+    <string name="new_empty_message">Episodes that arrive in your podcasts show up here until you hear or dismiss them.</string>
+    <string name="dismiss_new">Dismiss</string>
+    <string name="dismiss_all_new">Dismiss all</string>
 </resources>

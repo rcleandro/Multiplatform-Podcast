@@ -70,9 +70,6 @@ class PodcastRepositoryImpl(
             )
         }
 
-    override suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode> =
-        episodeDao.getSince(podcastId, publishDate).map { it.toDomain() }
-
     override fun searchEpisodes(query: String): Flow<List<Episode>> {
         return episodeDao.search(query).map { entities ->
             entities.map { it.toDomain() }
@@ -85,6 +82,7 @@ class PodcastRepositoryImpl(
                 query.orEmpty(),
                 onlyInProgress = filter == EpisodeListFilter.IN_PROGRESS,
                 onlyDownloaded = filter == EpisodeListFilter.DOWNLOADED,
+                onlyNew = filter == EpisodeListFilter.NEW,
             )
         }
 
@@ -120,6 +118,10 @@ class PodcastRepositoryImpl(
     override suspend fun markEpisodeAsPlayed(id: String) {
         episodeDao.updatePlayback(id, true, 0L)
     }
+
+    override suspend fun dismissNewEpisode(id: String) = episodeDao.dismissNew(id)
+
+    override suspend fun dismissAllNewEpisodes() = episodeDao.dismissAllNew()
 
     override suspend fun markEpisodeAsUnplayed(id: String) {
         episodeDao.updatePlayback(id, false, 0L)

@@ -41,4 +41,6 @@ data class EpisodeEntity(
     val link: String? = null,
     /** `itunes:explicit` on the item, added in version 11 (18.5). */
     @ColumnInfo(defaultValue = "0") val explicit: Boolean = false,
+    /** In "New" until heard or dismissed (18.7), added in version 12; the feed never rewrites it. */
+    @ColumnInfo(defaultValue = "0") val isNew: Boolean = false,
 )

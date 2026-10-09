@@ -25,8 +25,6 @@ interface PodcastRepository {
     fun getLatestUnplayedEpisode(podcastId: String): Flow<Episode?>
     fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>>
 
-    /** The podcast's episodes published at or after [publishDate], oldest first: what plays after one of them. */
-    suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode>
     fun getDownloadedEpisodes(): Flow<List<Episode>>
     fun getUnplayedEpisodes(): Flow<List<Episode>>
 
@@ -40,6 +38,11 @@ interface PodcastRepository {
     ): Flow<PagingData<Episode>>
     suspend fun updateEpisodeProgress(id: String, progress: Long)
     suspend fun markEpisodeAsPlayed(id: String)
+
+    /** Takes an episode out of "New" (18.7): dismissed, or started. */
+    suspend fun dismissNewEpisode(id: String)
+
+    suspend fun dismissAllNewEpisodes()
 
     /** Back to not played, from the start. */
     suspend fun markEpisodeAsUnplayed(id: String)

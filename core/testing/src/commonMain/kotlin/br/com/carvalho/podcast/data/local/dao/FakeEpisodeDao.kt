@@ -25,11 +25,22 @@ class FakeEpisodeDao : EpisodeDao {
         query: String,
         onlyInProgress: Boolean,
         onlyDownloaded: Boolean,
+        onlyNew: Boolean,
     ): PagingSource<Int, EpisodeEntity> =
         throw NotImplementedError("Paging is tested against the real database")
 
-    override suspend fun getSince(podcastId: String, publishDate: Long): List<EpisodeEntity> =
-        episodes.value.filter { it.podcastId == podcastId && it.publishDate >= publishDate }.sortedBy { it.publishDate }
+    override suspend fun idsOf(podcastId: String): List<String> =
+        episodes.value.filter { it.podcastId == podcastId }.map { it.id }
+
+    override suspend fun markNew(ids: List<String>) = setNew(ids.toSet(), true)
+
+    override suspend fun dismissNew(id: String) = setNew(setOf(id), false)
+
+    override suspend fun dismissAllNew() = setNew(episodes.value.map { it.id }.toSet(), false)
+
+    private fun setNew(ids: Set<String>, new: Boolean) {
+        episodes.value = episodes.value.map { if (it.id in ids) it.copy(isNew = new) else it }
+    }
 
     override suspend fun getById(id: String): EpisodeEntity? = episodes.value.find { it.id == id }
 
@@ -79,7 +90,11 @@ class FakeEpisodeDao : EpisodeDao {
 
     override suspend fun updatePlayback(id: String, played: Boolean, position: Long) {
         episodes.value = episodes.value.map {
-            if (it.id == id) it.copy(isPlayed = played, playbackPosition = position) else it
+            if (it.id == id) {
+                it.copy(isPlayed = played, playbackPosition = position, isNew = it.isNew && !played)
+            } else {
+                it
+            }
         }
     }
 
@@ -128,7 +143,7 @@ class FakeEpisodeDao : EpisodeDao {
 
     override suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long) {
         episodes.value = episodes.value.map {
-            if (it.podcastId == podcastId && it.publishDate <= publishDate) it.copy(isPlayed = true) else it
+            if (it.podcastId == podcastId && it.publishDate <= publishDate) it.copy(isPlayed = true, isNew = false) else it
         }
     }
 

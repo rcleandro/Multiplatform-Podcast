@@ -362,6 +362,45 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `subscribing puts only the latest episode in New and a refresh adds what arrived`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = podcastEntity.toDomain()
+        val old = episodeEntity.copy(id = "old", publishDate = 1L).toDomain()
+        val latest = episodeEntity.copy(id = "latest", publishDate = 2L).toDomain()
+
+        repository.saveFeed(podcast, listOf(old, latest))
+        assertEquals(listOf("latest"), newIds())
+
+        val arrived = episodeEntity.copy(id = "arrived", publishDate = 3L).toDomain()
+        repository.saveFeed(podcast, listOf(old, latest, arrived))
+        assertEquals(listOf("arrived", "latest"), newIds())
+
+        // Played, it leaves New; dismissed too; "Dismiss all" empties it.
+        repository.markEpisodeAsPlayed("latest")
+        assertEquals(listOf("arrived"), newIds())
+        repository.dismissAllNewEpisodes()
+        assertEquals(emptyList(), newIds())
+        // A refresh that brings nothing new changes nothing.
+        repository.saveFeed(podcast, listOf(old, latest, arrived))
+        assertEquals(emptyList(), newIds())
+    }
+
+    @Test
+    fun `marking older episodes as played takes them out of New`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(listOf(episodeEntity.copy(id = "e1", publishDate = 1L, isNew = true)))
+
+        repository.markOlderEpisodesAsPlayed(podcastId, publishDate = 1L)
+        repository.markOlderEpisodesAsUnplayed(podcastId, publishDate = 1L)
+
+        assertEquals(emptyList(), newIds())
+    }
+
+    private suspend fun newIds() =
+        repository.searchEpisodesPaged(null, EpisodeListFilter.NEW).asSnapshot().map { it.id }
+
+    @Test
     fun `the episodes tab filters started and downloaded episodes`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
