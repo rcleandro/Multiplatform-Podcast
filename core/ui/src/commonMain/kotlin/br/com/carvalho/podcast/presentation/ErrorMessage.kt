@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.error_no_connection
 import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
 import br.com.carvalho.podcast.core.ui.generated.resources.error_server
 import br.com.carvalho.podcast.core.ui.generated.resources.error_storage_full
+import br.com.carvalho.podcast.core.ui.generated.resources.error_storage_limit
 import org.jetbrains.compose.resources.StringResource
 
 /** What to tell the user about [this] failure; [fallback] names the action that failed when the cause says nothing. */
@@ -18,5 +19,6 @@ fun Throwable.toMessage(fallback: StringResource): StringResource = when (this) 
     AppError.InvalidUrl -> Res.string.error_invalid_url
     AppError.AlreadyExists -> Res.string.error_podcast_exists
     AppError.StorageFull -> Res.string.error_storage_full
+    AppError.StorageLimit -> Res.string.error_storage_limit
     else -> fallback
 }

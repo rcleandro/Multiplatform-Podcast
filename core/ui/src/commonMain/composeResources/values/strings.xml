@@ -193,4 +193,9 @@
     <string name="settings_privacy">Privacy</string>
     <string name="settings_telemetry">Send usage and crash reports</string>
     <string name="settings_telemetry_description">They never include feed addresses, titles or searches, and help find and fix problems.</string>
+    <string name="error_storage_limit">The downloads already take the space set in Settings. Delete some, or raise the limit.</string>
+    <string name="settings_wifi_only">Download only on Wi-Fi</string>
+    <string name="settings_wifi_only_description">On mobile data, downloads wait for a Wi-Fi network.</string>
+    <string name="settings_storage_limit">Space for downloads</string>
+    <string name="settings_no_limit">No limit</string>
 </resources>

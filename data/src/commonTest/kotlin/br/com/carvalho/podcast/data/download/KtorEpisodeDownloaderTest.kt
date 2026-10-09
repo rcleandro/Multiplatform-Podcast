@@ -210,6 +210,33 @@ class KtorEpisodeDownloaderTest {
     }
 
     @Test
+    fun `a download over the limit set in Settings does not start and says why`() = runTest(testDispatcher) {
+        var requests = 0
+        val downloader = KtorEpisodeDownloader(
+            HttpClient(MockEngine { requests++; respondOk() }), episodeDao, AppDirectories(fileSystem, baseDir),
+            testDispatcher, storageLimitBytes = { CHUNK.toLong() },
+        )
+        fileSystem.createDirectories(baseDir / "downloads")
+        fileSystem.write(baseDir / "downloads" / "e0.mp3") { write(ByteArray(CHUNK)) }
+
+        downloader.download(sampleEpisode)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(DownloadStatus.Failed(AppError.StorageLimit), downloader.activeDownloads.value[sampleEpisode.id])
+        assertEquals(0, requests)
+    }
+
+    @Test
+    fun `under the limit a download goes ahead`() = runTest(testDispatcher) {
+        val downloader = KtorEpisodeDownloader(
+            HttpClient(MockEngine { respondOk() }), episodeDao, AppDirectories(fileSystem, baseDir),
+            testDispatcher, storageLimitBytes = { CHUNK * 2L },
+        )
+
+        assertTrue(downloader.admits(sampleEpisode.id))
+    }
+
+    @Test
     fun `used space is the size of the files in the downloads folder`() = runTest(testDispatcher) {
         val downloader = createDownloader(MockEngine { respondOk() })
         assertEquals(0, downloader.usedBytes())

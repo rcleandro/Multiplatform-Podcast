@@ -60,7 +60,9 @@ class KtorEpisodeDownloader(
     private val httpClient: HttpClient,
     private val episodeDao: EpisodeDao,
     private val directories: AppDirectories,
-    ioDispatcher: CoroutineDispatcher = Dispatchers.Default
+    ioDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    /** The space the downloads may take (Settings, 18.5); null for no limit. */
+    private val storageLimitBytes: () -> Long? = { null },
 ) : EpisodeDownloader {
     private val fileSystem = directories.fileSystem
 
@@ -73,6 +75,7 @@ class KtorEpisodeDownloader(
     private val downloadJobs = MutableStateFlow<Map<String, Job>>(emptyMap())
 
     override suspend fun download(episode: Episode) {
+        if (!admits(episode.id)) return
         // Undispatched: the job is registered before download() returns, so an immediate cancel() finds it.
         scope.launch(start = CoroutineStart.UNDISPATCHED) { transfer(episode.id, episode.audioUrl) }
     }
@@ -136,6 +139,17 @@ class KtorEpisodeDownloader(
             fileSystem.delete(partPath, mustExist = false)
             downloadJobs.update { jobs -> if (jobs[episodeId] === self) jobs - episodeId else jobs }
         }
+    }
+
+    /**
+     * Whether a new download fits under the limit set in Settings; when not, the episode shows the failure and why.
+     * Every platform's downloader asks before starting one.
+     */
+    suspend fun admits(episodeId: String): Boolean {
+        val limit = storageLimitBytes()
+        val fits = limit == null || usedBytes() < limit
+        if (!fits) updateStatus(episodeId, DownloadStatus.Failed(AppError.StorageLimit))
+        return fits
     }
 
     /** Shows the episode as waiting while a platform scheduler holds it (no network yet, for instance). */

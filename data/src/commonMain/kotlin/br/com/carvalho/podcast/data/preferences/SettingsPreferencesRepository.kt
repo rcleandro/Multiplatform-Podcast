@@ -13,6 +13,8 @@ private const val LIBRARY_LAYOUT = "library_layout"
 private const val LIBRARY_SORT = "library_sort"
 private const val TELEMETRY_ENABLED = "telemetry_enabled"
 private const val THEME_MODE = "theme_mode"
+private const val WIFI_ONLY_DOWNLOADS = "wifi_only_downloads"
+private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
@@ -33,6 +35,22 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setLibrarySort(sort: LibrarySort) {
         settings.putString(LIBRARY_SORT, sort.name)
         this.sort.value = sort
+    }
+
+    private val wifiOnly = MutableStateFlow(settings.getBoolean(WIFI_ONLY_DOWNLOADS, defaultValue = false))
+    override val wifiOnlyDownloads: StateFlow<Boolean> = wifiOnly.asStateFlow()
+
+    override fun setWifiOnlyDownloads(enabled: Boolean) {
+        settings.putBoolean(WIFI_ONLY_DOWNLOADS, enabled)
+        wifiOnly.value = enabled
+    }
+
+    private val downloadLimit = MutableStateFlow(settings.getLongOrNull(DOWNLOAD_LIMIT_BYTES))
+    override val downloadLimitBytes: StateFlow<Long?> = downloadLimit.asStateFlow()
+
+    override fun setDownloadLimitBytes(bytes: Long?) {
+        if (bytes == null) settings.remove(DOWNLOAD_LIMIT_BYTES) else settings.putLong(DOWNLOAD_LIMIT_BYTES, bytes)
+        downloadLimit.value = bytes
     }
 
     private val theme = MutableStateFlow(settings.enumOrDefault(THEME_MODE, ThemeMode.SYSTEM))

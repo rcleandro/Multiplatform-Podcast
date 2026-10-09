@@ -23,7 +23,7 @@ class SettingsSnapshotTest {
     fun settings() {
         compose.setContent {
             PodcastTheme(darkTheme = true) {
-                SettingsContent(SettingsUiState(usedBytes = 52_428_800), onBack = {}, onThemeChange = {}, onTelemetryChange = {})
+                SettingsContent(SettingsUiState(usedBytes = 52_428_800, wifiOnlyDownloads = true), onBack = {}, onIntent = {})
             }
         }
         compose.onRoot().captureRoboImage("snapshots/settings.png")

@@ -18,6 +18,18 @@ class FakePreferencesRepository : PreferencesRepository {
         librarySort.value = sort
     }
 
+    override val wifiOnlyDownloads = MutableStateFlow(false)
+
+    override fun setWifiOnlyDownloads(enabled: Boolean) {
+        wifiOnlyDownloads.value = enabled
+    }
+
+    override val downloadLimitBytes = MutableStateFlow<Long?>(null)
+
+    override fun setDownloadLimitBytes(bytes: Long?) {
+        downloadLimitBytes.value = bytes
+    }
+
     override val themeMode = MutableStateFlow(ThemeMode.SYSTEM)
 
     override fun setThemeMode(mode: ThemeMode) {

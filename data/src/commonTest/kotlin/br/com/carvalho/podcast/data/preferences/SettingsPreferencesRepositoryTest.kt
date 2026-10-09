@@ -7,6 +7,7 @@ import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SettingsPreferencesRepositoryTest {
@@ -52,6 +53,21 @@ class SettingsPreferencesRepositoryTest {
     }
 
     @Test
+    fun downloadsUseAnyNetworkWithoutLimitUntilChosen() {
+        val fresh = SettingsPreferencesRepository(settings)
+        assertFalse(fresh.wifiOnlyDownloads.value)
+        assertNull(fresh.downloadLimitBytes.value)
+
+        fresh.setWifiOnlyDownloads(true)
+        fresh.setDownloadLimitBytes(LIMIT)
+        assertTrue(SettingsPreferencesRepository(settings).wifiOnlyDownloads.value)
+        assertEquals(LIMIT, SettingsPreferencesRepository(settings).downloadLimitBytes.value)
+
+        SettingsPreferencesRepository(settings).setDownloadLimitBytes(null)
+        assertNull(SettingsPreferencesRepository(settings).downloadLimitBytes.value)
+    }
+
+    @Test
     fun telemetryStartsOnAndTurningItOffIsKept() {
         assertTrue(SettingsPreferencesRepository(settings).telemetryEnabled.value)
 
@@ -65,5 +81,9 @@ class SettingsPreferencesRepositoryTest {
         settings.putString("library_layout", "MOSAIC")
 
         assertEquals(LibraryLayout.GRID, SettingsPreferencesRepository(settings).libraryLayout.value)
+    }
+
+    private companion object {
+        const val LIMIT = 5_368_709_120L
     }
 }

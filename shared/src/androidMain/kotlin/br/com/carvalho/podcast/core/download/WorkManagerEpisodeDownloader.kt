@@ -39,12 +39,15 @@ private fun workName(episodeId: String) = "download-$episodeId"
 class WorkManagerEpisodeDownloader(
     private val downloader: KtorEpisodeDownloader,
     private val workManager: WorkManager,
+    /** "Download only on Wi-Fi" in Settings (18.5): the work waits for a network that is not metered. */
+    private val wifiOnly: () -> Boolean = { false },
 ) : EpisodeDownloader by downloader {
 
     override suspend fun download(episode: Episode) {
+        if (!downloader.admits(episode.id)) return
+        val network = if (wifiOnly()) NetworkType.UNMETERED else NetworkType.CONNECTED
         val request = OneTimeWorkRequestBuilder<DownloadWorker>()
-            // ponytail: any network; the Wi-Fi only preference comes with the Settings screen (18.5).
-            .setConstraints(Constraints(requiredNetworkType = NetworkType.CONNECTED))
+            .setConstraints(Constraints(requiredNetworkType = network))
             .setInputData(
                 workDataOf(KEY_EPISODE_ID to episode.id, KEY_AUDIO_URL to episode.audioUrl, KEY_TITLE to episode.title)
             )

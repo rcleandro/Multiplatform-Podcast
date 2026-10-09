@@ -1,16 +1,22 @@
 package br.com.carvalho.podcast.feature.settings.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +30,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -38,12 +47,17 @@ import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_use
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_appearance
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_downloads
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_storage_limit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_dark
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_light
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_system
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only_description
+import br.com.carvalho.podcast.core.util.canLimitDownloadsToWifi
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.presentation.format.storageSize
 import br.com.carvalho.podcast.presentation.format.text
@@ -54,13 +68,14 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsState()
-    SettingsContent(
-        state = state,
-        onBack = onBack,
-        onThemeChange = { viewModel.onIntent(SettingsIntent.SetTheme(it)) },
-        onTelemetryChange = { viewModel.onIntent(SettingsIntent.SetTelemetry(it)) },
-    )
+    SettingsContent(state = state, onBack = onBack, onIntent = viewModel::onIntent)
 }
+
+private const val GIGABYTE = 1024L * 1024 * 1024
+
+/** The download space choices, from none to plenty; null is no limit. */
+@Suppress("MagicNumber") // the gigabytes are the choices themselves
+private val DOWNLOAD_LIMITS: List<Long?> = listOf(null) + listOf(1, 2, 5, 10, 20).map { it * GIGABYTE }
 
 private val THEME_LABELS: List<Pair<ThemeMode, StringResource>> = listOf(
     ThemeMode.SYSTEM to Res.string.settings_theme_system,
@@ -73,8 +88,7 @@ private val THEME_LABELS: List<Pair<ThemeMode, StringResource>> = listOf(
 fun SettingsContent(
     state: SettingsUiState,
     onBack: () -> Unit,
-    onThemeChange: (ThemeMode) -> Unit,
-    onTelemetryChange: (Boolean) -> Unit,
+    onIntent: (SettingsIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -103,24 +117,45 @@ fun SettingsContent(
                     ChoiceRow(
                         stringResource(label),
                         selected = state.themeMode == mode,
-                        onClick = { onThemeChange(mode) }
+                        onClick = { onIntent(SettingsIntent.SetTheme(mode)) }
                     )
                 }
             }
-            state.usedBytes?.let { bytes ->
-                item { Section(stringResource(Res.string.settings_downloads)) }
-                item {
-                    Text(
-                        stringResource(Res.string.downloads_storage_used, storageSize(bytes).text()),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.readableWidth().padding(vertical = Spacing.s),
-                    )
-                }
-            }
+            state.usedBytes?.let { downloadSettings(it, state, onIntent) }
             item { Section(stringResource(Res.string.settings_privacy)) }
-            item { TelemetryRow(state.telemetryEnabled, onTelemetryChange) }
+            item {
+                SwitchRow(
+                    title = stringResource(Res.string.settings_telemetry),
+                    description = stringResource(Res.string.settings_telemetry_description),
+                    checked = state.telemetryEnabled,
+                    onChange = { onIntent(SettingsIntent.SetTelemetry(it)) },
+                )
+            }
         }
     }
+}
+
+/** Where there are downloads: the space they take, Wi-Fi only on phones and tablets, and their limit (18.5). */
+private fun LazyListScope.downloadSettings(bytes: Long, state: SettingsUiState, onIntent: (SettingsIntent) -> Unit) {
+    item { Section(stringResource(Res.string.settings_downloads)) }
+    item {
+        Text(
+            stringResource(Res.string.downloads_storage_used, storageSize(bytes).text()),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.readableWidth().padding(vertical = Spacing.s),
+        )
+    }
+    if (canLimitDownloadsToWifi) {
+        item {
+            SwitchRow(
+                title = stringResource(Res.string.settings_wifi_only),
+                description = stringResource(Res.string.settings_wifi_only_description),
+                checked = state.wifiOnlyDownloads,
+                onChange = { onIntent(SettingsIntent.SetWifiOnly(it)) },
+            )
+        }
+    }
+    item { LimitRow(state.downloadLimitBytes) { onIntent(SettingsIntent.SetDownloadLimit(it)) } }
 }
 
 @Composable
@@ -143,23 +178,57 @@ private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun TelemetryRow(enabled: Boolean, onChange: (Boolean) -> Unit) {
+private fun SwitchRow(title: String, description: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         modifier = Modifier
             .readableWidth()
-            .toggleable(value = enabled, onValueChange = onChange, role = Role.Switch)
+            .toggleable(value = checked, onValueChange = onChange, role = Role.Switch)
             .padding(vertical = Spacing.s),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs), modifier = Modifier.weight(1f)) {
-            Text(stringResource(Res.string.settings_telemetry), style = MaterialTheme.typography.bodyLarge)
+            Text(title, style = MaterialTheme.typography.bodyLarge)
             Text(
-                stringResource(Res.string.settings_telemetry_description),
+                description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Switch(checked = enabled, onCheckedChange = null)
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
+
+/** The space the downloads may take: the current choice, and the others in a menu. */
+@Composable
+private fun LimitRow(limit: Long?, onChange: (Long?) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box(modifier = Modifier.readableWidth()) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(Spacing.xxs),
+            modifier = Modifier.fillMaxWidth().clickable { open = true }.padding(vertical = Spacing.s),
+        ) {
+            Text(stringResource(Res.string.settings_storage_limit), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                limitLabel(limit),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DOWNLOAD_LIMITS.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(limitLabel(option)) },
+                    onClick = {
+                        open = false
+                        onChange(option)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun limitLabel(bytes: Long?): String =
+    bytes?.let { storageSize(it).text() } ?: stringResource(Res.string.settings_no_limit)

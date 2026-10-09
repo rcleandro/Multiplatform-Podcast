@@ -71,7 +71,10 @@ val repositoryModule = module {
     // Settings comes from each platform module (ADR 0006).
     single<PreferencesRepository> { SettingsPreferencesRepository(get()) }
     // Each platform binds EpisodeDownloader: Android and iOS wrap this one to download in the background.
-    single { KtorEpisodeDownloader(get(), get(), get()) }
+    single {
+        val preferences = get<PreferencesRepository>()
+        KtorEpisodeDownloader(get(), get(), get(), storageLimitBytes = { preferences.downloadLimitBytes.value })
+    }
 }
 
 val useCaseModule = module {

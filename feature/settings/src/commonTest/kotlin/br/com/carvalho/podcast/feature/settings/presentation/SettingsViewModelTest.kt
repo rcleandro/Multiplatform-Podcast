@@ -53,6 +53,17 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun wifiOnlyAndTheDownloadLimitAreSaved() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SettingsIntent.SetWifiOnly(true))
+        viewModel.onIntent(SettingsIntent.SetDownloadLimit(USED_BYTES * 2))
+
+        assertEquals(true, viewModel.uiState.value.wifiOnlyDownloads)
+        assertEquals(USED_BYTES * 2, preferences.downloadLimitBytes.value)
+    }
+
+    @Test
     fun theSpaceTheDownloadsTakeIsShownWhereThereAreDownloads() = runTest(dispatcher) {
         // The Web has no downloads, and no line for their space.
         assertEquals(if (supportsDownloads) USED_BYTES else null, viewModel().uiState.value.usedBytes)

@@ -37,7 +37,10 @@ actual val platformModule = module {
         val preferences = get<PreferencesRepository>()
         FirebaseCrashReporter().whenAllowed { preferences.telemetryEnabled.value }
     }
-    single(createdAtStart = true) { UrlSessionEpisodeDownloader(get(), get()) }
+    single(createdAtStart = true) {
+        val preferences = get<PreferencesRepository>()
+        UrlSessionEpisodeDownloader(get(), get()) { preferences.wifiOnlyDownloads.value }
+    }
     single<EpisodeDownloader> { get<UrlSessionEpisodeDownloader>() }
     single<NetworkMonitor> { IosNetworkMonitor() }
 }

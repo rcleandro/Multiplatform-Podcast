@@ -192,4 +192,9 @@
     <string name="settings_privacy">Privacidade</string>
     <string name="settings_telemetry">Enviar relatórios de uso e de falhas</string>
     <string name="settings_telemetry_description">Nunca incluem endereços de feed, títulos nem buscas, e ajudam a encontrar e corrigir problemas.</string>
+    <string name="error_storage_limit">Os downloads já ocupam o espaço definido nas Configurações. Apague alguns ou aumente o limite.</string>
+    <string name="settings_wifi_only">Baixar só no Wi-Fi</string>
+    <string name="settings_wifi_only_description">Nos dados móveis, os downloads esperam uma rede Wi-Fi.</string>
+    <string name="settings_storage_limit">Espaço para downloads</string>
+    <string name="settings_no_limit">Sem limite</string>
 </resources>

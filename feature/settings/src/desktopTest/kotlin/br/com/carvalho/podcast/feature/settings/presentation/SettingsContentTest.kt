@@ -1,5 +1,9 @@
 package br.com.carvalho.podcast.feature.settings.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsSelected
@@ -31,7 +35,9 @@ class SettingsContentTest {
     fun theThemeIsPickedFromItsOptions() = runComposeUiTest {
         var chosen: ThemeMode? = null
         setContent {
-            PodcastTheme { SettingsContent(SettingsUiState(), onBack = {}, onThemeChange = { chosen = it }, onTelemetryChange = {}) }
+            PodcastTheme {
+                SettingsContent(SettingsUiState(), onBack = {}, onIntent = { (it as? SettingsIntent.SetTheme)?.let { chosen = it.mode } })
+            }
         }
 
         onNode(isHeading() and hasText(text(Res.string.settings))).assertExists()
@@ -49,8 +55,7 @@ class SettingsContentTest {
                 SettingsContent(
                     SettingsUiState(telemetryEnabled = false),
                     onBack = {},
-                    onThemeChange = {},
-                    onTelemetryChange = { enabled = it },
+                    onIntent = { (it as? SettingsIntent.SetTelemetry)?.let { enabled = it.enabled } },
                 )
             }
         }
@@ -65,7 +70,7 @@ class SettingsContentTest {
     fun theDownloadSpaceShowsOnlyOnceMeasured() = runComposeUiTest {
         setContent {
             PodcastTheme {
-                SettingsContent(SettingsUiState(usedBytes = 52_428_800), onBack = {}, onThemeChange = {}, onTelemetryChange = {})
+                SettingsContent(SettingsUiState(usedBytes = 52_428_800), onBack = {}, onIntent = {})
             }
         }
 
@@ -73,14 +78,39 @@ class SettingsContentTest {
     }
 
     @Test
+    fun theDownloadLimitIsPickedFromAMenu() = runComposeUiTest {
+        var limit: Long? = -1
+        setContent {
+            PodcastTheme {
+                SettingsContent(
+                    SettingsUiState(usedBytes = 0),
+                    onBack = {},
+                    onIntent = { (it as? SettingsIntent.SetDownloadLimit)?.let { limit = it.bytes } },
+                )
+            }
+        }
+
+        onNodeWithText(text(Res.string.settings_no_limit)).performClick()
+        onNodeWithText("5", substring = true).performClick()
+
+        assertEquals(FIVE_GIGABYTES, limit)
+        // A computer has no mobile data: no Wi-Fi only switch.
+        onAllNodesWithText(text(Res.string.settings_wifi_only)).assertCountEquals(0)
+    }
+
+    @Test
     fun backLeavesTheScreen() = runComposeUiTest {
         var back = 0
         setContent {
-            PodcastTheme { SettingsContent(SettingsUiState(), onBack = { back++ }, onThemeChange = {}, onTelemetryChange = {}) }
+            PodcastTheme { SettingsContent(SettingsUiState(), onBack = { back++ }, onIntent = {}) }
         }
 
         onNodeWithContentDescription(text(Res.string.back)).performClick()
 
         assertEquals(1, back)
+    }
+
+    private companion object {
+        const val FIVE_GIGABYTES = 5L * 1024 * 1024 * 1024
     }
 }

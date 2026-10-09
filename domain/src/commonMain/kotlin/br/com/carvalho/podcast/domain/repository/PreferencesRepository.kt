@@ -15,6 +15,16 @@ interface PreferencesRepository {
 
     fun setLibrarySort(sort: LibrarySort)
 
+    /** Downloads wait for Wi-Fi on phones and tablets (18.5); off by default. */
+    val wifiOnlyDownloads: StateFlow<Boolean>
+
+    fun setWifiOnlyDownloads(enabled: Boolean)
+
+    /** Space the downloads may take, in bytes; null for no limit, the default (18.5). */
+    val downloadLimitBytes: StateFlow<Long?>
+
+    fun setDownloadLimitBytes(bytes: Long?)
+
     val themeMode: StateFlow<ThemeMode>
 
     fun setThemeMode(mode: ThemeMode)
