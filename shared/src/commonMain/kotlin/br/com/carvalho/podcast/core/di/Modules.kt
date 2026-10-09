@@ -21,6 +21,7 @@ import br.com.carvalho.podcast.domain.repository.PodcastDirectory
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.DeleteFinishedDownloadUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DownloadNextEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
@@ -64,8 +65,13 @@ val databaseModule = module {
 
 val playerModule = module {
     single<AudioPlayer> {
+        val deleteFinished = DeleteFinishedDownloadUseCase(get(), get(), get())
         val downloadNext = DownloadNextEpisodeUseCase(get(), get(), get())
-        PlaybackController(get(), get(), get(), get(), get(), onFinished = downloadNext::invoke)
+        // Delete first: the freed space counts toward the download limit.
+        PlaybackController(get(), get(), get(), get(), get(), onFinished = { finished, queue ->
+            deleteFinished(finished)
+            downloadNext(finished, queue)
+        })
     }
 }
 

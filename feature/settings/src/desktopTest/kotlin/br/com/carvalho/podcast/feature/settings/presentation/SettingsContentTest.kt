@@ -1,5 +1,19 @@
 package br.com.carvalho.podcast.feature.settings.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
+import br.com.carvalho.podcast.core.ui.generated.resources.delete
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import br.com.carvalho.podcast.core.ui.generated.resources.size_gigabytes
+import br.com.carvalho.podcast.core.util.DiskSpace
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.hasStateDescription
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.semantics.SemanticsActions
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
 import androidx.compose.ui.test.assertCountEquals
@@ -78,24 +92,33 @@ class SettingsContentTest {
     }
 
     @Test
-    fun theDownloadLimitIsPickedFromAMenu() = runComposeUiTest {
+    fun theDownloadLimitIsPickedOnASliderThatEndsWithNoLimit() = runComposeUiTest {
         var limit: Long? = -1
+        val state = SettingsUiState(usedBytes = 0, disk = DiskSpace(totalBytes = 64 * GB, freeBytes = 12 * GB))
         setContent {
             PodcastTheme {
-                SettingsContent(
-                    SettingsUiState(usedBytes = 0),
-                    onBack = {},
-                    onIntent = { (it as? SettingsIntent.SetDownloadLimit)?.let { limit = it.bytes } },
-                )
+                SettingsContent(state, onBack = {}, onIntent = { (it as? SettingsIntent.SetDownloadLimit)?.let { limit = it.bytes } })
             }
         }
+        // 12 GB fit: half a gigabyte, then 1 to 10 GB, then no limit, where it starts.
+        val slider = onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo) and hasStateDescription(text(Res.string.settings_no_limit)))
 
-        onNodeWithText(text(Res.string.settings_no_limit)).performClick()
-        onNodeWithText("5", substring = true).performClick()
+        slider.performSemanticsAction(SemanticsActions.SetProgress) { it(FIVE_GB_STOP) }
 
-        assertEquals(FIVE_GIGABYTES, limit)
+        assertEquals(5 * GB, limit)
         // A computer has no mobile data: no Wi-Fi only switch.
         onAllNodesWithText(text(Res.string.settings_wifi_only)).assertCountEquals(0)
+    }
+
+    @Test
+    fun theDiskShowsWhatTheDownloadsTakeAndWhatIsFree() = runComposeUiTest {
+        val state = SettingsUiState(usedBytes = 1 * GB, disk = DiskSpace(totalBytes = 64 * GB, freeBytes = 12 * GB))
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = {}) } }
+
+        // One sentence for screen readers, with the sizes of the bar, in the runner's language.
+        val app = runBlocking { getString(Res.string.size_gigabytes, 1, 0) }
+        val free = runBlocking { getString(Res.string.size_gigabytes, 12, 0) }
+        onNode(hasContentDescription(app, substring = true) and hasContentDescription(free, substring = true)).assertExists()
     }
 
     @Test
@@ -110,7 +133,23 @@ class SettingsContentTest {
         assertEquals(1, back)
     }
 
+    @Test
+    fun deletingAllDownloadsIsOfferedOnlyWithDownloadsAndAsksFirst() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        var state by mutableStateOf(SettingsUiState(usedBytes = 0))
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        onAllNodesWithText(text(Res.string.settings_delete_all)).assertCountEquals(0)
+
+        state = SettingsUiState(usedBytes = GB)
+        onNodeWithText(text(Res.string.settings_delete_all)).performScrollTo().performClick()
+        state = state.copy(isConfirmingDeleteAll = true)
+        onNodeWithText(text(Res.string.delete)).performClick()
+
+        assertEquals(listOf(SettingsIntent.RequestDeleteAll, SettingsIntent.ConfirmDeleteAll), intents)
+    }
+
     private companion object {
-        const val FIVE_GIGABYTES = 5L * 1024 * 1024 * 1024
+        const val GB = 1024L * 1024 * 1024
+        const val FIVE_GB_STOP = 5f
     }
 }

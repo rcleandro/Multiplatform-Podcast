@@ -25,8 +25,11 @@ class FakeEpisodeDownloader : EpisodeDownloader {
         cancelCalledWith = episodeId
     }
 
+    val deletedIds = mutableListOf<String>()
+
     override suspend fun delete(episodeId: String) {
         deleteCalledWith = episodeId
+        deletedIds += episodeId
     }
 
     override fun getDownloadStatus(episodeId: String): StateFlow<DownloadStatus> {

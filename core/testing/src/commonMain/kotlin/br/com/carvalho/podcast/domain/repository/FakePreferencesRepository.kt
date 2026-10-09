@@ -36,6 +36,12 @@ class FakePreferencesRepository : PreferencesRepository {
         downloadNextOnFinish.value = enabled
     }
 
+    override val deleteFinishedDownloads = MutableStateFlow(false)
+
+    override fun setDeleteFinishedDownloads(enabled: Boolean) {
+        deleteFinishedDownloads.value = enabled
+    }
+
     override val themeMode = MutableStateFlow(ThemeMode.SYSTEM)
 
     override fun setThemeMode(mode: ThemeMode) {

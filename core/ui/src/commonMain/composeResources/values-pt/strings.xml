@@ -197,6 +197,15 @@
     <string name="settings_wifi_only_description">Nos dados móveis, os downloads esperam uma rede Wi-Fi.</string>
     <string name="settings_storage_limit">Espaço para downloads</string>
     <string name="settings_no_limit">Sem limite</string>
-    <string name="settings_download_next">Baixar o próximo episódio</string>
+    <string name="settings_download_next">Download automático</string>
     <string name="settings_download_next_description">Quando um episódio termina, baixa o mais novo do podcast, ou o próximo da fila, se ainda não estiver baixado nem ouvido.</string>
+    <string name="storage_legend_app">Downloads %1$s</string>
+    <string name="storage_legend_other">Outros %1$s</string>
+    <string name="storage_legend_free">Livre %1$s</string>
+    <string name="storage_total">%1$s no total</string>
+    <string name="storage_bar_description">Os downloads ocupam %1$s, outros arquivos %2$s, e %3$s estão livres, de %4$s.</string>
+    <string name="settings_delete_finished">Apagar o episódio ao terminar</string>
+    <string name="settings_delete_finished_description">Quando um episódio baixado termina, o arquivo é apagado para liberar espaço.</string>
+    <string name="settings_delete_all">Apagar todos os downloads</string>
+    <string name="settings_delete_all_confirmation">Apagar os %1$s de episódios baixados? Eles continuam na biblioteca e podem ser baixados de novo.</string>
 </resources>

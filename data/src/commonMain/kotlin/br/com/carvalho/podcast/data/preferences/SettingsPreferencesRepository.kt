@@ -16,6 +16,7 @@ private const val THEME_MODE = "theme_mode"
 private const val WIFI_ONLY_DOWNLOADS = "wifi_only_downloads"
 private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
 private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
+private const val DELETE_FINISHED_DOWNLOADS = "delete_finished_downloads"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
@@ -60,6 +61,14 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setDownloadNextOnFinish(enabled: Boolean) {
         settings.putBoolean(DOWNLOAD_NEXT_ON_FINISH, enabled)
         downloadNext.value = enabled
+    }
+
+    private val deleteFinished = MutableStateFlow(settings.getBoolean(DELETE_FINISHED_DOWNLOADS, defaultValue = false))
+    override val deleteFinishedDownloads: StateFlow<Boolean> = deleteFinished.asStateFlow()
+
+    override fun setDeleteFinishedDownloads(enabled: Boolean) {
+        settings.putBoolean(DELETE_FINISHED_DOWNLOADS, enabled)
+        deleteFinished.value = enabled
     }
 
     private val theme = MutableStateFlow(settings.enumOrDefault(THEME_MODE, ThemeMode.SYSTEM))

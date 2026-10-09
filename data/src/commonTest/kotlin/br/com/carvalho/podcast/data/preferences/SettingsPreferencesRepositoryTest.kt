@@ -60,6 +60,9 @@ class SettingsPreferencesRepositoryTest {
         assertFalse(fresh.downloadNextOnFinish.value)
         fresh.setDownloadNextOnFinish(true)
         assertTrue(SettingsPreferencesRepository(settings).downloadNextOnFinish.value)
+        assertFalse(fresh.deleteFinishedDownloads.value)
+        fresh.setDeleteFinishedDownloads(true)
+        assertTrue(SettingsPreferencesRepository(settings).deleteFinishedDownloads.value)
 
         fresh.setWifiOnlyDownloads(true)
         fresh.setDownloadLimitBytes(LIMIT)
