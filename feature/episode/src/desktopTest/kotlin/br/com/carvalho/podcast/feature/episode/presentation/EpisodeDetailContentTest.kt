@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
+import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.share
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -87,5 +89,19 @@ class EpisodeDetailContentTest {
 
         assertEquals(1, downloads)
         assertEquals(1, marks)
+    }
+
+    @Test
+    fun theEpisodeGoesToTheQueueNextOrLast() = runComposeUiTest {
+        val asked = mutableListOf<Boolean>()
+        setContent {
+            PodcastTheme {
+                EpisodeDetailContent(EpisodeDetailUiState(episode = episode()), EpisodeDetailActions(onEnqueue = { asked += it }))
+            }
+        }
+        onNodeWithText(text(Res.string.play_next)).performClick()
+        onNodeWithText(text(Res.string.add_to_queue)).performClick()
+
+        assertEquals(listOf(true, false), asked)
     }
 }

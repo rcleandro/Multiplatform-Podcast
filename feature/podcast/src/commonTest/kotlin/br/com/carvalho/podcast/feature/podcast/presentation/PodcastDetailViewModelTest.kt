@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.queued_next
 import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
@@ -25,6 +26,7 @@ import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -56,7 +58,7 @@ class PodcastDetailViewModelTest {
     }
 
     private fun createViewModel() = PodcastDetailViewModel(
-        podcastId, audioPlayer, PlayEpisodeUseCase(audioPlayer), refreshUseCase,
+        podcastId, audioPlayer, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer), refreshUseCase,
         episodeDownloader, repository, dispatchers, FakeAnalytics()
     )
 
@@ -241,5 +243,18 @@ class PodcastDetailViewModelTest {
             assertEquals(UiMessage(Res.string.error_no_connection), awaitItem())
         }
         assertFalse(viewModel.uiState.value.isRefreshing)
+    }
+
+    @Test
+    fun `play next puts the episode first in the queue and says so`() = runTest(testDispatcher) {
+        val playing = sampleEpisode.copy(id = "playing")
+        audioPlayer.play(playing)
+        val viewModel = createViewModel()
+
+        viewModel.messages.test {
+            viewModel.onIntent(PodcastDetailIntent.Enqueue(sampleEpisode, next = true))
+            assertEquals(UiMessage(Res.string.queued_next), awaitItem())
+        }
+        assertEquals(listOf("e1"), audioPlayer.playerState.value.queue.map { it.id })
     }
 }

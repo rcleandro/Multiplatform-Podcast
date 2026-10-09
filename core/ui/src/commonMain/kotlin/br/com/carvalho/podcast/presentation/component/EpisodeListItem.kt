@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.presentation.component
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Done
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Podcasts
+import androidx.compose.material.icons.rounded.QueuePlayNext
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.RemoveDone
@@ -22,6 +24,7 @@ import br.com.carvalho.podcast.core.designsystem.component.EpisodeRow
 import br.com.carvalho.podcast.core.designsystem.component.ItemAction
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
 import br.com.carvalho.podcast.core.ui.generated.resources.download_cd
@@ -33,6 +36,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
 import br.com.carvalho.podcast.core.ui.generated.resources.remove_from_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.retry_download
@@ -47,7 +51,7 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Maps an [Episode] and its download status to the design system [EpisodeRow], with its "⋮" menu: play or pause,
  * the download action of its state, and, where the screen offers them, mark as played or unplayed, mark it and the
- * older ones as played or unplayed, go to its podcast and leave the queue (18.6).
+ * older ones as played or unplayed, go to its podcast, and play it next, add it to the queue or take it out (18.6).
  */
 @Composable
 fun EpisodeListItem(
@@ -68,6 +72,8 @@ fun EpisodeListItem(
     onMarkOlderUnplayed: (() -> Unit)? = null,
     onGoToPodcast: (() -> Unit)? = null,
     onRemoveFromQueue: (() -> Unit)? = null,
+    onPlayNext: (() -> Unit)? = null,
+    onAddToQueue: (() -> Unit)? = null,
 ) {
     val durationMs = episode.duration * AppConfig.MILLIS_PER_SECOND
     val progress = if (durationMs > 0) episode.playbackPosition.toFloat() / durationMs else 0f
@@ -83,6 +89,9 @@ fun EpisodeListItem(
         } else {
             ItemAction(stringResource(Res.string.play), Icons.Rounded.PlayArrow, onPlayClick)
         },
+        onPlayNext?.let { ItemAction(stringResource(Res.string.play_next), Icons.Rounded.QueuePlayNext, it) },
+        onAddToQueue
+            ?.let { ItemAction(stringResource(Res.string.add_to_queue), Icons.AutoMirrored.Rounded.PlaylistAdd, it) },
         downloadState?.let { downloadAction(it, onDownloadClick, onCancelDownloadClick, onDeleteClick) },
         // Played or not, the menu offers the opposite.
         onMarkPlayed?.takeIf { !episode.isPlayed }

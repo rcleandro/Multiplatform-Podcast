@@ -24,6 +24,7 @@ import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeleteFinishedDownloadUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DownloadNextEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.feature.discover.discoverFeatureModule
@@ -100,6 +101,7 @@ val useCaseModule = module {
     singleOf(::RefreshPodcastUseCase)
     singleOf(::DeletePodcastUseCase)
     singleOf(::PlayEpisodeUseCase)
+    singleOf(::EnqueueEpisodeUseCase)
 }
 
 val commonModules = listOf(

@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.queued_last
 import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import app.cash.turbine.test
@@ -24,6 +25,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -49,7 +51,7 @@ class SearchViewModelTest {
     private val networkMonitor = FakeNetworkMonitor()
 
     private fun createViewModel() = SearchViewModel(
-        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer),
+        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer),
         networkMonitor, dispatchers, FakeAnalytics()
     )
 
@@ -254,5 +256,18 @@ class SearchViewModelTest {
 
     private companion object {
         const val USED_BYTES = 52_428_800L
+    }
+
+    @Test
+    fun `add to queue puts the episode last and says so`() = runTest(testDispatcher) {
+        audioPlayer.play(episode("playing", publishDate = 0))
+        audioPlayer.setQueue(listOf(episode("queued", publishDate = 0)))
+        val viewModel = createViewModel()
+
+        viewModel.messages.test {
+            viewModel.onIntent(SearchIntent.Enqueue(episode("chosen", publishDate = 0), next = false))
+            assertEquals(UiMessage(Res.string.queued_last), awaitItem())
+        }
+        assertEquals(listOf("queued", "chosen"), audioPlayer.playerState.value.queue.map { it.id })
     }
 }

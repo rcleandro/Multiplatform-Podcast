@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Delete
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.QueuePlayNext
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.SearchOff
@@ -68,6 +70,7 @@ import br.com.carvalho.podcast.core.designsystem.component.morphingShape
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.description
 import br.com.carvalho.podcast.core.ui.generated.resources.episode
@@ -78,12 +81,14 @@ import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.no_description
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.resume_remaining
 import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.downloadAction
 import br.com.carvalho.podcast.presentation.component.remainingDuration
 import br.com.carvalho.podcast.presentation.component.toDownloadState
@@ -104,6 +109,7 @@ fun EpisodeDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val share = rememberShare(snackbarHostState)
+    MessageEffect(viewModel.messages, snackbarHostState)
 
     EpisodeDetailContent(
         state = uiState,
@@ -113,6 +119,7 @@ fun EpisodeDetailScreen(
             onShare = { uiState.episode?.let { share(episodeShareText(it)) } },
             onPlayPause = { viewModel.onIntent(EpisodeDetailIntent.PlayPause) },
             onRetry = { viewModel.onIntent(EpisodeDetailIntent.Retry) },
+            onEnqueue = { viewModel.onIntent(EpisodeDetailIntent.Enqueue(next = it)) },
             onDownload = { viewModel.onIntent(EpisodeDetailIntent.Download) },
             onCancelDownload = { viewModel.onIntent(EpisodeDetailIntent.CancelDownload) },
             onDeleteDownload = { viewModel.onIntent(EpisodeDetailIntent.DeleteDownload) },
@@ -127,6 +134,8 @@ data class EpisodeDetailActions(
     val onShare: () -> Unit = {},
     val onPlayPause: () -> Unit = {},
     val onRetry: () -> Unit = {},
+    /** "Play next" when true, else "Add to queue" (18.6). */
+    val onEnqueue: (Boolean) -> Unit = {},
     val onDownload: () -> Unit = {},
     val onCancelDownload: () -> Unit = {},
     val onDeleteDownload: () -> Unit = {},
@@ -286,7 +295,7 @@ private fun PlayPauseButton(episode: Episode, state: EpisodeDetailUiState, onCli
     }
 }
 
-/** The download action of its state and mark as played or unplayed: what the rows keep in their "⋮" menu. */
+/** The queue, the download action of its state and mark as played or unplayed: what the rows keep in their "⋮" menu. */
 @Composable
 private fun EpisodeActionButtons(episode: Episode, state: EpisodeDetailUiState, actions: EpisodeDetailActions) {
     // Each button as wide as its label; they wrap instead of squeezing a label onto two lines.
@@ -294,6 +303,10 @@ private fun EpisodeActionButtons(episode: Episode, state: EpisodeDetailUiState, 
         horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
         modifier = Modifier.fillMaxWidth(),
     ) {
+        IconLabelButton(Icons.Rounded.QueuePlayNext, stringResource(Res.string.play_next)) { actions.onEnqueue(true) }
+        IconLabelButton(Icons.AutoMirrored.Rounded.PlaylistAdd, stringResource(Res.string.add_to_queue)) {
+            actions.onEnqueue(false)
+        }
         if (supportsDownloads) {
             val downloadState = state.downloadStatus.toDownloadState(episode.isDownloaded)
             val download = downloadAction(

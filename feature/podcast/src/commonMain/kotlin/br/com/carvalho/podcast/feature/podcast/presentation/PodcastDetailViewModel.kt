@@ -17,11 +17,13 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.presentation.failureMessages
+import br.com.carvalho.podcast.presentation.message
 import br.com.carvalho.podcast.presentation.toMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -42,11 +44,13 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "PodcastDetailViewModel"
 
-@Suppress("LongParameterList") // constructor injection; the screen genuinely needs all of them
+// Constructor injection (the screen needs all of them), and one function per screen intent.
+@Suppress("LongParameterList", "TooManyFunctions")
 class PodcastDetailViewModel(
     private val podcastId: String,
     audioPlayer: AudioPlayer,
     private val playEpisode: PlayEpisodeUseCase,
+    private val enqueueEpisode: EnqueueEpisodeUseCase,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
     private val episodeDownloader: EpisodeDownloader,
     private val repository: PodcastRepository,
@@ -79,11 +83,13 @@ class PodcastDetailViewModel(
             .launchIn(viewModelScope)
     }
 
+    @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: PodcastDetailIntent) {
         when (intent) {
             PodcastDetailIntent.Refresh -> refresh()
             is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
             is PodcastDetailIntent.Play -> play(intent.episode)
+            is PodcastDetailIntent.Enqueue -> enqueue(intent.episode, intent.next)
             is PodcastDetailIntent.Download -> downloadEpisode(intent.episode)
             is PodcastDetailIntent.CancelDownload -> cancelDownload(intent.episode.id)
             is PodcastDetailIntent.RequestDeleteDownload ->
@@ -114,6 +120,10 @@ class PodcastDetailViewModel(
     private fun setFilter(filter: EpisodeFilter) {
         analytics.logEvent(AnalyticsEvent.SetEpisodeFilter(filter.name))
         _uiState.update { it.copy(filter = filter) }
+    }
+
+    private fun enqueue(episode: Episode, next: Boolean) = viewModelScope.launch(dispatchers.io) {
+        enqueueEpisode(episode, next).message()?.let { _messages.send(it) }
     }
 
     private fun play(episode: Episode) {
@@ -190,6 +200,9 @@ sealed interface PodcastDetailIntent {
     data object Refresh : PodcastDetailIntent
     data class SetFilter(val filter: EpisodeFilter) : PodcastDetailIntent
     data class Play(val episode: Episode) : PodcastDetailIntent
+
+    /** "Play next" when [next], else "Add to queue" (18.6). */
+    data class Enqueue(val episode: Episode, val next: Boolean) : PodcastDetailIntent
     data class Download(val episode: Episode) : PodcastDetailIntent
     data class CancelDownload(val episode: Episode) : PodcastDetailIntent
     data class RequestDeleteDownload(val episode: Episode) : PodcastDetailIntent

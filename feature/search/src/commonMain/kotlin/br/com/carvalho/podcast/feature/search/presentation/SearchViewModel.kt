@@ -17,10 +17,12 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.presentation.failureMessages
+import br.com.carvalho.podcast.presentation.message
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
@@ -50,6 +52,7 @@ class SearchViewModel(
     private val episodeDownloader: EpisodeDownloader,
     audioPlayer: AudioPlayer,
     private val playEpisode: PlayEpisodeUseCase,
+    private val enqueueEpisode: EnqueueEpisodeUseCase,
     networkMonitor: NetworkMonitor,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics
@@ -62,10 +65,10 @@ class SearchViewModel(
 
     val activeDownloads = episodeDownloader.activeDownloads
 
-    private val removed = Channel<UiMessage>(Channel.BUFFERED)
+    private val notices = Channel<UiMessage>(Channel.BUFFERED)
 
-    /** Why a download failed, and that one was removed, shown as a snackbar. */
-    val messages: Flow<UiMessage> = merge(episodeDownloader.failureMessages(), removed.receiveAsFlow())
+    /** Why a download failed, that one was removed and where an episode went in the queue, shown as a snackbar. */
+    val messages: Flow<UiMessage> = merge(episodeDownloader.failureMessages(), notices.receiveAsFlow())
     val playerState = audioPlayer.playerState
 
     val pagedResults: Flow<PagingData<Episode>> = _uiState.map { it.searchQuery to it.filter }
@@ -89,12 +92,14 @@ class SearchViewModel(
         }
     }
 
+    @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: SearchIntent) {
         when (intent) {
             is SearchIntent.ChangeQuery -> _uiState.update { it.copy(searchQuery = intent.query) }
             is SearchIntent.ChangeFilter -> _uiState.update { it.copy(filter = intent.filter) }
             SearchIntent.Refresh -> _refreshTrigger.value += 1
             is SearchIntent.Play -> play(intent.episode)
+            is SearchIntent.Enqueue -> enqueue(intent.episode, intent.next)
             is SearchIntent.Download -> downloadEpisode(intent.episode)
             is SearchIntent.CancelDownload -> cancelDownload(intent.episode.id)
             is SearchIntent.RequestDeleteDownload ->
@@ -126,6 +131,10 @@ class SearchViewModel(
         }
     }
 
+    private fun enqueue(episode: Episode, next: Boolean) = viewModelScope.launch(dispatchers.io) {
+        enqueueEpisode(episode, next).message()?.let { notices.send(it) }
+    }
+
     private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent(AnalyticsEvent.PlayEpisode(episode.id, AnalyticsEvent.PlaySource.SEARCH))
@@ -150,7 +159,7 @@ class SearchViewModel(
         _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
-            removed.send(UiMessage(Res.string.download_deleted))
+            notices.send(UiMessage(Res.string.download_deleted))
         }
     }
 }
@@ -170,6 +179,9 @@ sealed interface SearchIntent {
     data class ChangeFilter(val filter: EpisodeListFilter) : SearchIntent
     data object Refresh : SearchIntent
     data class Play(val episode: Episode) : SearchIntent
+
+    /** "Play next" when [next], else "Add to queue" (18.6). */
+    data class Enqueue(val episode: Episode, val next: Boolean) : SearchIntent
     data class Download(val episode: Episode) : SearchIntent
     data class CancelDownload(val episode: Episode) : SearchIntent
     data class RequestDeleteDownload(val episode: Episode) : SearchIntent

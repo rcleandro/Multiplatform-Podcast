@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
+import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.share
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_unplayed_confirmation
@@ -190,6 +192,7 @@ class PodcastDetailContentTest {
     @Test
     fun eachEpisodeHasItsActionsInAMenu() = runComposeUiTest {
         var older: OlderMark? = null
+        val enqueued = mutableListOf<Pair<String, Boolean>>()
         setContent {
             PodcastTheme {
                 PodcastDetailContent(
@@ -197,7 +200,10 @@ class PodcastDetailContentTest {
                     episodes = flowOf(PagingData.from(episodes.take(1))).collectAsLazyPagingItems(),
                     playerState = PlayerState(),
                     activeDownloads = emptyMap(),
-                    actions = PodcastDetailActions(onRequestMarkOlder = { older = it }),
+                    actions = PodcastDetailActions(
+                        onRequestMarkOlder = { older = it },
+                        onEnqueue = { episode, next -> enqueued += episode.id to next },
+                    ),
                 )
             }
         }
@@ -205,6 +211,12 @@ class PodcastDetailContentTest {
 
         onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
         onNodeWithText(text(Res.string.play)).assertExists()
+        onNodeWithText(text(Res.string.play_next)).performClick()
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.add_to_queue)).performClick()
+        assertEquals(listOf(episodes.first().id to true, episodes.first().id to false), enqueued)
+
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
         onNodeWithText(text(Res.string.mark_older_as_played)).performClick()
 
         assertEquals(OlderMark(episodes.first(), played = true), older)

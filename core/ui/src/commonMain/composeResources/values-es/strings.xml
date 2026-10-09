@@ -235,4 +235,9 @@
         <item quantity="one">%1$d episodio · %2$s</item>
         <item quantity="other">%1$d episodios · %2$s</item>
     </plurals>
+    <string name="play_next">Reproducir a continuación</string>
+    <string name="add_to_queue">Agregar a la cola</string>
+    <string name="queued_next">Se reproducirá a continuación</string>
+    <string name="queued_last">Agregado a la cola</string>
+    <string name="already_playing">Este episodio ya se está reproduciendo</string>
 </resources>

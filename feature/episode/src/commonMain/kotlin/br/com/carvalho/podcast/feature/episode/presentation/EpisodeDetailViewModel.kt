@@ -11,13 +11,19 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.presentation.message
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -28,6 +34,7 @@ class EpisodeDetailViewModel(
     private val episodeId: String,
     private val repository: PodcastRepository,
     private val playEpisode: PlayEpisodeUseCase,
+    private val enqueueEpisode: EnqueueEpisodeUseCase,
     private val audioPlayer: AudioPlayer,
     private val downloader: EpisodeDownloader,
     private val dispatchers: CoroutineDispatchers,
@@ -36,6 +43,9 @@ class EpisodeDetailViewModel(
 
     private val _uiState = MutableStateFlow(EpisodeDetailUiState(isLoading = true))
     val uiState: StateFlow<EpisodeDetailUiState> = _uiState.asStateFlow()
+
+    private val _messages = Channel<UiMessage>(Channel.BUFFERED)
+    val messages: Flow<UiMessage> = _messages.receiveAsFlow()
 
     init {
         loadEpisode()
@@ -54,6 +64,9 @@ class EpisodeDetailViewModel(
         when (intent) {
             EpisodeDetailIntent.PlayPause -> playPause()
             EpisodeDetailIntent.Retry -> loadEpisode()
+            is EpisodeDetailIntent.Enqueue -> withEpisode {
+                enqueueEpisode(it, intent.next).message()?.let { message -> _messages.send(message) }
+            }
             EpisodeDetailIntent.Download -> withEpisode { downloader.download(it) }
             EpisodeDetailIntent.CancelDownload -> withEpisode { downloader.cancel(it.id) }
             EpisodeDetailIntent.DeleteDownload -> withEpisode { downloader.delete(it.id) }
@@ -120,6 +133,9 @@ data class EpisodeDetailUiState(
 sealed interface EpisodeDetailIntent {
     data object PlayPause : EpisodeDetailIntent
     data object Retry : EpisodeDetailIntent
+
+    /** "Play next" when [next], else "Add to queue" (18.6). */
+    data class Enqueue(val next: Boolean) : EpisodeDetailIntent
     data object Download : EpisodeDetailIntent
     data object CancelDownload : EpisodeDetailIntent
     data object DeleteDownload : EpisodeDetailIntent

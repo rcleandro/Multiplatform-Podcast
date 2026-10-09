@@ -23,6 +23,7 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import kotlinx.coroutines.Dispatchers
@@ -62,7 +63,7 @@ class PodcastFlowTest {
     fun resetMain() = Dispatchers.resetMain()
 
     private fun viewModel() = PodcastDetailViewModel(
-        PODCAST_ID, audioPlayer, PlayEpisodeUseCase(audioPlayer),
+        PODCAST_ID, audioPlayer, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer),
         RefreshPodcastUseCase(FakeFeedSource(), repository), downloader, repository,
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher), FakeAnalytics(),
     )

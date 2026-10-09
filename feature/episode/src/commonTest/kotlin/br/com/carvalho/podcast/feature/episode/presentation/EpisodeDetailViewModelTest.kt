@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -47,7 +48,7 @@ class EpisodeDetailViewModelTest {
     )
 
     private fun createViewModel() = EpisodeDetailViewModel(
-        episodeId, repository, PlayEpisodeUseCase(audioPlayer), audioPlayer, downloader, dispatchers,
+        episodeId, repository, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer), audioPlayer, downloader, dispatchers,
         FakeAnalytics()
     )
 
