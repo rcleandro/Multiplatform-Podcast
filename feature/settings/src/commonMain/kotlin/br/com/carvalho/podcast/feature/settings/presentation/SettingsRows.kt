@@ -1,12 +1,16 @@
 package br.com.carvalho.podcast.feature.settings.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -16,6 +20,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -33,6 +38,7 @@ import br.com.carvalho.podcast.core.designsystem.component.StorageKind
 import br.com.carvalho.podcast.core.designsystem.component.StorageSegment
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_storage_limit
@@ -89,6 +95,45 @@ internal fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
         RadioButton(selected = selected, onClick = null, modifier = Modifier.padding(vertical = Spacing.m))
         Text(label, style = MaterialTheme.typography.bodyLarge)
     }
+}
+
+/** A setting that opens its choices: its name and, below it, what is chosen now. */
+@Composable
+internal fun PickerRow(title: String, value: String, onClick: () -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Spacing.xxs),
+        modifier = Modifier
+            .readableWidth()
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = Spacing.s),
+    ) {
+        Text(title, style = MaterialTheme.typography.bodyLarge)
+        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** The choices of a [PickerRow]; picking one closes it. The list scrolls once there are more than fit. */
+@Composable
+internal fun <T> ChoiceDialog(
+    title: String,
+    options: List<Pair<T, String>>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                options.forEach { (option, label) ->
+                    ChoiceRow(label, selected = option == selected, onClick = { onSelect(option) })
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel)) } },
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+    )
 }
 
 @Composable

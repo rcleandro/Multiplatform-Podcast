@@ -1,0 +1,25 @@
+# 18.5: the language chosen in Settings applies at once, stays after the app restarts and goes back to the system's.
+# Needs the debug app installed and a device in Portuguese:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/settings-language.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Configurações"
+- waitForAnimationToEnd
+- tapOn: "Idioma"
+- tapOn: "Español"
+# Android recreates the screen in the new language.
+- waitForAnimationToEnd
+- assertVisible: "Ajustes"
+- stopApp
+- launchApp
+- assertVisible: "Ajustes"
+- tapOn: "Ajustes"
+- waitForAnimationToEnd
+- tapOn: "Idioma"
+- tapOn: "Predeterminado del sistema"
+- waitForAnimationToEnd
+- assertVisible: "Configurações"

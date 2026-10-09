@@ -8,6 +8,7 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
+import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +50,16 @@ class SettingsViewModelTest {
 
         assertEquals(ThemeMode.DARK, preferences.themeMode.value)
         assertEquals(ThemeMode.DARK, viewModel.uiState.value.themeMode)
+    }
+
+    @Test
+    fun theChosenLanguageIsSavedAndShown() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SettingsIntent.SetLanguage(AppLanguage.SPANISH))
+
+        assertEquals(AppLanguage.SPANISH, preferences.appLanguage.value)
+        assertEquals(AppLanguage.SPANISH, viewModel.uiState.value.language)
     }
 
     @Test

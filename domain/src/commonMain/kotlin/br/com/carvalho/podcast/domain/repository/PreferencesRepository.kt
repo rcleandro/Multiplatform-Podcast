@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.repository
 
+import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.SkipIntervals
@@ -39,6 +40,10 @@ interface PreferencesRepository {
     val skipIntervals: StateFlow<SkipIntervals>
 
     fun setSkipIntervals(intervals: SkipIntervals)
+
+    val appLanguage: StateFlow<AppLanguage>
+
+    fun setAppLanguage(language: AppLanguage)
 
     val themeMode: StateFlow<ThemeMode>
 

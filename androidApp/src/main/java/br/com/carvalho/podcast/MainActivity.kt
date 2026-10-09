@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,7 +13,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
@@ -22,7 +25,9 @@ import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.TabletopFold
 import br.com.carvalho.podcast.core.designsystem.tabletopFold
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.presentation.isDark
 import br.com.carvalho.podcast.presentation.navigation.RootComponent
@@ -31,7 +36,7 @@ import com.arkivanov.decompose.defaultComponentContext
 
 private const val TAG = "MainActivity"
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -55,6 +60,7 @@ class MainActivity : ComponentActivity() {
         val tabletopFolds = WindowInfoTracker.getOrCreate(this).windowLayoutInfo(this).map { it.tabletopFold() }
 
         val preferences: PreferencesRepository by inject()
+        followAppLanguage(preferences)
 
         setContent {
             // The status and navigation bar icons follow the app's theme, which may differ from the system's (18.5).
@@ -71,6 +77,22 @@ class MainActivity : ComponentActivity() {
             val fold by tabletopFolds.collectAsState(initial = null)
             CompositionLocalProvider(LocalTabletopFold provides fold) {
                 App(root)
+            }
+        }
+    }
+
+    /**
+     * The whole app, notifications included, speaks the language chosen in Settings (18.5). Android keeps it as the
+     * app's own language, which can also change in the system settings: that one wins when the app opens.
+     */
+    private fun followAppLanguage(preferences: PreferencesRepository) {
+        fun current() = AppLanguage.of(AppCompatDelegate.getApplicationLocales()[0]?.toLanguageTag())
+        preferences.setAppLanguage(current())
+        lifecycleScope.launch {
+            preferences.appLanguage.collect { language ->
+                if (language != current()) {
+                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language.tag.orEmpty()))
+                }
             }
         }
     }

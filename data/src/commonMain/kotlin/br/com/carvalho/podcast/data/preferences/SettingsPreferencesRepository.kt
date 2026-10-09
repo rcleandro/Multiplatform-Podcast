@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.preferences
 
+import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.SkipIntervals
@@ -19,6 +20,7 @@ private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
 private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
 private const val DELETE_FINISHED_DOWNLOADS = "delete_finished_downloads"
 private const val SKIP_BACKWARD_SECONDS = "skip_backward_seconds"
+private const val APP_LANGUAGE = "app_language"
 private const val SKIP_FORWARD_SECONDS = "skip_forward_seconds"
 
 /**
@@ -91,6 +93,14 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         settings.putInt(SKIP_BACKWARD_SECONDS, intervals.backwardSeconds)
         settings.putInt(SKIP_FORWARD_SECONDS, intervals.forwardSeconds)
         skips.value = intervals
+    }
+
+    private val language = MutableStateFlow(settings.enumOrDefault(APP_LANGUAGE, AppLanguage.SYSTEM))
+    override val appLanguage: StateFlow<AppLanguage> = language.asStateFlow()
+
+    override fun setAppLanguage(language: AppLanguage) {
+        settings.putString(APP_LANGUAGE, language.name)
+        this.language.value = language
     }
 
     private val theme = MutableStateFlow(settings.enumOrDefault(THEME_MODE, ThemeMode.SYSTEM))

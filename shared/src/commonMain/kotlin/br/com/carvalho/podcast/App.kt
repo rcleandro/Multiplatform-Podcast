@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.image.createImageLoader
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.presentation.ProvideAppLanguage
 import br.com.carvalho.podcast.presentation.isDark
 import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import br.com.carvalho.podcast.presentation.navigation.RootContent
@@ -20,8 +21,12 @@ fun App(root: RootComponent, keyboardShortcuts: Boolean = false) {
     }
 
     // The theme chosen in Settings (18.5), or the system's.
-    val themeMode by koinInject<PreferencesRepository>().themeMode.collectAsState()
-    PodcastTheme(darkTheme = themeMode.isDark()) {
-        RootContent(root, keyboardShortcuts)
+    val preferences = koinInject<PreferencesRepository>()
+    val themeMode by preferences.themeMode.collectAsState()
+    val language by preferences.appLanguage.collectAsState()
+    ProvideAppLanguage(language) {
+        PodcastTheme(darkTheme = themeMode.isDark()) {
+            RootContent(root, keyboardShortcuts)
+        }
     }
 }

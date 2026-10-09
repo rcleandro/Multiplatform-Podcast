@@ -3,8 +3,11 @@ package br.com.carvalho.podcast.feature.settings.presentation
 import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +28,7 @@ import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -34,8 +38,11 @@ import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_dark
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_system
+import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
@@ -57,10 +64,35 @@ class SettingsContentTest {
         }
 
         onNode(isHeading() and hasText(text(Res.string.settings))).assertExists()
-        onNodeWithText(text(Res.string.settings_theme_system)).assertIsSelected()
+        // The row shows the current theme and opens its choices; picking one closes them.
+        onNodeWithText(text(Res.string.settings_theme)).performClick()
+        onNode(isSelectable() and hasText(text(Res.string.settings_theme_system))).assertIsSelected()
         onNodeWithText(text(Res.string.settings_theme_dark)).performClick()
 
         assertEquals(ThemeMode.DARK, chosen)
+        onAllNodesWithText(text(Res.string.settings_theme_dark)).assertCountEquals(0)
+    }
+
+    @Test
+    fun eachLanguageIsOfferedInItsOwnName() = runComposeUiTest {
+        var chosen: AppLanguage? = null
+        setContent {
+            PodcastTheme {
+                SettingsContent(
+                    SettingsUiState(language = AppLanguage.PORTUGUESE),
+                    onBack = {},
+                    onIntent = { (it as? SettingsIntent.SetLanguage)?.let { chosen = it.language } },
+                )
+            }
+        }
+
+        onNodeWithText("Português").assertExists()
+        onNodeWithText(text(Res.string.settings_language)).performClick()
+        onNode(isSelectable() and hasText("Português")).assertIsSelected()
+        onNodeWithText("Español").performClick()
+
+        assertEquals(AppLanguage.SPANISH, chosen)
+        onAllNodesWithText("Español").assertCountEquals(0)
     }
 
     @Test
@@ -103,7 +135,9 @@ class SettingsContentTest {
             }
         }
         // 12 GB fit: half a gigabyte, then 1 to 10 GB, then no limit, where it starts.
-        val slider = onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo) and hasStateDescription(text(Res.string.settings_no_limit)))
+        val isSlider = SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo) and hasStateDescription(text(Res.string.settings_no_limit))
+        onNode(hasScrollToNodeAction()).performScrollToNode(isSlider)
+        val slider = onNode(isSlider)
 
         slider.performSemanticsAction(SemanticsActions.SetProgress) { it(FIVE_GB_STOP) }
 
@@ -140,10 +174,13 @@ class SettingsContentTest {
         val intents = mutableListOf<SettingsIntent>()
         var state by mutableStateOf(SettingsUiState(usedBytes = 0))
         setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        val list = onNode(hasScrollToNodeAction())
+        list.performScrollToNode(hasText(text(Res.string.settings_delete_finished)))
         onAllNodesWithText(text(Res.string.settings_delete_all)).assertCountEquals(0)
 
         state = SettingsUiState(usedBytes = GB)
-        onNodeWithText(text(Res.string.settings_delete_all)).performScrollTo().performClick()
+        list.performScrollToNode(hasText(text(Res.string.settings_delete_all)))
+        onNodeWithText(text(Res.string.settings_delete_all)).performClick()
         state = state.copy(isConfirmingDeleteAll = true)
         onNodeWithText(text(Res.string.delete)).performClick()
 

@@ -9,17 +9,18 @@ appId: br.com.carvalho.podcast
       all: allow
 - tapOn: "Configurações"
 - waitForAnimationToEnd
+- tapOn: "Tema"
 - tapOn: "Claro"
-# The radio state lives on the row, not on its text.
-- assertVisible:
-    containsChild: "Claro"
-    checked: true
 - back
 - stopApp
 - launchApp
 - tapOn: "Configurações"
 # The screen slides up over the tabs: check once it has settled.
 - waitForAnimationToEnd
+# The row shows the chosen theme; its dialog marks it.
+- assertVisible: "Claro"
+- tapOn: "Tema"
+# The radio state lives on the row, not on its text.
 - assertVisible:
     containsChild: "Claro"
     checked: true

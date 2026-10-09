@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.repository
 
+import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.SkipIntervals
@@ -47,6 +48,12 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override fun setSkipIntervals(intervals: SkipIntervals) {
         skipIntervals.value = intervals
+    }
+
+    override val appLanguage = MutableStateFlow(AppLanguage.SYSTEM)
+
+    override fun setAppLanguage(language: AppLanguage) {
+        appLanguage.value = language
     }
 
     override val themeMode = MutableStateFlow(ThemeMode.SYSTEM)

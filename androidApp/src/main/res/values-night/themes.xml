@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Podcast" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.Podcast" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@color/podcast_background</item>
     </style>
     <color name="podcast_background">#161513</color>
