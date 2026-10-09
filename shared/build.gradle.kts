@@ -55,6 +55,7 @@ kotlin {
             implementation(project(":feature:episode"))
             implementation(project(":feature:search"))
             implementation(project(":feature:player"))
+            implementation(project(":feature:discover"))
             implementation(project(":core:database"))
             implementation(project(":core:designsystem"))
             implementation(project(":core:network"))

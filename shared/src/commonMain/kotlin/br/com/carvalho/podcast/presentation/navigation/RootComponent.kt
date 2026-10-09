@@ -34,7 +34,13 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         AppLogger.d(TAG, "Tab clicked: $tab")
         _state.update {
             val stacks = if (tab == it.selectedTab && !it.isPlayerOpen) it.stacks - tab else it.stacks
-            it.copy(selectedTab = tab, stacks = stacks, isPlayerOpen = false, isOrganizingLibrary = false)
+            it.copy(
+                selectedTab = tab,
+                stacks = stacks,
+                isPlayerOpen = false,
+                isOrganizingLibrary = false,
+                isAddingPodcast = false,
+            )
         }
     }
 
@@ -57,6 +63,11 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         _state.update { it.copy(isOrganizingLibrary = true) }
     }
 
+    /** Opens "Add podcast" (directory search and feed address) over the tabs, from the library's "+" (18.1). */
+    fun onAddPodcast() {
+        _state.update { it.copy(isAddingPodcast = true) }
+    }
+
     fun onPodcastSelected(podcastId: String) {
         AppLogger.d(TAG, "Podcast selected")
         setStack(listOf(Detail.Podcast(podcastId)))
@@ -68,12 +79,13 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         setStack(listOf(Detail.Podcast(podcastId), Detail.Episode(episodeId)))
     }
 
-    /** Closes the player or "Organize library", else pops the current tab, else returns to the library. */
+    /** Closes the player, "Organize library" or "Add podcast", else pops the current tab, else goes to the library. */
     fun onBackClicked() {
         _state.update {
             when {
                 it.isPlayerOpen -> it.copy(isPlayerOpen = false)
                 it.isOrganizingLibrary -> it.copy(isOrganizingLibrary = false)
+                it.isAddingPodcast -> it.copy(isAddingPodcast = false)
                 it.currentStack.isNotEmpty() ->
                     it.copy(stacks = it.stacks + (it.selectedTab to it.currentStack.dropLast(1)))
                 else -> it.copy(selectedTab = Tab.Library)
@@ -105,10 +117,12 @@ data class NavigationState(
     val stacks: Map<Tab, List<Detail>> = emptyMap(),
     val isPlayerOpen: Boolean = false,
     val isOrganizingLibrary: Boolean = false,
+    val isAddingPodcast: Boolean = false,
 ) {
     val currentStack: List<Detail> get() = stacks[selectedTab].orEmpty()
     val podcast: Detail.Podcast? get() = currentStack.filterIsInstance<Detail.Podcast>().lastOrNull()
     val episode: Detail.Episode? get() = currentStack.lastOrNull() as? Detail.Episode
     val canGoBack: Boolean
-        get() = isPlayerOpen || isOrganizingLibrary || currentStack.isNotEmpty() || selectedTab != Tab.Library
+        get() = isPlayerOpen || isOrganizingLibrary || isAddingPodcast || currentStack.isNotEmpty() ||
+            selectedTab != Tab.Library
 }

@@ -38,7 +38,7 @@ subprojects {
 // interaction tests of 17.4 instead. Each floor is the coverage the module had when it was set (17.2), so a drop
 // fails `koverVerify`; raise it as tests are added. Goals: domain and data ≥ 90%, features ≥ 70%.
 val coverageFloors = mapOf(
-    ":core:common" to 29,
+    ":core:common" to 30,
     ":core:database" to 60,
     ":core:designsystem" to 92,
     ":core:network" to 87,
@@ -47,11 +47,12 @@ val coverageFloors = mapOf(
     ":core:ui" to 59,
     ":data" to 94,
     ":domain" to 90,
+    ":feature:discover" to 97,
     ":feature:episode" to 84,
     ":feature:library" to 97,
     ":feature:player" to 97,
     ":feature:podcast" to 98,
-    ":feature:search" to 87,
+    ":feature:search" to 91,
     ":shared" to 46,
 )
 

@@ -13,23 +13,17 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarState
 import androidx.compose.runtime.Composable
@@ -48,7 +42,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -64,7 +57,6 @@ import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
-import br.com.carvalho.podcast.core.ui.generated.resources.clear
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download_confirmation
@@ -78,7 +70,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.no_downloads
-import br.com.carvalho.podcast.core.ui.generated.resources.search
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
@@ -93,6 +84,7 @@ import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.component.SearchField
 import br.com.carvalho.podcast.presentation.format.DateGroup
 import br.com.carvalho.podcast.presentation.format.dateGroup
 import br.com.carvalho.podcast.presentation.format.storageSize
@@ -182,7 +174,11 @@ private fun SearchTopBar(
                 .semantics { heading() },
         )
         Column(modifier = Modifier.collapsingWith(scrollState)) {
-            SearchField(query = state.searchQuery, onQueryChange = onQueryChange)
+            SearchField(
+                query = state.searchQuery,
+                onQueryChange = onQueryChange,
+                placeholder = stringResource(Res.string.search_placeholder),
+            )
             FilterChipRow(
                 options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
                 selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
@@ -385,37 +381,6 @@ private fun rememberScrollToTopOnFilterChange(
 }
 
 /** Pill-shaped search field; the indicator line takes the container color so it does not show. */
-@Composable
-private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
-    val container = MaterialTheme.colorScheme.surfaceContainer
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        placeholder = {
-            Text(stringResource(Res.string.search_placeholder), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        },
-        leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = stringResource(Res.string.search)) },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Rounded.Clear, contentDescription = stringResource(Res.string.clear))
-                }
-            }
-        },
-        singleLine = true,
-        shape = CircleShape,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = container,
-            unfocusedContainerColor = container,
-            focusedIndicatorColor = container,
-            unfocusedIndicatorColor = container,
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Spacing.l, vertical = Spacing.m),
-    )
-}
-
 @Composable
 private fun EpisodeRowAt(
     index: Int,

@@ -96,7 +96,7 @@ fun LibraryOrderContent(entries: List<LibraryEntry>, onReorder: (List<String>) -
                         supportingText = null,
                         onClick = {},
                         modifier = Modifier.readableWidth().moveActions(shown, index, onReorder),
-                        dragHandle = {
+                        trailing = {
                             Icon(
                                 Icons.Rounded.DragHandle,
                                 contentDescription = stringResource(Res.string.library_reorder),

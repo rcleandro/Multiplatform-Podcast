@@ -46,6 +46,22 @@ class RootComponentTest {
     }
 
     @Test
+    fun addingAPodcastOpensItsScreenThatBackOrATabCloses() {
+        val root = createRoot()
+
+        root.onAddPodcast()
+        assertTrue(root.current.isAddingPodcast)
+        assertTrue(backDispatcher.isEnabled)
+        backDispatcher.back()
+        assertFalse(root.current.isAddingPodcast)
+        assertEquals(Tab.Library, root.current.selectedTab)
+
+        root.onAddPodcast()
+        root.onTabClicked(Tab.Episodes)
+        assertFalse(root.current.isAddingPodcast)
+    }
+
+    @Test
     fun selectingAnEpisodeOpensItOverItsPodcast() {
         val root = createRoot()
 

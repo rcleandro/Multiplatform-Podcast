@@ -1,0 +1,20 @@
+# 18.1: find a podcast in the Apple Podcasts directory and subscribe to it from the search results.
+# Needs the debug app installed, a device in Portuguese and internet:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/search-subscribe.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Adicionar Podcast"
+- inputText: "hipsters ponto tech"
+- extendedWaitUntil:
+    visible: "Hipsters Ponto Tech"
+    timeout: 20000
+- tapOn: "Assinar Hipsters Ponto Tech"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- tapOn: "Voltar"
+- assertVisible: "Hipsters Ponto Tech"

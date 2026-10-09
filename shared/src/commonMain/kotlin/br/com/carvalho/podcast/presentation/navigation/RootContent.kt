@@ -56,6 +56,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.library_title
 import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.feature.discover.presentation.DiscoverScreen
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
@@ -85,7 +86,7 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
     // height, like a flip phone's cover screen (21.5).
     val hasRail = currentPaneLayout() != PaneLayout.COMPACT || currentWindowIsShort()
 
-    // The player and "Organize library" cover the tabs too (ADR 0005): the bar is for moving between tabs only.
+    // The player, "Organize library" and "Add podcast" cover the tabs (ADR 0005): the bar only moves between tabs.
     // Opening the player grows the mini player's cover into the player's, and minimizing shrinks it back (24.2).
     val shortcuts = if (keyboardShortcuts) appShortcuts(component, playerViewModel) else Modifier
     SharedTransitionLayout(modifier = Modifier.fillMaxSize().then(shortcuts)) {
@@ -117,23 +118,22 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
             )
         }
 
-        AnimatedVisibility(
-            visible = state.isOrganizingLibrary,
-            enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
-            exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
-        ) {
-            LibraryOrderScreen(onBack = component::onBackClicked)
-        }
-
-        AnimatedVisibility(
-            visible = state.isPlayerOpen,
-            enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
-            exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
-        ) {
+        Overlay(visible = state.isOrganizingLibrary) { LibraryOrderScreen(onBack = component::onBackClicked) }
+        Overlay(visible = state.isAddingPodcast) { DiscoverScreen(onBack = component::onBackClicked) }
+        Overlay(visible = state.isPlayerOpen) {
             PlayerScreen(onBackClick = component::onBackClicked, artworkModifier = sharedCover(this))
         }
     }
 }
+
+/** A screen that slides up over the tabs: the player, "Organize library" and "Add podcast". */
+@Composable
+private fun Overlay(visible: Boolean, content: @Composable AnimatedVisibilityScope.() -> Unit) = AnimatedVisibility(
+    visible = visible,
+    enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
+    exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
+    content = content,
+)
 
 /** Space plays or pauses, the arrows skip and Escape goes back, wherever the app is (21.7). */
 @Composable
@@ -222,6 +222,7 @@ private fun ListPane(component: RootComponent, tab: Tab) {
     when (tab) {
         Tab.Library -> LibraryScreen(
             onOrganize = component::onOrganizeLibrary,
+            onAddPodcast = component::onAddPodcast,
             onPodcastClick = component::onPodcastSelected,
         )
         Tab.Episodes -> SearchScreen(

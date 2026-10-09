@@ -1,17 +1,14 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.add
 import br.com.carvalho.podcast.core.ui.generated.resources.add_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_podcast
@@ -24,8 +21,6 @@ import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
-import br.com.carvalho.podcast.domain.repository.FetchedFeed
-import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
@@ -40,8 +35,9 @@ import org.jetbrains.compose.resources.getString
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
-/** The library screen wired to its real view model, over fakes: adding a podcast and removing it again. */
+/** The library screen wired to its real view model, over fakes: opening "Add podcast" and removing a podcast. */
 @OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class LibraryFlowTest {
     private val dispatcher = UnconfinedTestDispatcher()
@@ -59,7 +55,6 @@ class LibraryFlowTest {
 
     private fun viewModel() = LibraryViewModel(
         repository,
-        AddPodcastFromUrlUseCase(feedSource, repository),
         RefreshPodcastUseCase(feedSource, repository),
         DeletePodcastUseCase(repository, FakeEpisodeDownloader()),
         FakePreferencesRepository(),
@@ -69,15 +64,20 @@ class LibraryFlowTest {
     )
 
     @Test
-    fun aPodcastAddedByItsAddressShowsInTheLibraryAndCanBeRemoved() = runComposeUiTest {
-        feedSource.result = Result.success(FetchedFeed(podcast(), emptyList()))
-        setContent { PodcastTheme { LibraryScreen(viewModel = viewModel(), onPodcastClick = {}) } }
+    fun theEmptyLibraryOpensAddPodcastAndAPodcastCanBeRemoved() = runComposeUiTest {
+        var addOpened = 0
+        setContent {
+            PodcastTheme {
+                LibraryScreen(viewModel = viewModel(), onAddPodcast = { addOpened++ }, onPodcastClick = {})
+            }
+        }
 
         onNodeWithText(text(Res.string.no_podcasts_found)).assertExists()
         onNodeWithText(text(Res.string.add_podcast)).performClick()
-        onNode(hasSetTextAction()).performTextInput(FEED_URL)
-        onNodeWithText(text(Res.string.add)).performClick()
+        assertEquals(1, addOpened)
 
+        // Added elsewhere ("Add podcast"): the library shows it as soon as the database has it.
+        repository.podcasts.value = listOf(podcast())
         waitUntil { onAllNodes(hasText(TITLE)).fetchSemanticsNodes().isNotEmpty() }
 
         onNodeWithContentDescription(text(Res.string.podcast_options)).performClick()

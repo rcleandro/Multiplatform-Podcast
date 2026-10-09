@@ -25,6 +25,7 @@ class AnalyticsEventTest {
         val samples = PlaySource.entries.map { AnalyticsEvent.PlayEpisode(EPISODE, it) } + listOf(
             AnalyticsEvent.LoadEpisodeDetail(EPISODE),
             AnalyticsEvent.LoadEpisodeDetailError(EPISODE, error),
+            AnalyticsEvent.SearchDirectory(resultCount = 3),
             AnalyticsEvent.AddPodcastAttempt(HOST),
             AnalyticsEvent.AddPodcastSuccess(HOST),
             AnalyticsEvent.AddPodcastFailure(HOST, error),
@@ -58,7 +59,7 @@ class AnalyticsEventTest {
     @Suppress("CyclomaticComplexMethod")
     private fun covered(event: AnalyticsEvent) = when (event) {
         is AnalyticsEvent.PlayEpisode, is AnalyticsEvent.LoadEpisodeDetail, is AnalyticsEvent.LoadEpisodeDetailError,
-        is AnalyticsEvent.AddPodcastAttempt, is AnalyticsEvent.AddPodcastSuccess, is AnalyticsEvent.AddPodcastFailure,
+        is AnalyticsEvent.SearchDirectory, is AnalyticsEvent.AddPodcastAttempt, is AnalyticsEvent.AddPodcastSuccess, is AnalyticsEvent.AddPodcastFailure,
         is AnalyticsEvent.DeletePodcast, AnalyticsEvent.RefreshAllPodcasts, is AnalyticsEvent.RefreshPodcast,
         is AnalyticsEvent.SetEpisodeFilter, is AnalyticsEvent.DownloadEpisode, is AnalyticsEvent.DeleteDownload,
         is AnalyticsEvent.MarkPlayed, is AnalyticsEvent.MarkOlderPlayed, is AnalyticsEvent.PlayInPlayer,

@@ -8,8 +8,11 @@ appId: br.com.carvalho.podcast
     permissions:
       all: allow
 - tapOn: "Adicionar Podcast"
+- tapOn: "Adicionar pelo endereço do feed"
 - inputText: "https://feeds.npr.org/510289/podcast.xml"
-- tapOn: "Adicionar"
+- tapOn:
+    text: "Adicionar"
+    index: 0
 - extendedWaitUntil:
     visible: "Planet Money"
     timeout: 30000

@@ -24,6 +24,7 @@ import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
+import br.com.carvalho.podcast.feature.discover.discoverFeatureModule
 import br.com.carvalho.podcast.feature.episode.episodeFeatureModule
 import br.com.carvalho.podcast.feature.library.libraryFeatureModule
 import br.com.carvalho.podcast.feature.player.playerFeatureModule
@@ -90,5 +91,6 @@ val commonModules = listOf(
     podcastFeatureModule,
     episodeFeatureModule,
     searchFeatureModule,
-    playerFeatureModule
+    playerFeatureModule,
+    discoverFeatureModule
 )

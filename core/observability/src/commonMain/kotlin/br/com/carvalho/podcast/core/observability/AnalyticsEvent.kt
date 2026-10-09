@@ -20,6 +20,9 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     class LoadEpisodeDetailError(episodeId: String, error: Throwable) :
         AnalyticsEvent("load_episode_detail_error", mapOf(EPISODE_ID to episodeId, ERROR to error::class.simpleName))
 
+    /** A directory search (18.1). The term stays out: what someone looks for can say a lot about them. */
+    class SearchDirectory(resultCount: Int) : AnalyticsEvent("search_directory", mapOf("results" to resultCount))
+
     class AddPodcastAttempt(host: String) : AnalyticsEvent("add_podcast_attempt", mapOf(HOST to host))
 
     class AddPodcastSuccess(host: String) : AnalyticsEvent("add_podcast_success", mapOf(HOST to host))

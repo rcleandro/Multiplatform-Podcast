@@ -152,4 +152,13 @@
     <string name="downloads_storage_used">%1$s em uso</string>
     <string name="size_megabytes">%1$d MB</string>
     <string name="size_gigabytes">%1$d,%2$d GB</string>
+    <string name="discover_search_placeholder">Buscar por nome, autor ou assunto</string>
+    <string name="add_by_url">Adicionar pelo endereço do feed</string>
+    <string name="more_options">Mais opções</string>
+    <string name="subscribe">Assinar</string>
+    <string name="subscribed">Assinado</string>
+    <string name="discover_hint_title">Encontre um podcast</string>
+    <string name="discover_hint_message">Busque no diretório do Apple Podcasts. Um podcast que não esteja lá pode ser adicionado pelo endereço do feed.</string>
+    <string name="error_search_directory">Não foi possível buscar no diretório.</string>
+    <string name="subscribe_to">Assinar %1$s</string>
 </resources>

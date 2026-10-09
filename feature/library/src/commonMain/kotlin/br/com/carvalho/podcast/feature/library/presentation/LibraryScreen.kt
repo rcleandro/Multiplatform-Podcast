@@ -2,29 +2,21 @@ package br.com.carvalho.podcast.feature.library.presentation
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.ContentPaste
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,11 +26,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -50,24 +40,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import br.com.carvalho.podcast.core.designsystem.Motion
-import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.add
 import br.com.carvalho.podcast.core.ui.generated.resources.add_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
@@ -86,10 +69,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_recently
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_title
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
 import br.com.carvalho.podcast.core.ui.generated.resources.no_podcasts_found
-import br.com.carvalho.podcast.core.ui.generated.resources.paste
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh_all
-import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_label
-import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_placeholder
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
@@ -103,6 +83,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun LibraryScreen(
     viewModel: LibraryViewModel = koinViewModel(),
     onOrganize: () -> Unit = {},
+    onAddPodcast: () -> Unit = {},
     onPodcastClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -121,10 +102,7 @@ fun LibraryScreen(
             onSortChange = { viewModel.onIntent(LibraryIntent.ChangeSort(it)) },
             onPlay = { viewModel.onIntent(LibraryIntent.Play(it)) },
             onOrganize = onOrganize,
-            onAddClick = { viewModel.onIntent(LibraryIntent.OpenAddDialog) },
-            onUrlChange = { viewModel.onIntent(LibraryIntent.ChangeUrl(it)) },
-            onAddConfirm = { viewModel.onIntent(LibraryIntent.ConfirmAdd) },
-            onAddDismiss = { viewModel.onIntent(LibraryIntent.DismissAddDialog) },
+            onAddClick = onAddPodcast,
             onDeleteConfirm = { viewModel.onIntent(LibraryIntent.ConfirmDelete) },
             onDeleteDismiss = { viewModel.onIntent(LibraryIntent.DismissDelete) },
         ),
@@ -140,9 +118,6 @@ data class LibraryActions(
     val onPlay: (Episode) -> Unit = {},
     val onOrganize: () -> Unit = {},
     val onAddClick: () -> Unit = {},
-    val onUrlChange: (String) -> Unit = {},
-    val onAddConfirm: () -> Unit = {},
-    val onAddDismiss: () -> Unit = {},
     val onDeleteConfirm: () -> Unit = {},
     val onDeleteDismiss: () -> Unit = {},
 )
@@ -314,14 +289,6 @@ private fun LibraryBody(
 
 @Composable
 private fun LibraryDialogs(state: LibraryUiState, actions: LibraryActions) {
-    if (state.isAddDialogOpen) {
-        AddPodcastDialog(
-            url = state.addUrl,
-            onUrlChange = actions.onUrlChange,
-            onDismiss = actions.onAddDismiss,
-            onConfirm = actions.onAddConfirm
-        )
-    }
     state.podcastToDelete?.let { podcast ->
         ConfirmDialog(
             title = stringResource(Res.string.delete_podcast),
@@ -332,48 +299,4 @@ private fun LibraryDialogs(state: LibraryUiState, actions: LibraryActions) {
             onDismiss = actions.onDeleteDismiss,
         )
     }
-}
-
-@Composable
-private fun AddPodcastDialog(
-    url: String,
-    onUrlChange: (String) -> Unit,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    // Ready to type (or paste) as soon as it opens; the keyboard's done key, Enter on Desktop, sends it.
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focus.requestFocus() }
-    // ponytail: the deprecated ClipboardManager reads plain text on every platform; its replacement (LocalClipboard)
-    // returns a platform ClipEntry that needs an expect/actual per platform. Switch when text gets a common accessor.
-    @Suppress("DEPRECATION")
-    val clipboard = LocalClipboardManager.current
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(Res.string.add_podcast)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = onUrlChange,
-                    label = { Text(stringResource(Res.string.rss_url_label)) },
-                    placeholder = { Text(stringResource(Res.string.rss_url_placeholder)) },
-                    trailingIcon = {
-                        IconButton(onClick = { clipboard.getText()?.text?.let(onUrlChange) }) {
-                            Icon(Icons.Rounded.ContentPaste, contentDescription = stringResource(Res.string.paste))
-                        }
-                    },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { if (url.isNotBlank()) onConfirm() }),
-                    modifier = Modifier.fillMaxWidth().focusRequester(focus),
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onConfirm, enabled = url.isNotBlank()) { Text(stringResource(Res.string.add)) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel)) } },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-    )
 }
