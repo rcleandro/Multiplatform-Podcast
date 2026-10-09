@@ -62,6 +62,9 @@ class DiscoverViewModel(
 
     private val searchRequests = MutableStateFlow(SearchRequest(term = "", category = null))
 
+    /** The opening of the screen this state belongs to; null until the screen first opens. */
+    private var session: Int? = null
+
     init {
         viewModelScope.launch(dispatchers.io) { searchAsTheUserTypes() }
     }
@@ -84,7 +87,7 @@ class DiscoverViewModel(
             is DiscoverIntent.ChangeUrl -> _uiState.update { it.copy(url = intent.url) }
             DiscoverIntent.ConfirmUrl -> addByUrl()
             is DiscoverIntent.OpenLink -> openPodcastLink(intent.link)
-            DiscoverIntent.ForgetLink -> _uiState.update { it.copy(linked = null) }
+            is DiscoverIntent.Open -> open(intent.session)
         }
     }
 
@@ -125,6 +128,18 @@ class DiscoverViewModel(
                 )
             }
         }
+    }
+
+    /**
+     * The view model outlives the screen, which slides away over the tabs: a new opening starts with nothing typed,
+     * no category and no link, as the first one did. The same opening again (a rotation, a fold) changes nothing.
+     */
+    private fun open(opening: Int) {
+        val previous = session
+        session = opening
+        if (previous == null || previous == opening) return
+        _uiState.value = DiscoverUiState()
+        searchRequests.value = SearchRequest(term = "", category = null)
     }
 
     private fun DirectoryResult.subscribedIf(feedUrl: String) =
@@ -216,5 +231,7 @@ sealed interface DiscoverIntent {
     data class ChangeUrl(val url: String) : DiscoverIntent
     data object ConfirmUrl : DiscoverIntent
     data class OpenLink(val link: String) : DiscoverIntent
-    data object ForgetLink : DiscoverIntent
+
+    /** The screen opened ([session] counts the openings): a new one starts clean. */
+    data class Open(val session: Int) : DiscoverIntent
 }

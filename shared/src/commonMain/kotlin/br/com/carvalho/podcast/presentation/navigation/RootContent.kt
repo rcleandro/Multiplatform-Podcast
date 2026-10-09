@@ -125,6 +125,7 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
         Overlay(visible = state.isAddingPodcast) {
             DiscoverScreen(
                 onBack = component::onBackClicked,
+                session = state.addPodcastSession,
                 link = state.podcastLink,
                 onLinkHandled = component::onPodcastLinkHandled,
                 onOpenPodcast = component::onPodcastSelected,

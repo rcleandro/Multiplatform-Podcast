@@ -17,8 +17,8 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
-import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
+import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
@@ -303,14 +303,30 @@ class DiscoverViewModelTest {
     }
 
     @Test
-    fun `a link's podcast is forgotten when the screen closes`() = runTest(dispatcher) {
+    fun `opening the screen again starts with nothing typed, no category and no link`() = runTest(dispatcher) {
         directory.lookupResult = Result.success(found(HIPSTERS))
         val viewModel = viewModel()
+        viewModel.onIntent(DiscoverIntent.Open(session = 1))
+        viewModel.onIntent(DiscoverIntent.ChangeQuery("frantic nerdcast"))
+        viewModel.onIntent(DiscoverIntent.SelectCategory(PodcastCategory.COMEDY))
         viewModel.onIntent(DiscoverIntent.OpenLink("https://podcasts.apple.com/br/podcast/id1"))
 
-        viewModel.onIntent(DiscoverIntent.ForgetLink)
+        viewModel.onIntent(DiscoverIntent.Open(session = 2))
 
+        assertEquals("", viewModel.uiState.value.query)
+        assertNull(viewModel.uiState.value.category)
         assertNull(viewModel.uiState.value.linked)
+    }
+
+    @Test
+    fun `the same opening after a rotation or a fold keeps what was typed`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onIntent(DiscoverIntent.Open(session = 1))
+        viewModel.onIntent(DiscoverIntent.ChangeQuery("frantic nerdcast"))
+
+        viewModel.onIntent(DiscoverIntent.Open(session = 1))
+
+        assertEquals("frantic nerdcast", viewModel.uiState.value.query)
     }
 
     private fun found(feedUrl: String) = DirectoryPodcast(

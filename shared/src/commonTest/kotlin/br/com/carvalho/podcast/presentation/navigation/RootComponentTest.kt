@@ -47,6 +47,32 @@ class RootComponentTest {
     }
 
     @Test
+    fun eachOpeningOfAddPodcastIsANewSession() {
+        val root = createRoot()
+
+        root.onAddPodcast()
+        val first = root.current.addPodcastSession
+        root.onBackClicked()
+        root.onAddPodcast()
+        assertEquals(first + 1, root.current.addPodcastSession)
+
+        root.onPodcastLink("pcast://example.com/rss")
+        assertEquals(first + 2, root.current.addPodcastSession)
+    }
+
+    @Test
+    fun theSessionOfAddPodcastSurvivesARecreatedScreen() {
+        val stateKeeper = StateKeeperDispatcher()
+        val root = createRoot(stateKeeper)
+        root.onAddPodcast()
+
+        val restored = createRoot(StateKeeperDispatcher(stateKeeper.save()))
+
+        assertEquals(root.current.addPodcastSession, restored.current.addPodcastSession)
+        assertTrue(restored.current.isAddingPodcast)
+    }
+
+    @Test
     fun aPodcastLinkOpensAddPodcastOverThePlayerUntilTheScreenTakesIt() {
         val root = createRoot()
         root.onPlayerClicked()

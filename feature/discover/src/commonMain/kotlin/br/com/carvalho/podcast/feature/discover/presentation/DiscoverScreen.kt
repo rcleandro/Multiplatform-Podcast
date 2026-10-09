@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.feature.discover.presentation
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -40,7 +41,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -102,12 +102,14 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * "Add podcast". A [link] opened in the app (18.4) is shown here, then [onLinkHandled]; one to a podcast the library
- * has goes to [onOpenPodcast] instead.
+ * "Add podcast". Each [session] (one per opening) starts with nothing typed and no link; the same session, after a
+ * rotation or a fold, keeps it. A [link] opened in the app (18.4) is shown here, then [onLinkHandled]; one to a
+ * podcast the library has goes to [onOpenPodcast] instead.
  */
 @Composable
 fun DiscoverScreen(
     onBack: () -> Unit,
+    session: Int = 0,
     link: String? = null,
     onLinkHandled: () -> Unit = {},
     onOpenPodcast: (String) -> Unit = {},
@@ -119,14 +121,14 @@ fun DiscoverScreen(
     // Added by its address: back to the library, which shows it.
     LaunchedEffect(viewModel) { viewModel.addedByUrl.collectLatest { onBack() } }
     LaunchedEffect(viewModel) { viewModel.openPodcast.collectLatest(onOpenPodcast) }
+    // Before the link: a new opening clears the screen first, then shows the link it came with.
+    LaunchedEffect(session) { viewModel.onIntent(DiscoverIntent.Open(session)) }
     LaunchedEffect(link) {
         if (link != null) {
             viewModel.onIntent(DiscoverIntent.OpenLink(link))
             onLinkHandled()
         }
     }
-    // The view model outlives the screen: a link's podcast is not shown again the next time "+" opens it.
-    DisposableEffect(viewModel) { onDispose { viewModel.onIntent(DiscoverIntent.ForgetLink) } }
 
     DiscoverContent(
         state = state,
@@ -177,9 +179,7 @@ fun DiscoverContent(
         // A link's podcast is what to see, not the keyboard over it (18.4).
         val focusManager = LocalFocusManager.current
         LaunchedEffect(state.isOpeningLink) { if (state.isOpeningLink) focusManager.clearFocus() }
-        // Above the keyboard, which opens with the screen: the hint and its button, and the last results, stay in
-        // sight. The navigation bar inset is already in [padding], so it is not counted twice.
-        Column(modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
             SearchField(
                 query = state.query,
                 onQueryChange = actions.onQueryChange,
@@ -188,7 +188,11 @@ fun DiscoverContent(
             )
             if (state.query.isBlank()) CategoryChips(state.category, actions.onCategoryChange)
             if (state.isAddingUrl || state.isOpeningLink) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            DiscoverBody(state, actions)
+            // Above the keyboard, which opens with the screen, the results stay in sight. Only they make room for it:
+            // in a low window (a phone on its side) the keyboard takes nearly all the height, and padding the whole
+            // column squeezed the search field until its text no longer showed. The navigation bar inset is already
+            // in [padding], so it is not counted twice.
+            Box(modifier = Modifier.weight(1f).imePadding()) { DiscoverBody(state, actions) }
         }
     }
 

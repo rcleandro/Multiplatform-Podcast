@@ -73,7 +73,7 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
 
     /** Opens "Add podcast" (directory search and feed address) over the tabs, from the library's "+" (18.1). */
     fun onAddPodcast() {
-        _state.update { it.copy(isAddingPodcast = true) }
+        _state.update { it.copy(isAddingPodcast = true, addPodcastSession = it.addPodcastSession + 1) }
     }
 
     /**
@@ -88,6 +88,7 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
                 isOrganizingLibrary = false,
                 isShowingSettings = false,
                 isAddingPodcast = true,
+                addPodcastSession = it.addPodcastSession + 1,
                 podcastLink = link,
             )
         }
@@ -163,6 +164,11 @@ data class NavigationState(
     val isOrganizingLibrary: Boolean = false,
     val isAddingPodcast: Boolean = false,
     val isShowingSettings: Boolean = false,
+    /**
+     * Counts the times "Add podcast" was opened: each opening starts clean, while a rotation or a fold, which keep
+     * this number, keep what was typed.
+     */
+    val addPodcastSession: Int = 0,
     /** A podcast link waiting for "Add podcast" to show it (18.4). */
     val podcastLink: String? = null,
 ) {

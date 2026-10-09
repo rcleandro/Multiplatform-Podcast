@@ -1,0 +1,22 @@
+# 18.1: "Add podcast" starts empty each time it opens, while a rotation keeps what was typed.
+# Needs the debug app installed and a device in Portuguese:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/discover-session.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Adicionar Podcast"
+- inputText: "nerdcast"
+- setOrientation: LANDSCAPE_LEFT
+- waitForAnimationToEnd
+- assertVisible: "nerdcast"
+- setOrientation: PORTRAIT
+- waitForAnimationToEnd
+- assertVisible: "nerdcast"
+- hideKeyboard
+- back
+- tapOn: "Adicionar Podcast"
+- assertNotVisible: "nerdcast"
+- assertVisible: "Buscar por nome, autor ou assunto"
