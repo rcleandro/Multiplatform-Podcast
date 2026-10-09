@@ -1,0 +1,30 @@
+# 17.5: add a feed, play its latest episode, pause, and find the position again after the app restarts.
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/add-play-resume.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Adicionar Podcast"
+- inputText: "https://feeds.npr.org/510289/podcast.xml"
+- tapOn: "Adicionar"
+- extendedWaitUntil:
+    visible: "Planet Money"
+    timeout: 30000
+- tapOn: "Planet Money"
+- tapOn: "Mais recente"
+# Let it play long enough for the progress to be saved (every 5 s while playing).
+- extendedWaitUntil:
+    visible: "Pausar"
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn: "Pausar"
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Continuar ouvindo"
+    timeout: 15000
+- assertVisible: ".*restantes"

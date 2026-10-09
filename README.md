@@ -51,6 +51,14 @@ cd iosApp && pod install && open iosApp.xcworkspace   # iOS (open the workspace,
 ./gradlew detekt                       # static analysis
 ./gradlew checkModuleDependencies      # module graph rules (ADR 0003)
 ./gradlew :androidApp:lintDebug        # Android lint (baseline in androidApp/)
+./gradlew koverVerify                  # coverage floor of each module
 ```
 
-Design system snapshots are recorded on Linux by the **Record snapshots** workflow and verified in CI.
+Design system and screen snapshots are recorded on Linux by the **Record snapshots** workflow and verified in CI.
+
+With an Android phone connected (not run in CI):
+
+```bash
+./gradlew :benchmark:connectedBenchmarkAndroidTest                              # cold startup, see docs/metricas.md
+./gradlew :androidApp:installDebug && maestro test .maestro/add-play-resume.yaml  # end to end, device in Portuguese
+```
