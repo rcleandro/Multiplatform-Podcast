@@ -1,6 +1,6 @@
 name: Record snapshots
 
-# Records the design system and player reference images on Linux and commits them to the chosen branch.
+# Records the design system and screen reference images on Linux and commits them to the chosen branch.
 # Images must come from this workflow: Robolectric renders differently on macOS, so Mac images never match CI.
 on:
     workflow_dispatch:
@@ -19,12 +19,12 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Record snapshots
-              run: ./gradlew :core:designsystem:recordRoborazziAndroidHostTest :feature:player:recordRoborazziAndroidHostTest
+              run: ./gradlew recordRoborazziAndroidHostTest
 
             - name: Commit images
               run: |
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                  git add core/designsystem/snapshots feature/player/snapshots
-                  git diff --cached --quiet || git commit -m "test(designsystem): record snapshots"
+                  git add core/designsystem/snapshots feature/*/snapshots
+                  git diff --cached --quiet || git commit -m "test: record snapshots"
                   git push

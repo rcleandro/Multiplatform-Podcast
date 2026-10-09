@@ -68,22 +68,17 @@ jobs:
             - name: Verify coverage floors
               run: ./gradlew koverVerify
 
-            - name: Verify design system snapshots
-              if: hashFiles('core/designsystem/snapshots/*.png') != ''
-              run: ./gradlew :core:designsystem:verifyRoborazziAndroidHostTest
-
-            - name: Verify player snapshots
-              if: hashFiles('feature/player/snapshots/*.png') != ''
-              run: ./gradlew :feature:player:verifyRoborazziAndroidHostTest
+            # Every module with snapshots: the design system and each feature's screens (17.4).
+            - name: Verify snapshots
+              if: hashFiles('**/snapshots/*.png') != ''
+              run: ./gradlew verifyRoborazziAndroidHostTest
 
             - name: Upload snapshot diffs
               if: failure()
               uses: actions/upload-artifact@v7
               with:
                   name: snapshot-diffs
-                  path: |
-                      core/designsystem/build/outputs/roborazzi/
-                      feature/player/build/outputs/roborazzi/
+                  path: "**/build/outputs/roborazzi/"
 
             - name: Upload test reports
               if: always()
