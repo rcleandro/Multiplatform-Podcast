@@ -134,6 +134,8 @@ class KtorEpisodeDownloader(
             throw e
         } catch (e: Exception) {
             AppLogger.e(TAG, "Download failed for $episodeId", e)
+            // Gone before the failure shows: whoever reacts to it must not find a partial file still on disk.
+            fileSystem.delete(partPath, mustExist = false)
             updateStatus(episodeId, DownloadStatus.Failed(e.toAppError()))
         } finally {
             fileSystem.delete(partPath, mustExist = false)
