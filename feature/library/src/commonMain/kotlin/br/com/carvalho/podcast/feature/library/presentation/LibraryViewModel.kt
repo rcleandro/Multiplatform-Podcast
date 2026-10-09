@@ -16,7 +16,9 @@ import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.model.sortedFor
+import br.com.carvalho.podcast.domain.model.topCategories
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
@@ -52,16 +54,42 @@ class LibraryViewModel(
     private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true, layout = preferences.libraryLayout.value))
     val uiState: StateFlow<LibraryUiState> = _uiState
 
+    /** The category chip picked above the podcasts (18.2); null shows them all. */
+    private val chosenCategory = MutableStateFlow<PodcastCategory?>(null)
+
     private val _messages = Channel<UiMessage>(Channel.BUFFERED)
     val messages: Flow<UiMessage> = _messages.receiveAsFlow()
 
     init {
         viewModelScope.launch(dispatchers.io) {
             val library = repository.getLibrary().onEach { Metrics.recordAppStart("podcasts" to it.size) }
-            combine(library.onStart { emit(emptyList()) }, preferences.librarySort) { podcasts, sort ->
-                podcasts.sortedFor(sort) to sort
-            }.collect { (podcasts, sort) ->
-                _uiState.update { it.copy(podcasts = podcasts, sort = sort, isLoading = false) }
+            combine(
+                library.onStart { emit(emptyList()) },
+                preferences.librarySort,
+                chosenCategory
+            ) { all, sort, chosen ->
+                val categories = all.flatMap { it.podcast.topCategories }
+                    .groupingBy { it }.eachCount()
+                    .entries.sortedByDescending { it.value }.map { it.key }
+                // A category whose last podcast left the library goes back to all of them.
+                val category = chosen?.takeIf { it in categories }
+                val shown = if (category == null) all else all.filter { category in it.podcast.topCategories }
+                LibraryUiState(
+                    podcasts = shown.sortedFor(sort),
+                    sort = sort,
+                    categories = categories,
+                    category = category
+                )
+            }.collect { listed ->
+                _uiState.update {
+                    it.copy(
+                        podcasts = listed.podcasts,
+                        sort = listed.sort,
+                        categories = listed.categories,
+                        category = listed.category,
+                        isLoading = false,
+                    )
+                }
             }
         }
         repository.getInProgressEpisodes()
@@ -77,6 +105,7 @@ class LibraryViewModel(
             LibraryIntent.RefreshAll -> refreshAll()
             LibraryIntent.ToggleLayout -> toggleLayout()
             is LibraryIntent.ChangeSort -> preferences.setLibrarySort(intent.sort)
+            is LibraryIntent.SelectCategory -> chosenCategory.value = intent.category
             is LibraryIntent.Play -> viewModelScope.launch(dispatchers.io) {
                 analytics.logEvent(AnalyticsEvent.PlayEpisode(intent.episode.id, AnalyticsEvent.PlaySource.LIBRARY))
                 playEpisode(intent.episode)
@@ -126,6 +155,9 @@ data class LibraryUiState(
     val inProgress: List<Episode> = emptyList(),
     val layout: LibraryLayout = LibraryLayout.GRID,
     val sort: LibrarySort = LibrarySort.TITLE,
+    /** The categories of the podcasts in the library, the most common first. */
+    val categories: List<PodcastCategory> = emptyList(),
+    val category: PodcastCategory? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val podcastToDelete: Podcast? = null,
@@ -135,6 +167,7 @@ sealed interface LibraryIntent {
     data object RefreshAll : LibraryIntent
     data object ToggleLayout : LibraryIntent
     data class ChangeSort(val sort: LibrarySort) : LibraryIntent
+    data class SelectCategory(val category: PodcastCategory?) : LibraryIntent
     data class Play(val episode: Episode) : LibraryIntent
     data class RequestDelete(val podcast: Podcast) : LibraryIntent
     data object ConfirmDelete : LibraryIntent

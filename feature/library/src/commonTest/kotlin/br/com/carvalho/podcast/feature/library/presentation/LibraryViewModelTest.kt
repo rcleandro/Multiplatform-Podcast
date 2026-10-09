@@ -14,6 +14,7 @@ import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
@@ -219,4 +220,40 @@ class LibraryViewModelTest {
             assertEquals(UiMessage(Res.string.error_no_connection), awaitItem())
         }
     }
+
+    @Test
+    fun `categories come from the library, the most common first, and filter the podcasts`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(
+            categorized("a", "Technology"), categorized("b", "Technology", "News"), categorized("c", "Comedy"),
+        )
+        val viewModel = createViewModel()
+        // Technology has two podcasts; the others tie and keep the order they appear in.
+        assertEquals(
+            listOf(PodcastCategory.TECHNOLOGY, PodcastCategory.NEWS, PodcastCategory.COMEDY),
+            viewModel.uiState.value.categories,
+        )
+
+        viewModel.onIntent(LibraryIntent.SelectCategory(PodcastCategory.TECHNOLOGY))
+        assertEquals(listOf("a", "b"), viewModel.uiState.value.podcasts.map { it.podcast.id })
+
+        viewModel.onIntent(LibraryIntent.SelectCategory(null))
+        assertEquals(3, viewModel.uiState.value.podcasts.size)
+    }
+
+    @Test
+    fun `a category whose last podcast leaves shows the whole library again`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(categorized("a", "Technology"), categorized("c", "Comedy"))
+        val viewModel = createViewModel()
+        viewModel.onIntent(LibraryIntent.SelectCategory(PodcastCategory.COMEDY))
+
+        repository.podcasts.value = listOf(categorized("a", "Technology"))
+
+        assertEquals(null, viewModel.uiState.value.category)
+        assertEquals(listOf("a"), viewModel.uiState.value.podcasts.map { it.podcast.id })
+    }
+
+    private fun categorized(id: String, vararg categories: String) = Podcast(
+        id = id, title = id, description = "", imageUrl = null, author = null, language = null,
+        categories = categories.toList(), feedUrl = id, siteUrl = null, lastUpdated = 0, isSubscribed = true
+    )
 }

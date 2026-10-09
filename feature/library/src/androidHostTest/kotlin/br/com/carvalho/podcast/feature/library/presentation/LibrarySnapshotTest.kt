@@ -15,6 +15,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 
 /**
  * The screen in each state on a phone, dark theme (17.4). Recorded on Linux by the "Record snapshots" workflow;
@@ -40,6 +41,7 @@ class LibrarySnapshotTest {
         LibraryEntry(podcast("b", "NerdCast"), unplayedCount = 0, latestEpisodeDate = null),
         LibraryEntry(podcast("c", "The Daily"), unplayedCount = 12, latestEpisodeDate = null),
     )
+    private val categories = listOf(PodcastCategory.TECHNOLOGY, PodcastCategory.NEWS, PodcastCategory.COMEDY)
     private val started = listOf(episode("e1", "Como funciona o Pix por dentro", positionMs = 1_200_000))
 
     @Test
@@ -49,7 +51,9 @@ class LibrarySnapshotTest {
     fun loading() = snap("loading") { LibraryContent(LibraryUiState(isLoading = true), LibraryActions()) }
 
     @Test
-    fun grid() = snap("grid") { LibraryContent(LibraryUiState(podcasts = entries, inProgress = started), LibraryActions()) }
+    fun grid() = snap("grid") {
+        LibraryContent(LibraryUiState(podcasts = entries, inProgress = started, categories = categories), LibraryActions())
+    }
 
     @Test
     fun list() = snap("list") {

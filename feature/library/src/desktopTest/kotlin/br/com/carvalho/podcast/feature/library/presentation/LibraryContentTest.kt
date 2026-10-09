@@ -1,5 +1,9 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import androidx.compose.ui.test.onAllNodesWithText
+import br.com.carvalho.podcast.core.ui.generated.resources.category_all
+import br.com.carvalho.podcast.core.ui.generated.resources.category_technology
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
@@ -231,5 +235,25 @@ class LibraryContentTest {
         onNodeWithText("Started episode").performClick()
 
         assertEquals("e1", played)
+    }
+
+    @Test
+    fun categoryChipsShowWhenTheyTellPodcastsApartAndFilter() = runComposeUiTest {
+        var chosen: PodcastCategory? = PodcastCategory.NEWS
+        val podcast = Podcast("id-1", "Hipsters", "", null, "Alura", null, emptyList(), "url", null, 0, true)
+        var state by mutableStateOf(
+            LibraryUiState(podcasts = listOf(LibraryEntry(podcast, 0, null)), categories = listOf(PodcastCategory.TECHNOLOGY))
+        )
+        setContent {
+            PodcastTheme { LibraryContent(state = state, actions = LibraryActions(onCategoryChange = { chosen = it })) }
+        }
+        // One category cannot filter anything: no chips.
+        onAllNodesWithText(text(Res.string.category_technology)).assertCountEquals(0)
+
+        state = state.copy(categories = listOf(PodcastCategory.TECHNOLOGY, PodcastCategory.NEWS))
+        onNodeWithText(text(Res.string.category_technology)).performClick()
+        assertEquals(PodcastCategory.TECHNOLOGY, chosen)
+        onNodeWithText(text(Res.string.category_all)).performClick()
+        assertEquals(null, chosen)
     }
 }

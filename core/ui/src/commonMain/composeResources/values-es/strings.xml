@@ -161,4 +161,25 @@
     <string name="discover_hint_message">Busca en el directorio de Apple Podcasts. Un podcast que no esté ahí se puede añadir por la dirección del feed.</string>
     <string name="error_search_directory">No se pudo buscar en el directorio.</string>
     <string name="subscribe_to">Suscribirse a %1$s</string>
+    <string name="category_arts">Artes</string>
+    <string name="category_business">Negocios</string>
+    <string name="category_comedy">Comedia</string>
+    <string name="category_education">Educación</string>
+    <string name="category_fiction">Ficción</string>
+    <string name="category_government">Gobierno</string>
+    <string name="category_health_fitness">Salud y forma física</string>
+    <string name="category_history">Historia</string>
+    <string name="category_kids_family">Niños y familia</string>
+    <string name="category_leisure">Ocio</string>
+    <string name="category_music">Música</string>
+    <string name="category_news">Noticias</string>
+    <string name="category_religion_spirituality">Religión y espiritualidad</string>
+    <string name="category_science">Ciencias</string>
+    <string name="category_society_culture">Sociedad y cultura</string>
+    <string name="category_sports">Deportes</string>
+    <string name="category_technology">Tecnología</string>
+    <string name="category_true_crime">True crime</string>
+    <string name="category_tv_film">TV y cine</string>
+    <string name="category_all">Todas</string>
+    <string name="categories">Categorías</string>
 </resources>

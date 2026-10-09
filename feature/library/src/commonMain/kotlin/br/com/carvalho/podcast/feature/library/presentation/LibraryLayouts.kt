@@ -20,12 +20,15 @@ import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.ContinueCard
+import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
+import br.com.carvalho.podcast.core.designsystem.component.FilterOption
 import br.com.carvalho.podcast.core.designsystem.component.ItemAction
 import br.com.carvalho.podcast.core.designsystem.component.PodcastCard
 import br.com.carvalho.podcast.core.designsystem.component.PodcastListItem
 import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.category_all
 import br.com.carvalho.podcast.core.ui.generated.resources.continue_listening
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.library_podcasts
@@ -38,6 +41,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.presentation.component.remainingDuration
+import br.com.carvalho.podcast.presentation.format.label
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
 import org.jetbrains.compose.resources.pluralStringResource
@@ -65,6 +69,9 @@ internal fun LibraryGrid(state: LibraryUiState, actions: LibraryActions, gridSta
             item(key = CONTINUE_KEY, span = { GridItemSpan(maxLineSpan) }) {
                 ContinueListening(state.inProgress, actions.onPlay)
             }
+        }
+        if (state.showsCategories) {
+            item(key = CATEGORIES_KEY, span = { GridItemSpan(maxLineSpan) }) { CategoryChips(state, actions) }
         }
         items(items = state.podcasts, key = { it.podcast.id }) { entry ->
             val podcast = entry.podcast
@@ -97,6 +104,9 @@ internal fun LibraryList(state: LibraryUiState, actions: LibraryActions, listSta
         if (state.inProgress.isNotEmpty()) {
             item(key = CONTINUE_KEY) { ContinueListening(state.inProgress, actions.onPlay) }
         }
+        if (state.showsCategories) {
+            item(key = CATEGORIES_KEY) { CategoryChips(state, actions, Modifier.padding(end = Spacing.l)) }
+        }
         items(items = state.podcasts, key = { it.podcast.id }) { entry ->
             val podcast = entry.podcast
             PodcastListItem(
@@ -114,6 +124,22 @@ internal fun LibraryList(state: LibraryUiState, actions: LibraryActions, listSta
 }
 
 private const val CONTINUE_KEY = "continue-listening"
+private const val CATEGORIES_KEY = "categories"
+
+/** Chips only when they can tell podcasts apart: two categories or more. */
+private val LibraryUiState.showsCategories: Boolean get() = categories.size > 1
+
+/** "All" and the library's categories, the most common first; picking one shows only its podcasts (18.2). */
+@Composable
+private fun CategoryChips(state: LibraryUiState, actions: LibraryActions, modifier: Modifier = Modifier) {
+    val options = listOf(null) + state.categories
+    FilterChipRow(
+        options = options.map { FilterOption(stringResource(it?.label ?: Res.string.category_all)) },
+        selectedIndex = options.indexOf(state.category),
+        onSelected = { actions.onCategoryChange(options[it]) },
+        modifier = modifier,
+    )
+}
 
 /** The started episodes in a row above the podcasts, each one played from where it stopped by a tap. */
 @Composable

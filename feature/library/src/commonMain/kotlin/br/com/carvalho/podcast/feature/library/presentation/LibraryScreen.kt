@@ -74,6 +74,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.format.text
 import org.jetbrains.compose.resources.stringResource
@@ -100,6 +101,7 @@ fun LibraryScreen(
             onRefresh = { viewModel.onIntent(LibraryIntent.RefreshAll) },
             onToggleLayout = { viewModel.onIntent(LibraryIntent.ToggleLayout) },
             onSortChange = { viewModel.onIntent(LibraryIntent.ChangeSort(it)) },
+            onCategoryChange = { viewModel.onIntent(LibraryIntent.SelectCategory(it)) },
             onPlay = { viewModel.onIntent(LibraryIntent.Play(it)) },
             onOrganize = onOrganize,
             onAddClick = onAddPodcast,
@@ -115,6 +117,7 @@ data class LibraryActions(
     val onRefresh: () -> Unit = {},
     val onToggleLayout: () -> Unit = {},
     val onSortChange: (LibrarySort) -> Unit = {},
+    val onCategoryChange: (PodcastCategory?) -> Unit = {},
     val onPlay: (Episode) -> Unit = {},
     val onOrganize: () -> Unit = {},
     val onAddClick: () -> Unit = {},
