@@ -42,9 +42,18 @@ class FakePodcastRepository : PodcastRepository {
         it.filter { e -> e.podcastId == podcastId }
     }
 
-    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> {
-        throw NotImplementedError("Paging not supported in fake")
-    }
+    /** One page with every match, newest first, like the database query. */
+    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> =
+        episodes.map { list ->
+            val matching = list.filter { it.podcastId == podcastId }.filter {
+                when (filter) {
+                    EpisodeFilter.ALL -> true
+                    EpisodeFilter.UNPLAYED -> !it.isPlayed
+                    EpisodeFilter.DOWNLOADED -> it.isDownloaded
+                }
+            }
+            PagingData.from(matching.sortedByDescending { it.publishDate })
+        }
 
     override suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode> =
         episodes.value.filter { it.podcastId == podcastId && it.publishDate >= publishDate }.sortedBy { it.publishDate }
