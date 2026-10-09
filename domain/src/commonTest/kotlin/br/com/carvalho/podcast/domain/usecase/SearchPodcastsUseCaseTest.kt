@@ -45,6 +45,24 @@ class SearchPodcastsUseCaseTest {
     }
 
     @Test
+    fun theSameFeedListedTwiceShowsOnce() = runTest {
+        // Apple sometimes lists one feed under two entries; the screen keys its rows by feed.
+        val twice = listOf(
+            found("https://anchor.fm/s/5f4dd230/podcast/rss"),
+            found("https://other.fm/rss"),
+            found("http://anchor.fm/s/5f4dd230/podcast/rss/"),
+        )
+        directory.result = Result.success(twice)
+        directory.topResult = Result.success(twice)
+
+        assertEquals(2, search("anchor").getOrThrow().size)
+        assertEquals(
+            listOf("https://anchor.fm/s/5f4dd230/podcast/rss", "https://other.fm/rss"),
+            search.top(null).getOrThrow().map { it.podcast.feedUrl },
+        )
+    }
+
+    @Test
     fun aDirectoryFailureIsPassedOn() = runTest {
         directory.result = Result.failure(AppError.NoConnection)
 

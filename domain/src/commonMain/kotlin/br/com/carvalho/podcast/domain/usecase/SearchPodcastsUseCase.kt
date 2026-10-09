@@ -11,7 +11,7 @@ private const val MIN_TERM_LENGTH = 2
 /**
  * The directory of "Add podcast": search (18.1) and charts per category (18.2). A term shorter than two letters does
  * not reach the network, and each result says whether the library already has it, by the same feed key that adding by
- * address uses.
+ * address uses; the same feed listed twice comes once.
  */
 class SearchPodcastsUseCase(
     private val directory: PodcastDirectory,
@@ -29,7 +29,11 @@ class SearchPodcastsUseCase(
 
     private suspend fun Result<List<DirectoryPodcast>>.markingSubscribed(): Result<List<DirectoryResult>> {
         val saved = podcastRepository.getPodcasts().first().map { feedUrlKey(it.feedUrl) }.toSet()
-        return map { found -> found.map { DirectoryResult(it, isSubscribed = feedUrlKey(it.feedUrl) in saved) } }
+        // Apple sometimes lists one feed under two entries: one row each, or the list would show it twice.
+        return map { found ->
+            found.distinctBy { feedUrlKey(it.feedUrl) }
+                .map { DirectoryResult(it, isSubscribed = feedUrlKey(it.feedUrl) in saved) }
+        }
     }
 }
 
