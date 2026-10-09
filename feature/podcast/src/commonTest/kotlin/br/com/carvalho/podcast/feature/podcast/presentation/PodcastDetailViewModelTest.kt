@@ -170,6 +170,61 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
+    fun `downloading an episode hands it to the downloader`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.Download(sampleEpisode))
+
+        assertEquals(sampleEpisode, episodeDownloader.downloadCalledWith)
+    }
+
+    @Test
+    fun `deleting a download asks first and only deletes on confirm`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.RequestDeleteDownload(sampleEpisode))
+        assertEquals(sampleEpisode, viewModel.uiState.value.deleteEpisodeConfirmation)
+        viewModel.onIntent(PodcastDetailIntent.DismissDeleteDownload)
+        assertEquals(null, viewModel.uiState.value.deleteEpisodeConfirmation)
+        assertEquals(null, episodeDownloader.deleteCalledWith)
+
+        viewModel.onIntent(PodcastDetailIntent.RequestDeleteDownload(sampleEpisode))
+        viewModel.onIntent(PodcastDetailIntent.ConfirmDeleteDownload(sampleEpisode))
+
+        assertEquals(null, viewModel.uiState.value.deleteEpisodeConfirmation)
+        assertEquals(sampleEpisode.id, episodeDownloader.deleteCalledWith)
+    }
+
+    @Test
+    fun `marking played and dismissing the older mark`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.MarkPlayed(sampleEpisode))
+        assertTrue(repository.episodes.value.single().isPlayed)
+
+        viewModel.onIntent(PodcastDetailIntent.RequestMarkOlder(OlderMark(sampleEpisode, played = true)))
+        viewModel.onIntent(PodcastDetailIntent.DismissMarkOlder)
+        assertEquals(null, viewModel.uiState.value.olderMark)
+    }
+
+    @Test
+    fun `confirming marks the episode and the older ones played, leaving the newer`() = runTest(testDispatcher) {
+        val older = sampleEpisode.copy(id = "old", publishDate = 1)
+        val chosen = sampleEpisode.copy(id = "chosen", publishDate = 2)
+        val newer = sampleEpisode.copy(id = "new", publishDate = 3)
+        repository.episodes.value = listOf(newer, chosen, older)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.ConfirmMarkOlder(OlderMark(chosen, played = true)))
+
+        assertEquals(
+            mapOf("new" to false, "chosen" to true, "old" to true),
+            repository.episodes.value.associate { it.id to it.isPlayed },
+        )
+    }
+
+    @Test
     fun `cancelDownload cancels the episode download`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 

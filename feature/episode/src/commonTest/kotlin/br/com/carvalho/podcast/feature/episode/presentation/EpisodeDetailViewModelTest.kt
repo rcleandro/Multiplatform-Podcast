@@ -89,6 +89,23 @@ class EpisodeDetailViewModelTest {
     }
 
     @Test
+    fun `a paused episode resumes where it stopped, and its download can be cancelled or deleted`() =
+        runTest(testDispatcher) {
+            repository.episodes.value = listOf(sampleEpisode)
+            val viewModel = createViewModel()
+            viewModel.onIntent(EpisodeDetailIntent.PlayPause)
+            viewModel.onIntent(EpisodeDetailIntent.PlayPause)
+
+            viewModel.onIntent(EpisodeDetailIntent.PlayPause)
+            viewModel.onIntent(EpisodeDetailIntent.CancelDownload)
+            viewModel.onIntent(EpisodeDetailIntent.DeleteDownload)
+
+            assertEquals(true, audioPlayer.resumeCalled)
+            assertEquals(episodeId, downloader.cancelCalledWith)
+            assertEquals(episodeId, downloader.deleteCalledWith)
+        }
+
+    @Test
     fun `loads episode detail on init`() = runTest(testDispatcher) {
         val episode = createEpisode(episodeId, "Ep 1")
         repository.episodes.value = listOf(episode)

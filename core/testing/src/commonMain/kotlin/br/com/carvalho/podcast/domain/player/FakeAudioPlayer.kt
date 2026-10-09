@@ -64,7 +64,14 @@ class FakeAudioPlayer : AudioPlayer {
         _playerState.value = _playerState.value.copy(queue = episodes)
     }
 
-    override fun playNext() {}
+    var nextCalled = false
+    var previousCalled = false
 
-    override fun playPrevious() {}
+    override fun playNext() {
+        nextCalled = true
+    }
+
+    override fun playPrevious() {
+        previousCalled = true
+    }
 }

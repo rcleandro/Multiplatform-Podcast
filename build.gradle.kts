@@ -45,12 +45,12 @@ val coverageFloors = mapOf(
     ":core:player" to 46,
     ":core:ui" to 59,
     ":data" to 94,
-    ":domain" to 89,
-    ":feature:episode" to 82,
+    ":domain" to 90,
+    ":feature:episode" to 84,
     ":feature:library" to 97,
-    ":feature:player" to 54,
-    ":feature:podcast" to 88,
-    ":feature:search" to 85,
+    ":feature:player" to 97,
+    ":feature:podcast" to 98,
+    ":feature:search" to 87,
     ":shared" to 46,
 )
 

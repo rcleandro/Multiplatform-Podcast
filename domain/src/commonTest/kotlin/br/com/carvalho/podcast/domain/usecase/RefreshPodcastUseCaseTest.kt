@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.domain.model.Podcast
@@ -9,6 +10,7 @@ import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class RefreshPodcastUseCaseTest {
@@ -50,6 +52,24 @@ class RefreshPodcastUseCaseTest {
 
         assertTrue(result.isSuccess)
         assertEquals(1, podcastRepo.saveFeedCalledCount)
+    }
+
+    @Test
+    fun `refreshing a podcast that is not in the library fails with not found`() = runTest {
+        val result = useCase("missing")
+
+        assertEquals(AppError.NotFound, result.exceptionOrNull())
+        assertEquals(0, podcastRepo.saveFeedCalledCount)
+    }
+
+    @Test
+    fun `the summary says when every feed failed and not when the library is empty`() = runTest {
+        assertFalse(useCase.refreshAll().allFailed)
+
+        podcastRepo.podcasts.value = listOf(samplePodcast)
+        feedSource.result = Result.failure(AppError.NoConnection)
+
+        assertTrue(useCase.refreshAll().allFailed)
     }
 
     @Test
