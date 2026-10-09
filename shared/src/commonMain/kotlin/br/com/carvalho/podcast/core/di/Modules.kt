@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
 import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.preferences.SettingsPreferencesRepository
+import br.com.carvalho.podcast.data.remote.ITunesPodcastDirectory
 import br.com.carvalho.podcast.data.remote.RssFeedDataSource
 import br.com.carvalho.podcast.data.remote.RssFeedDataSourceImpl
 import br.com.carvalho.podcast.data.remote.RssFeedSource
@@ -16,6 +17,7 @@ import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
+import br.com.carvalho.podcast.domain.repository.PodcastDirectory
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
@@ -48,6 +50,7 @@ val networkModule = module {
     single { createImageLoader(get()) }
     single<RssFeedDataSource> { RssFeedDataSourceImpl(get(), get()) }
     single<FeedSource> { RssFeedSource(get()) }
+    single<PodcastDirectory> { ITunesPodcastDirectory(get(), get()) }
 }
 
 val databaseModule = module {

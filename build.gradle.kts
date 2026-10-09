@@ -67,8 +67,8 @@ subprojects {
                             "androidx.compose.ui.tooling.preview.Preview",
                             "org.jetbrains.compose.ui.tooling.preview.Preview",
                         )
-                        // Compose resources and lambdas, and the code Room generates for the database.
-                        classes("*.generated.resources.*", "*ComposableSingletons*", "*_Impl", "*_Impl$*")
+                        // Compose resources and lambdas, and the code Room and kotlinx.serialization generate.
+                        classes("*.generated.resources.*", "*ComposableSingletons*", "*_Impl", "*_Impl$*", "*\$\$serializer")
                     }
                 }
                 verify {
