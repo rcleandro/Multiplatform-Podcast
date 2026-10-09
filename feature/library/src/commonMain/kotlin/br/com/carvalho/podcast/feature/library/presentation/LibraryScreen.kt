@@ -85,6 +85,7 @@ fun LibraryScreen(
     viewModel: LibraryViewModel = koinViewModel(),
     onOrganize: () -> Unit = {},
     onAddPodcast: () -> Unit = {},
+    emptyLibrary: (@Composable () -> Unit)? = null,
     onPodcastClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -95,6 +96,7 @@ fun LibraryScreen(
     LibraryContent(
         state = uiState,
         snackbarHostState = snackbarHostState,
+        emptyLibrary = emptyLibrary,
         actions = LibraryActions(
             onPodcastClick = onPodcastClick,
             onPodcastLongClick = { viewModel.onIntent(LibraryIntent.RequestDelete(it)) },
@@ -132,6 +134,8 @@ fun LibraryContent(
     actions: LibraryActions,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    /** Shown instead of the "no podcasts" message: the app puts suggestions there (18.3). */
+    emptyLibrary: (@Composable () -> Unit)? = null,
 ) {
     // The large title shrinks into the bar as the library scrolls (24.2).
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -180,7 +184,7 @@ fun LibraryContent(
             onRefresh = actions.onRefresh,
             modifier = Modifier.padding(padding)
         ) {
-            LibraryBody(state, actions, listState, gridState)
+            LibraryBody(state, actions, listState, gridState, emptyLibrary)
         }
         LibraryDialogs(state, actions)
     }
@@ -262,9 +266,11 @@ private fun LibraryBody(
     actions: LibraryActions,
     listState: LazyListState,
     gridState: LazyGridState,
+    emptyLibrary: (@Composable () -> Unit)?,
 ) {
     when {
         state.isLoading -> LoadingState()
+        state.podcasts.isEmpty() && emptyLibrary != null -> emptyLibrary()
         state.podcasts.isEmpty() -> EmptyState(
             icon = Icons.Rounded.Mic,
             title = stringResource(Res.string.no_podcasts_found),

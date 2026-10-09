@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import androidx.compose.material3.Text
 import androidx.compose.ui.test.onAllNodesWithText
 import br.com.carvalho.podcast.core.ui.generated.resources.category_all
 import br.com.carvalho.podcast.core.ui.generated.resources.category_technology
@@ -277,5 +278,17 @@ class LibraryContentTest {
         state = state.copy(inProgress = listOf(started))
 
         onNode(isHeading() and hasText(text(Res.string.continue_listening), ignoreCase = true)).assertIsDisplayed()
+    }
+
+    @Test
+    fun theAppCanFillTheEmptyLibraryWithSuggestions() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                LibraryContent(state = LibraryUiState(), actions = LibraryActions(), emptyLibrary = { Text("Suggestions") })
+            }
+        }
+
+        onNodeWithText("Suggestions").assertExists()
+        onAllNodesWithText(text(Res.string.no_podcasts_found)).assertCountEquals(0)
     }
 }

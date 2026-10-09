@@ -8,6 +8,7 @@ appId: br.com.carvalho.podcast
     permissions:
       all: allow
 - tapOn: "Adicionar Podcast"
+- tapOn: "Mais opções"
 - tapOn: "Adicionar pelo endereço do feed"
 - inputText: "https://feeds.npr.org/510289/podcast.xml"
 - tapOn:

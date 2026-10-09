@@ -158,8 +158,6 @@
     <string name="more_options">More options</string>
     <string name="subscribe">Subscribe</string>
     <string name="subscribed">Subscribed</string>
-    <string name="discover_hint_title">Find a podcast</string>
-    <string name="discover_hint_message">Search the Apple Podcasts directory. A podcast that is not there can be added by its feed address.</string>
     <string name="error_search_directory">Couldn't search the directory.</string>
     <string name="subscribe_to">Subscribe to %1$s</string>
     <string name="category_arts">Arts</string>
@@ -183,4 +181,7 @@
     <string name="category_tv_film">TV &amp; Film</string>
     <string name="category_all">All</string>
     <string name="categories">Categories</string>
+    <string name="popular">Popular</string>
+    <string name="suggestions_title">What do you like to listen to?</string>
+    <string name="suggestions_message">Pick a category and subscribe to its most popular podcasts, or look for one you know.</string>
 </resources>

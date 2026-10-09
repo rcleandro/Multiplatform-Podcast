@@ -80,8 +80,9 @@ class DiscoverViewModelTest {
     }
 
     @Test
-    fun `clearing the search empties the results without searching`() = runTest(dispatcher) {
+    fun `clearing the search shows the popular podcasts again`() = runTest(dispatcher) {
         directory.result = Result.success(listOf(found(HIPSTERS)))
+        directory.topResult = Result.success(listOf(found(OTHER)))
         val viewModel = viewModel()
         viewModel.onIntent(DiscoverIntent.ChangeQuery("hipsters"))
         waitForDebounce()
@@ -89,7 +90,7 @@ class DiscoverViewModelTest {
         viewModel.onIntent(DiscoverIntent.ChangeQuery(""))
         waitForDebounce()
 
-        assertEquals(emptyList(), viewModel.uiState.value.results)
+        assertEquals(listOf(OTHER), viewModel.uiState.value.results.map { it.podcast.feedUrl })
         assertEquals(1, directory.searchedTerms.size)
     }
 
@@ -111,13 +112,23 @@ class DiscoverViewModelTest {
     }
 
     @Test
-    fun `a category shows its chart at once and a second tap closes it`() = runTest(dispatcher) {
+    fun `the screen opens on the popular podcasts`() = runTest(dispatcher) {
+        directory.topResult = Result.success(listOf(found(HIPSTERS)))
+
+        val viewModel = viewModel()
+
+        assertEquals(listOf<PodcastCategory?>(null), directory.chartsAsked)
+        assertEquals(listOf(HIPSTERS), viewModel.uiState.value.results.map { it.podcast.feedUrl })
+    }
+
+    @Test
+    fun `a category shows its chart at once and a second tap goes back to the popular ones`() = runTest(dispatcher) {
         directory.topResult = Result.success(listOf(found(HIPSTERS), found(OTHER)))
         val viewModel = viewModel()
 
         viewModel.onIntent(DiscoverIntent.SelectCategory(PodcastCategory.TECHNOLOGY))
 
-        assertEquals(listOf<PodcastCategory?>(PodcastCategory.TECHNOLOGY), directory.chartsAsked)
+        assertEquals(listOf(null, PodcastCategory.TECHNOLOGY), directory.chartsAsked)
         assertEquals(2, viewModel.uiState.value.results.size)
         assertEquals(listOf("browse_category"), analytics.events)
         assertEquals(mapOf<String, Any?>("category" to "technology"), analytics.params.single())
@@ -125,7 +136,7 @@ class DiscoverViewModelTest {
         viewModel.onIntent(DiscoverIntent.SelectCategory(null))
 
         assertNull(viewModel.uiState.value.category)
-        assertEquals(emptyList(), viewModel.uiState.value.results)
+        assertEquals(listOf(null, PodcastCategory.TECHNOLOGY, null), directory.chartsAsked)
     }
 
     @Test

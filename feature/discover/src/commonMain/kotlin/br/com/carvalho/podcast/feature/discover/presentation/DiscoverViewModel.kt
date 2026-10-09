@@ -33,8 +33,8 @@ import kotlinx.coroutines.launch
 private const val TAG = "DiscoverViewModel"
 
 /**
- * "Add podcast": search the directory (18.1) or browse a category's chart (18.2) and subscribe with a tap, or add a
- * podcast by its feed address.
+ * "Add podcast": search the directory (18.1), or browse the most popular podcasts (18.3) and those of a category
+ * (18.2), and subscribe with a tap; or add a podcast by its feed address. Also the suggestions of an empty library.
  */
 class DiscoverViewModel(
     private val searchPodcasts: SearchPodcastsUseCase,
@@ -85,14 +85,10 @@ class DiscoverViewModel(
             .debounce { if (it.term.isBlank()) 0 else AppConfig.SEARCH_DEBOUNCE_MS }
             .collectLatest { request ->
                 val term = request.term.trim()
-                val category = request.category
-                if (term.isEmpty() && category == null) {
-                    _uiState.update { it.copy(results = emptyList(), isSearching = false, searchFailed = false) }
-                    return@collectLatest
-                }
                 _uiState.update { it.copy(results = emptyList(), isSearching = true, searchFailed = false) }
-                // A typed term wins over the category, whose chips only show while the field is empty.
-                val found = if (term.isNotEmpty()) searchPodcasts(term) else searchPodcasts.top(category)
+                // A typed term wins over the category, whose chips only show while the field is empty; with neither,
+                // the most popular podcasts of all categories (18.3).
+                val found = if (term.isNotEmpty()) searchPodcasts(term) else searchPodcasts.top(request.category)
                 found
                     .onSuccess { results ->
                         if (term.isNotEmpty()) analytics.logEvent(AnalyticsEvent.SearchDirectory(results.size))

@@ -41,7 +41,7 @@ class DiscoverSnapshotTest {
     )
 
     @Test
-    fun hint() = snap("hint") { DiscoverContent(DiscoverUiState(), DiscoverActions()) }
+    fun popular() = snap("popular") { DiscoverContent(DiscoverUiState(results = results), DiscoverActions()) }
 
     @Test
     fun results() = snap("results") { DiscoverContent(DiscoverUiState(query = "hipsters", results = results), DiscoverActions()) }

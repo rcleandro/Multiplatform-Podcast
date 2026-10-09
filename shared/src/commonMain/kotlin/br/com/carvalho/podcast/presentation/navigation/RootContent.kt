@@ -57,6 +57,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.feature.discover.presentation.DiscoverScreen
+import br.com.carvalho.podcast.feature.discover.presentation.PodcastSuggestions
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
@@ -223,6 +224,8 @@ private fun ListPane(component: RootComponent, tab: Tab) {
         Tab.Library -> LibraryScreen(
             onOrganize = component::onOrganizeLibrary,
             onAddPodcast = component::onAddPodcast,
+            // Features do not depend on each other (ADR 0003): the app puts discovery's suggestions in the library.
+            emptyLibrary = { PodcastSuggestions(onAddPodcast = component::onAddPodcast) },
             onPodcastClick = component::onPodcastSelected,
         )
         Tab.Episodes -> SearchScreen(

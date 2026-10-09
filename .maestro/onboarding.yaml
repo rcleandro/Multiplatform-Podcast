@@ -1,0 +1,22 @@
+# 18.3: a new user's empty library suggests popular podcasts by category; subscribing to one fills the library.
+# Needs the debug app installed, a device in Portuguese and internet:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/onboarding.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- assertVisible: "Do que você gosta de ouvir?"
+- tapOn: "Comédia"
+- extendedWaitUntil:
+    visible: "Assinar.*"
+    timeout: 20000
+- tapOn:
+    text: "Assinar.*"
+    index: 0
+# The first podcast takes the place of the suggestions.
+- extendedWaitUntil:
+    notVisible: "Do que você gosta de ouvir?"
+    timeout: 30000
+- assertVisible: "Opções do podcast"

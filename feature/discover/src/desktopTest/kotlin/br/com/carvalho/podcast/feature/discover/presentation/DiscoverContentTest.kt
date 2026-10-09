@@ -28,7 +28,8 @@ import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_by_url
 import br.com.carvalho.podcast.core.ui.generated.resources.add_podcast
-import br.com.carvalho.podcast.core.ui.generated.resources.discover_hint_title
+import br.com.carvalho.podcast.core.ui.generated.resources.popular
+import br.com.carvalho.podcast.core.ui.generated.resources.category_news
 import br.com.carvalho.podcast.core.ui.generated.resources.error_search_directory
 import br.com.carvalho.podcast.core.ui.generated.resources.more_options
 import br.com.carvalho.podcast.core.ui.generated.resources.paste
@@ -59,14 +60,34 @@ class DiscoverContentTest {
     )
 
     @Test
-    fun beforeSearchingTheScreenExplainsAndOffersTheAddress() = runComposeUiTest {
-        var opened = 0
-        setContent { PodcastTheme { DiscoverContent(DiscoverUiState(), DiscoverActions(onOpenUrlDialog = { opened++ })) } }
+    fun beforeSearchingTheScreenShowsThePopularPodcasts() = runComposeUiTest {
+        setContent { PodcastTheme { DiscoverContent(DiscoverUiState(results = listOf(hipsters)), DiscoverActions()) } }
 
         onNode(isHeading() and hasText(text(Res.string.add_podcast))).assertExists()
-        onNodeWithText(text(Res.string.discover_hint_title)).assertExists()
+        onNode(isHeading() and hasText(text(Res.string.popular), ignoreCase = true)).assertExists()
+        onNodeWithText(hipsters.podcast.title).assertExists()
         // The search field takes the keyboard as soon as the screen opens.
         onNode(hasSetTextAction()).assertIsFocused()
+    }
+
+    @Test
+    fun aCategoryChartIsTitledWithTheCategoryAndSearchResultsAreNot() = runComposeUiTest {
+        var state by mutableStateOf(DiscoverUiState(category = PodcastCategory.NEWS, results = listOf(hipsters)))
+        setContent { PodcastTheme { DiscoverContent(state, DiscoverActions()) } }
+
+        onNode(isHeading() and hasText(text(Res.string.category_news), ignoreCase = true)).assertExists()
+
+        state = DiscoverUiState(query = "hipsters", results = listOf(hipsters))
+        onNode(isHeading() and hasText(text(Res.string.popular), ignoreCase = true)).assertDoesNotExist()
+    }
+
+    @Test
+    fun withNothingFoundTheAddressIsOffered() = runComposeUiTest {
+        var opened = 0
+        setContent {
+            PodcastTheme { DiscoverContent(DiscoverUiState(query = "xyz"), DiscoverActions(onOpenUrlDialog = { opened++ })) }
+        }
+
         onNodeWithText(text(Res.string.add_by_url)).performClick()
 
         assertEquals(1, opened)

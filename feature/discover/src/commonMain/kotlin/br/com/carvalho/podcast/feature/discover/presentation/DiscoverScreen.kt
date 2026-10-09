@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
@@ -63,6 +64,7 @@ import br.com.carvalho.podcast.core.designsystem.component.FilterOption
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastListItem
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
+import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add
@@ -70,19 +72,20 @@ import br.com.carvalho.podcast.core.ui.generated.resources.add_by_url
 import br.com.carvalho.podcast.core.ui.generated.resources.add_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
-import br.com.carvalho.podcast.core.ui.generated.resources.discover_hint_message
-import br.com.carvalho.podcast.core.ui.generated.resources.discover_hint_title
 import br.com.carvalho.podcast.core.ui.generated.resources.discover_search_placeholder
 import br.com.carvalho.podcast.core.ui.generated.resources.error_search_directory
 import br.com.carvalho.podcast.core.ui.generated.resources.more_options
 import br.com.carvalho.podcast.core.ui.generated.resources.no_podcasts_found
 import br.com.carvalho.podcast.core.ui.generated.resources.paste
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
+import br.com.carvalho.podcast.core.ui.generated.resources.popular
 import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_label
 import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_placeholder
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribe
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribe_to
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribed
+import br.com.carvalho.podcast.core.ui.generated.resources.suggestions_message
+import br.com.carvalho.podcast.core.ui.generated.resources.suggestions_title
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
 import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
@@ -171,13 +174,6 @@ fun DiscoverContent(
 @Composable
 private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
     when {
-        state.query.isBlank() && state.category == null -> EmptyState(
-            icon = Icons.Rounded.Search,
-            title = stringResource(Res.string.discover_hint_title),
-            message = stringResource(Res.string.discover_hint_message),
-            actionLabel = stringResource(Res.string.add_by_url),
-            onAction = actions.onOpenUrlDialog,
-        )
         state.isSearching && state.results.isEmpty() -> LoadingState()
         state.searchFailed -> ErrorState(
             icon = Icons.Rounded.CloudOff,
@@ -186,7 +182,7 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
             actionLabel = stringResource(Res.string.try_again),
             onAction = actions.onRetry,
         )
-        state.results.isEmpty() && !state.isSearching -> EmptyState(
+        state.results.isEmpty() -> EmptyState(
             icon = Icons.Rounded.Search,
             title = stringResource(Res.string.no_podcasts_found),
             message = null,
@@ -198,12 +194,62 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             modifier = Modifier.fillMaxSize(),
         ) {
+            // A chart says which one: the overall (18.3) or a category's (18.2).
+            if (state.query.isBlank()) {
+                item(key = CHART_TITLE_KEY) {
+                    SectionTitle(
+                        stringResource(state.category?.label ?: Res.string.popular),
+                        Modifier.readableWidth().padding(vertical = Spacing.s),
+                    )
+                }
+            }
             items(state.results, key = { it.podcast.feedUrl }) { result ->
                 ResultRow(result, isSubscribing = result.podcast.feedUrl in state.subscribing, actions.onSubscribe)
             }
         }
     }
 }
+
+private const val CHART_TITLE_KEY = "chart-title"
+
+/**
+ * What an empty library shows instead of a blank screen (18.3): pick a category and subscribe to its most popular
+ * podcasts, or look for one. The library goes back to its podcasts as soon as it has one.
+ */
+// ponytail: a failed subscription is not announced here (the library owns the snackbar); pass its host if it matters.
+@Composable
+fun PodcastSuggestions(
+    onAddPodcast: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: DiscoverViewModel = koinViewModel(key = SUGGESTIONS_KEY),
+) {
+    val state by viewModel.uiState.collectAsState()
+    Column(modifier = modifier.fillMaxSize()) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(Spacing.s),
+            modifier = Modifier.readableWidth().padding(horizontal = Spacing.l, vertical = Spacing.s),
+        ) {
+            Text(stringResource(Res.string.suggestions_title), style = MaterialTheme.typography.titleLarge)
+            Text(
+                stringResource(Res.string.suggestions_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OutlinedButton(onClick = onAddPodcast) { Text(stringResource(Res.string.add_podcast)) }
+        }
+        CategoryChips(state.category) { viewModel.onIntent(DiscoverIntent.SelectCategory(it)) }
+        DiscoverBody(
+            state,
+            DiscoverActions(
+                onRetry = { viewModel.onIntent(DiscoverIntent.Retry) },
+                onSubscribe = { viewModel.onIntent(DiscoverIntent.Subscribe(it)) },
+                onOpenUrlDialog = onAddPodcast,
+            ),
+        )
+    }
+}
+
+private const val SUGGESTIONS_KEY = "library-suggestions"
 
 /** The categories under the empty field: a tap shows the most popular podcasts of one, another tap closes it (18.2). */
 @Composable
