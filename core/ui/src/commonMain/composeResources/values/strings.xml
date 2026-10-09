@@ -198,4 +198,6 @@
     <string name="settings_wifi_only_description">On mobile data, downloads wait for a Wi-Fi network.</string>
     <string name="settings_storage_limit">Space for downloads</string>
     <string name="settings_no_limit">No limit</string>
+    <string name="settings_download_next">Download the next episode</string>
+    <string name="settings_download_next_description">When an episode ends, download the podcast's newest one, or the next in the queue, if not downloaded or heard yet.</string>
 </resources>

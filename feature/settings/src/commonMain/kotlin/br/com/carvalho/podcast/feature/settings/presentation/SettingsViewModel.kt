@@ -26,10 +26,10 @@ class SettingsViewModel(
         preferences.themeMode,
         preferences.telemetryEnabled,
         preferences.wifiOnlyDownloads,
-        preferences.downloadLimitBytes,
+        combine(preferences.downloadLimitBytes, preferences.downloadNextOnFinish, ::Pair),
         usedBytes,
-    ) { theme, telemetry, wifiOnly, limit, bytes ->
-        SettingsUiState(theme, telemetry, bytes, wifiOnly, limit)
+    ) { theme, telemetry, wifiOnly, (limit, downloadNext), bytes ->
+        SettingsUiState(theme, telemetry, bytes, wifiOnly, limit, downloadNext)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     init {
@@ -42,6 +42,7 @@ class SettingsViewModel(
             is SettingsIntent.SetTelemetry -> preferences.setTelemetryEnabled(intent.enabled)
             is SettingsIntent.SetWifiOnly -> preferences.setWifiOnlyDownloads(intent.enabled)
             is SettingsIntent.SetDownloadLimit -> preferences.setDownloadLimitBytes(intent.bytes)
+            is SettingsIntent.SetDownloadNext -> preferences.setDownloadNextOnFinish(intent.enabled)
         }
     }
 }
@@ -54,6 +55,7 @@ data class SettingsUiState(
     val wifiOnlyDownloads: Boolean = false,
     /** Null for no limit. */
     val downloadLimitBytes: Long? = null,
+    val downloadNextOnFinish: Boolean = false,
 )
 
 sealed interface SettingsIntent {
@@ -61,4 +63,5 @@ sealed interface SettingsIntent {
     data class SetTelemetry(val enabled: Boolean) : SettingsIntent
     data class SetWifiOnly(val enabled: Boolean) : SettingsIntent
     data class SetDownloadLimit(val bytes: Long?) : SettingsIntent
+    data class SetDownloadNext(val enabled: Boolean) : SettingsIntent
 }

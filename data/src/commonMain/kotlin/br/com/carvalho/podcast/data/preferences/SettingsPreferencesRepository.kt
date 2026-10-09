@@ -15,6 +15,7 @@ private const val TELEMETRY_ENABLED = "telemetry_enabled"
 private const val THEME_MODE = "theme_mode"
 private const val WIFI_ONLY_DOWNLOADS = "wifi_only_downloads"
 private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
+private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
@@ -51,6 +52,14 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setDownloadLimitBytes(bytes: Long?) {
         if (bytes == null) settings.remove(DOWNLOAD_LIMIT_BYTES) else settings.putLong(DOWNLOAD_LIMIT_BYTES, bytes)
         downloadLimit.value = bytes
+    }
+
+    private val downloadNext = MutableStateFlow(settings.getBoolean(DOWNLOAD_NEXT_ON_FINISH, defaultValue = false))
+    override val downloadNextOnFinish: StateFlow<Boolean> = downloadNext.asStateFlow()
+
+    override fun setDownloadNextOnFinish(enabled: Boolean) {
+        settings.putBoolean(DOWNLOAD_NEXT_ON_FINISH, enabled)
+        downloadNext.value = enabled
     }
 
     private val theme = MutableStateFlow(settings.enumOrDefault(THEME_MODE, ThemeMode.SYSTEM))

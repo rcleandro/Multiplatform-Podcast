@@ -25,6 +25,11 @@ interface PreferencesRepository {
 
     fun setDownloadLimitBytes(bytes: Long?)
 
+    /** When an episode ends, download the next one to hear (18.5, part of 18.19); off by default. */
+    val downloadNextOnFinish: StateFlow<Boolean>
+
+    fun setDownloadNextOnFinish(enabled: Boolean)
+
     val themeMode: StateFlow<ThemeMode>
 
     fun setThemeMode(mode: ThemeMode)

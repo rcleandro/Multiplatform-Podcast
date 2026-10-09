@@ -197,4 +197,6 @@
     <string name="settings_wifi_only_description">Con datos móviles, las descargas esperan una red wifi.</string>
     <string name="settings_storage_limit">Espacio para descargas</string>
     <string name="settings_no_limit">Sin límite</string>
+    <string name="settings_download_next">Descargar el siguiente episodio</string>
+    <string name="settings_download_next_description">Cuando un episodio termina, descarga el más reciente del podcast, o el siguiente de la cola, si aún no está descargado ni escuchado.</string>
 </resources>

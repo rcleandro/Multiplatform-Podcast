@@ -57,6 +57,9 @@ class SettingsPreferencesRepositoryTest {
         val fresh = SettingsPreferencesRepository(settings)
         assertFalse(fresh.wifiOnlyDownloads.value)
         assertNull(fresh.downloadLimitBytes.value)
+        assertFalse(fresh.downloadNextOnFinish.value)
+        fresh.setDownloadNextOnFinish(true)
+        assertTrue(SettingsPreferencesRepository(settings).downloadNextOnFinish.value)
 
         fresh.setWifiOnlyDownloads(true)
         fresh.setDownloadLimitBytes(LIMIT)

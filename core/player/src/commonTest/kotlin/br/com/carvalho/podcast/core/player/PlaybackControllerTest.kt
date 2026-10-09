@@ -30,11 +30,27 @@ class PlaybackControllerTest {
     private val first = episode("first")
     private val second = episode("second")
 
+    private val finishedWith = mutableListOf<Pair<String, List<String>>>()
+
     private fun TestScope.controller() = PlaybackController(
         engine, playerRepository, podcastRepository, downloader,
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher),
+        onFinished = { finished, queue -> finishedWith += finished.id to queue.map { it.id } },
         scope = backgroundScope,
     ).also { runCurrent() }
+
+    @Test
+    fun anEpisodeThatEndsIsHandedOnWithItsQueue() = runTest(dispatcher) {
+        val controller = controller()
+        controller.setQueue(listOf(first, second))
+        controller.play(first)
+        runCurrent()
+
+        engine.raise(PlatformEvent.Ended)
+        runCurrent()
+
+        assertEquals(listOf("first" to listOf("first", "second")), finishedWith)
+    }
 
     @Test
     fun theTimeToAudioIsMeasuredOncePerEpisodeUpToTheFirstSound() = runTest(dispatcher) {

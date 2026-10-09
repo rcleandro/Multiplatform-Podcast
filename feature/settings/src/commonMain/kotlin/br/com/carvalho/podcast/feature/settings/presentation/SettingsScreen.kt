@@ -46,6 +46,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_appearance
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_download_next
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_download_next_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_downloads
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy
@@ -135,7 +137,7 @@ fun SettingsContent(
     }
 }
 
-/** Where there are downloads: the space they take, Wi-Fi only on phones and tablets, and their limit (18.5). */
+/** Where there are downloads: their space, Wi-Fi only on phones and tablets, their limit and the next episode. */
 private fun LazyListScope.downloadSettings(bytes: Long, state: SettingsUiState, onIntent: (SettingsIntent) -> Unit) {
     item { Section(stringResource(Res.string.settings_downloads)) }
     item {
@@ -156,6 +158,14 @@ private fun LazyListScope.downloadSettings(bytes: Long, state: SettingsUiState, 
         }
     }
     item { LimitRow(state.downloadLimitBytes) { onIntent(SettingsIntent.SetDownloadLimit(it)) } }
+    item {
+        SwitchRow(
+            title = stringResource(Res.string.settings_download_next),
+            description = stringResource(Res.string.settings_download_next_description),
+            checked = state.downloadNextOnFinish,
+            onChange = { onIntent(SettingsIntent.SetDownloadNext(it)) },
+        )
+    }
 }
 
 @Composable

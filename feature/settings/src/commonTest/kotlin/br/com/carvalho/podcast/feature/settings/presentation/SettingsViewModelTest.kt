@@ -61,6 +61,9 @@ class SettingsViewModelTest {
 
         assertEquals(true, viewModel.uiState.value.wifiOnlyDownloads)
         assertEquals(USED_BYTES * 2, preferences.downloadLimitBytes.value)
+
+        viewModel.onIntent(SettingsIntent.SetDownloadNext(true))
+        assertEquals(true, viewModel.uiState.value.downloadNextOnFinish)
     }
 
     @Test

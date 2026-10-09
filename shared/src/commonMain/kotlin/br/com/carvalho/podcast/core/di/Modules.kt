@@ -22,6 +22,7 @@ import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.DownloadNextEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.feature.discover.discoverFeatureModule
@@ -62,7 +63,10 @@ val databaseModule = module {
 }
 
 val playerModule = module {
-    single<AudioPlayer> { PlaybackController(get(), get(), get(), get(), get()) }
+    single<AudioPlayer> {
+        val downloadNext = DownloadNextEpisodeUseCase(get(), get(), get())
+        PlaybackController(get(), get(), get(), get(), get(), onFinished = downloadNext::invoke)
+    }
 }
 
 val repositoryModule = module {

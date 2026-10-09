@@ -34,13 +34,16 @@ private const val TAG = "PlaybackController"
  * restoring the session, sleep timer and speed. [PlatformPlayer] only plays what it is told. Lives as long as the
  * process; nothing releases it.
  */
-@Suppress("TooManyFunctions") // one function per player command, plus the event handling
+// One function per player command, plus the event handling; its collaborators, an end hook and the test scope.
+@Suppress("TooManyFunctions", "LongParameterList")
 class PlaybackController(
     private val engine: PlatformPlayer,
     private val playerRepository: PlayerRepository,
     private val podcastRepository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
     private val dispatchers: CoroutineDispatchers,
+    /** Called when an episode ends, with the queue it was in: Settings may want the next one downloaded (18.5). */
+    private val onFinished: suspend (finished: Episode, queue: List<Episode>) -> Unit = { _, _ -> },
     /** Where the progress loop and the sleep timer run; tests pass one they can end. */
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + dispatchers.main),
 ) : AudioPlayer {
@@ -182,7 +185,10 @@ class PlaybackController(
     private suspend fun onEnded() {
         progressJob?.cancel()
         val finished = _playerState.value.currentEpisode ?: return
-        withContext(dispatchers.io) { podcastRepository.markEpisodeAsPlayed(finished.id) }
+        withContext(dispatchers.io) {
+            podcastRepository.markEpisodeAsPlayed(finished.id)
+            onFinished(finished, _playerState.value.queue)
+        }
         if (_playerState.value.sleepTimer == SleepTimer.EndOfEpisode) {
             _playerState.update { it.copy(isPlaying = false, sleepTimer = null) }
             return

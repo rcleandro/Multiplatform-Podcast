@@ -30,6 +30,12 @@ class FakePreferencesRepository : PreferencesRepository {
         downloadLimitBytes.value = bytes
     }
 
+    override val downloadNextOnFinish = MutableStateFlow(false)
+
+    override fun setDownloadNextOnFinish(enabled: Boolean) {
+        downloadNextOnFinish.value = enabled
+    }
+
     override val themeMode = MutableStateFlow(ThemeMode.SYSTEM)
 
     override fun setThemeMode(mode: ThemeMode) {
