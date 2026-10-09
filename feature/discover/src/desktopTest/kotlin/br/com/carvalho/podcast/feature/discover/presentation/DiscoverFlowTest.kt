@@ -18,6 +18,7 @@ import br.com.carvalho.podcast.domain.model.DirectoryPodcast
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
+import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
@@ -52,7 +53,7 @@ class DiscoverFlowTest {
     fun resetMain() = Dispatchers.resetMain()
 
     private fun viewModel() = DiscoverViewModel(
-        SearchPodcastsUseCase(directory, repository),
+        SearchPodcastsUseCase(directory, repository, FakePreferencesRepository()),
         AddPodcastFromUrlUseCase(feedSource, repository),
         OpenPodcastLinkUseCase(directory, feedSource, repository),
         CoroutineDispatchers(main = Dispatchers.Default, io = Dispatchers.Default, default = Dispatchers.Default),

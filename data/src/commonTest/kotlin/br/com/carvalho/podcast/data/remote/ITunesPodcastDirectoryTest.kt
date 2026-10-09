@@ -45,6 +45,8 @@ class ITunesPodcastDirectoryTest {
             ),
             found.first(),
         )
+        // The track's field tells, even when the collection's says "notExplicit".
+        assertEquals(listOf(false, true), found.map { it.explicit })
         // The Apple-only show has no feed to subscribe to.
         assertEquals(listOf("Hipsters Ponto Tech", "IA Sob Controle - Inteligência Artificial"), found.map { it.title })
     }
@@ -175,7 +177,8 @@ class ITunesPodcastDirectoryTest {
            "collectionName": "IA Sob Controle - Inteligência Artificial", "artistName": "Alura - Hipsters Network",
            "feedUrl": "https://anchor.fm/s/f9fb7ee0/podcast/rss",
            "artworkUrl600": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/74/4b/b4/600x600bb.jpg",
-           "primaryGenreName": "Tecnologia", "trackCount": 293
+           "primaryGenreName": "Tecnologia", "trackCount": 293,
+           "collectionExplicitness": "notExplicit", "trackExplicitness": "explicit"
           },
           { "kind": "podcast", "collectionName": "Apple Exclusive", "artistName": "Apple", "primaryGenreName": "Tecnologia" }
          ]

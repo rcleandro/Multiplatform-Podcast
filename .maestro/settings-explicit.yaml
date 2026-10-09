@@ -1,0 +1,31 @@
+# 18.5: an explicit show says so in the search; with "Show explicit content" off it no longer shows up.
+# Needs the debug app installed, a device in Portuguese and internet (the directory is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/settings-explicit.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Adicionar Podcast"
+- inputText: "nerdcast"
+- extendedWaitUntil:
+    visible: "Frantic Nerdcast"
+    timeout: 20000
+- assertVisible: "Explícito ·.*"
+- back
+- back
+- tapOn: "Configurações"
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: "Mostrar conteúdo explícito"
+- tapOn: "Mostrar conteúdo explícito"
+- back
+# A new opening starts with an empty field: nothing to erase before typing.
+- tapOn: "Adicionar Podcast"
+- inputText: "nerdcast"
+# The clean show still comes up; the explicit one does not.
+- extendedWaitUntil:
+    visible: "NerdCast"
+    timeout: 20000
+- assertNotVisible: "Frantic Nerdcast"

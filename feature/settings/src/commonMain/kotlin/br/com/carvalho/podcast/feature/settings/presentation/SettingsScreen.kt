@@ -42,6 +42,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.language_portuguese
 import br.com.carvalho.podcast.core.ui.generated.resources.language_spanish
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_appearance
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_content
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all_confirmation
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
@@ -53,6 +54,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language_ios
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_playback
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_backward
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_forward
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
@@ -134,15 +137,7 @@ fun SettingsContent(
             item { LanguageRow(state.language) { picking = Picker.LANGUAGE } }
             playbackSettings(state.skipIntervals, onIntent)
             state.usedBytes?.let { downloadSettings(it, state, onIntent) }
-            item { Section(stringResource(Res.string.settings_privacy)) }
-            item {
-                SwitchRow(
-                    title = stringResource(Res.string.settings_telemetry),
-                    description = stringResource(Res.string.settings_telemetry_description),
-                    checked = state.telemetryEnabled,
-                    onChange = { onIntent(SettingsIntent.SetTelemetry(it)) },
-                )
-            }
+            contentAndPrivacySettings(state, onIntent)
         }
     }
 
@@ -212,6 +207,27 @@ private fun LanguageRow(language: AppLanguage, onPick: () -> Unit) {
 }
 
 /** How far the jump buttons go, everywhere they show (18.5). */
+private fun LazyListScope.contentAndPrivacySettings(state: SettingsUiState, onIntent: (SettingsIntent) -> Unit) {
+    item { Section(stringResource(Res.string.settings_content)) }
+    item {
+        SwitchRow(
+            title = stringResource(Res.string.settings_show_explicit),
+            description = stringResource(Res.string.settings_show_explicit_description),
+            checked = state.showExplicit,
+            onChange = { onIntent(SettingsIntent.SetShowExplicit(it)) },
+        )
+    }
+    item { Section(stringResource(Res.string.settings_privacy)) }
+    item {
+        SwitchRow(
+            title = stringResource(Res.string.settings_telemetry),
+            description = stringResource(Res.string.settings_telemetry_description),
+            checked = state.telemetryEnabled,
+            onChange = { onIntent(SettingsIntent.SetTelemetry(it)) },
+        )
+    }
+}
+
 private fun LazyListScope.playbackSettings(skips: SkipIntervals, onIntent: (SettingsIntent) -> Unit) {
     item { Section(stringResource(Res.string.settings_playback)) }
     item {

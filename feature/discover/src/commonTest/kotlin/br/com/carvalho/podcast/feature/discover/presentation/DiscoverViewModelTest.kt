@@ -18,6 +18,7 @@ import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
@@ -58,7 +59,7 @@ class DiscoverViewModelTest {
     }
 
     private fun viewModel() = DiscoverViewModel(
-        SearchPodcastsUseCase(directory, repository),
+        SearchPodcastsUseCase(directory, repository, FakePreferencesRepository()),
         AddPodcastFromUrlUseCase(feedSource, repository),
         OpenPodcastLinkUseCase(directory, feedSource, repository),
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher),

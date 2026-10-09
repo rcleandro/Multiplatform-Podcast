@@ -242,7 +242,8 @@ class PodcastRepositoryImplTest {
         database.episodeDao().insertAll(
             listOf(episodeEntity.copy(isPlayed = true, playbackPosition = 500L, isDownloaded = true))
         )
-        val fromFeed = episodeEntity.toDomain().copy(title = "Ep 1 (fixed)", audioUrl = "audio-v2", link = "page")
+        val fromFeed = episodeEntity.toDomain()
+            .copy(title = "Ep 1 (fixed)", audioUrl = "audio-v2", link = "page", explicit = true)
 
         repository.saveFeed(podcastEntity.toDomain(), listOf(fromFeed))
 
@@ -251,6 +252,7 @@ class PodcastRepositoryImplTest {
         assertEquals("audio-v2", saved.audioUrl)
         // Episodes saved before version 10 get their page link on the next refresh (18.4).
         assertEquals("page", saved.link)
+        assertTrue(saved.explicit)
         assertTrue(saved.isPlayed)
         assertEquals(500L, saved.playbackPosition)
         assertTrue(saved.isDownloaded)

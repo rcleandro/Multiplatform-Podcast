@@ -103,6 +103,9 @@ class ITunesPodcastDirectory(
         val artworkUrl100: String? = null,
         val primaryGenreName: String? = null,
         val trackCount: Int? = null,
+        // "explicit", "cleaned" or "notExplicit". The collection's own field says "notExplicit" even for explicit
+        // shows (checked on 09/10/2026), so the track's is the one that tells.
+        val trackExplicitness: String? = null,
     )
 
     // Some entries have no public feed (Apple-only shows): nothing to subscribe to.
@@ -115,6 +118,7 @@ class ITunesPodcastDirectory(
             feedUrl = feedUrl,
             genre = primaryGenreName,
             episodeCount = trackCount,
+            explicit = trackExplicitness == "explicit",
         )
     }
 }

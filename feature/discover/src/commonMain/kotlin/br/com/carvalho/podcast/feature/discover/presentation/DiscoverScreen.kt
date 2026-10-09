@@ -94,6 +94,7 @@ import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.SearchField
+import br.com.carvalho.podcast.presentation.format.explicitLabel
 import br.com.carvalho.podcast.presentation.format.label
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.pluralStringResource
@@ -306,7 +307,9 @@ private fun ResultRow(result: DirectoryResult, isSubscribing: Boolean, onSubscri
         title = podcast.title,
         author = podcast.author,
         imageUrl = podcast.artworkUrl,
-        supportingText = listOfNotNull(podcast.genre, episodes).joinToString(" · ").ifEmpty { null },
+        supportingText = listOfNotNull(explicitLabel(podcast.explicit), podcast.genre, episodes)
+            .joinToString(" · ")
+            .ifEmpty { null },
         onClick = { onSubscribe(result) },
         modifier = Modifier.readableWidth(),
         trailing = { SubscribeButton(result, isSubscribing, onClick = { onSubscribe(result) }) },

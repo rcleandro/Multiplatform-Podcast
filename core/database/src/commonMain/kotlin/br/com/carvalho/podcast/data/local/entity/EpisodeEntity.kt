@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.local.entity
 
+import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.ForeignKey
 import androidx.room3.Index
@@ -38,4 +39,6 @@ data class EpisodeEntity(
     val downloadFile: String? = null,
     /** The episode's page on the podcast's site (`<link>` in the feed), added in version 10. */
     val link: String? = null,
+    /** `itunes:explicit` on the item, added in version 11 (18.5). */
+    @ColumnInfo(defaultValue = "0") val explicit: Boolean = false,
 )

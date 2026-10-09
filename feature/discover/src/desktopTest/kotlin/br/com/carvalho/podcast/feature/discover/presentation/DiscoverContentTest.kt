@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.discover.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.explicit
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithText
@@ -155,6 +156,14 @@ class DiscoverContentTest {
         onNodeWithContentDescription(text(Res.string.subscribe_to, hipsters.podcast.title)).performClick()
 
         assertEquals(hipsters, subscribed)
+    }
+
+    @Test
+    fun anExplicitPodcastSaysSo() = runComposeUiTest {
+        val explicit = hipsters.copy(podcast = hipsters.podcast.copy(explicit = true))
+        setContent { PodcastTheme { DiscoverContent(DiscoverUiState(query = "x", results = listOf(explicit)), DiscoverActions()) } }
+
+        onNodeWithText("${text(Res.string.explicit)} · Tecnologia", substring = true).assertExists()
     }
 
     @Test

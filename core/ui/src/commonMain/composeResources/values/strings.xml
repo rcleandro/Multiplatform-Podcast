@@ -241,4 +241,8 @@
     <string name="queued_next">Plays next</string>
     <string name="queued_last">Added to the queue</string>
     <string name="already_playing">This episode is already playing</string>
+    <string name="settings_content">Content</string>
+    <string name="settings_show_explicit">Show explicit content</string>
+    <string name="settings_show_explicit_description">When off, podcasts marked as explicit stay out of search, the charts and the suggestions.</string>
+    <string name="explicit">Explicit</string>
 </resources>

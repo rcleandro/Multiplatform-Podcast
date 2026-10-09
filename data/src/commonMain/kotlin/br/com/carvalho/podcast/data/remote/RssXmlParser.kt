@@ -38,6 +38,7 @@ object RssXmlParser {
             selfUrl = channel.children("atom:link").firstOrNull { it.attributes["rel"] == "self" }
                 ?.attributes?.get("href"),
             newFeedUrl = channel.text("itunes:new-feed-url"),
+            explicit = channel.text("itunes:explicit")?.lowercase() in EXPLICIT_VALUES,
         )
     }
 

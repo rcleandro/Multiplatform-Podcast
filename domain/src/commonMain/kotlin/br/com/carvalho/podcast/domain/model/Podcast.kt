@@ -18,4 +18,6 @@ data class Podcast(
     val subscribedAt: Long = 0,
     /** Place in the custom order of the library; a new podcast goes to the end. */
     val position: Int = 0,
+    /** The feed marks the whole show as explicit (`itunes:explicit` on the channel, 18.5). */
+    val explicit: Boolean = false,
 )

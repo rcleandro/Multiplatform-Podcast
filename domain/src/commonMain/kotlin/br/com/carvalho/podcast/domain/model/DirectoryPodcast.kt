@@ -8,4 +8,6 @@ data class DirectoryPodcast(
     val feedUrl: String,
     val genre: String?,
     val episodeCount: Int?,
+    /** The directory marks the show as explicit (18.5). */
+    val explicit: Boolean = false,
 )

@@ -38,7 +38,7 @@ class SettingsViewModel(
 
     val uiState: StateFlow<SettingsUiState> = combine(
         combine(preferences.themeMode, preferences.skipIntervals, preferences.appLanguage, ::Triple),
-        preferences.telemetryEnabled,
+        combine(preferences.telemetryEnabled, preferences.showExplicit, ::Pair),
         preferences.wifiOnlyDownloads,
         combine(
             preferences.downloadLimitBytes,
@@ -47,12 +47,13 @@ class SettingsViewModel(
             ::Triple
         ),
         combine(usedBytes, disk, confirmingDeleteAll, ::Triple),
-    ) { (theme, skips, language), telemetry, wifiOnly, downloads, (bytes, space, confirming) ->
+    ) { (theme, skips, language), (telemetry, explicit), wifiOnly, downloads, (bytes, space, confirming) ->
         val (limit, downloadNext, deleteFinished) = downloads
         SettingsUiState(
             themeMode = theme,
             language = language,
             telemetryEnabled = telemetry,
+            showExplicit = explicit,
             usedBytes = bytes,
             wifiOnlyDownloads = wifiOnly,
             downloadLimitBytes = limit,
@@ -91,6 +92,7 @@ class SettingsViewModel(
             is SettingsIntent.SetTheme -> preferences.setThemeMode(intent.mode)
             is SettingsIntent.SetLanguage -> preferences.setAppLanguage(intent.language)
             is SettingsIntent.SetTelemetry -> preferences.setTelemetryEnabled(intent.enabled)
+            is SettingsIntent.SetShowExplicit -> preferences.setShowExplicit(intent.enabled)
             is SettingsIntent.SetWifiOnly -> preferences.setWifiOnlyDownloads(intent.enabled)
             is SettingsIntent.SetDownloadLimit -> preferences.setDownloadLimitBytes(intent.bytes)
             is SettingsIntent.SetDownloadNext -> preferences.setDownloadNextOnFinish(intent.enabled)
@@ -107,6 +109,7 @@ data class SettingsUiState(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val language: AppLanguage = AppLanguage.SYSTEM,
     val telemetryEnabled: Boolean = true,
+    val showExplicit: Boolean = true,
     /** Disk space the downloads take; null while it is measured, and where there are no downloads (Web). */
     val usedBytes: Long? = null,
     val wifiOnlyDownloads: Boolean = false,
@@ -157,6 +160,7 @@ sealed interface SettingsIntent {
     data class SetTheme(val mode: ThemeMode) : SettingsIntent
     data class SetLanguage(val language: AppLanguage) : SettingsIntent
     data class SetTelemetry(val enabled: Boolean) : SettingsIntent
+    data class SetShowExplicit(val enabled: Boolean) : SettingsIntent
     data class SetWifiOnly(val enabled: Boolean) : SettingsIntent
     data class SetDownloadLimit(val bytes: Long?) : SettingsIntent
     data class SetDownloadNext(val enabled: Boolean) : SettingsIntent

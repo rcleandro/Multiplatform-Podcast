@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.share
@@ -187,6 +188,25 @@ class PodcastDetailContentTest {
         onNodeWithText(text(Res.string.cancel)).performClick()
 
         assertEquals(1, cancelled)
+    }
+
+    @Test
+    fun anExplicitEpisodeSaysSo() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false),
+                    episodes = flowOf(PagingData.from(listOf(episodes.first().copy(explicit = true))))
+                        .collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Episode 1"))
+
+        onNodeWithText(text(Res.string.explicit), substring = true).assertExists()
     }
 
     @Test

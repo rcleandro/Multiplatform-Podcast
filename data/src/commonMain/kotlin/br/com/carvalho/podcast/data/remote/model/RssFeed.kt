@@ -20,6 +20,8 @@ data class RssFeed(
     val version: FeedVersion? = null,
     /** Where a chain of permanent redirects (301/308) ended; set by the data source. */
     val permanentRedirect: String? = null,
+    /** `itunes:explicit` on the channel: the whole show (18.5). */
+    val explicit: Boolean = false,
 )
 
 data class RssEpisode(

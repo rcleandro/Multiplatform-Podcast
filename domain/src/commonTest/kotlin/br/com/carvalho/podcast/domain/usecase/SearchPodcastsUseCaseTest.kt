@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,7 +14,8 @@ import kotlin.test.assertEquals
 class SearchPodcastsUseCaseTest {
     private val directory = FakePodcastDirectory()
     private val repository = FakePodcastRepository()
-    private val search = SearchPodcastsUseCase(directory, repository)
+    private val preferences = FakePreferencesRepository()
+    private val search = SearchPodcastsUseCase(directory, repository, preferences)
 
     @Test
     fun aShortTermDoesNotReachTheDirectory() = runTest {
@@ -31,6 +33,18 @@ class SearchPodcastsUseCaseTest {
 
         assertEquals(listOf("hipsters"), directory.searchedTerms)
         assertEquals(listOf(true, false), results.map { it.isSubscribed })
+    }
+
+    @Test
+    fun explicitShowsStayOutWhenTheUserTurnsThemOff() = runTest {
+        directory.result = Result.success(
+            listOf(found("https://clean.fm/rss"), found("https://explicit.fm/rss").copy(explicit = true))
+        )
+        assertEquals(2, search("show").getOrThrow().size)
+
+        preferences.setShowExplicit(false)
+
+        assertEquals(listOf("https://clean.fm/rss"), search("show").getOrThrow().map { it.podcast.feedUrl })
     }
 
     @Test

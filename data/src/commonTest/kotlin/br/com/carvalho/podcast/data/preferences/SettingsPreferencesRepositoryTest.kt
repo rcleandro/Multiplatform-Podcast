@@ -91,6 +91,15 @@ class SettingsPreferencesRepositoryTest {
     }
 
     @Test
+    fun explicitContentStartsShownAndHidingItIsKept() {
+        assertTrue(SettingsPreferencesRepository(settings).showExplicit.value)
+
+        SettingsPreferencesRepository(settings).setShowExplicit(false)
+
+        assertFalse(SettingsPreferencesRepository(settings).showExplicit.value)
+    }
+
+    @Test
     fun telemetryStartsOnAndTurningItOffIsKept() {
         assertTrue(SettingsPreferencesRepository(settings).telemetryEnabled.value)
 

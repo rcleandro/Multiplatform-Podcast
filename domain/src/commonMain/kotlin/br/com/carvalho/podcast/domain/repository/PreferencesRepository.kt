@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.domain.model.ThemeMode
 import kotlinx.coroutines.flow.StateFlow
 
 /** Choices the user makes once and expects to find on the next launch (ADR 0006). */
+@Suppress("TooManyFunctions") // a value and a setter per preference
 interface PreferencesRepository {
     val libraryLayout: StateFlow<LibraryLayout>
 
@@ -36,6 +37,11 @@ interface PreferencesRepository {
     val deleteFinishedDownloads: StateFlow<Boolean>
 
     fun setDeleteFinishedDownloads(enabled: Boolean)
+
+    /** Whether discovery shows podcasts marked as explicit (18.5); on by default. */
+    val showExplicit: StateFlow<Boolean>
+
+    fun setShowExplicit(enabled: Boolean)
 
     val skipIntervals: StateFlow<SkipIntervals>
 

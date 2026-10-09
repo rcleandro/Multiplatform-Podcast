@@ -32,6 +32,12 @@ class FakePreferencesRepository : PreferencesRepository {
         downloadLimitBytes.value = bytes
     }
 
+    override val showExplicit = MutableStateFlow(true)
+
+    override fun setShowExplicit(enabled: Boolean) {
+        showExplicit.value = enabled
+    }
+
     override val downloadNextOnFinish = MutableStateFlow(false)
 
     override fun setDownloadNextOnFinish(enabled: Boolean) {

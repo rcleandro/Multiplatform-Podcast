@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.domain.model.DirectoryPodcast
 import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.PodcastDirectory
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import kotlinx.coroutines.flow.first
 
 private const val MIN_TERM_LENGTH = 2
@@ -11,11 +12,13 @@ private const val MIN_TERM_LENGTH = 2
 /**
  * The directory of "Add podcast": search (18.1) and charts per category (18.2). A term shorter than two letters does
  * not reach the network, and each result says whether the library already has it, by the same feed key that adding by
- * address uses; the same feed listed twice comes once.
+ * address uses; the same feed listed twice comes once. With "Show explicit content" off, explicit shows stay out
+ * (18.5).
  */
 class SearchPodcastsUseCase(
     private val directory: PodcastDirectory,
     private val podcastRepository: PodcastRepository,
+    private val preferences: PreferencesRepository,
 ) {
     suspend operator fun invoke(term: String): Result<List<DirectoryResult>> {
         val trimmed = term.trim()
@@ -32,6 +35,7 @@ class SearchPodcastsUseCase(
         // Apple sometimes lists one feed under two entries: one row each, or the list would show it twice.
         return map { found ->
             found.distinctBy { feedUrlKey(it.feedUrl) }
+                .filter { preferences.showExplicit.value || !it.explicit }
                 .map { DirectoryResult(it, isSubscribed = feedUrlKey(it.feedUrl) in saved) }
         }
     }

@@ -24,6 +24,8 @@ data class PodcastEntity(
     @ColumnInfo(defaultValue = "0") val subscribedAt: Long = 0,
     /** Place in the custom order; the feed never rewrites it either. */
     @ColumnInfo(defaultValue = "0") val position: Int = 0,
+    /** `itunes:explicit` on the channel, added in version 11 (18.5). */
+    @ColumnInfo(defaultValue = "0") val explicit: Boolean = false,
 )
 
 /** The columns a feed owns: refreshing it updates these and keeps what the library set (subscribedAt, position). */
@@ -40,8 +42,10 @@ data class PodcastFeedFields(
     val lastUpdated: Long,
     val etag: String?,
     val lastModified: String?,
+    val explicit: Boolean,
 )
 
 fun PodcastEntity.feedFields() = PodcastFeedFields(
-    id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, lastUpdated, etag, lastModified
+    id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, lastUpdated, etag, lastModified,
+    explicit,
 )

@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.settings.presentation
 
+import kotlin.test.assertTrue
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.core.util.AppDirectories
@@ -70,6 +71,17 @@ class SettingsViewModelTest {
 
         assertFalse(preferences.telemetryEnabled.value)
         assertFalse(viewModel.uiState.value.telemetryEnabled)
+    }
+
+    @Test
+    fun explicitContentCanBeHidden() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        assertTrue(viewModel.uiState.value.showExplicit)
+
+        viewModel.onIntent(SettingsIntent.SetShowExplicit(false))
+
+        assertFalse(preferences.showExplicit.value)
+        assertFalse(viewModel.uiState.value.showExplicit)
     }
 
     @Test

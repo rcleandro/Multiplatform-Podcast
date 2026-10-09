@@ -240,4 +240,8 @@
     <string name="queued_next">Se reproducirá a continuación</string>
     <string name="queued_last">Agregado a la cola</string>
     <string name="already_playing">Este episodio ya se está reproduciendo</string>
+    <string name="settings_content">Contenido</string>
+    <string name="settings_show_explicit">Mostrar contenido explícito</string>
+    <string name="settings_show_explicit_description">Desactivado, los podcasts marcados como explícitos no aparecen en la búsqueda, los populares ni las sugerencias.</string>
+    <string name="explicit">Explícito</string>
 </resources>

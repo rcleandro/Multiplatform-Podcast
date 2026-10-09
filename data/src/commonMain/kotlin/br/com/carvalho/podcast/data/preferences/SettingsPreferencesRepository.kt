@@ -19,6 +19,7 @@ private const val WIFI_ONLY_DOWNLOADS = "wifi_only_downloads"
 private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
 private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
 private const val DELETE_FINISHED_DOWNLOADS = "delete_finished_downloads"
+private const val SHOW_EXPLICIT = "show_explicit"
 private const val SKIP_BACKWARD_SECONDS = "skip_backward_seconds"
 private const val APP_LANGUAGE = "app_language"
 private const val SKIP_FORWARD_SECONDS = "skip_forward_seconds"
@@ -27,6 +28,7 @@ private const val SKIP_FORWARD_SECONDS = "skip_forward_seconds"
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
  * flows live here and this class is the only writer (a Koin singleton).
  */
+@Suppress("TooManyFunctions") // implements PreferencesRepository
 class SettingsPreferencesRepository(private val settings: Settings) : PreferencesRepository {
     private val layout = MutableStateFlow(settings.enumOrDefault(LIBRARY_LAYOUT, LibraryLayout.GRID))
     override val libraryLayout: StateFlow<LibraryLayout> = layout.asStateFlow()
@@ -74,6 +76,14 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setDeleteFinishedDownloads(enabled: Boolean) {
         settings.putBoolean(DELETE_FINISHED_DOWNLOADS, enabled)
         deleteFinished.value = enabled
+    }
+
+    private val explicit = MutableStateFlow(settings.getBoolean(SHOW_EXPLICIT, defaultValue = true))
+    override val showExplicit: StateFlow<Boolean> = explicit.asStateFlow()
+
+    override fun setShowExplicit(enabled: Boolean) {
+        settings.putBoolean(SHOW_EXPLICIT, enabled)
+        explicit.value = enabled
     }
 
     private val skips = MutableStateFlow(

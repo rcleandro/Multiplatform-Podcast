@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.feature.settings.presentation
 
+import androidx.compose.ui.test.assertIsOn
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
@@ -93,6 +96,25 @@ class SettingsContentTest {
 
         assertEquals(AppLanguage.SPANISH, chosen)
         onAllNodesWithText("Español").assertCountEquals(0)
+    }
+
+    @Test
+    fun explicitContentIsASwitchWithItsExplanation() = runComposeUiTest {
+        var shown: Boolean? = null
+        setContent {
+            PodcastTheme {
+                SettingsContent(
+                    SettingsUiState(showExplicit = true),
+                    onBack = {},
+                    onIntent = { (it as? SettingsIntent.SetShowExplicit)?.let { shown = it.enabled } },
+                )
+            }
+        }
+
+        onNodeWithText(text(Res.string.settings_show_explicit_description)).assertExists()
+        onNodeWithText(text(Res.string.settings_show_explicit)).assertIsOn().performClick()
+
+        assertEquals(false, shown)
     }
 
     @Test

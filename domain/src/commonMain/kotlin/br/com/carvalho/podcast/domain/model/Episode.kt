@@ -16,5 +16,7 @@ data class Episode(
     val fileSize: Long?,
     val localPath: String? = null,
     /** The episode's page on the podcast's site, when the feed gives one (18.4). */
-    val link: String? = null
+    val link: String? = null,
+    /** The feed marks this episode as explicit (`itunes:explicit` on the item, 18.5). */
+    val explicit: Boolean = false
 )
