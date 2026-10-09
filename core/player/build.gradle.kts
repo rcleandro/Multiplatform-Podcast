@@ -5,6 +5,7 @@ plugins {
 kotlin {
     android {
         namespace = "br.com.carvalho.podcast.core.player"
+        withHostTest {}
     }
 
     sourceSets {
@@ -41,6 +42,14 @@ kotlin {
         }
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
+        }
+        val androidHostTest by getting {
+            dependencies {
+                implementation(project(":core:testing"))
+                implementation(libs.junit)
+                implementation(libs.robolectric)
+                implementation(libs.kotlinx.coroutines.test)
+            }
         }
         commonTest.dependencies {
             implementation(project(":core:testing"))

@@ -1,9 +1,5 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
-import org.jetbrains.compose.resources.stringResource
-import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_player
-import br.com.carvalho.podcast.core.designsystem.generated.resources.Res
-import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,10 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.core.designsystem.generated.resources.Res
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_player
+import org.jetbrains.compose.resources.stringResource
 
 /** Compact player docked above the navigation; the bottom edge is the episode progress. */
 @Composable

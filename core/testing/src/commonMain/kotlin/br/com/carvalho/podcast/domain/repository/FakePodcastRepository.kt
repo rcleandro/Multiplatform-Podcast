@@ -1,11 +1,11 @@
 package br.com.carvalho.podcast.domain.repository
 
+import androidx.paging.PagingData
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
-import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 class FakePodcastRepository : PodcastRepository {
     val podcasts = MutableStateFlow<List<Podcast>>(emptyList())
     val episodes = MutableStateFlow<List<Episode>>(emptyList())
-    
+
     var deletePodcastCalledWith: String? = null
         private set
 
@@ -38,11 +38,22 @@ class FakePodcastRepository : PodcastRepository {
 
     override fun getPodcastByIdFlow(id: String): Flow<Podcast?> = podcasts.map { it.find { p -> p.id == id } }
 
-    override fun getEpisodes(podcastId: String): Flow<List<Episode>> = episodes.map { it.filter { e -> e.podcastId == podcastId } }
-
-    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> {
-        throw NotImplementedError("Paging not supported in fake")
+    override fun getEpisodes(podcastId: String): Flow<List<Episode>> = episodes.map {
+        it.filter { e -> e.podcastId == podcastId }
     }
+
+    /** One page with every match, newest first, like the database query. */
+    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> =
+        episodes.map { list ->
+            val matching = list.filter { it.podcastId == podcastId }.filter {
+                when (filter) {
+                    EpisodeFilter.ALL -> true
+                    EpisodeFilter.UNPLAYED -> !it.isPlayed
+                    EpisodeFilter.DOWNLOADED -> it.isDownloaded
+                }
+            }
+            PagingData.from(matching.sortedByDescending { it.publishDate })
+        }
 
     override suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode> =
         episodes.value.filter { it.podcastId == podcastId && it.publishDate >= publishDate }.sortedBy { it.publishDate }
@@ -66,7 +77,14 @@ class FakePodcastRepository : PodcastRepository {
         return episodes.value.find { it.id == id }
     }
 
-    override fun searchEpisodes(query: String): Flow<List<Episode>> = episodes.map { it.filter { e -> e.title.contains(query, ignoreCase = true) } }
+    override fun searchEpisodes(query: String): Flow<List<Episode>> = episodes.map {
+        it.filter { e ->
+            e.title.contains(
+                query,
+                ignoreCase = true
+            )
+        }
+    }
 
     override fun searchEpisodesPaged(query: String?, filter: EpisodeListFilter): Flow<PagingData<Episode>> {
         throw NotImplementedError("Paging not supported in fake")

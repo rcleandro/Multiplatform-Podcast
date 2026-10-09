@@ -1,7 +1,10 @@
 package br.com.carvalho.podcast.presentation.navigation
 
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -17,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
@@ -24,10 +28,6 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaul
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
-import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,18 +42,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import br.com.carvalho.podcast.core.designsystem.PaneLayout
-import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
-import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
+import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import br.com.carvalho.podcast.core.designsystem.Motion
+import br.com.carvalho.podcast.core.designsystem.PaneLayout
 import br.com.carvalho.podcast.core.designsystem.Sizes
-import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.component.MiniPlayer
+import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
+import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.library_title
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
+import br.com.carvalho.podcast.core.ui.generated.resources.library_title
 import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
+import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderScreen
@@ -68,7 +69,6 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import br.com.carvalho.podcast.core.util.NetworkMonitor
 
 /** Draws [RootComponent.state]: tabs, the list/detail/extra panes of the selected tab, mini player and player. */
 @OptIn(ExperimentalSharedTransitionApi::class)

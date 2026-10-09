@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /** The player screen's commands; the playback rules and the session live in the app's AudioPlayer. */
+@Suppress("TooManyFunctions") // one function per player intent
 class PlayerViewModel(
     private val audioPlayer: AudioPlayer,
     private val playEpisode: PlayEpisodeUseCase,
@@ -103,6 +104,7 @@ sealed interface PlayerIntent {
     data object Next : PlayerIntent
     data object Previous : PlayerIntent
     data class SetSpeed(val speed: Float) : PlayerIntent
+
     /** `null` cancels the timer. */
     data class SetSleepTimer(val timer: SleepTimer?) : PlayerIntent
 }

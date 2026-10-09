@@ -7,8 +7,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.LibraryEntry
+import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailActions
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailContent
@@ -35,12 +35,18 @@ private val samplePodcasts = listOf(
 )
 
 private val sampleEpisodes = listOf(
-    Episode("e1", "1", "Hipsters Ponto Tech", "Kotlin Multiplatform em produção", "<p>Conversa sobre <b>KMP</b>.</p>",
-        "", null, 2_820, 1_790_000_000_000, false, 1_200_000, true, null),
-    Episode("e2", "1", "Hipsters Ponto Tech", "Os bastidores do Pix", null, "", null, 4_080, 1_789_000_000_000,
-        true, 0, false, null),
-    Episode("e3", "1", "Hipsters Ponto Tech", "Design systems que escalam", null, "", null, 3_100, 1_788_000_000_000,
-        false, 0, false, null),
+    Episode(
+        "e1", "1", "Hipsters Ponto Tech", "Kotlin Multiplatform em produção", "<p>Conversa sobre <b>KMP</b>.</p>",
+        "", null, 2_820, 1_790_000_000_000, false, 1_200_000, true, null
+    ),
+    Episode(
+        "e2", "1", "Hipsters Ponto Tech", "Os bastidores do Pix", null, "", null, 4_080, 1_789_000_000_000,
+        true, 0, false, null
+    ),
+    Episode(
+        "e3", "1", "Hipsters Ponto Tech", "Design systems que escalam", null, "", null, 3_100, 1_788_000_000_000,
+        false, 0, false, null
+    ),
 )
 
 private val playingState = PlayerState(

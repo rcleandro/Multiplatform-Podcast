@@ -1,22 +1,22 @@
 package br.com.carvalho.podcast.data.repository
 
-import br.com.carvalho.podcast.data.local.dao.EpisodeDao
-import br.com.carvalho.podcast.data.local.dao.PodcastDao
-import br.com.carvalho.podcast.data.mapper.toDomain
-import br.com.carvalho.podcast.data.mapper.toEntity
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.model.LibraryEntry
-import br.com.carvalho.podcast.domain.model.Podcast
-import br.com.carvalho.podcast.domain.repository.PodcastRepository
-import br.com.carvalho.podcast.core.util.AppLogger
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.map
+import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.data.local.dao.EpisodeDao
+import br.com.carvalho.podcast.data.local.dao.PodcastDao
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
+import br.com.carvalho.podcast.data.mapper.toDomain
+import br.com.carvalho.podcast.data.mapper.toEntity
+import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.model.LibraryEntry
+import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -25,6 +25,7 @@ private const val IN_PROGRESS_LIMIT = 10
 
 private const val TAG = "PodcastRepository"
 
+@Suppress("TooManyFunctions") // implements PodcastRepository
 class PodcastRepositoryImpl(
     private val podcastDao: PodcastDao,
     private val episodeDao: EpisodeDao

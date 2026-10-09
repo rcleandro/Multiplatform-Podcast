@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.GradleException
@@ -5,6 +6,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.compose.ComposePlugin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
@@ -12,11 +14,14 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
  * A feature module: Compose UI plus what every screen uses. Only the modules ADR 0003 allows are added here;
  * the module still declares `kotlin { android { namespace = "…" } }`.
  * `checkModuleDependencies` (run by `check`) fails if the module depends on another feature or on a data layer module.
+ * Screens get Roborazzi snapshots in `androidHostTest` (Robolectric), recorded on Linux by the "Record snapshots"
+ * workflow into the module's `snapshots/` folder and verified in CI (17.4).
  */
 class FeatureConventionPlugin : Plugin<Project> {
     override fun apply(target: Project): Unit = with(target) {
         pluginManager.apply("podcast.kmp.library")
         pluginManager.apply("podcast.kmp.compose")
+        pluginManager.apply("io.github.takahirom.roborazzi")
         val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
         fun lib(alias: String) = libs.findLibrary(alias).get()
 
@@ -39,6 +44,15 @@ class FeatureConventionPlugin : Plugin<Project> {
             }
             sourceSets.getByName("desktopTest").dependencies {
                 implementation(ComposePlugin.DesktopDependencies.currentOs)
+            }
+            targets.withType<KotlinMultiplatformAndroidLibraryTarget>().configureEach {
+                withHostTest { isIncludeAndroidResources = true }
+            }
+            sourceSets.getByName("androidHostTest").dependencies {
+                listOf(
+                    "junit", "robolectric", "roborazzi", "roborazzi-compose", "androidx-compose-ui-test-junit4",
+                    "androidx-compose-ui-test-manifest",
+                ).forEach { implementation(lib(it)) }
             }
         }
 

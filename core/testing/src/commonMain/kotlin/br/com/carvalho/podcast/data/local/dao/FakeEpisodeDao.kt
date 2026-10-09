@@ -41,7 +41,6 @@ class FakeEpisodeDao : EpisodeDao {
 
     override fun search(query: String): Flow<List<EpisodeEntity>> = episodes.map { it.filter { e -> e.matches(query) } }
 
-
     override suspend fun insertAll(episodes: List<EpisodeEntity>) {
         val known = this.episodes.value.map { it.id }.toSet()
         this.episodes.value = this.episodes.value + episodes.filter { it.id !in known }

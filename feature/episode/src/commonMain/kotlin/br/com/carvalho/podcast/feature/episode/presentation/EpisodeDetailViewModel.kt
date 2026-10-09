@@ -57,11 +57,18 @@ class EpisodeDetailViewModel(
             EpisodeDetailIntent.Download -> withEpisode { downloader.download(it) }
             EpisodeDetailIntent.CancelDownload -> withEpisode { downloader.cancel(it.id) }
             EpisodeDetailIntent.DeleteDownload -> withEpisode { downloader.delete(it.id) }
-            EpisodeDetailIntent.MarkPlayed -> withEpisode { repository.markEpisodeAsPlayed(it.id); reload() }
-            EpisodeDetailIntent.MarkUnplayed -> withEpisode { repository.markEpisodeAsUnplayed(it.id); reload() }
+            EpisodeDetailIntent.MarkPlayed -> withEpisode {
+                repository.markEpisodeAsPlayed(it.id)
+                reload()
+            }
+            EpisodeDetailIntent.MarkUnplayed -> withEpisode {
+                repository.markEpisodeAsUnplayed(it.id)
+                reload()
+            }
         }
     }
 
+    @Suppress("TooGenericExceptionCaught") // any database failure shows the error state with a retry
     private fun loadEpisode() {
         _uiState.update { it.copy(isLoading = true, loadFailed = false) }
         viewModelScope.launch(dispatchers.io) {

@@ -786,3 +786,14 @@ style:
     active: true
     excludeImports:
       - 'java.util.*'
+
+# ktlint rules (17.1). Corrected automatically with `./gradlew detekt --auto-correct`.
+formatting:
+  active: true
+  autoCorrect: true
+  # Platform files keep the .android.kt / .ios.kt suffixes (MatchingDeclarationName is off for the same reason).
+  Filename:
+    active: false
+  # The style ruleset's MaxLineLength already checks this.
+  MaximumLineLength:
+    active: false

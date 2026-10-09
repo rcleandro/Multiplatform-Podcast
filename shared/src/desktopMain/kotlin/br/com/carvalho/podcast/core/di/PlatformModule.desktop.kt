@@ -2,21 +2,21 @@ package br.com.carvalho.podcast.core.di
 
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.LogAnalytics
+import br.com.carvalho.podcast.core.player.DesktopPlatformPlayer
+import br.com.carvalho.podcast.core.player.PlatformPlayer
 import br.com.carvalho.podcast.core.util.AlwaysOnline
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.NetworkMonitor
-import br.com.carvalho.podcast.data.local.createAppDatabase
-import br.com.carvalho.podcast.core.player.PlatformPlayer
-import br.com.carvalho.podcast.core.player.DesktopPlatformPlayer
-import okio.FileSystem
-import okio.Path.Companion.toPath
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
+import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import com.russhwolf.settings.PreferencesSettings
 import com.russhwolf.settings.Settings
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import org.koin.dsl.module
-import java.util.prefs.Preferences
 import java.io.File
+import java.util.prefs.Preferences
 
 actual val platformModule = module {
     // Its own node: the no-arg Settings() writes to the user root, shared by every Java app (ADR 0006).

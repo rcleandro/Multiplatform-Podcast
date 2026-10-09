@@ -18,9 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
-import androidx.compose.ui.unit.dp
 
 /** Library row: small cover, title, author and a line such as "2 days ago · 3 unplayed"; [dragHandle] at the end. */
 @OptIn(ExperimentalFoundationApi::class)
@@ -74,7 +74,10 @@ fun PodcastListItem(
         }
         if (actions.isNotEmpty()) {
             ItemActionsButton(
-                actions, actionsLabel.orEmpty(), expanded = menuOpen, onExpandedChange = { menuOpen = it },
+                actions,
+                actionsLabel.orEmpty(),
+                expanded = menuOpen,
+                onExpandedChange = { menuOpen = it },
             )
         }
         dragHandle?.invoke()

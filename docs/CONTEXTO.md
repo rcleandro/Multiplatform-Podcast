@@ -175,7 +175,7 @@ Fica em `core/designsystem`:
 ./gradlew :shared:desktopTest                 # testes mais rápidos (JVM)
 ./gradlew :shared:testAndroidHostTest         # testes no host Android
 ./gradlew :shared:iosSimulatorArm64Test       # testes no simulador iOS
-./gradlew :shared:detekt                      # análise estática (baseline em config/detekt/baseline.xml)
+./gradlew detekt                              # análise estática, sem baseline: todo achado barra o build
 ./gradlew :shared:koverHtmlReport             # relatório de cobertura
 
 ./gradlew :androidApp:installDebug

@@ -1,31 +1,43 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
-import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_episodes
-import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import androidx.lifecycle.ViewModel
-import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
-import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.model.EpisodeFilter
-import br.com.carvalho.podcast.domain.model.Podcast
-import br.com.carvalho.podcast.presentation.toMessage
-import br.com.carvalho.podcast.presentation.component.OlderMark
-import br.com.carvalho.podcast.domain.player.AudioPlayer
-import br.com.carvalho.podcast.domain.repository.PodcastRepository
-import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
-import br.com.carvalho.podcast.domain.download.EpisodeDownloader
-import br.com.carvalho.podcast.presentation.failureMessages
-import br.com.carvalho.podcast.core.util.AppLogger
-import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.observability.urlHost
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_episodes
+import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
+import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.failureMessages
+import br.com.carvalho.podcast.presentation.toMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val TAG = "PodcastDetailViewModel"
@@ -160,7 +172,6 @@ class PodcastDetailViewModel(
         }
     }
 }
-
 
 data class PodcastDetailUiState(
     val episodeCount: Int = 0,

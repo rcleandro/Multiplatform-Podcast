@@ -7,12 +7,14 @@ import androidx.room3.PrimaryKey
 
 @Entity(
     tableName = "episodes",
-    foreignKeys = [ForeignKey(
-        entity = PodcastEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["podcastId"],
-        onDelete = ForeignKey.CASCADE
-    )],
+    foreignKeys = [
+        ForeignKey(
+            entity = PodcastEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["podcastId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
     indices = [
         Index("podcastId"),
         Index("publishDate")

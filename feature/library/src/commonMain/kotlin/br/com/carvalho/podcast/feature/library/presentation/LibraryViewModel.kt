@@ -1,41 +1,41 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
-import br.com.carvalho.podcast.core.ui.generated.resources.error_add_podcast
-import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_podcasts
-import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
-import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import androidx.lifecycle.ViewModel
-import br.com.carvalho.podcast.presentation.UiMessage
 import androidx.lifecycle.viewModelScope
-import br.com.carvalho.podcast.domain.model.LibraryEntry
-import br.com.carvalho.podcast.domain.model.LibraryLayout
-import br.com.carvalho.podcast.domain.model.LibrarySort
-import br.com.carvalho.podcast.domain.model.sortedFor
-import kotlinx.coroutines.flow.combine
-import br.com.carvalho.podcast.domain.model.Podcast
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import br.com.carvalho.podcast.domain.repository.PreferencesRepository
-import br.com.carvalho.podcast.presentation.toMessage
-import br.com.carvalho.podcast.domain.repository.PodcastRepository
-import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
-import br.com.carvalho.podcast.domain.usecase.validFeedUrl
-import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
-import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
-import br.com.carvalho.podcast.core.util.AppLogger
-import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.observability.urlHost
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.error_add_podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_podcasts
+import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
+import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.LibraryEntry
+import br.com.carvalho.podcast.domain.model.LibraryLayout
+import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.sortedFor
+import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.validFeedUrl
+import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.presentation.toMessage
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -52,7 +52,6 @@ class LibraryViewModel(
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics
 ) : ViewModel() {
-
 
     private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true, layout = preferences.libraryLayout.value))
     val uiState: StateFlow<LibraryUiState> = _uiState

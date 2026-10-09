@@ -102,6 +102,32 @@ class SearchViewModelTest {
         )
     }
 
+    @Test
+    fun `dismissing keeps everything and confirming played marks the older ones of its podcast`() =
+        runTest(testDispatcher) {
+            val chosen = episode("chosen", publishDate = 2).copy(isPlayed = false)
+            repository.episodes.value = listOf(
+                episode("new", publishDate = 3).copy(isPlayed = false), chosen,
+                episode("old", publishDate = 1).copy(isPlayed = false),
+            )
+            val viewModel = createViewModel()
+            val mark = OlderMark(chosen, played = true)
+
+            viewModel.onIntent(SearchIntent.RequestMarkOlder(mark))
+            viewModel.onIntent(SearchIntent.DismissMarkOlder)
+            assertEquals(null, viewModel.uiState.value.olderMark)
+            viewModel.onIntent(SearchIntent.RequestDeleteDownload(chosen))
+            viewModel.onIntent(SearchIntent.DismissDeleteDownload)
+            assertEquals(null, viewModel.uiState.value.deleteEpisodeConfirmation)
+
+            viewModel.onIntent(SearchIntent.ConfirmMarkOlder(mark))
+
+            assertEquals(
+                mapOf("new" to false, "chosen" to true, "old" to true),
+                repository.episodes.value.associate { it.id to it.isPlayed },
+            )
+        }
+
     private fun episode(id: String, publishDate: Long, podcastId: String = "p1") = Episode(
         id = id, podcastId = podcastId, title = id, description = null, audioUrl = "a", imageUrl = null,
         duration = 0, publishDate = publishDate, isPlayed = true, playbackPosition = 0, isDownloaded = false,

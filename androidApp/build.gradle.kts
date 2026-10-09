@@ -21,6 +21,12 @@ android {
         getByName("release") {
             isMinifyEnabled = false
         }
+        // Release code, signed with the debug key so it installs anywhere; only the Macrobenchmark (:benchmark) uses it.
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
     }
     sourceSets["main"].manifest.srcFile("src/main/AndroidManifest.xml")
     sourceSets["main"].res.directories.add("src/main/res")

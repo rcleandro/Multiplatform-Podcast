@@ -16,8 +16,8 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.LoggingConfig
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLProtocol
-import kotlinx.coroutines.CancellationException
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 
 private const val TAG = "HTTP Client"

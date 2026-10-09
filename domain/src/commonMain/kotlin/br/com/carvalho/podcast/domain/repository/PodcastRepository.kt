@@ -1,13 +1,14 @@
 package br.com.carvalho.podcast.domain.repository
 
+import androidx.paging.PagingData
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
-import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 
+@Suppress("TooManyFunctions") // one function per library query or change
 interface PodcastRepository {
     fun getPodcasts(): Flow<List<Podcast>>
     fun getLibrary(): Flow<List<LibraryEntry>>
@@ -42,6 +43,7 @@ interface PodcastRepository {
 
     /** Back to not played, from the start. */
     suspend fun markEpisodeAsUnplayed(id: String)
+
     /** Saves a podcast and its episodes all at once: if any of it fails, nothing is saved. */
     suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>)
     suspend fun deletePodcast(id: String)
