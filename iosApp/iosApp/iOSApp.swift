@@ -19,6 +19,8 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                // A podcast link (pcast://, podcast://, itpc://, feed://) opens in "Add podcast" (18.4).
+                .onOpenURL { url in MainViewControllerKt.openPodcastLink(url: url.absoluteString) }
         }
     }
 }

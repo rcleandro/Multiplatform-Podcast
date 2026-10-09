@@ -26,6 +26,9 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     /** A category's chart opened in "Add podcast" (18.2). */
     class BrowseCategory(category: String) : AnalyticsEvent("browse_category", mapOf("category" to category))
 
+    /** A podcast link opened in the app (18.4): only the feed's host, never its address. */
+    class OpenPodcastLink(host: String) : AnalyticsEvent("open_podcast_link", mapOf(HOST to host))
+
     class AddPodcastAttempt(host: String) : AnalyticsEvent("add_podcast_attempt", mapOf(HOST to host))
 
     class AddPodcastSuccess(host: String) : AnalyticsEvent("add_podcast_success", mapOf(HOST to host))

@@ -68,13 +68,46 @@
                 android:resource="@xml/player_widget_info" />
         </receiver>
 
+        <!-- singleTask: a link opened from another app comes to the app already running, not to a second copy. -->
         <activity
             android:exported="true"
+            android:launchMode="singleTask"
             android:name="br.com.carvalho.podcast.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Podcast links (18.4): podcast apps' schemes for a feed, a feed itself and Apple Podcasts shows. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="podcast" />
+                <data android:scheme="pcast" />
+                <data android:scheme="itpc" />
+                <data android:scheme="feed" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:mimeType="application/rss+xml" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="podcasts.apple.com" />
             </intent-filter>
         </activity>
     </application>

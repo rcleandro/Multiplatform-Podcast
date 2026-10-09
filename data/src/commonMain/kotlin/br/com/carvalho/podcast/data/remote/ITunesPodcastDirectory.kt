@@ -62,6 +62,15 @@ class ITunesPodcastDirectory(
         ids.mapNotNull { found[it]?.toDirectoryPodcast() }
     }
 
+    override suspend fun lookup(id: Long): Result<DirectoryPodcast?> = catchingAppError {
+        val response = client.get("$ITUNES/lookup") {
+            parameter("id", id)
+            parameter("entity", "podcast")
+            parameter("country", countryCode())
+        }
+        decode<SearchResponse>(response).results.firstOrNull()?.toDirectoryPodcast()
+    }
+
     private fun countryCode() = country() ?: FALLBACK_COUNTRY
 
     private suspend inline fun <reified T> decode(response: HttpResponse): T {

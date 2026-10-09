@@ -15,6 +15,7 @@ private const val STATE_KEY = "navigation"
  * Navigation of the whole app: one tab selected at a time, a stack of detail screens per tab, and the player
  * opened over everything. The state is saved across process death and drives the system back button.
  */
+@Suppress("TooManyFunctions") // one function per way of moving around the app
 class RootComponent(componentContext: ComponentContext) : ComponentContext by componentContext {
 
     private val restoredState = stateKeeper.consume(STATE_KEY, NavigationState.serializer())
@@ -69,6 +70,27 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         _state.update { it.copy(isAddingPodcast = true) }
     }
 
+    /**
+     * A podcast link opened in the app (18.4): "Add podcast" shows it over the tabs, with whatever covered them closed.
+     * [NavigationState.podcastLink] holds it until the screen takes it.
+     */
+    fun onPodcastLink(link: String) {
+        AppLogger.d(TAG, "Podcast link opened")
+        _state.update {
+            it.copy(
+                isPlayerOpen = false,
+                isOrganizingLibrary = false,
+                isShowingSettings = false,
+                isAddingPodcast = true,
+                podcastLink = link,
+            )
+        }
+    }
+
+    fun onPodcastLinkHandled() {
+        _state.update { it.copy(podcastLink = null) }
+    }
+
     /** Opens Settings over the tabs, from the gear in the library's bar (18.5, ADR 0005). */
     fun onOpenSettings() {
         _state.update { it.copy(isShowingSettings = true) }
@@ -101,7 +123,10 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
     }
 
     private fun setStack(stack: List<Detail>) {
-        _state.update { it.copy(stacks = it.stacks + (it.selectedTab to stack), isPlayerOpen = false) }
+        // From "Add podcast" too: a link to a podcast the library has opens it (18.4).
+        _state.update {
+            it.copy(stacks = it.stacks + (it.selectedTab to stack), isPlayerOpen = false, isAddingPodcast = false)
+        }
     }
 }
 
@@ -126,6 +151,8 @@ data class NavigationState(
     val isOrganizingLibrary: Boolean = false,
     val isAddingPodcast: Boolean = false,
     val isShowingSettings: Boolean = false,
+    /** A podcast link waiting for "Add podcast" to show it (18.4). */
+    val podcastLink: String? = null,
 ) {
     val currentStack: List<Detail> get() = stacks[selectedTab].orEmpty()
     val podcast: Detail.Podcast? get() = currentStack.filterIsInstance<Detail.Podcast>().lastOrNull()

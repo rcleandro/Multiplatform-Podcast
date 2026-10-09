@@ -9,11 +9,13 @@ import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.observability.urlHost
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.error_add_podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.error_open_link
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
+import br.com.carvalho.podcast.domain.usecase.OpenPodcastLinkUseCase
 import br.com.carvalho.podcast.domain.usecase.SearchPodcastsUseCase
 import br.com.carvalho.podcast.domain.usecase.validFeedUrl
 import br.com.carvalho.podcast.presentation.UiMessage
@@ -34,11 +36,13 @@ private const val TAG = "DiscoverViewModel"
 
 /**
  * "Add podcast": search the directory (18.1), or browse the most popular podcasts (18.3) and those of a category
- * (18.2), and subscribe with a tap; or add a podcast by its feed address. Also the suggestions of an empty library.
+ * (18.2), and subscribe with a tap; or add a podcast by its feed address, or by a link opened in the app (18.4). Also
+ * the suggestions of an empty library.
  */
 class DiscoverViewModel(
     private val searchPodcasts: SearchPodcastsUseCase,
     private val addPodcast: AddPodcastFromUrlUseCase,
+    private val openLink: OpenPodcastLinkUseCase,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics,
 ) : ViewModel() {
@@ -51,6 +55,10 @@ class DiscoverViewModel(
     /** A podcast added by its address: the screen closes and the library shows it. */
     private val _addedByUrl = Channel<Unit>(Channel.CONFLATED)
     val addedByUrl: Flow<Unit> = _addedByUrl.receiveAsFlow()
+
+    /** A link to a podcast the library already has: the app opens it there. */
+    private val _openPodcast = Channel<String>(Channel.CONFLATED)
+    val openPodcast: Flow<String> = _openPodcast.receiveAsFlow()
 
     private val searchRequests = MutableStateFlow(SearchRequest(term = "", category = null))
 
@@ -75,6 +83,8 @@ class DiscoverViewModel(
             DiscoverIntent.DismissUrlDialog -> _uiState.update { it.copy(isUrlDialogOpen = false, url = "") }
             is DiscoverIntent.ChangeUrl -> _uiState.update { it.copy(url = intent.url) }
             DiscoverIntent.ConfirmUrl -> addByUrl()
+            is DiscoverIntent.OpenLink -> openPodcastLink(intent.link)
+            DiscoverIntent.ForgetLink -> _uiState.update { it.copy(linked = null) }
         }
     }
 
@@ -110,11 +120,37 @@ class DiscoverViewModel(
             _uiState.update { state ->
                 state.copy(
                     subscribing = state.subscribing - feedUrl,
-                    results = state.results.map {
-                        if (added && it.podcast.feedUrl == feedUrl) it.copy(isSubscribed = true) else it
-                    },
+                    results = state.results.map { if (added) it.subscribedIf(feedUrl) else it },
+                    linked = state.linked?.let { if (added) it.subscribedIf(feedUrl) else it },
                 )
             }
+        }
+    }
+
+    private fun DirectoryResult.subscribedIf(feedUrl: String) =
+        if (podcast.feedUrl == feedUrl) copy(isSubscribed = true) else this
+
+    /** Shows the podcast a link leads to, with "Subscribe"; one the library has opens there instead (18.4). */
+    private fun openPodcastLink(link: String) {
+        _uiState.update { it.copy(linked = null, isOpeningLink = true) }
+        viewModelScope.launch(dispatchers.io) {
+            openLink(link)
+                .onSuccess { found ->
+                    analytics.logEvent(AnalyticsEvent.OpenPodcastLink(urlHost(found.podcast.feedUrl)))
+                    _uiState.update { it.copy(isOpeningLink = false) }
+                    val libraryId = found.libraryId
+                    if (libraryId != null) {
+                        _openPodcast.send(libraryId)
+                    } else {
+                        _uiState.update { it.copy(linked = DirectoryResult(found.podcast, isSubscribed = false)) }
+                    }
+                }
+                .onFailure { e ->
+                    // Never the link itself: a private feed's address carries its access token.
+                    AppLogger.e(TAG, "Failed to open a podcast link", e)
+                    _uiState.update { it.copy(isOpeningLink = false) }
+                    _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_open_link)))
+                }
         }
     }
 
@@ -165,6 +201,9 @@ data class DiscoverUiState(
     val isUrlDialogOpen: Boolean = false,
     val url: String = "",
     val isAddingUrl: Boolean = false,
+    /** The podcast of a link opened in the app (18.4), shown above the rest while nothing is typed. */
+    val linked: DirectoryResult? = null,
+    val isOpeningLink: Boolean = false,
 )
 
 sealed interface DiscoverIntent {
@@ -176,4 +215,6 @@ sealed interface DiscoverIntent {
     data object DismissUrlDialog : DiscoverIntent
     data class ChangeUrl(val url: String) : DiscoverIntent
     data object ConfirmUrl : DiscoverIntent
+    data class OpenLink(val link: String) : DiscoverIntent
+    data object ForgetLink : DiscoverIntent
 }

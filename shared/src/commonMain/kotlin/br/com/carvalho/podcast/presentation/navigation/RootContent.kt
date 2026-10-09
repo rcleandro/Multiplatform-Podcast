@@ -121,7 +121,14 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
         }
 
         Overlay(visible = state.isOrganizingLibrary) { LibraryOrderScreen(onBack = component::onBackClicked) }
-        Overlay(visible = state.isAddingPodcast) { DiscoverScreen(onBack = component::onBackClicked) }
+        Overlay(visible = state.isAddingPodcast) {
+            DiscoverScreen(
+                onBack = component::onBackClicked,
+                link = state.podcastLink,
+                onLinkHandled = component::onPodcastLinkHandled,
+                onOpenPodcast = component::onPodcastSelected,
+            )
+        }
         Overlay(visible = state.isShowingSettings) { SettingsScreen(onBack = component::onBackClicked) }
         Overlay(visible = state.isPlayerOpen) {
             PlayerScreen(onBackClick = component::onBackClicked, artworkModifier = sharedCover(this))

@@ -22,6 +22,7 @@ import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.OpenPodcastLinkUseCase
 import br.com.carvalho.podcast.domain.usecase.SearchPodcastsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,6 +56,7 @@ class PodcastSuggestionsTest {
     private fun viewModel() = DiscoverViewModel(
         SearchPodcastsUseCase(directory, repository),
         AddPodcastFromUrlUseCase(feedSource, repository),
+        OpenPodcastLinkUseCase(directory, feedSource, repository),
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher),
         FakeAnalytics(),
     )

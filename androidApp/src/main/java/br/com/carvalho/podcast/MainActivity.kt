@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast
 
 import android.Manifest
+import android.content.Intent
 import android.graphics.Color
 import android.content.pm.PackageManager
 import android.os.Build
@@ -38,6 +39,8 @@ private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var root: RootComponent
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -54,7 +57,9 @@ class MainActivity : AppCompatActivity() {
 
         requestNotificationPermission()
 
-        val root = RootComponent(defaultComponentContext())
+        root = RootComponent(defaultComponentContext())
+        // Only on a fresh start: a recreated activity already took its link.
+        if (savedInstanceState == null) openPodcastLink(intent)
 
         // A half open foldable lays the player out around its fold (21.3).
         val tabletopFolds = WindowInfoTracker.getOrCreate(this).windowLayoutInfo(this).map { it.tabletopFold() }
@@ -79,6 +84,16 @@ class MainActivity : AppCompatActivity() {
                 App(root)
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        openPodcastLink(intent)
+    }
+
+    /** A podcast link the app was opened with (18.4) goes to "Add podcast". */
+    private fun openPodcastLink(intent: Intent?) {
+        if (intent?.action == Intent.ACTION_VIEW) intent.dataString?.let(root::onPodcastLink)
     }
 
     /**

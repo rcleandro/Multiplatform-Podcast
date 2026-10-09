@@ -33,6 +33,34 @@ class RootComponentTest {
     }
 
     @Test
+    fun aPodcastLinkOpensAddPodcastOverThePlayerUntilTheScreenTakesIt() {
+        val root = createRoot()
+        root.onPlayerClicked()
+
+        root.onPodcastLink("pcast://example.com/rss")
+
+        assertTrue(root.current.isAddingPodcast)
+        assertFalse(root.current.isPlayerOpen)
+        assertEquals("pcast://example.com/rss", root.current.podcastLink)
+
+        root.onPodcastLinkHandled()
+
+        assertNull(root.current.podcastLink)
+        assertTrue(root.current.isAddingPodcast)
+    }
+
+    @Test
+    fun aLinkedPodcastInTheLibraryOpensOverTheTabs() {
+        val root = createRoot()
+        root.onPodcastLink("pcast://example.com/rss")
+
+        root.onPodcastSelected("p1")
+
+        assertFalse(root.current.isAddingPodcast)
+        assertEquals(Detail.Podcast("p1"), root.current.podcast)
+    }
+
+    @Test
     fun organizingTheLibraryOpensItsScreenAndBackClosesIt() {
         val root = createRoot()
 

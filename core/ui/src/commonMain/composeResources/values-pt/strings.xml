@@ -181,6 +181,8 @@
     <string name="category_all">Todas</string>
     <string name="categories">Categorias</string>
     <string name="popular">Populares</string>
+    <string name="opened_link">Link aberto</string>
+    <string name="error_open_link">Não deu para abrir este link de podcast. Verifique a conexão.</string>
     <string name="suggestions_title">Do que você gosta de ouvir?</string>
     <string name="suggestions_message">Escolha uma categoria e assine os podcasts mais populares dela, ou procure um que você conhece.</string>
     <string name="settings">Configurações</string>

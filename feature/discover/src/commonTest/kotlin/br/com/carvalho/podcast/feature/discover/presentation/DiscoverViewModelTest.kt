@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_feed
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_url
+import br.com.carvalho.podcast.core.ui.generated.resources.error_open_link
 import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -19,6 +20,8 @@ import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.DirectoryResult
+import br.com.carvalho.podcast.domain.usecase.OpenPodcastLinkUseCase
 import br.com.carvalho.podcast.domain.usecase.SearchPodcastsUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +60,7 @@ class DiscoverViewModelTest {
     private fun viewModel() = DiscoverViewModel(
         SearchPodcastsUseCase(directory, repository),
         AddPodcastFromUrlUseCase(feedSource, repository),
+        OpenPodcastLinkUseCase(directory, feedSource, repository),
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher),
         analytics,
     )
@@ -251,6 +255,61 @@ class DiscoverViewModelTest {
         viewModel.onIntent(DiscoverIntent.OpenUrlDialog)
         viewModel.onIntent(DiscoverIntent.ChangeUrl(url))
         viewModel.onIntent(DiscoverIntent.ConfirmUrl)
+    }
+
+    @Test
+    fun `a link shows its podcast to subscribe to`() = runTest(dispatcher) {
+        directory.lookupResult = Result.success(found(HIPSTERS))
+        feedSource.result = Result.success(FetchedFeed(podcast(HIPSTERS), emptyList()))
+        val viewModel = viewModel()
+
+        viewModel.onIntent(DiscoverIntent.OpenLink("https://podcasts.apple.com/br/podcast/hipsters/id1133325943"))
+
+        assertEquals(DirectoryResult(found(HIPSTERS), isSubscribed = false), viewModel.uiState.value.linked)
+        assertFalse(viewModel.uiState.value.isOpeningLink)
+        assertNull(feedSource.fetchCalledWith)
+        assertEquals(listOf("open_podcast_link"), analytics.events)
+        assertEquals("hipsters.tech", analytics.params.single()["host"])
+
+        viewModel.onIntent(DiscoverIntent.Subscribe(viewModel.uiState.value.linked!!))
+
+        assertEquals(true, viewModel.uiState.value.linked?.isSubscribed)
+        assertEquals(listOf(HIPSTERS), repository.podcasts.value.map { it.feedUrl })
+    }
+
+    @Test
+    fun `a link to a podcast in the library opens it`() = runTest(dispatcher) {
+        repository.podcasts.value = listOf(podcast(HIPSTERS))
+        val viewModel = viewModel()
+
+        viewModel.openPodcast.test {
+            viewModel.onIntent(DiscoverIntent.OpenLink("pcast://hipsters.tech/feed/podcast"))
+
+            assertEquals(HIPSTERS, awaitItem())
+        }
+        assertNull(viewModel.uiState.value.linked)
+    }
+
+    @Test
+    fun `a link that leads nowhere says so`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(DiscoverIntent.OpenLink("https://podcasts.apple.com/br/podcast/id1"))
+
+        viewModel.messages.test { assertEquals(UiMessage(Res.string.error_open_link), awaitItem()) }
+        assertNull(viewModel.uiState.value.linked)
+        assertFalse(viewModel.uiState.value.isOpeningLink)
+    }
+
+    @Test
+    fun `a link's podcast is forgotten when the screen closes`() = runTest(dispatcher) {
+        directory.lookupResult = Result.success(found(HIPSTERS))
+        val viewModel = viewModel()
+        viewModel.onIntent(DiscoverIntent.OpenLink("https://podcasts.apple.com/br/podcast/id1"))
+
+        viewModel.onIntent(DiscoverIntent.ForgetLink)
+
+        assertNull(viewModel.uiState.value.linked)
     }
 
     private fun found(feedUrl: String) = DirectoryPodcast(

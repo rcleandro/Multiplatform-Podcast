@@ -40,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -76,6 +78,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.discover_search_place
 import br.com.carvalho.podcast.core.ui.generated.resources.error_search_directory
 import br.com.carvalho.podcast.core.ui.generated.resources.more_options
 import br.com.carvalho.podcast.core.ui.generated.resources.no_podcasts_found
+import br.com.carvalho.podcast.core.ui.generated.resources.opened_link
 import br.com.carvalho.podcast.core.ui.generated.resources.paste
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
 import br.com.carvalho.podcast.core.ui.generated.resources.popular
@@ -97,13 +100,32 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * "Add podcast". A [link] opened in the app (18.4) is shown here, then [onLinkHandled]; one to a podcast the library
+ * has goes to [onOpenPodcast] instead.
+ */
 @Composable
-fun DiscoverScreen(onBack: () -> Unit, viewModel: DiscoverViewModel = koinViewModel()) {
+fun DiscoverScreen(
+    onBack: () -> Unit,
+    link: String? = null,
+    onLinkHandled: () -> Unit = {},
+    onOpenPodcast: (String) -> Unit = {},
+    viewModel: DiscoverViewModel = koinViewModel(),
+) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     MessageEffect(viewModel.messages, snackbarHostState)
     // Added by its address: back to the library, which shows it.
     LaunchedEffect(viewModel) { viewModel.addedByUrl.collectLatest { onBack() } }
+    LaunchedEffect(viewModel) { viewModel.openPodcast.collectLatest(onOpenPodcast) }
+    LaunchedEffect(link) {
+        if (link != null) {
+            viewModel.onIntent(DiscoverIntent.OpenLink(link))
+            onLinkHandled()
+        }
+    }
+    // The view model outlives the screen: a link's podcast is not shown again the next time "+" opens it.
+    DisposableEffect(viewModel) { onDispose { viewModel.onIntent(DiscoverIntent.ForgetLink) } }
 
     DiscoverContent(
         state = state,
@@ -150,7 +172,10 @@ fun DiscoverContent(
         // Ready to type as soon as the screen opens. Requested in here: the Scaffold builds its content after the
         // composition around it, so a request from outside would find no field yet.
         val searchFocus = remember { FocusRequester() }
-        LaunchedEffect(Unit) { searchFocus.requestFocus() }
+        LaunchedEffect(Unit) { if (!state.isOpeningLink) searchFocus.requestFocus() }
+        // A link's podcast is what to see, not the keyboard over it (18.4).
+        val focusManager = LocalFocusManager.current
+        LaunchedEffect(state.isOpeningLink) { if (state.isOpeningLink) focusManager.clearFocus() }
         // Above the keyboard, which opens with the screen: the hint and its button, and the last results, stay in
         // sight. The navigation bar inset is already in [padding], so it is not counted twice.
         Column(modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
@@ -161,7 +186,7 @@ fun DiscoverContent(
                 modifier = Modifier.readableWidth().focusRequester(searchFocus),
             )
             if (state.query.isBlank()) CategoryChips(state.category, actions.onCategoryChange)
-            if (state.isAddingUrl) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            if (state.isAddingUrl || state.isOpeningLink) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             DiscoverBody(state, actions)
         }
     }
@@ -194,13 +219,18 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             modifier = Modifier.fillMaxSize(),
         ) {
-            // A chart says which one: the overall (18.3) or a category's (18.2).
+            // One header, always the first item: a linked podcast that arrives after the chart would otherwise open
+            // above the top, since the list keeps its first visible item in place.
             if (state.query.isBlank()) {
-                item(key = CHART_TITLE_KEY) {
-                    SectionTitle(
-                        stringResource(state.category?.label ?: Res.string.popular),
-                        Modifier.readableWidth().padding(vertical = Spacing.s),
-                    )
+                item(key = HEADER_KEY) {
+                    Column {
+                        state.linked?.let { linked ->
+                            ListTitle(stringResource(Res.string.opened_link))
+                            ResultRow(linked, linked.podcast.feedUrl in state.subscribing, actions.onSubscribe)
+                        }
+                        // A chart says which one: the overall (18.3) or a category's (18.2).
+                        ListTitle(stringResource(state.category?.label ?: Res.string.popular))
+                    }
                 }
             }
             items(state.results, key = { it.podcast.feedUrl }) { result ->
@@ -210,7 +240,10 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
     }
 }
 
-private const val CHART_TITLE_KEY = "chart-title"
+@Composable
+private fun ListTitle(text: String) = SectionTitle(text, Modifier.readableWidth().padding(vertical = Spacing.s))
+
+private const val HEADER_KEY = "header"
 
 /**
  * What an empty library shows instead of a blank screen (18.3): pick a category and subscribe to its most popular

@@ -12,7 +12,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
@@ -29,6 +31,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_by_url
 import br.com.carvalho.podcast.core.ui.generated.resources.add_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.popular
+import br.com.carvalho.podcast.core.ui.generated.resources.opened_link
 import br.com.carvalho.podcast.core.ui.generated.resources.category_news
 import br.com.carvalho.podcast.core.ui.generated.resources.error_search_directory
 import br.com.carvalho.podcast.core.ui.generated.resources.more_options
@@ -79,6 +82,27 @@ class DiscoverContentTest {
 
         state = DiscoverUiState(query = "hipsters", results = listOf(hipsters))
         onNode(isHeading() and hasText(text(Res.string.popular), ignoreCase = true)).assertDoesNotExist()
+    }
+
+    @Test
+    fun aLinkedPodcastThatArrivesAfterTheChartShowsAtTheTop() = runComposeUiTest {
+        val other = hipsters.copy(podcast = hipsters.podcast.copy(title = "NerdCast", feedUrl = "https://nerd.cast/rss"))
+        var state by mutableStateOf(DiscoverUiState(results = listOf(hipsters), isOpeningLink = true))
+        setContent { PodcastTheme { DiscoverContent(state, DiscoverActions()) } }
+        waitForIdle()
+
+        state = state.copy(linked = other, isOpeningLink = false)
+
+        onNodeWithText(text(Res.string.opened_link), ignoreCase = true).assertIsDisplayed()
+        onNodeWithText("NerdCast").assertIsDisplayed()
+        onNodeWithText(text(Res.string.popular), ignoreCase = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun aLinkLeavesTheKeyboardClosed() = runComposeUiTest {
+        setContent { PodcastTheme { DiscoverContent(DiscoverUiState(isOpeningLink = true), DiscoverActions()) } }
+
+        onNode(hasSetTextAction()).assertIsNotFocused()
     }
 
     @Test

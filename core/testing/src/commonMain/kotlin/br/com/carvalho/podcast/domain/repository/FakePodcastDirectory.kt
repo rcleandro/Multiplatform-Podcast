@@ -8,6 +8,8 @@ class FakePodcastDirectory : PodcastDirectory {
     val searchedTerms = mutableListOf<String>()
     var topResult: Result<List<DirectoryPodcast>> = Result.success(emptyList())
     val chartsAsked = mutableListOf<PodcastCategory?>()
+    var lookupResult: Result<DirectoryPodcast?> = Result.success(null)
+    val lookedUp = mutableListOf<Long>()
 
     override suspend fun search(term: String): Result<List<DirectoryPodcast>> {
         searchedTerms += term
@@ -17,5 +19,10 @@ class FakePodcastDirectory : PodcastDirectory {
     override suspend fun top(category: PodcastCategory?): Result<List<DirectoryPodcast>> {
         chartsAsked += category
         return topResult
+    }
+
+    override suspend fun lookup(id: Long): Result<DirectoryPodcast?> {
+        lookedUp += id
+        return lookupResult
     }
 }

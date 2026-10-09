@@ -115,6 +115,27 @@ class ITunesPodcastDirectoryTest {
         assertEquals(1, requests.size)
     }
 
+    @Test
+    fun aShowIsLookedUpByItsId() = runTest {
+        val found = chartDirectory(CHART).lookup(1_133_325_943).getOrThrow()
+
+        assertEquals("Hipsters Ponto Tech", found?.title)
+        assertEquals("/lookup", requests.single().url.encodedPath)
+        assertEquals("1133325943", requests.single().url.parameters["id"])
+        assertEquals("BR", requests.single().url.parameters["country"])
+    }
+
+    @Test
+    fun anUnknownShowIsNotFound() = runTest {
+        val found = ITunesPodcastDirectory(
+            HttpClient(MockEngine { respond("""{ "resultCount": 0, "results": [] }""") }),
+            json,
+            country = { "BR" },
+        ).lookup(1).getOrThrow()
+
+        assertEquals(null, found)
+    }
+
     private companion object {
         // Trimmed from a real answer of https://itunes.apple.com/search (08/10/2026), plus an entry without a feed.
         // Trimmed from https://itunes.apple.com/br/rss/toppodcasts/limit=2/genre=1318/json (09/10/2026).
