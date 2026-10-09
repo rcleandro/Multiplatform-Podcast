@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.data.preferences
 
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 private const val LIBRARY_LAYOUT = "library_layout"
 private const val LIBRARY_SORT = "library_sort"
 private const val TELEMETRY_ENABLED = "telemetry_enabled"
+private const val THEME_MODE = "theme_mode"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
@@ -31,6 +33,14 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setLibrarySort(sort: LibrarySort) {
         settings.putString(LIBRARY_SORT, sort.name)
         this.sort.value = sort
+    }
+
+    private val theme = MutableStateFlow(settings.enumOrDefault(THEME_MODE, ThemeMode.SYSTEM))
+    override val themeMode: StateFlow<ThemeMode> = theme.asStateFlow()
+
+    override fun setThemeMode(mode: ThemeMode) {
+        settings.putString(THEME_MODE, mode.name)
+        theme.value = mode
     }
 
     private val telemetry = MutableStateFlow(settings.getBoolean(TELEMETRY_ENABLED, defaultValue = true))

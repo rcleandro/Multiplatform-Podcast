@@ -40,6 +40,7 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
                 isPlayerOpen = false,
                 isOrganizingLibrary = false,
                 isAddingPodcast = false,
+                isShowingSettings = false,
             )
         }
     }
@@ -68,6 +69,11 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         _state.update { it.copy(isAddingPodcast = true) }
     }
 
+    /** Opens Settings over the tabs, from the gear in the library's bar (18.5, ADR 0005). */
+    fun onOpenSettings() {
+        _state.update { it.copy(isShowingSettings = true) }
+    }
+
     fun onPodcastSelected(podcastId: String) {
         AppLogger.d(TAG, "Podcast selected")
         setStack(listOf(Detail.Podcast(podcastId)))
@@ -79,13 +85,14 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         setStack(listOf(Detail.Podcast(podcastId), Detail.Episode(episodeId)))
     }
 
-    /** Closes the player, "Organize library" or "Add podcast", else pops the current tab, else goes to the library. */
+    /** Closes what covers the tabs (player, "Organize", "Add podcast", Settings), else pops the tab or goes home. */
     fun onBackClicked() {
         _state.update {
             when {
                 it.isPlayerOpen -> it.copy(isPlayerOpen = false)
                 it.isOrganizingLibrary -> it.copy(isOrganizingLibrary = false)
                 it.isAddingPodcast -> it.copy(isAddingPodcast = false)
+                it.isShowingSettings -> it.copy(isShowingSettings = false)
                 it.currentStack.isNotEmpty() ->
                     it.copy(stacks = it.stacks + (it.selectedTab to it.currentStack.dropLast(1)))
                 else -> it.copy(selectedTab = Tab.Library)
@@ -118,11 +125,12 @@ data class NavigationState(
     val isPlayerOpen: Boolean = false,
     val isOrganizingLibrary: Boolean = false,
     val isAddingPodcast: Boolean = false,
+    val isShowingSettings: Boolean = false,
 ) {
     val currentStack: List<Detail> get() = stacks[selectedTab].orEmpty()
     val podcast: Detail.Podcast? get() = currentStack.filterIsInstance<Detail.Podcast>().lastOrNull()
     val episode: Detail.Episode? get() = currentStack.lastOrNull() as? Detail.Episode
     val canGoBack: Boolean
-        get() = isPlayerOpen || isOrganizingLibrary || isAddingPodcast || currentStack.isNotEmpty() ||
-            selectedTab != Tab.Library
+        get() = isPlayerOpen || isOrganizingLibrary || isAddingPodcast || isShowingSettings ||
+            currentStack.isNotEmpty() || selectedTab != Tab.Library
 }

@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.data.preferences
 
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.ThemeMode
 import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,6 +40,15 @@ class SettingsPreferencesRepositoryTest {
         SettingsPreferencesRepository(settings).setLibrarySort(LibrarySort.LATEST_EPISODE)
 
         assertEquals(LibrarySort.LATEST_EPISODE, SettingsPreferencesRepository(settings).librarySort.value)
+    }
+
+    @Test
+    fun theThemeFollowsTheSystemUntilChosen() {
+        assertEquals(ThemeMode.SYSTEM, SettingsPreferencesRepository(settings).themeMode.value)
+
+        SettingsPreferencesRepository(settings).setThemeMode(ThemeMode.DARK)
+
+        assertEquals(ThemeMode.DARK, SettingsPreferencesRepository(settings).themeMode.value)
     }
 
     @Test

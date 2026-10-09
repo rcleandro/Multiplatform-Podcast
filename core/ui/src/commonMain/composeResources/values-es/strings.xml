@@ -183,4 +183,13 @@
     <string name="popular">Populares</string>
     <string name="suggestions_title">¿Qué te gusta escuchar?</string>
     <string name="suggestions_message">Elige una categoría y suscríbete a sus podcasts más populares, o busca uno que conozcas.</string>
+    <string name="settings">Ajustes</string>
+    <string name="settings_appearance">Apariencia</string>
+    <string name="settings_theme_system">Predeterminado del sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_downloads">Descargas</string>
+    <string name="settings_privacy">Privacidad</string>
+    <string name="settings_telemetry">Enviar informes de uso y de fallos</string>
+    <string name="settings_telemetry_description">Nunca incluyen direcciones de feed, títulos ni búsquedas, y ayudan a encontrar y corregir problemas.</string>
 </resources>

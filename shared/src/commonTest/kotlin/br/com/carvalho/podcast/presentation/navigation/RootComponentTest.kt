@@ -62,6 +62,18 @@ class RootComponentTest {
     }
 
     @Test
+    fun settingsOpenOverTheTabsAndBackClosesThem() {
+        val root = createRoot()
+
+        root.onOpenSettings()
+        assertTrue(root.current.isShowingSettings)
+        backDispatcher.back()
+
+        assertFalse(root.current.isShowingSettings)
+        assertEquals(Tab.Library, root.current.selectedTab)
+    }
+
+    @Test
     fun selectingAnEpisodeOpensItOverItsPodcast() {
         val root = createRoot()
 

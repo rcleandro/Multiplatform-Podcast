@@ -53,6 +53,7 @@ val coverageFloors = mapOf(
     ":feature:player" to 97,
     ":feature:podcast" to 98,
     ":feature:search" to 91,
+    ":feature:settings" to 96,
     ":shared" to 46,
 )
 

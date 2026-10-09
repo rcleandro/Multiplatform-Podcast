@@ -17,6 +17,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,6 +71,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.library_sort_title
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
 import br.com.carvalho.podcast.core.ui.generated.resources.no_podcasts_found
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh_all
+import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
@@ -85,6 +87,7 @@ fun LibraryScreen(
     viewModel: LibraryViewModel = koinViewModel(),
     onOrganize: () -> Unit = {},
     onAddPodcast: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     emptyLibrary: (@Composable () -> Unit)? = null,
     onPodcastClick: (String) -> Unit
 ) {
@@ -107,6 +110,7 @@ fun LibraryScreen(
             onPlay = { viewModel.onIntent(LibraryIntent.Play(it)) },
             onOrganize = onOrganize,
             onAddClick = onAddPodcast,
+            onSettingsClick = onOpenSettings,
             onDeleteConfirm = { viewModel.onIntent(LibraryIntent.ConfirmDelete) },
             onDeleteDismiss = { viewModel.onIntent(LibraryIntent.DismissDelete) },
         ),
@@ -123,6 +127,7 @@ data class LibraryActions(
     val onPlay: (Episode) -> Unit = {},
     val onOrganize: () -> Unit = {},
     val onAddClick: () -> Unit = {},
+    val onSettingsClick: () -> Unit = {},
     val onDeleteConfirm: () -> Unit = {},
     val onDeleteDismiss: () -> Unit = {},
 )
@@ -209,6 +214,9 @@ private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, state: Librar
             }
             IconButton(onClick = actions.onRefresh) {
                 Icon(Icons.Rounded.Refresh, contentDescription = stringResource(Res.string.refresh_all))
+            }
+            IconButton(onClick = actions.onSettingsClick) {
+                Icon(Icons.Rounded.Settings, contentDescription = stringResource(Res.string.settings))
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(

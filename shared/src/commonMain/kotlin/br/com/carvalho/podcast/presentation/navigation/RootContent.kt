@@ -66,6 +66,7 @@ import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
+import br.com.carvalho.podcast.feature.settings.presentation.SettingsScreen
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -121,13 +122,14 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
 
         Overlay(visible = state.isOrganizingLibrary) { LibraryOrderScreen(onBack = component::onBackClicked) }
         Overlay(visible = state.isAddingPodcast) { DiscoverScreen(onBack = component::onBackClicked) }
+        Overlay(visible = state.isShowingSettings) { SettingsScreen(onBack = component::onBackClicked) }
         Overlay(visible = state.isPlayerOpen) {
             PlayerScreen(onBackClick = component::onBackClicked, artworkModifier = sharedCover(this))
         }
     }
 }
 
-/** A screen that slides up over the tabs: the player, "Organize library" and "Add podcast". */
+/** A screen that slides up over the tabs: the player, "Organize library", "Add podcast" and Settings. */
 @Composable
 private fun Overlay(visible: Boolean, content: @Composable AnimatedVisibilityScope.() -> Unit) = AnimatedVisibility(
     visible = visible,
@@ -224,6 +226,7 @@ private fun ListPane(component: RootComponent, tab: Tab) {
         Tab.Library -> LibraryScreen(
             onOrganize = component::onOrganizeLibrary,
             onAddPodcast = component::onAddPodcast,
+            onOpenSettings = component::onOpenSettings,
             // Features do not depend on each other (ADR 0003): the app puts discovery's suggestions in the library.
             emptyLibrary = { PodcastSuggestions(onAddPodcast = component::onAddPodcast) },
             onPodcastClick = component::onPodcastSelected,

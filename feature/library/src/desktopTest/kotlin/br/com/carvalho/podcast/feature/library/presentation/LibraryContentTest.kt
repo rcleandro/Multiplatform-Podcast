@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.onAllNodesWithText
 import br.com.carvalho.podcast.core.ui.generated.resources.category_all
@@ -290,5 +291,23 @@ class LibraryContentTest {
 
         onNodeWithText("Suggestions").assertExists()
         onAllNodesWithText(text(Res.string.no_podcasts_found)).assertCountEquals(0)
+    }
+
+    @Test
+    fun theGearOpensSettings() = runComposeUiTest {
+        var opened = 0
+        val podcast = Podcast("id-1", "Hipsters", "", null, "Alura", null, emptyList(), "url", null, 0, true)
+        setContent {
+            PodcastTheme {
+                LibraryContent(
+                    state = LibraryUiState(podcasts = listOf(LibraryEntry(podcast, 0, null))),
+                    actions = LibraryActions(onSettingsClick = { opened++ }),
+                )
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.settings)).performClick()
+
+        assertEquals(1, opened)
     }
 }

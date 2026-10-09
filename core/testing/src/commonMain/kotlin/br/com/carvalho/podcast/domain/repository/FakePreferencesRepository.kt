@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakePreferencesRepository : PreferencesRepository {
@@ -15,6 +16,12 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override fun setLibrarySort(sort: LibrarySort) {
         librarySort.value = sort
+    }
+
+    override val themeMode = MutableStateFlow(ThemeMode.SYSTEM)
+
+    override fun setThemeMode(mode: ThemeMode) {
+        themeMode.value = mode
     }
 
     override val telemetryEnabled = MutableStateFlow(true)

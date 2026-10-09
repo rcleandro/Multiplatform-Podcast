@@ -30,6 +30,7 @@ import br.com.carvalho.podcast.feature.library.libraryFeatureModule
 import br.com.carvalho.podcast.feature.player.playerFeatureModule
 import br.com.carvalho.podcast.feature.podcast.podcastFeatureModule
 import br.com.carvalho.podcast.feature.search.searchFeatureModule
+import br.com.carvalho.podcast.feature.settings.settingsFeatureModule
 import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.module.dsl.singleOf
@@ -92,5 +93,6 @@ val commonModules = listOf(
     episodeFeatureModule,
     searchFeatureModule,
     playerFeatureModule,
-    discoverFeatureModule
+    discoverFeatureModule,
+    settingsFeatureModule
 )
