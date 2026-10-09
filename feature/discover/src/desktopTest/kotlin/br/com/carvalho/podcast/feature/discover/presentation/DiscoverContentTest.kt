@@ -1,5 +1,9 @@
 package br.com.carvalho.podcast.feature.discover.presentation
 
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasScrollToIndexAction
 import br.com.carvalho.podcast.core.ui.generated.resources.explicit
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.assertCountEquals
@@ -97,6 +101,17 @@ class DiscoverContentTest {
         onNodeWithText(text(Res.string.opened_link), ignoreCase = true).assertIsDisplayed()
         onNodeWithText("NerdCast").assertIsDisplayed()
         onNodeWithText(text(Res.string.popular), ignoreCase = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun scrollingTheResultsLetsGoOfTheSearchField() = runComposeUiTest {
+        val many = (1..30).map { hipsters.copy(podcast = hipsters.podcast.copy(title = "Podcast $it", feedUrl = "https://p$it.fm/rss")) }
+        setContent { PodcastTheme { DiscoverContent(DiscoverUiState(results = many), DiscoverActions()) } }
+        onNode(hasSetTextAction()).assertIsFocused()
+
+        onNode(hasScrollToIndexAction() and hasAnyDescendant(hasText("Podcast 1"))).performTouchInput { swipeUp() }
+
+        onNode(hasSetTextAction()).assertIsNotFocused()
     }
 
     @Test

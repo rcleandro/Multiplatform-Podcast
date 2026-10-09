@@ -220,6 +220,7 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
             onAction = actions.onOpenUrlDialog,
         )
         else -> LazyColumn(
+            state = rememberKeyboardClosingListState(),
             contentPadding = PaddingValues(horizontal = Spacing.l, vertical = Spacing.s),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             modifier = Modifier.fillMaxSize(),
