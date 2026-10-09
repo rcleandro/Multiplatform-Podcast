@@ -179,14 +179,13 @@ internal fun PlayerArtwork(episode: Episode?, artworkModifier: Modifier) {
 
 @Composable
 private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
-    val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
     val playButtonSize = 80.dp
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
         ControlButton(
             icon = Icons.Rounded.SkipPrevious,
             label = stringResource(Res.string.previous),
             onClick = actions.onPrevious,
-            enabled = currentIndex > 0,
+            enabled = state.currentEpisode != null,
         )
         ControlButton(
             icon = skipBackwardIcon(state.skipIntervals.backwardSeconds),
@@ -210,7 +209,7 @@ private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
             icon = Icons.Rounded.SkipNext,
             label = stringResource(Res.string.next),
             onClick = actions.onNext,
-            enabled = currentIndex != -1 && currentIndex < state.queue.lastIndex,
+            enabled = state.queue.isNotEmpty(),
         )
     }
 }

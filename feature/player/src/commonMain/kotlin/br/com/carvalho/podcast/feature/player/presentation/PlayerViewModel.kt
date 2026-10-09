@@ -41,7 +41,7 @@ class PlayerViewModel(
     private fun play(episode: Episode) = viewModelScope.launch(dispatchers.io) {
         analytics.logEvent(AnalyticsEvent.PlayInPlayer(episode.id))
         // Picked from the queue: keep the queue as it is.
-        playEpisode(episode, queue = playerState.value.queue)
+        playEpisode(episode)
     }
 
     private fun pause() {

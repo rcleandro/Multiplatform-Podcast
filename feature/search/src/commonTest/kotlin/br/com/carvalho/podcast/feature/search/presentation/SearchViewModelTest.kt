@@ -49,7 +49,7 @@ class SearchViewModelTest {
     private val networkMonitor = FakeNetworkMonitor()
 
     private fun createViewModel() = SearchViewModel(
-        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer, repository),
+        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer),
         networkMonitor, dispatchers, FakeAnalytics()
     )
 

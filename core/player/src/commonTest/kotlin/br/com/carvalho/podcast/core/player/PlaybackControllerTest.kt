@@ -70,7 +70,7 @@ class PlaybackControllerTest {
         engine.raise(PlatformEvent.Ended)
         runCurrent()
 
-        assertEquals(listOf("first" to listOf("first", "second")), finishedWith)
+        assertEquals(listOf("first" to listOf("second")), finishedWith)
     }
 
     @Test
@@ -109,6 +109,8 @@ class PlaybackControllerTest {
 
         assertTrue(podcastRepository.episodes.value.first { it.id == "first" }.isPlayed)
         assertEquals("second", engine.loaded?.id)
+        // The finished episode is gone and the one playing is no longer next (18.6).
+        assertEquals(emptyList(), controller.playerState.value.queue)
     }
 
     @Test
@@ -187,7 +189,7 @@ class PlaybackControllerTest {
     fun theLastSessionIsRestoredPausedWhereItStopped() = runTest(dispatcher) {
         podcastRepository.episodes.value = listOf(first, second)
         downloader.localPaths["second"] = "/downloads/second.mp3"
-        playerRepository.savedPlaybackState = PlaybackState("second", 42_000, 1.25f, listOf(first, second))
+        playerRepository.savedPlaybackState = PlaybackState("second", 42_000, 1.25f, listOf(first))
 
         val controller = controller()
 
@@ -195,7 +197,44 @@ class PlaybackControllerTest {
         assertEquals(42_000L, engine.loadedAt)
         assertEquals(false, engine.playWhenReady)
         assertEquals(1.25f, engine.currentSpeed)
-        assertEquals(listOf("first", "second"), controller.playerState.value.queue.map { it.id })
+        assertEquals(listOf("first"), controller.playerState.value.queue.map { it.id })
+    }
+
+    @Test
+    fun aQueueSavedBefore186KeepsOnlyWhatFollowsTheCurrentEpisode() = runTest(dispatcher) {
+        val third = episode("third")
+        podcastRepository.episodes.value = listOf(first, second, third)
+        // The old queue held the episodes already heard and the current one too.
+        playerRepository.savedPlaybackState = PlaybackState("second", 42_000, 1f, listOf(first, second, third))
+
+        val controller = controller()
+
+        assertEquals(listOf("third"), controller.playerState.value.queue.map { it.id })
+    }
+
+    @Test
+    fun playingAnEpisodeTakesItOutOfTheQueueAndKeepsTheRest() = runTest(dispatcher) {
+        val controller = controller()
+        controller.setQueue(listOf(first, second))
+
+        controller.play(second)
+        runCurrent()
+
+        assertEquals(listOf("first"), controller.playerState.value.queue.map { it.id })
+    }
+
+    @Test
+    fun aQueueArrangedWhilePausedIsSavedAtOnce() = runTest(dispatcher) {
+        val controller = controller()
+        controller.play(first)
+        runCurrent()
+        controller.pause()
+        runCurrent()
+
+        controller.setQueue(listOf(second))
+        runCurrent()
+
+        assertEquals(listOf("second"), playerRepository.savedPlaybackState?.queue?.map { it.id })
     }
 
     @Test

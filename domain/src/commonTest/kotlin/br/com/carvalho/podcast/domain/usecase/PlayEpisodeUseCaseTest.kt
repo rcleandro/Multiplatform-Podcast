@@ -2,7 +2,6 @@ package br.com.carvalho.podcast.domain.usecase
 
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
-import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -11,27 +10,22 @@ import kotlin.test.assertTrue
 
 class PlayEpisodeUseCaseTest {
     private val player = FakeAudioPlayer()
-    private val repository = FakePodcastRepository()
-    private val playEpisode = PlayEpisodeUseCase(player, repository)
+    private val playEpisode = PlayEpisodeUseCase(player)
 
-    private val older = episode("old", publishDate = 1)
-    private val chosen = episode("chosen", publishDate = 2)
-    private val newer = episode("new", publishDate = 3)
+    private val chosen = episode("chosen")
+    private val queued = episode("queued")
 
     @Test
-    fun withoutAQueueTheNewerEpisodesOfThePodcastFollow() = runTest {
-        repository.episodes.value = listOf(newer, chosen, older)
+    fun playingAnEpisodeKeepsTheQueueTheUserArranged() = runTest {
+        player.setQueue(listOf(queued))
+        player.queueSet = null
 
         playEpisode(chosen)
 
-        assertEquals(listOf("chosen", "new"), player.queueSet?.map { it.id })
-    }
-
-    @Test
-    fun aGivenQueueIsKept() = runTest {
-        playEpisode(chosen, queue = listOf(newer, chosen))
-
-        assertEquals(listOf("new", "chosen"), player.queueSet?.map { it.id })
+        assertEquals("chosen", player.playCalledWith?.id)
+        // The podcast's newer episodes no longer fill the queue on their own (18.6).
+        assertNull(player.queueSet)
+        assertEquals(listOf("queued"), player.playerState.value.queue.map { it.id })
     }
 
     @Test
@@ -45,8 +39,8 @@ class PlayEpisodeUseCaseTest {
         assertNull(player.playCalledWith)
     }
 
-    private fun episode(id: String, publishDate: Long) = Episode(
+    private fun episode(id: String) = Episode(
         id = id, podcastId = "p1", title = id, description = null, audioUrl = "", imageUrl = null, duration = 0,
-        publishDate = publishDate, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null
+        publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null
     )
 }

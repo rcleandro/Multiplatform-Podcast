@@ -79,8 +79,15 @@ class PlaybackController(
         val playable = withLocalFile(episode)
         playRequest = requested to if (playable.localPath != null) "local" else "stream"
         val start = startPosition(episode)
-        _playerState.update {
-            it.copy(currentEpisode = playable, position = start, duration = null, isBuffering = true)
+        // The queue holds what comes next: the episode played leaves it, wherever it was (18.6).
+        _playerState.update { state ->
+            state.copy(
+                currentEpisode = playable,
+                position = start,
+                duration = null,
+                isBuffering = true,
+                queue = state.queue.filter { it.id != episode.id },
+            )
         }
         lastSavedPosition = null
         withContext(dispatchers.main) {
@@ -122,12 +129,16 @@ class PlaybackController(
         onMain { engine.setSpeed(speed) }
     }
 
+    /** Saved at once: a queue arranged while paused survives the app closing. */
     override fun setQueue(episodes: List<Episode>) {
-        _playerState.update { it.copy(queue = episodes) }
+        val current = _playerState.value.currentEpisode?.id
+        _playerState.update { it.copy(queue = episodes.filter { episode -> episode.id != current }) }
+        // ponytail: with nothing playing there is no session row to save the queue in; it lives until the app closes.
+        scope.launch { save() }
     }
 
     override fun playNext() {
-        val next = neighbour(offset = 1)
+        val next = _playerState.value.queue.firstOrNull()
         if (next == null) {
             pause()
             return
@@ -135,10 +146,8 @@ class PlaybackController(
         scope.launch { play(next) }
     }
 
-    override fun playPrevious() {
-        val previous = neighbour(offset = -1)
-        if (previous == null) seekTo(0) else scope.launch { play(previous) }
-    }
+    /** A finished episode leaves the queue, so there is nothing before the current one: it starts over. */
+    override fun playPrevious() = seekTo(0)
 
     override fun setSleepTimer(timer: SleepTimer?) {
         sleepTimerJob?.cancel()
@@ -254,7 +263,9 @@ class PlaybackController(
         val episodeId = adopted ?: saved?.episodeId
         val episode = episodeId?.let { withContext(dispatchers.io) { podcastRepository.getEpisodeById(it) } }
         if (saved != null) {
-            _playerState.update { it.copy(speed = saved.speed, queue = saved.queue) }
+            // Before 18.6 the queue also held the current episode and those before it: only what follows it is next.
+            val next = saved.queue.indexOfFirst { it.id == saved.episodeId }.let { saved.queue.drop(it + 1) }
+            _playerState.update { it.copy(speed = saved.speed, queue = next) }
             if (adopted == null) engine.setSpeed(saved.speed)
         }
         if (episode == null || _playerState.value.currentEpisode != null) return
@@ -272,7 +283,6 @@ class PlaybackController(
         engine.load(playable, position, playWhenReady = false)
     }
 
-    /** Queue items and saved sessions do not carry the downloaded file; look it up every time. */
     /**
      * Where a started episode stopped; a heard one starts over. Read from the database: the queue and the screens may
      * hold the episode as it was before it was last heard.
@@ -282,15 +292,9 @@ class PlaybackController(
         return if (stored.isPlayed) 0 else stored.playbackPosition
     }
 
+    /** Queue items and saved sessions do not carry the downloaded file; look it up every time. */
     private suspend fun withLocalFile(episode: Episode) =
         episode.copy(localPath = episodeDownloader.getLocalPath(episode.id) ?: episode.localPath)
-
-    private fun neighbour(offset: Int): Episode? {
-        val state = _playerState.value
-        val index = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
-        if (index == -1) return null
-        return state.queue.getOrNull(index + offset)
-    }
 
     private fun onMain(block: () -> Unit) {
         scope.launch { block() }

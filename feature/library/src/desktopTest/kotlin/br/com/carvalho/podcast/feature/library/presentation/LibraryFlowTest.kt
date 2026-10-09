@@ -58,7 +58,7 @@ class LibraryFlowTest {
         RefreshPodcastUseCase(feedSource, repository),
         DeletePodcastUseCase(repository, FakeEpisodeDownloader()),
         FakePreferencesRepository(),
-        PlayEpisodeUseCase(audioPlayer, repository),
+        PlayEpisodeUseCase(audioPlayer),
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher),
         FakeAnalytics(),
     )

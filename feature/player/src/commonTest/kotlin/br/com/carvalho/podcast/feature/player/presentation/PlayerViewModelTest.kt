@@ -41,7 +41,7 @@ class PlayerViewModelTest {
     private val analytics = FakeAnalytics()
 
     private fun createViewModel() = PlayerViewModel(
-        audioPlayer, PlayEpisodeUseCase(audioPlayer, FakePodcastRepository()), dispatchers, analytics
+        audioPlayer, PlayEpisodeUseCase(audioPlayer), dispatchers, analytics
     )
 
     @Test

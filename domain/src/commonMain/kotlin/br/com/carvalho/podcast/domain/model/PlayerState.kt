@@ -9,6 +9,7 @@ data class PlayerState(
     val duration: Long? = null,
     val speed: Float = 1f,
     val isBuffering: Boolean = false,
+    /** What plays next, in order; never the current episode (18.6). */
     val queue: List<Episode> = emptyList(),
     val sleepTimer: SleepTimer? = null,
     /** Time left on a [SleepTimer.Minutes] timer. */

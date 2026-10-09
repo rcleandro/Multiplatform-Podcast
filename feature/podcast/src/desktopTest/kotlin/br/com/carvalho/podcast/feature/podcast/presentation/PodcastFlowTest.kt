@@ -62,7 +62,7 @@ class PodcastFlowTest {
     fun resetMain() = Dispatchers.resetMain()
 
     private fun viewModel() = PodcastDetailViewModel(
-        PODCAST_ID, audioPlayer, PlayEpisodeUseCase(audioPlayer, repository),
+        PODCAST_ID, audioPlayer, PlayEpisodeUseCase(audioPlayer),
         RefreshPodcastUseCase(FakeFeedSource(), repository), downloader, repository,
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher), FakeAnalytics(),
     )

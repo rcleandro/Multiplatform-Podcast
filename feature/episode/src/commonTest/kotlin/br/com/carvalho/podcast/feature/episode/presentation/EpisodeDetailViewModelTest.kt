@@ -47,7 +47,7 @@ class EpisodeDetailViewModelTest {
     )
 
     private fun createViewModel() = EpisodeDetailViewModel(
-        episodeId, repository, PlayEpisodeUseCase(audioPlayer, repository), audioPlayer, downloader, dispatchers,
+        episodeId, repository, PlayEpisodeUseCase(audioPlayer), audioPlayer, downloader, dispatchers,
         FakeAnalytics()
     )
 

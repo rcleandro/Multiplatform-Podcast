@@ -9,8 +9,9 @@ import kotlinx.coroutines.flow.first
 
 /**
  * "Download the next episode when one ends" (18.5, a part of 18.19 brought forward): once [finished] ends, the
- * podcast's newest episode is downloaded; when it is already downloaded or heard, the next one in the [queue] that is
- * neither. Only with the setting on, and through the downloader, which keeps to Wi-Fi only and the space limit.
+ * podcast's newest episode is downloaded; when it is already downloaded or heard, the first one in the [queue] (what
+ * plays next) that is neither. Only with the setting on, and through the downloader, which keeps to Wi-Fi only and
+ * the space limit.
  */
 class DownloadNextEpisodeUseCase(
     private val podcastRepository: PodcastRepository,
@@ -20,8 +21,7 @@ class DownloadNextEpisodeUseCase(
     suspend operator fun invoke(finished: Episode, queue: List<Episode>) {
         if (!preferences.downloadNextOnFinish.value) return
         val newest = podcastRepository.getEpisodes(finished.podcastId).first().maxByOrNull { it.publishDate }
-        val afterFinished = queue.dropWhile { it.id != finished.id }.drop(1)
-        for (candidate in listOfNotNull(newest) + afterFinished) {
+        for (candidate in listOfNotNull(newest) + queue) {
             // Read again: the queue may hold an episode as it was before it was downloaded or heard.
             val current = podcastRepository.getEpisodeById(candidate.id)
             if (current != null && current.id != finished.id && current.isWanted()) {

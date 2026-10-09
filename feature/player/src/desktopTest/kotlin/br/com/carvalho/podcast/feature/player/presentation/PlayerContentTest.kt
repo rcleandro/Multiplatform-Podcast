@@ -319,11 +319,10 @@ class PlayerContentTest {
     }
 
     @Test
-    fun playerDisablesNextOnTheLastEpisodeOfTheQueue() = runComposeUiTest {
-        val queue = listOf(episode("1"), episode("2"))
+    fun playerDisablesNextWithNothingInTheQueue() = runComposeUiTest {
         setContent {
             PodcastTheme {
-                PlayerContent(state = PlayerState(currentEpisode = queue.last(), queue = queue), actions = PlayerActions())
+                PlayerContent(state = PlayerState(currentEpisode = episode("2"), queue = emptyList()), actions = PlayerActions())
             }
         }
         onNodeWithContentDescription(text(Res.string.next)).assertIsNotEnabled()

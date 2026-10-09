@@ -56,7 +56,7 @@ class PodcastDetailViewModelTest {
     }
 
     private fun createViewModel() = PodcastDetailViewModel(
-        podcastId, audioPlayer, PlayEpisodeUseCase(audioPlayer, repository), refreshUseCase,
+        podcastId, audioPlayer, PlayEpisodeUseCase(audioPlayer), refreshUseCase,
         episodeDownloader, repository, dispatchers, FakeAnalytics()
     )
 
@@ -132,20 +132,6 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
-    fun `playing an episode queues it and the newer ones oldest first`() = runTest(testDispatcher) {
-        val older = sampleEpisode.copy(id = "old", publishDate = 1)
-        val chosen = sampleEpisode.copy(id = "chosen", publishDate = 2)
-        val newer = sampleEpisode.copy(id = "new", publishDate = 3)
-        repository.episodes.value = listOf(newer, chosen, older)
-        val viewModel = createViewModel()
-
-        viewModel.onIntent(PodcastDetailIntent.Play(chosen))
-
-        assertEquals(listOf("chosen", "new"), audioPlayer.queueSet?.map { it.id })
-        assertEquals("chosen", audioPlayer.playCalledWith?.id)
-    }
-
-    @Test
     fun `playEpisode prepares and plays via audioPlayer`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
         repository.episodes.value = listOf(sampleEpisode)
@@ -154,7 +140,6 @@ class PodcastDetailViewModelTest {
         
         viewModel.onIntent(PodcastDetailIntent.Play(sampleEpisode))
         
-        assertEquals(listOf(sampleEpisode), audioPlayer.queueSet)
         assertEquals(sampleEpisode.id, audioPlayer.playCalledWith?.id)
     }
 

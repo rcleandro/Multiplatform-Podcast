@@ -62,7 +62,7 @@ class LibraryViewModelTest {
     private fun createViewModel(): LibraryViewModel {
         return LibraryViewModel(
             repository, refreshPodcastUseCase, deletePodcastUseCase, preferences,
-            PlayEpisodeUseCase(audioPlayer, repository), dispatchers, analytics
+            PlayEpisodeUseCase(audioPlayer), dispatchers, analytics
         )
     }
 

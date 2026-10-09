@@ -16,14 +16,14 @@ class DownloadNextEpisodeUseCaseTest {
     private val preferences = FakePreferencesRepository().apply { setDownloadNextOnFinish(true) }
     private val downloadNext = DownloadNextEpisodeUseCase(repository, downloader, preferences)
 
-    // The queue a podcast's list builds: the chosen episode and the newer ones, oldest first.
+    // What plays after the finished episode (18.6: the queue never holds the current one).
     private val finished = episode("ep1", date = 1, played = true)
-    private val queue = listOf(finished, episode("ep2", date = 2), episode("ep3", date = 3))
+    private val queue = listOf(episode("ep2", date = 2), episode("ep3", date = 3))
 
     @Test
     fun nothingIsDownloadedWithTheSettingOff() = runTest {
         preferences.setDownloadNextOnFinish(false)
-        repository.episodes.value = queue + episode("new", date = 9)
+        repository.episodes.value = listOf(finished) + queue + episode("new", date = 9)
 
         downloadNext(finished, queue)
 
@@ -32,7 +32,7 @@ class DownloadNextEpisodeUseCaseTest {
 
     @Test
     fun thePodcastsNewestEpisodeComesFirst() = runTest {
-        repository.episodes.value = queue + episode("new", date = 9)
+        repository.episodes.value = listOf(finished) + queue + episode("new", date = 9)
 
         downloadNext(finished, queue)
 
@@ -41,12 +41,12 @@ class DownloadNextEpisodeUseCaseTest {
 
     @Test
     fun aNewestEpisodeAlreadyHeardOrDownloadedGivesWayToTheNextInTheQueue() = runTest {
-        repository.episodes.value = queue + episode("new", date = 9, played = true)
+        repository.episodes.value = listOf(finished) + queue + episode("new", date = 9, played = true)
 
         downloadNext(finished, queue)
         assertEquals("ep2", downloader.downloadCalledWith?.id)
 
-        repository.episodes.value = listOf(finished, episode("ep2", date = 2, downloaded = true), queue[2]) +
+        repository.episodes.value = listOf(finished, episode("ep2", date = 2, downloaded = true), queue[1]) +
             episode("new", date = 9, downloaded = true)
         downloadNext(finished, queue)
         assertEquals("ep3", downloader.downloadCalledWith?.id)
@@ -54,7 +54,7 @@ class DownloadNextEpisodeUseCaseTest {
 
     @Test
     fun anEpisodeAlreadyDownloadingIsNotAskedForAgain() = runTest {
-        repository.episodes.value = queue
+        repository.episodes.value = listOf(finished) + queue
         downloader.activeDownloads.value = mapOf("ep3" to DownloadStatus.Downloading(0.5f, 1, 2))
         // The newest is ep3, which is on its way; ep2 is next in the queue.
         downloadNext(finished, queue)

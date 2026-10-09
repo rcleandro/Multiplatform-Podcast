@@ -24,7 +24,11 @@ class FakeAudioPlayer : AudioPlayer {
 
     override suspend fun play(episode: Episode) {
         playCalledWith = episode
-        _playerState.value = _playerState.value.copy(currentEpisode = episode, isPlaying = true)
+        _playerState.value = _playerState.value.copy(
+            currentEpisode = episode,
+            isPlaying = true,
+            queue = _playerState.value.queue.filter { it.id != episode.id },
+        )
     }
 
     override fun pause() {
