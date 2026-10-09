@@ -196,14 +196,15 @@ internal fun DiskUsage(disk: DiskSpace, appBytes: Long, limit: Long?) {
     val total = storageSize(disk.totalBytes).text()
     StorageBar(
         segments = listOf(
-            StorageSegment(appBytes, StorageKind.APP, stringResource(Res.string.storage_legend_app, app)),
+            // The downloads grow from where the rest of the disk ends, towards the limit marked after them.
             StorageSegment(other, StorageKind.OTHER, stringResource(Res.string.storage_legend_other, others)),
+            StorageSegment(appBytes, StorageKind.APP, stringResource(Res.string.storage_legend_app, app)),
             StorageSegment(disk.freeBytes, StorageKind.FREE, stringResource(Res.string.storage_legend_free, free)),
         ),
         totalBytes = disk.totalBytes,
         caption = stringResource(Res.string.storage_total, total),
         description = stringResource(Res.string.storage_bar_description, app, others, free, total),
-        limitBytes = limit,
+        limitBytes = limit?.let { other + it },
         modifier = Modifier.readableWidth().padding(vertical = Spacing.s),
     )
 }
