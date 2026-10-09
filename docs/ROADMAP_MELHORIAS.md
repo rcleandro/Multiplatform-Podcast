@@ -962,6 +962,11 @@ desligar existe e é respeitado antes do primeiro evento (16.4), mas o interrupt
 **Critério de conclusão:** o CI falha com cobertura abaixo do piso, achado novo do Detekt, dependência proibida
 entre módulos, snapshot diferente ou chave de tradução faltando.
 
+**Fase 17 concluída (08/10/2026).** Critério conferido: `koverVerify` com piso por módulo (17.2), Detekt com ktlint e
+sem baseline (17.1), `checkModuleDependencies` (11), snapshots de todas as telas verificados no CI (17.4) e o
+`StringResourcesTest` mais o `MissingTranslation` do lint para as traduções. Ficam fora do CI, por precisarem de
+aparelho: o Macrobenchmark (17.6) e o fluxo Maestro (17.5), que ganha um job com emulador mais adiante.
+
 ---
 
 ## Fase 18 — Funcionalidades essenciais
