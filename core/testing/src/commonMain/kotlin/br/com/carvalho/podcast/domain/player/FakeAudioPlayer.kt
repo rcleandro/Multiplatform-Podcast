@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.domain.player
 
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +44,11 @@ class FakeAudioPlayer : AudioPlayer {
 
     override fun setSpeed(speed: Float) {
         _playerState.value = _playerState.value.copy(speed = speed)
+    }
+
+    /** What the real player takes from Settings. */
+    fun setSkipIntervals(intervals: SkipIntervals) {
+        _playerState.value = _playerState.value.copy(skipIntervals = intervals)
     }
 
     override fun skipForward(seconds: Int) {

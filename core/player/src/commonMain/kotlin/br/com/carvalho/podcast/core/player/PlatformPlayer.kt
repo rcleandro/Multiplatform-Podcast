@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.core.player
 
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 
 /**
  * The native audio player of one platform (Media3, AVPlayer, JavaFX, HTML audio), translated and nothing more: queue,
@@ -31,6 +32,9 @@ interface PlatformPlayer {
     fun pause()
     fun seekTo(positionMs: Long)
     fun setSpeed(speed: Float)
+
+    /** Where the system shows the jumps (the iOS lock screen), the ones chosen in Settings; elsewhere nothing. */
+    fun setSkipIntervals(intervals: SkipIntervals) = Unit
 }
 
 sealed interface PlatformEvent {

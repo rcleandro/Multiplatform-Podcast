@@ -16,5 +16,5 @@ appId: br.com.carvalho.podcast
 - extendedWaitUntil:
     visible: "Assinado"
     timeout: 30000
-- tapOn: "Voltar"
+- back
 - assertVisible: "Hipsters Ponto Tech"

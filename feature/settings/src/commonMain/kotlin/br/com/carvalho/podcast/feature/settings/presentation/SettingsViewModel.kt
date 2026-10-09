@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.core.util.DiskSpace
 import br.com.carvalho.podcast.core.util.diskSpace
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
@@ -35,7 +36,7 @@ class SettingsViewModel(
     private val confirmingDeleteAll = MutableStateFlow(false)
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        preferences.themeMode,
+        combine(preferences.themeMode, preferences.skipIntervals, ::Pair),
         preferences.telemetryEnabled,
         preferences.wifiOnlyDownloads,
         combine(
@@ -45,8 +46,19 @@ class SettingsViewModel(
             ::Triple
         ),
         combine(usedBytes, disk, confirmingDeleteAll, ::Triple),
-    ) { theme, telemetry, wifiOnly, (limit, downloadNext, deleteFinished), (bytes, space, confirming) ->
-        SettingsUiState(theme, telemetry, bytes, wifiOnly, limit, downloadNext, space, deleteFinished, confirming)
+    ) { (theme, skips), telemetry, wifiOnly, (limit, downloadNext, deleteFinished), (bytes, space, confirming) ->
+        SettingsUiState(
+            themeMode = theme,
+            telemetryEnabled = telemetry,
+            usedBytes = bytes,
+            wifiOnlyDownloads = wifiOnly,
+            downloadLimitBytes = limit,
+            downloadNextOnFinish = downloadNext,
+            disk = space,
+            deleteFinishedDownloads = deleteFinished,
+            isConfirmingDeleteAll = confirming,
+            skipIntervals = skips,
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     init {
@@ -79,6 +91,7 @@ class SettingsViewModel(
             is SettingsIntent.SetDownloadLimit -> preferences.setDownloadLimitBytes(intent.bytes)
             is SettingsIntent.SetDownloadNext -> preferences.setDownloadNextOnFinish(intent.enabled)
             is SettingsIntent.SetDeleteFinished -> preferences.setDeleteFinishedDownloads(intent.enabled)
+            is SettingsIntent.SetSkipIntervals -> preferences.setSkipIntervals(intent.intervals)
             SettingsIntent.RequestDeleteAll -> confirmingDeleteAll.value = true
             SettingsIntent.DismissDeleteAll -> confirmingDeleteAll.value = false
             SettingsIntent.ConfirmDeleteAll -> deleteAllDownloads()
@@ -100,6 +113,7 @@ data class SettingsUiState(
     val deleteFinishedDownloads: Boolean = false,
     /** "Delete all downloads" waits for this confirmation. */
     val isConfirmingDeleteAll: Boolean = false,
+    val skipIntervals: SkipIntervals = SkipIntervals(),
 ) {
     /** The limits the slider stops at, ending with no limit (null). */
     val limitStops: List<Long?> get() = limitStops(disk?.let { it.freeBytes + (usedBytes ?: 0) }, downloadLimitBytes)
@@ -141,6 +155,7 @@ sealed interface SettingsIntent {
     data class SetDownloadLimit(val bytes: Long?) : SettingsIntent
     data class SetDownloadNext(val enabled: Boolean) : SettingsIntent
     data class SetDeleteFinished(val enabled: Boolean) : SettingsIntent
+    data class SetSkipIntervals(val intervals: SkipIntervals) : SettingsIntent
     data object RequestDeleteAll : SettingsIntent
     data object DismissDeleteAll : SettingsIntent
     data object ConfirmDeleteAll : SettingsIntent

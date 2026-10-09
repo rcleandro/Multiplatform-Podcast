@@ -2,7 +2,6 @@ package br.com.carvalho.podcast.feature.player.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -62,12 +61,12 @@ class PlayerViewModel(
 
     private fun skipForward() {
         analytics.logEvent(AnalyticsEvent.SkipForward)
-        audioPlayer.skipForward(seconds = AppConfig.SKIP_FORWARD_SECONDS)
+        audioPlayer.skipForward(seconds = playerState.value.skipIntervals.forwardSeconds)
     }
 
     private fun skipBackward() {
         analytics.logEvent(AnalyticsEvent.SkipBackward)
-        audioPlayer.skipBackward(seconds = AppConfig.SKIP_BACKWARD_SECONDS)
+        audioPlayer.skipBackward(seconds = playerState.value.skipIntervals.backwardSeconds)
     }
 
     private fun setSpeed(speed: Float) {

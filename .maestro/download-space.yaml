@@ -19,7 +19,7 @@ appId: br.com.carvalho.podcast
     timeout: 30000
 - tapOn: "Configurações"
 - assertVisible: "Downloads 0 MB"
-- tapOn: "Voltar"
+- back
 - tapOn: "Planet Money"
 - tapOn:
     text: "Opções do episódio"
@@ -28,7 +28,7 @@ appId: br.com.carvalho.podcast
 - extendedWaitUntil:
     visible: ".*Baixado.*"
     timeout: 120000
-- tapOn: "Voltar"
+- back
 - tapOn: "Configurações"
 - assertVisible: "Downloads [1-9].* MB"
 - scrollUntilVisible:

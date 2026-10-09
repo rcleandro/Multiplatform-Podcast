@@ -8,15 +8,18 @@ appId: br.com.carvalho.podcast
     permissions:
       all: allow
 - tapOn: "Configurações"
+- waitForAnimationToEnd
 - tapOn: "Claro"
 # The radio state lives on the row, not on its text.
 - assertVisible:
     containsChild: "Claro"
     checked: true
-- tapOn: "Voltar"
+- back
 - stopApp
 - launchApp
 - tapOn: "Configurações"
+# The screen slides up over the tabs: check once it has settled.
+- waitForAnimationToEnd
 - assertVisible:
     containsChild: "Claro"
     checked: true

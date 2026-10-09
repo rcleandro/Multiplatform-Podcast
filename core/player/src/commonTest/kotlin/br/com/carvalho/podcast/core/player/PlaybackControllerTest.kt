@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.core.player
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -31,11 +33,30 @@ class PlaybackControllerTest {
     private val second = episode("second")
 
     private val finishedWith = mutableListOf<Pair<String, List<String>>>()
+    private val skips = MutableStateFlow(SkipIntervals())
+
+    @Test
+    fun theJumpsChosenInSettingsReachTheStateThePlatformAndTheRemoteButtons() = runTest(dispatcher) {
+        val controller = controller()
+        controller.play(first)
+        engine.positionMs = START_MS
+        runCurrent()
+
+        skips.value = SkipIntervals(backwardSeconds = 5, forwardSeconds = 15)
+        runCurrent()
+        engine.raise(PlatformEvent.Remote(RemoteCommand.SKIP_FORWARD))
+        runCurrent()
+
+        assertEquals(SkipIntervals(5, 15), controller.playerState.value.skipIntervals)
+        assertEquals(SkipIntervals(5, 15), engine.shownSkipIntervals)
+        assertEquals(START_MS + 15_000, engine.positionMs)
+    }
 
     private fun TestScope.controller() = PlaybackController(
         engine, playerRepository, podcastRepository, downloader,
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher),
         onFinished = { finished, queue -> finishedWith += finished.id to queue.map { it.id } },
+        skipIntervals = skips,
         scope = backgroundScope,
     ).also { runCurrent() }
 
@@ -223,6 +244,7 @@ class PlaybackControllerTest {
     )
 
     private companion object {
+        const val START_MS = 60_000L
         const val TICK_MS = 500L
         const val MINUTE_MS = 60_000L
         const val TICKS_PER_MINUTE = (MINUTE_MS / TICK_MS).toInt()

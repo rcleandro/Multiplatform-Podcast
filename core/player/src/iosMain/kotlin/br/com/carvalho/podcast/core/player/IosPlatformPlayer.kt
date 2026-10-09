@@ -1,8 +1,8 @@
 package br.com.carvalho.podcast.core.player
 
-import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
@@ -33,6 +33,7 @@ private const val MILLIS = 1000
 
 /** AVPlayer, the lock screen's now-playing info and its remote commands. */
 @OptIn(ExperimentalForeignApi::class)
+@Suppress("TooManyFunctions") // the PlatformPlayer interface plus the AVPlayer and remote command plumbing
 class IosPlatformPlayer : PlatformPlayer {
     private val player = AVPlayer()
     private var episode: Episode? = null
@@ -118,10 +119,16 @@ class IosPlatformPlayer : PlatformPlayer {
         center.pauseCommand.addTargetWithHandler(forward(RemoteCommand.PAUSE))
         center.nextTrackCommand.addTargetWithHandler(forward(RemoteCommand.NEXT))
         center.previousTrackCommand.addTargetWithHandler(forward(RemoteCommand.PREVIOUS))
-        center.skipForwardCommand.preferredIntervals = listOf(AppConfig.SKIP_FORWARD_SECONDS.toDouble())
+        setSkipIntervals(SkipIntervals())
         center.skipForwardCommand.addTargetWithHandler(forward(RemoteCommand.SKIP_FORWARD))
-        center.skipBackwardCommand.preferredIntervals = listOf(AppConfig.SKIP_BACKWARD_SECONDS.toDouble())
         center.skipBackwardCommand.addTargetWithHandler(forward(RemoteCommand.SKIP_BACKWARD))
+    }
+
+    /** The lock screen and Control Center label their jump buttons with these seconds. */
+    override fun setSkipIntervals(intervals: SkipIntervals) {
+        val center = MPRemoteCommandCenter.sharedCommandCenter()
+        center.skipForwardCommand.preferredIntervals = listOf(intervals.forwardSeconds.toDouble())
+        center.skipBackwardCommand.preferredIntervals = listOf(intervals.backwardSeconds.toDouble())
     }
 
     private fun seconds(value: Double): Long = if (value.isNaN()) 0 else (value * MILLIS).toLong()

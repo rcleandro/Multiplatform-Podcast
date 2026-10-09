@@ -209,4 +209,8 @@
     <string name="settings_delete_finished_description">When a downloaded episode ends, its file is deleted to free space.</string>
     <string name="settings_delete_all">Delete all downloads</string>
     <string name="settings_delete_all_confirmation">Delete the %1$s of downloaded episodes? They stay in the library and can be downloaded again.</string>
+    <string name="settings_playback">Playback</string>
+    <string name="settings_skip_backward">Skip back</string>
+    <string name="settings_skip_forward">Skip forward</string>
+    <string name="seconds_short">%1$d s</string>
 </resources>

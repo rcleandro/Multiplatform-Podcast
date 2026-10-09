@@ -79,12 +79,14 @@ class PlayerWidget : GlanceAppWidget() {
             )
         }
         val initial = shown.first()
+        // The jumps chosen in Settings (18.5); the widget is redrawn with the player's state.
+        val skips = getKoin().get<AudioPlayer>().playerState.value.skipIntervals
         val texts = PlayerWidgetTexts(
             nothingPlaying = getString(Res.string.widget_nothing_playing),
             play = getString(Res.string.play),
             pause = getString(Res.string.pause),
-            skipBackward = getString(Res.string.skip_backward, AppConfig.SKIP_BACKWARD_SECONDS),
-            skipForward = getString(Res.string.skip_forward, AppConfig.SKIP_FORWARD_SECONDS),
+            skipBackward = getString(Res.string.skip_backward, skips.backwardSeconds),
+            skipForward = getString(Res.string.skip_forward, skips.forwardSeconds),
         )
         val actions = PlayerWidgetActions(
             openApp = actionStartActivity<MainActivity>(),
@@ -152,13 +154,15 @@ class PlayPauseAction : ActionCallback {
 
 class SkipBackwardAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        getKoin().get<AudioPlayer>().skipBackward(AppConfig.SKIP_BACKWARD_SECONDS)
+        val player = getKoin().get<AudioPlayer>()
+        player.skipBackward(player.playerState.value.skipIntervals.backwardSeconds)
     }
 }
 
 class SkipForwardAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        getKoin().get<AudioPlayer>().skipForward(AppConfig.SKIP_FORWARD_SECONDS)
+        val player = getKoin().get<AudioPlayer>()
+        player.skipForward(player.playerState.value.skipIntervals.forwardSeconds)
     }
 }
 

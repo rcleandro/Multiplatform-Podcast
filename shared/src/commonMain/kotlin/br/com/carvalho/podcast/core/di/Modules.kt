@@ -68,10 +68,18 @@ val playerModule = module {
         val deleteFinished = DeleteFinishedDownloadUseCase(get(), get(), get())
         val downloadNext = DownloadNextEpisodeUseCase(get(), get(), get())
         // Delete first: the freed space counts toward the download limit.
-        PlaybackController(get(), get(), get(), get(), get(), onFinished = { finished, queue ->
-            deleteFinished(finished)
-            downloadNext(finished, queue)
-        })
+        PlaybackController(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            onFinished = { finished, queue ->
+                deleteFinished(finished)
+                downloadNext(finished, queue)
+            },
+            skipIntervals = get<PreferencesRepository>().skipIntervals,
+        )
     }
 }
 

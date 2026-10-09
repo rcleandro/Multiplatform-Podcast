@@ -7,6 +7,7 @@ import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
@@ -44,6 +45,8 @@ class PlaybackController(
     private val dispatchers: CoroutineDispatchers,
     /** Called when an episode ends, with the queue it was in: Settings may want the next one downloaded (18.5). */
     private val onFinished: suspend (finished: Episode, queue: List<Episode>) -> Unit = { _, _ -> },
+    /** The jumps chosen in Settings (18.5), for the remote buttons and everything that reads the player's state. */
+    private val skipIntervals: StateFlow<SkipIntervals> = MutableStateFlow(SkipIntervals()),
     /** Where the progress loop and the sleep timer run; tests pass one they can end. */
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + dispatchers.main),
 ) : AudioPlayer {
@@ -59,6 +62,12 @@ class PlaybackController(
 
     init {
         engine.setListener { event -> scope.launch { onEvent(event) } }
+        scope.launch {
+            skipIntervals.collect { intervals ->
+                _playerState.update { it.copy(skipIntervals = intervals) }
+                engine.setSkipIntervals(intervals)
+            }
+        }
         scope.launch {
             engine.awaitReady()
             restoreSession()
@@ -175,8 +184,8 @@ class PlaybackController(
     private fun onRemote(command: RemoteCommand) = when (command) {
         RemoteCommand.PLAY -> resume()
         RemoteCommand.PAUSE -> pause()
-        RemoteCommand.SKIP_FORWARD -> skipForward(AppConfig.SKIP_FORWARD_SECONDS)
-        RemoteCommand.SKIP_BACKWARD -> skipBackward(AppConfig.SKIP_BACKWARD_SECONDS)
+        RemoteCommand.SKIP_FORWARD -> skipForward(skipIntervals.value.forwardSeconds)
+        RemoteCommand.SKIP_BACKWARD -> skipBackward(skipIntervals.value.backwardSeconds)
         RemoteCommand.NEXT -> playNext()
         RemoteCommand.PREVIOUS -> playPrevious()
     }

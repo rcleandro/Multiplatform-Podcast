@@ -20,15 +20,19 @@ import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.guava.future
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
@@ -39,6 +43,7 @@ private const val CUSTOM_COMMAND_SKIP_BACKWARD = "CUSTOM_COMMAND_SKIP_BACKWARD"
 class PodcastMediaService : MediaLibraryService() {
     private var mediaLibrarySession: MediaLibrarySession? = null
     private val podcastRepository: PodcastRepository by inject()
+    private val preferences: PreferencesRepository by inject()
     private val tree by lazy { MediaTree(podcastRepository) { getString(R.string.library_title) } }
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -63,9 +68,10 @@ class PodcastMediaService : MediaLibraryService() {
             )
             // Pauses when headphones are unplugged instead of going on through the speaker.
             .setHandleAudioBecomingNoisy(true)
-            // The same jumps as the app's buttons.
-            .setSeekForwardIncrementMs(AppConfig.SKIP_FORWARD_SECONDS * AppConfig.MILLIS_PER_SECOND)
-            .setSeekBackIncrementMs(AppConfig.SKIP_BACKWARD_SECONDS * AppConfig.MILLIS_PER_SECOND)
+            // The jumps chosen in Settings for the system's own seek (headphones, for instance). ExoPlayer takes them
+            // once: a change reaches it when the service starts again. The buttons below read them on every tap.
+            .setSeekForwardIncrementMs(preferences.skipIntervals.value.forwardSeconds * AppConfig.MILLIS_PER_SECOND)
+            .setSeekBackIncrementMs(preferences.skipIntervals.value.backwardSeconds * AppConfig.MILLIS_PER_SECOND)
             .build()
 
         val sessionActivityPendingIntent = packageManager
@@ -84,7 +90,28 @@ class PodcastMediaService : MediaLibraryService() {
                 sessionActivityPendingIntent?.let { setSessionActivity(it) }
             }
             .build()
+        // The notification and Android Auto show the jumps on their buttons: new ones when Settings change.
+        serviceScope.launch {
+            preferences.skipIntervals.drop(1).collect { intervals ->
+                mediaLibrarySession?.setCustomLayout(ImmutableList.copyOf(skipButtons(intervals)))
+            }
+        }
     }
+
+    private val skipForwardCommand = SessionCommand(CUSTOM_COMMAND_SKIP_FORWARD, Bundle.EMPTY)
+    private val skipBackwardCommand = SessionCommand(CUSTOM_COMMAND_SKIP_BACKWARD, Bundle.EMPTY)
+
+    @OptIn(UnstableApi::class)
+    private fun skipButtons(intervals: SkipIntervals): List<CommandButton> = listOf(
+        CommandButton.Builder(skipForwardIcon(intervals.forwardSeconds))
+            .setSessionCommand(skipForwardCommand)
+            .setDisplayName(getString(R.string.skip_forward, intervals.forwardSeconds))
+            .build(),
+        CommandButton.Builder(skipBackwardIcon(intervals.backwardSeconds))
+            .setSessionCommand(skipBackwardCommand)
+            .setDisplayName(getString(R.string.skip_backward, intervals.backwardSeconds))
+            .build(),
+    )
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
         AppLogger.d(TAG, "onGetSession from ${controllerInfo.packageName}")
@@ -97,26 +124,12 @@ class PodcastMediaService : MediaLibraryService() {
             session: MediaSession,
             controller: MediaSession.ControllerInfo
         ): MediaSession.ConnectionResult {
-            val skipForwardCommand = SessionCommand(CUSTOM_COMMAND_SKIP_FORWARD, Bundle.EMPTY)
-            val skipBackwardCommand = SessionCommand(CUSTOM_COMMAND_SKIP_BACKWARD, Bundle.EMPTY)
-
             val availableSessionCommands = SessionCommands.Builder()
                 .add(skipForwardCommand)
                 .add(skipBackwardCommand)
                 .build()
 
-            val forward = AppConfig.SKIP_FORWARD_SECONDS
-            val backward = AppConfig.SKIP_BACKWARD_SECONDS
-            val customLayout = listOf(
-                CommandButton.Builder(skipForwardIcon(forward))
-                    .setSessionCommand(skipForwardCommand)
-                    .setDisplayName(getString(R.string.skip_forward, forward))
-                    .build(),
-                CommandButton.Builder(skipBackwardIcon(backward))
-                    .setSessionCommand(skipBackwardCommand)
-                    .setDisplayName(getString(R.string.skip_backward, backward))
-                    .build()
-            )
+            val customLayout = skipButtons(preferences.skipIntervals.value)
 
             return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                 .setAvailableSessionCommands(availableSessionCommands)
@@ -130,13 +143,17 @@ class PodcastMediaService : MediaLibraryService() {
             customCommand: SessionCommand,
             args: Bundle
         ): ListenableFuture<SessionResult> {
+            // By the jumps chosen in Settings, read now: ExoPlayer's own increments only change when it is created.
+            val intervals = preferences.skipIntervals.value
+            val player = session.player
             when (customCommand.customAction) {
-                CUSTOM_COMMAND_SKIP_FORWARD -> {
-                    session.player.seekForward()
-                }
-                CUSTOM_COMMAND_SKIP_BACKWARD -> {
-                    session.player.seekBack()
-                }
+                CUSTOM_COMMAND_SKIP_FORWARD -> player.seekTo(
+                    (player.currentPosition + intervals.forwardSeconds * AppConfig.MILLIS_PER_SECOND)
+                        .coerceAtMost(player.duration.takeIf { it > 0 } ?: Long.MAX_VALUE)
+                )
+                CUSTOM_COMMAND_SKIP_BACKWARD -> player.seekTo(
+                    (player.currentPosition - intervals.backwardSeconds * AppConfig.MILLIS_PER_SECOND).coerceAtLeast(0)
+                )
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }

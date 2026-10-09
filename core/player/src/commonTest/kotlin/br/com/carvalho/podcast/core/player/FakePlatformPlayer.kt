@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.core.player
 
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.Episode
 
 /** Records commands and lets the test raise the platform's events. */
@@ -12,6 +13,11 @@ class FakePlatformPlayer : PlatformPlayer {
     var playWhenReady: Boolean? = null
     var isPlaying = false
     var currentSpeed = 1f
+    var shownSkipIntervals: SkipIntervals? = null
+
+    override fun setSkipIntervals(intervals: SkipIntervals) {
+        shownSkipIntervals = intervals
+    }
 
     private var listener: (PlatformEvent) -> Unit = {}
 

@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.data.preferences
 
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import com.russhwolf.settings.Settings
@@ -17,6 +18,8 @@ private const val WIFI_ONLY_DOWNLOADS = "wifi_only_downloads"
 private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
 private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
 private const val DELETE_FINISHED_DOWNLOADS = "delete_finished_downloads"
+private const val SKIP_BACKWARD_SECONDS = "skip_backward_seconds"
+private const val SKIP_FORWARD_SECONDS = "skip_forward_seconds"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
@@ -69,6 +72,25 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setDeleteFinishedDownloads(enabled: Boolean) {
         settings.putBoolean(DELETE_FINISHED_DOWNLOADS, enabled)
         deleteFinished.value = enabled
+    }
+
+    private val skips = MutableStateFlow(
+        SkipIntervals().let { default ->
+            // A jump no longer offered (an older version had 15 s) goes back to the default.
+            fun offered(key: String, fallback: Int) =
+                settings.getInt(key, fallback).takeIf { it in SkipIntervals.CHOICES } ?: fallback
+            SkipIntervals(
+                backwardSeconds = offered(SKIP_BACKWARD_SECONDS, default.backwardSeconds),
+                forwardSeconds = offered(SKIP_FORWARD_SECONDS, default.forwardSeconds),
+            )
+        }
+    )
+    override val skipIntervals: StateFlow<SkipIntervals> = skips.asStateFlow()
+
+    override fun setSkipIntervals(intervals: SkipIntervals) {
+        settings.putInt(SKIP_BACKWARD_SECONDS, intervals.backwardSeconds)
+        settings.putInt(SKIP_FORWARD_SECONDS, intervals.forwardSeconds)
+        skips.value = intervals
     }
 
     private val theme = MutableStateFlow(settings.enumOrDefault(THEME_MODE, ThemeMode.SYSTEM))

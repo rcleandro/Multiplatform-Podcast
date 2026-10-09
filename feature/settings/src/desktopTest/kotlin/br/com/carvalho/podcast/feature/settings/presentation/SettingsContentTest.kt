@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.settings.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import androidx.compose.ui.test.performScrollTo
@@ -43,7 +45,7 @@ import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class SettingsContentTest {
-    private fun text(res: StringResource) = runBlocking { getString(res) }
+    private fun text(res: StringResource, vararg args: Any) = runBlocking { getString(res, *args) }
 
     @Test
     fun theThemeIsPickedFromItsOptions() = runComposeUiTest {
@@ -146,6 +148,19 @@ class SettingsContentTest {
         onNodeWithText(text(Res.string.delete)).performClick()
 
         assertEquals(listOf(SettingsIntent.RequestDeleteAll, SettingsIntent.ConfirmDeleteAll), intents)
+    }
+
+    @Test
+    fun eachJumpIsPickedAmongTheSecondsTheButtonsShow() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        setContent { PodcastTheme { SettingsContent(SettingsUiState(), onBack = {}, onIntent = { intents += it }) } }
+
+        // Skip back starts at 10 s and skip forward at 30 s; the first "5 s" is skip back's.
+        onAllNodesWithText(text(Res.string.seconds_short, 5))[0].performClick()
+
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.SetSkipIntervals(SkipIntervals(5, 30))), intents)
+        // Only the jumps with a numbered icon: no 15 s.
+        onAllNodesWithText(text(Res.string.seconds_short, 15)).assertCountEquals(0)
     }
 
     private companion object {

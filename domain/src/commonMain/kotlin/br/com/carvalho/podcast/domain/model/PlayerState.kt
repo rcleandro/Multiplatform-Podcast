@@ -13,4 +13,6 @@ data class PlayerState(
     val sleepTimer: SleepTimer? = null,
     /** Time left on a [SleepTimer.Minutes] timer. */
     val sleepTimerMillis: Long? = null,
+    /** The jumps chosen in Settings, for every button that skips. */
+    val skipIntervals: SkipIntervals = SkipIntervals(),
 )

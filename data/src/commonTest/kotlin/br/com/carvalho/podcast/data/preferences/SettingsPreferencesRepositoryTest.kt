@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.data.preferences
 
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
@@ -71,6 +72,22 @@ class SettingsPreferencesRepositoryTest {
 
         SettingsPreferencesRepository(settings).setDownloadLimitBytes(null)
         assertNull(SettingsPreferencesRepository(settings).downloadLimitBytes.value)
+    }
+
+    @Test
+    fun theJumpsStartAtTenBackAndThirtyForwardAndTheChoiceIsKept() {
+        assertEquals(SkipIntervals(10, 30), SettingsPreferencesRepository(settings).skipIntervals.value)
+
+        SettingsPreferencesRepository(settings).setSkipIntervals(SkipIntervals(5, 5))
+
+        assertEquals(SkipIntervals(5, 5), SettingsPreferencesRepository(settings).skipIntervals.value)
+    }
+
+    @Test
+    fun aJumpNoLongerOfferedGoesBackToTheDefault() {
+        settings.putInt("skip_forward_seconds", 15)
+
+        assertEquals(30, SettingsPreferencesRepository(settings).skipIntervals.value.forwardSeconds)
     }
 
     @Test

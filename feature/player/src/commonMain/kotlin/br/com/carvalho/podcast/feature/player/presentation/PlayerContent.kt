@@ -42,7 +42,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
-import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.PaneLayout
 import br.com.carvalho.podcast.core.designsystem.Sizes
@@ -180,8 +179,8 @@ private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
             enabled = currentIndex > 0,
         )
         ControlButton(
-            icon = skipBackwardIcon(AppConfig.SKIP_BACKWARD_SECONDS),
-            label = stringResource(Res.string.skip_backward, AppConfig.SKIP_BACKWARD_SECONDS),
+            icon = skipBackwardIcon(state.skipIntervals.backwardSeconds),
+            label = stringResource(Res.string.skip_backward, state.skipIntervals.backwardSeconds),
             onClick = actions.onSkipBackward,
         )
         // A square with large corners while playing, a circle when paused (24.2).
@@ -193,8 +192,8 @@ private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
             shape = morphingShape(round = !state.isPlaying),
         )
         ControlButton(
-            icon = skipForwardIcon(AppConfig.SKIP_FORWARD_SECONDS),
-            label = stringResource(Res.string.skip_forward, AppConfig.SKIP_FORWARD_SECONDS),
+            icon = skipForwardIcon(state.skipIntervals.forwardSeconds),
+            label = stringResource(Res.string.skip_forward, state.skipIntervals.forwardSeconds),
             onClick = actions.onSkipForward,
         )
         ControlButton(

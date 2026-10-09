@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import kotlinx.coroutines.flow.StateFlow
 
@@ -34,6 +35,10 @@ interface PreferencesRepository {
     val deleteFinishedDownloads: StateFlow<Boolean>
 
     fun setDeleteFinishedDownloads(enabled: Boolean)
+
+    val skipIntervals: StateFlow<SkipIntervals>
+
+    fun setSkipIntervals(intervals: SkipIntervals)
 
     val themeMode: StateFlow<ThemeMode>
 

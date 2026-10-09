@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -92,6 +93,16 @@ class PlayerViewModelTest {
             POSITION_MS + (AppConfig.SKIP_FORWARD_SECONDS - 2 * AppConfig.SKIP_BACKWARD_SECONDS) * AppConfig.MILLIS_PER_SECOND,
             position(),
         )
+    }
+
+    @Test
+    fun `the buttons jump by the seconds in the player's state`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        audioPlayer.setSkipIntervals(SkipIntervals(backwardSeconds = 5, forwardSeconds = 15))
+
+        viewModel.onIntent(PlayerIntent.SkipForward)
+
+        assertEquals(15_000L, position())
     }
 
     @Test
