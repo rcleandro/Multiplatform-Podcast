@@ -183,6 +183,9 @@
     <string name="popular">Populares</string>
     <string name="opened_link">Enlace abierto</string>
     <string name="error_open_link">No se pudo abrir este enlace de podcast. Revisa la conexión.</string>
+    <string name="share">Compartir</string>
+    <string name="link_copied">Enlace copiado</string>
+    <string name="share_from_time">Desde %1$s</string>
     <string name="suggestions_title">¿Qué te gusta escuchar?</string>
     <string name="suggestions_message">Elige una categoría y suscríbete a sus podcasts más populares, o busca uno que conozcas.</string>
     <string name="settings">Ajustes</string>

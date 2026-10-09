@@ -28,6 +28,8 @@ data class RssEpisode(
     val title: String,
     val description: String?,
     val enclosureUrl: String,
+    /** The episode's page on the podcast's site (`<link>`), shared instead of the audio when there is one (18.4). */
+    val link: String? = null,
     val enclosureType: String?,
     val duration: String?,
     val publishDate: String,

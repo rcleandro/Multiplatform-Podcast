@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.episode.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.share
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.onNodeWithText
@@ -29,6 +31,20 @@ class EpisodeDetailContentTest {
         audioUrl = "a", imageUrl = null, duration = 3_600, publishDate = 0, isPlayed = false,
         playbackPosition = positionMs, isDownloaded = false, fileSize = null,
     )
+
+    @Test
+    fun theEpisodeIsSharedFromTheBar() = runComposeUiTest {
+        var shared = 0
+        setContent {
+            PodcastTheme {
+                EpisodeDetailContent(EpisodeDetailUiState(episode = episode()), EpisodeDetailActions(onShare = { shared++ }))
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.share)).performClick()
+
+        assertEquals(1, shared)
+    }
 
     @Test
     fun aNewEpisodeOffersToPlay() = runComposeUiTest {

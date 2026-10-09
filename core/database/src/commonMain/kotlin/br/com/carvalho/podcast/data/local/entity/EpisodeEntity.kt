@@ -36,4 +36,6 @@ data class EpisodeEntity(
     val fileSize: Long?,
     /** The downloaded audio's name inside the downloads folder; the folder's absolute path can change on iOS. */
     val downloadFile: String? = null,
+    /** The episode's page on the podcast's site (`<link>` in the feed), added in version 10. */
+    val link: String? = null,
 )

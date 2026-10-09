@@ -55,6 +55,7 @@ object RssXmlParser {
             title = title,
             description = description,
             enclosureUrl = enclosureUrl,
+            link = text("link"),
             enclosureType = enclosure?.get("type"),
             duration = text("itunes:duration"),
             publishDate = text("pubDate").orEmpty(),

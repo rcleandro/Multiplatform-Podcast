@@ -120,6 +120,7 @@ class RssXmlParserFieldsTest {
         assertEquals(true, episode.explicit)
         assertEquals(2, episode.season)
         assertEquals(7, episode.episode)
+        assertEquals("https://example.com/one", episode.link)
     }
 
     @Test

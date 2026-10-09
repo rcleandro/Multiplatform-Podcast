@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.SearchOff
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -60,6 +62,7 @@ import br.com.carvalho.podcast.core.designsystem.component.ErrorState
 import br.com.carvalho.podcast.core.designsystem.component.HtmlText
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastArtwork
+import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
 import br.com.carvalho.podcast.core.designsystem.component.morphingShape
 import br.com.carvalho.podcast.core.designsystem.readableWidth
@@ -76,6 +79,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.no_description
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
 import br.com.carvalho.podcast.core.ui.generated.resources.resume_remaining
+import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
@@ -85,6 +89,8 @@ import br.com.carvalho.podcast.presentation.component.remainingDuration
 import br.com.carvalho.podcast.presentation.component.toDownloadState
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
+import br.com.carvalho.podcast.presentation.share.episodeShareText
+import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -96,11 +102,15 @@ fun EpisodeDetailScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val share = rememberShare(snackbarHostState)
 
     EpisodeDetailContent(
         state = uiState,
+        snackbarHostState = snackbarHostState,
         actions = EpisodeDetailActions(
             onBack = onBackClick,
+            onShare = { uiState.episode?.let { share(episodeShareText(it)) } },
             onPlayPause = { viewModel.onIntent(EpisodeDetailIntent.PlayPause) },
             onRetry = { viewModel.onIntent(EpisodeDetailIntent.Retry) },
             onDownload = { viewModel.onIntent(EpisodeDetailIntent.Download) },
@@ -114,6 +124,7 @@ fun EpisodeDetailScreen(
 
 data class EpisodeDetailActions(
     val onBack: () -> Unit = {},
+    val onShare: () -> Unit = {},
     val onPlayPause: () -> Unit = {},
     val onRetry: () -> Unit = {},
     val onDownload: () -> Unit = {},
@@ -129,6 +140,7 @@ fun EpisodeDetailContent(
     state: EpisodeDetailUiState,
     actions: EpisodeDetailActions,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
@@ -143,6 +155,13 @@ fun EpisodeDetailContent(
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
+                actions = {
+                    if (state.episode != null) {
+                        IconButton(onClick = actions.onShare) {
+                            Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0f),
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -150,6 +169,7 @@ fun EpisodeDetailContent(
                 scrollBehavior = scrollBehavior
             )
         },
+        snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
     ) { padding ->

@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.share
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_unplayed_confirmation
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
 import br.com.carvalho.podcast.presentation.component.OlderMark
@@ -72,6 +74,29 @@ class PodcastDetailContentTest {
             imageUrl = null, duration = 60, publishDate = 0, isPlayed = false, playbackPosition = 0,
             isDownloaded = false, fileSize = null,
         )
+    }
+
+    @Test
+    fun thePodcastIsSharedFromTheBarOnceItIsLoaded() = runComposeUiTest {
+        var shared = 0
+        var state by mutableStateOf(PodcastDetailUiState(isLoading = true))
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = state,
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onShare = { shared++ }),
+                )
+            }
+        }
+        onAllNodesWithContentDescription(text(Res.string.share)).assertCountEquals(0)
+
+        state = PodcastDetailUiState(podcast = podcast(), isLoading = false)
+        onNodeWithContentDescription(text(Res.string.share)).performClick()
+
+        assertEquals(1, shared)
     }
 
     @Test

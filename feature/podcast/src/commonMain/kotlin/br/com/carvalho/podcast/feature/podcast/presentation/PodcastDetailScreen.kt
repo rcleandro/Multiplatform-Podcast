@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -78,6 +79,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.filter_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh
+import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
 import br.com.carvalho.podcast.core.ui.generated.resources.show_more
 import br.com.carvalho.podcast.core.util.supportsDownloads
@@ -90,6 +92,8 @@ import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.share.podcastShareText
+import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -109,6 +113,7 @@ fun PodcastDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     MessageEffect(viewModel.messages, snackbarHostState)
+    val share = rememberShare(snackbarHostState)
 
     PodcastDetailContent(
         state = uiState,
@@ -118,6 +123,7 @@ fun PodcastDetailScreen(
         snackbarHostState = snackbarHostState,
         actions = PodcastDetailActions(
             onBack = onBackClick,
+            onShare = { uiState.podcast?.let { share(podcastShareText(it)) } },
             onRefresh = { viewModel.onIntent(PodcastDetailIntent.Refresh) },
             onFilterSelected = { viewModel.onIntent(PodcastDetailIntent.SetFilter(it)) },
             onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
@@ -138,6 +144,7 @@ fun PodcastDetailScreen(
 
 data class PodcastDetailActions(
     val onBack: () -> Unit = {},
+    val onShare: () -> Unit = {},
     val onRefresh: () -> Unit = {},
     val onFilterSelected: (EpisodeFilter) -> Unit = {},
     val onEpisodeClick: (Episode) -> Unit = {},
@@ -173,7 +180,14 @@ fun PodcastDetailContent(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
-        topBar = { PodcastDetailTopBar(scrollBehavior, state.podcast?.title?.takeIf { headerGone }, actions) },
+        topBar = {
+            PodcastDetailTopBar(
+                scrollBehavior,
+                state.podcast?.title?.takeIf { headerGone },
+                canShare = state.podcast != null,
+                actions,
+            )
+        },
         // The tinted header runs behind the bar, which stays clear until the header scrolls away.
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
@@ -207,6 +221,7 @@ fun PodcastDetailContent(
 private fun PodcastDetailTopBar(
     scrollBehavior: TopAppBarScrollBehavior,
     title: String?,
+    canShare: Boolean,
     actions: PodcastDetailActions,
 ) {
     TopAppBar(
@@ -214,6 +229,13 @@ private fun PodcastDetailTopBar(
         navigationIcon = {
             IconButton(onClick = actions.onBack) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.back))
+            }
+        },
+        actions = {
+            if (canShare) {
+                IconButton(onClick = actions.onShare) {
+                    Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(

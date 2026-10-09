@@ -158,6 +158,15 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version10StartsEveryEpisodeWithoutAPageLink() = runTest {
+        helper.createDatabase(LINK_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(LINK_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE link IS NULL"))
+        }
+    }
+
     private fun SQLiteConnection.insertLibrary(queueJson: String? = "[]", episodeId: String = "e1") {
         execSQL(
             "INSERT INTO podcasts (id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, " +
@@ -187,7 +196,8 @@ class MigrationTest {
         const val FEED_VERSION_VERSION = 7
         const val SUBSCRIBED_AT_VERSION = 8
         const val POSITION_VERSION = 9
-        const val CURRENT_VERSION = 9
+        const val LINK_VERSION = 10
+        const val CURRENT_VERSION = 10
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

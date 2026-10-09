@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.Replay30
 import androidx.compose.material.icons.rounded.Replay5
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Speed
@@ -63,6 +64,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.playback_speed
 import br.com.carvalho.podcast.core.ui.generated.resources.previous
 import br.com.carvalho.podcast.core.ui.generated.resources.queue
 import br.com.carvalho.podcast.core.ui.generated.resources.queue_short
+import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.skip_backward
 import br.com.carvalho.podcast.core.ui.generated.resources.skip_forward
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
@@ -75,6 +77,7 @@ import org.jetbrains.compose.resources.stringResource
 /** Everything the player can ask for; the screen wires these to the view model and its dialogs. */
 data class PlayerActions(
     val onMinimize: () -> Unit = {},
+    val onShare: () -> Unit = {},
     val onPlayPause: () -> Unit = {},
     val onSeek: (Long) -> Unit = {},
     val onSkipBackward: () -> Unit = {},
@@ -101,6 +104,13 @@ fun PlayerContent(
                 navigationContentDescription = stringResource(Res.string.minimize),
                 onNavigate = actions.onMinimize,
                 title = stringResource(Res.string.now_playing),
+                actions = {
+                    if (state.currentEpisode != null) {
+                        IconButton(onClick = actions.onShare) {
+                            Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
+                        }
+                    }
+                },
             )
             val isShort = currentWindowIsShort()
             val paneLayout = currentPaneLayout()

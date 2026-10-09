@@ -1,5 +1,8 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import kotlin.test.assertEquals
+import br.com.carvalho.podcast.core.ui.generated.resources.share
+import androidx.compose.ui.test.performClick
 import br.com.carvalho.podcast.core.ui.generated.resources.minimize
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import kotlin.math.abs
@@ -77,6 +80,20 @@ class PlayerContentTest {
         audioUrl = "", imageUrl = null, duration = 60, publishDate = 0, isPlayed = false,
         playbackPosition = 0, isDownloaded = false, fileSize = null,
     )
+
+    @Test
+    fun theEpisodeBeingHeardIsSharedFromTheBar() = runComposeUiTest {
+        var shared = 0
+        setContent {
+            PodcastTheme {
+                PlayerContent(state = PlayerState(currentEpisode = episode("e1")), actions = PlayerActions(onShare = { shared++ }))
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.share)).performClick()
+
+        assertEquals(1, shared)
+    }
 
     @Test
     fun thePlayerHandsItsCoverModifierToTheCover() = runComposeUiTest {

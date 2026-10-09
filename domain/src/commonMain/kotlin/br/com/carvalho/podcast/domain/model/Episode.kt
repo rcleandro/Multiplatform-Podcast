@@ -14,5 +14,7 @@ data class Episode(
     val playbackPosition: Long,
     val isDownloaded: Boolean,
     val fileSize: Long?,
-    val localPath: String? = null
+    val localPath: String? = null,
+    /** The episode's page on the podcast's site, when the feed gives one (18.4). */
+    val link: String? = null
 )

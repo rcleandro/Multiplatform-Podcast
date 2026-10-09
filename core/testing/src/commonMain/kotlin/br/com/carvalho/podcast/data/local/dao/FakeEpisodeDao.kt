@@ -55,6 +55,7 @@ class FakeEpisodeDao : EpisodeDao {
         imageUrl: String?,
         duration: Long,
         publishDate: Long,
+        link: String?,
     ) {
         episodes.value = episodes.value.map {
             if (it.id != id) {
@@ -62,7 +63,7 @@ class FakeEpisodeDao : EpisodeDao {
             } else {
                 it.copy(
                     podcastTitle = podcastTitle, title = title, description = description, audioUrl = audioUrl,
-                    imageUrl = imageUrl, duration = duration, publishDate = publishDate,
+                    imageUrl = imageUrl, duration = duration, publishDate = publishDate, link = link,
                 )
             }
         }

@@ -16,7 +16,8 @@ fun EpisodeEntity.toDomain(): Episode = Episode(
     isPlayed = isPlayed,
     playbackPosition = playbackPosition,
     isDownloaded = isDownloaded,
-    fileSize = fileSize
+    fileSize = fileSize,
+    link = link,
 )
 
 fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
@@ -32,5 +33,6 @@ fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
     isPlayed = isPlayed,
     playbackPosition = playbackPosition,
     isDownloaded = isDownloaded,
-    fileSize = fileSize
+    fileSize = fileSize,
+    link = link,
 )
