@@ -224,6 +224,30 @@ class PlaybackControllerTest {
     }
 
     @Test
+    fun aStartedEpisodePlaysFromWhereItStopped() = runTest(dispatcher) {
+        // The queue still holds the episode as it was before it was heard; the database knows where it stopped.
+        podcastRepository.episodes.value = listOf(first.copy(playbackPosition = 754_000))
+        val controller = controller()
+
+        controller.play(first)
+        runCurrent()
+
+        assertEquals(754_000L, engine.loadedAt)
+        assertEquals(754_000L, controller.playerState.value.position)
+    }
+
+    @Test
+    fun aHeardEpisodeStartsOver() = runTest(dispatcher) {
+        podcastRepository.episodes.value = listOf(first.copy(isPlayed = true, playbackPosition = 754_000))
+        val controller = controller()
+
+        controller.play(first)
+        runCurrent()
+
+        assertEquals(0L, engine.loadedAt)
+    }
+
+    @Test
     fun previousOnTheFirstEpisodeGoesBackToItsStart() = runTest(dispatcher) {
         val controller = controller()
         controller.setQueue(listOf(first, second))

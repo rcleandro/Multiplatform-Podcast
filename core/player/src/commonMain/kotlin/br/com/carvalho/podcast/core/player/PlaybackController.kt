@@ -78,10 +78,13 @@ class PlaybackController(
         val requested = TimeSource.Monotonic.markNow()
         val playable = withLocalFile(episode)
         playRequest = requested to if (playable.localPath != null) "local" else "stream"
-        _playerState.update { it.copy(currentEpisode = playable, position = 0, duration = null, isBuffering = true) }
+        val start = startPosition(episode)
+        _playerState.update {
+            it.copy(currentEpisode = playable, position = start, duration = null, isBuffering = true)
+        }
         lastSavedPosition = null
         withContext(dispatchers.main) {
-            engine.load(playable, positionMs = 0, playWhenReady = true)
+            engine.load(playable, positionMs = start, playWhenReady = true)
             engine.setSpeed(_playerState.value.speed)
         }
     }
@@ -270,6 +273,15 @@ class PlaybackController(
     }
 
     /** Queue items and saved sessions do not carry the downloaded file; look it up every time. */
+    /**
+     * Where a started episode stopped; a heard one starts over. Read from the database: the queue and the screens may
+     * hold the episode as it was before it was last heard.
+     */
+    private suspend fun startPosition(episode: Episode): Long {
+        val stored = runCatching { podcastRepository.getEpisodeById(episode.id) }.getOrNull() ?: episode
+        return if (stored.isPlayed) 0 else stored.playbackPosition
+    }
+
     private suspend fun withLocalFile(episode: Episode) =
         episode.copy(localPath = episodeDownloader.getLocalPath(episode.id) ?: episode.localPath)
 
