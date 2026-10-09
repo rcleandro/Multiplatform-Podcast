@@ -23,6 +23,23 @@ Para ver no Android: `adb logcat -s Metrics`.
 Os orçamentos são metas iniciais, ainda não medidas num aparelho. Quando os benchmarks da 17.6 e da 23.1 existirem,
 os números deles substituem estes, e uma piora acima do orçamento passa a ser regressão.
 
+## Início do app no Android (Macrobenchmark)
+
+`StartupBenchmark` (módulo `:benchmark`) mede o início a frio até o primeiro quadro (`timeToInitialDisplay`) num
+build de release (`benchmark`, assinado com a chave de debug), 10 vezes por cenário. Precisa de um aparelho
+conectado e fica fora do CI:
+
+```
+./gradlew :benchmark:connectedBenchmarkAndroidTest
+```
+
+| Data | Aparelho | Sem compilação (mediana) | Parcialmente compilado (mediana) |
+|---|---|---|---|
+| 08/10/2026 | Razr 60, Android 16 | 843 ms (804–877) | 741 ms (701–915) |
+
+A diferença entre os dois cenários, de cerca de 100 ms, é o que o baseline profile da 20.1 pode recuperar. Orçamento:
+≤ 1 000 ms sem compilação neste aparelho. Uma mudança que passe disso é regressão.
+
 Limites conhecidos:
 - No Android, o `app_start` começa no `initKoin` (no `Application.onCreate`), e não no início do processo. As
   centenas de milissegundos antes disso ficam de fora: o Macrobenchmark da 17.6 mede o início completo.
