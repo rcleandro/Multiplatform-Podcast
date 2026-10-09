@@ -29,7 +29,7 @@ Biblioteca ──┬─ "+" ── Adicionar podcast: busca no diretório (18.1)
              └─ card ─ Detalhe do podcast ── Episódio
 
 Episódios ── busca nos episódios salvos
-             filtros: Novos (18.7, padrão) · Em andamento · Baixados · Todos
+             filtros: Novos (18.7, padrão) · Todos · Em andamento · Baixados
              └─ linha ─ Episódio
 
 Mini player (em todas as telas, com algo tocando) ── Player em tela cheia, sem barra de abas ── Fila (18.6)
@@ -72,3 +72,4 @@ Alternativas consideradas:
   a rede; até lá, Episódios abre em Todos.
 - **Novos (09/10/2026, 18.7):** o filtro chegou como caixa de entrada, não como "desde a última visita": um episódio
   fica em Novos até ser tocado, marcado como ouvido ou dispensado. Episódios abre em Novos; sem rede, em Baixados.
+  "Todos" vem logo depois de "Novos" (pedido do usuário em 09/10/2026).

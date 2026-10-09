@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithText
 import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_title
@@ -227,6 +228,25 @@ class SearchContentTest {
 
         waitUntilExactlyOneExists(hasText(text(Res.string.new_empty_title)))
         onAllNodesWithText(text(Res.string.dismiss_all_new)).assertCountEquals(0)
+    }
+
+    @Test
+    fun allComesRightAfterNew() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(),
+                    results = flowOf(PagingData.empty<Episode>()).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(),
+                )
+            }
+        }
+        fun left(res: StringResource) = onNodeWithText(text(res)).getBoundsInRoot().left
+
+        assertTrue(left(Res.string.filter_new) < left(Res.string.filter_all))
+        assertTrue(left(Res.string.filter_all) < left(Res.string.filter_in_progress))
     }
 
     @Test

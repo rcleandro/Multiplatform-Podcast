@@ -277,9 +277,9 @@ private fun Modifier.collapsingWith(state: TopAppBarState): Modifier =
 // "Downloaded" only where downloads survive (not on the Web).
 private val filters = listOfNotNull(
     EpisodeListFilter.NEW to Res.string.filter_new,
+    EpisodeListFilter.ALL to Res.string.filter_all,
     EpisodeListFilter.IN_PROGRESS to Res.string.filter_in_progress,
     (EpisodeListFilter.DOWNLOADED to Res.string.filter_downloaded).takeIf { supportsDownloads },
-    EpisodeListFilter.ALL to Res.string.filter_all,
 )
 
 /** Each filter says why it is empty; a search that finds nothing says so whatever the filter. */
