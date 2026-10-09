@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.data.remote
 
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -73,8 +74,69 @@ class ITunesPodcastDirectoryTest {
         assertEquals(AppError.Http(HttpStatusCode.ServiceUnavailable.value), result.exceptionOrNull())
     }
 
+    private val requests = mutableListOf<HttpRequestData>()
+
+    private fun chartDirectory(chart: String) = ITunesPodcastDirectory(
+        HttpClient(
+            MockEngine {
+                requests += it
+                val body = if (it.url.encodedPath.endsWith("/json")) chart else LOOKUP
+                respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "text/javascript; charset=utf-8"))
+            }
+        ),
+        json,
+        country = { "BR" },
+    )
+
+    @Test
+    fun theChartOfACategoryKeepsItsOrderAfterTheLookup() = runTest {
+        val top = chartDirectory(CHART).top(PodcastCategory.TECHNOLOGY).getOrThrow()
+
+        // The lookup answers in another order; the chart's is what matters.
+        assertEquals(listOf("MacMagazine no Ar", "Hipsters Ponto Tech"), top.map { it.title })
+        assertEquals("/br/rss/toppodcasts/limit=25/genre=1318/json", requests[0].url.encodedPath)
+        assertEquals("547137017,1133325943", requests[1].url.parameters["id"])
+        assertEquals("BR", requests[1].url.parameters["country"])
+    }
+
+    @Test
+    fun aChartWithOneEntryAndTheOverallChartAreRead() = runTest {
+        val top = chartDirectory(SINGLE_ENTRY_CHART).top(category = null).getOrThrow()
+
+        assertEquals(listOf("Hipsters Ponto Tech"), top.map { it.title })
+        assertEquals("/br/rss/toppodcasts/limit=25/json", requests[0].url.encodedPath)
+    }
+
+    @Test
+    fun anEmptyChartNeedsNoLookup() = runTest {
+        val top = chartDirectory("""{ "feed": { "author": { "name": { "label": "iTunes Store" } } } }""").top(null)
+
+        assertEquals(emptyList(), top.getOrThrow())
+        assertEquals(1, requests.size)
+    }
+
     private companion object {
         // Trimmed from a real answer of https://itunes.apple.com/search (08/10/2026), plus an entry without a feed.
+        // Trimmed from https://itunes.apple.com/br/rss/toppodcasts/limit=2/genre=1318/json (09/10/2026).
+        const val CHART = """
+        { "feed": { "entry": [
+          { "im:name": { "label": "MacMagazine no Ar" }, "id": { "attributes": { "im:id": "547137017" } } },
+          { "im:name": { "label": "Hipsters Ponto Tech" }, "id": { "attributes": { "im:id": "1133325943" } } }
+        ] } }
+        """
+        const val SINGLE_ENTRY_CHART = """
+        { "feed": { "entry":
+          { "im:name": { "label": "Hipsters Ponto Tech" }, "id": { "attributes": { "im:id": "1133325943" } } }
+        } }
+        """
+        const val LOOKUP = """
+        { "resultCount": 2, "results": [
+          { "kind": "podcast", "collectionId": 1133325943, "collectionName": "Hipsters Ponto Tech",
+            "artistName": "Alura - Hipsters Network", "feedUrl": "https://hipsters.tech/feed/podcast/" },
+          { "kind": "podcast", "collectionId": 547137017, "collectionName": "MacMagazine no Ar",
+            "artistName": "MacMagazine", "feedUrl": "https://macmagazine.com.br/feed/podcast/" }
+        ] }
+        """
         const val RESPONSE = """
         {
          "resultCount": 3,

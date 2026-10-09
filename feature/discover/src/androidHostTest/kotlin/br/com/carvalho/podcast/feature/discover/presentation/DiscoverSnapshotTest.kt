@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
 import com.github.takahirom.roborazzi.captureRoboImage
 import org.junit.Rule
@@ -44,6 +45,11 @@ class DiscoverSnapshotTest {
 
     @Test
     fun results() = snap("results") { DiscoverContent(DiscoverUiState(query = "hipsters", results = results), DiscoverActions()) }
+
+    @Test
+    fun category() = snap("category") {
+        DiscoverContent(DiscoverUiState(category = PodcastCategory.TECHNOLOGY, results = results), DiscoverActions())
+    }
 
     @Test
     fun error() = snap("error") { DiscoverContent(DiscoverUiState(query = "news", searchFailed = true), DiscoverActions()) }

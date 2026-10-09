@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.domain.usecase
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import kotlinx.coroutines.test.runTest
@@ -30,6 +31,17 @@ class SearchPodcastsUseCaseTest {
 
         assertEquals(listOf("hipsters"), directory.searchedTerms)
         assertEquals(listOf(true, false), results.map { it.isSubscribed })
+    }
+
+    @Test
+    fun theChartOfACategoryIsMarkedLikeASearch() = runTest {
+        repository.podcasts.value = listOf(saved("https://hipsters.tech/feed/podcast/"))
+        directory.topResult = Result.success(listOf(found("https://other.fm/rss"), found("https://hipsters.tech/feed/podcast/")))
+
+        val chart: List<DirectoryResult> = search.top(PodcastCategory.TECHNOLOGY).getOrThrow()
+
+        assertEquals(listOf<PodcastCategory?>(PodcastCategory.TECHNOLOGY), directory.chartsAsked)
+        assertEquals(listOf(false, true), chart.map { it.isSubscribed })
     }
 
     @Test

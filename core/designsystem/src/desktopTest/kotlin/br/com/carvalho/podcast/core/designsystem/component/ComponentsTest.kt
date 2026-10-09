@@ -1,5 +1,12 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
+import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.test.assertIsDisplayed
+import kotlin.test.assertTrue
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithText
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_player
@@ -139,6 +146,19 @@ class ComponentsTest {
         onNodeWithText("Tecnologia  5").performClick()
         onNodeWithText("Tecnologia  5").assertIsSelected()
         assertEquals(1, selected)
+    }
+
+    @Test
+    fun aSelectedChipBeyondTheEdgeScrollsIntoSight() = runDesktopComposeUiTest(width = NARROW, height = SHORT) {
+        val labels = List(CHIPS) { "Category $it" }
+        setContent {
+            PodcastTheme {
+                FilterChipRow(options = labels.map { FilterOption(it) }, selectedIndex = labels.lastIndex, onSelected = {})
+            }
+        }
+
+        // Off screen, a chip has no visible bounds and is not displayed.
+        onNodeWithText(labels.last()).assertIsDisplayed()
     }
 
     @Test
@@ -348,5 +368,11 @@ class ComponentsTest {
             }
         }
         onNodeWithTag("cover", useUnmergedTree = true).assertWidthIsEqualTo(44.dp)
+    }
+
+    private companion object {
+        const val NARROW = 300
+        const val SHORT = 120
+        const val CHIPS = 12
     }
 }

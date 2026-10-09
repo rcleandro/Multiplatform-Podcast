@@ -65,14 +65,7 @@ internal fun LibraryGrid(state: LibraryUiState, actions: LibraryActions, gridSta
         verticalArrangement = Arrangement.spacedBy(Spacing.l),
         modifier = Modifier.fillMaxSize()
     ) {
-        if (state.inProgress.isNotEmpty()) {
-            item(key = CONTINUE_KEY, span = { GridItemSpan(maxLineSpan) }) {
-                ContinueListening(state.inProgress, actions.onPlay)
-            }
-        }
-        if (state.showsCategories) {
-            item(key = CATEGORIES_KEY, span = { GridItemSpan(maxLineSpan) }) { CategoryChips(state, actions) }
-        }
+        item(key = HEADER_KEY, span = { GridItemSpan(maxLineSpan) }) { LibraryHeader(state, actions) }
         items(items = state.podcasts, key = { it.podcast.id }) { entry ->
             val podcast = entry.podcast
             PodcastCard(
@@ -101,12 +94,7 @@ internal fun LibraryList(state: LibraryUiState, actions: LibraryActions, listSta
         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         modifier = Modifier.fillMaxSize()
     ) {
-        if (state.inProgress.isNotEmpty()) {
-            item(key = CONTINUE_KEY) { ContinueListening(state.inProgress, actions.onPlay) }
-        }
-        if (state.showsCategories) {
-            item(key = CATEGORIES_KEY) { CategoryChips(state, actions, Modifier.padding(end = Spacing.l)) }
-        }
+        item(key = HEADER_KEY) { LibraryHeader(state, actions, chipsModifier = Modifier.padding(end = Spacing.l)) }
         items(items = state.podcasts, key = { it.podcast.id }) { entry ->
             val podcast = entry.podcast
             PodcastListItem(
@@ -123,8 +111,19 @@ internal fun LibraryList(state: LibraryUiState, actions: LibraryActions, listSta
     }
 }
 
-private const val CONTINUE_KEY = "continue-listening"
-private const val CATEGORIES_KEY = "categories"
+private const val HEADER_KEY = "header"
+
+/**
+ * "Continue listening" and the category chips, in one item that is always first. They load after the podcasts; as
+ * separate items added above the first one, the lazy list kept that one in place and pushed them off the top.
+ */
+@Composable
+private fun LibraryHeader(state: LibraryUiState, actions: LibraryActions, chipsModifier: Modifier = Modifier) {
+    Column {
+        if (state.inProgress.isNotEmpty()) ContinueListening(state.inProgress, actions.onPlay)
+        if (state.showsCategories) CategoryChips(state, actions, chipsModifier.padding(bottom = Spacing.s))
+    }
+}
 
 /** Chips only when they can tell podcasts apart: two categories or more. */
 private val LibraryUiState.showsCategories: Boolean get() = categories.size > 1

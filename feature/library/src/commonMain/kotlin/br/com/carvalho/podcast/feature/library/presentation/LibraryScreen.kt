@@ -148,19 +148,6 @@ fun LibraryContent(
             if (isList) listState.scrollToItem(0) else gridState.scrollToItem(0)
         }
     }
-    // "Continue listening" loads after the podcasts and goes above them. The lazy list keeps its first item in place
-    // when one is added before it, which would hide the new section above the top; at the top, show it instead.
-    val hasContinue = state.inProgress.isNotEmpty()
-    LaunchedEffect(hasContinue) {
-        val (index, offset) = if (isList) {
-            listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
-        } else {
-            gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
-        }
-        if (hasContinue && index <= 1 && offset == 0) {
-            if (isList) listState.scrollToItem(0) else gridState.scrollToItem(0)
-        }
-    }
     val fabPadding by animateDpAsState(
         targetValue = LocalMiniPlayerInset.current,
         animationSpec = tween(Motion.MEDIUM, easing = Motion.Standard)

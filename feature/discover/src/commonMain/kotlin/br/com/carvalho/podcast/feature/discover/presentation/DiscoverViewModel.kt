@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.error_add_podcast
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
 import br.com.carvalho.podcast.domain.usecase.SearchPodcastsUseCase
@@ -31,7 +32,10 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "DiscoverViewModel"
 
-/** "Add podcast" (18.1): search the directory and subscribe with a tap, or add a podcast by its feed address. */
+/**
+ * "Add podcast": search the directory (18.1) or browse a category's chart (18.2) and subscribe with a tap, or add a
+ * podcast by its feed address.
+ */
 class DiscoverViewModel(
     private val searchPodcasts: SearchPodcastsUseCase,
     private val addPodcast: AddPodcastFromUrlUseCase,
@@ -48,7 +52,7 @@ class DiscoverViewModel(
     private val _addedByUrl = Channel<Unit>(Channel.CONFLATED)
     val addedByUrl: Flow<Unit> = _addedByUrl.receiveAsFlow()
 
-    private val searchRequests = MutableStateFlow(SearchRequest(term = ""))
+    private val searchRequests = MutableStateFlow(SearchRequest(term = "", category = null))
 
     init {
         viewModelScope.launch(dispatchers.io) { searchAsTheUserTypes() }
@@ -58,9 +62,14 @@ class DiscoverViewModel(
         when (intent) {
             is DiscoverIntent.ChangeQuery -> {
                 _uiState.update { it.copy(query = intent.query) }
-                searchRequests.value = SearchRequest(intent.query)
+                searchRequests.value = SearchRequest(intent.query, _uiState.value.category)
             }
-            DiscoverIntent.Retry -> searchRequests.value = SearchRequest(_uiState.value.query)
+            is DiscoverIntent.SelectCategory -> {
+                _uiState.update { it.copy(category = intent.category) }
+                intent.category?.let { analytics.logEvent(AnalyticsEvent.BrowseCategory(it.name.lowercase())) }
+                searchRequests.value = SearchRequest(_uiState.value.query, intent.category)
+            }
+            DiscoverIntent.Retry -> searchRequests.value = SearchRequest(_uiState.value.query, _uiState.value.category)
             is DiscoverIntent.Subscribe -> subscribe(intent.result)
             DiscoverIntent.OpenUrlDialog -> _uiState.update { it.copy(isUrlDialogOpen = true) }
             DiscoverIntent.DismissUrlDialog -> _uiState.update { it.copy(isUrlDialogOpen = false, url = "") }
@@ -72,17 +81,21 @@ class DiscoverViewModel(
     @OptIn(FlowPreview::class)
     private suspend fun searchAsTheUserTypes() {
         searchRequests
-            .debounce(AppConfig.SEARCH_DEBOUNCE_MS)
+            // Typing waits for a pause; a tapped category opens at once.
+            .debounce { if (it.term.isBlank()) 0 else AppConfig.SEARCH_DEBOUNCE_MS }
             .collectLatest { request ->
                 val term = request.term.trim()
-                if (term.isEmpty()) {
+                val category = request.category
+                if (term.isEmpty() && category == null) {
                     _uiState.update { it.copy(results = emptyList(), isSearching = false, searchFailed = false) }
                     return@collectLatest
                 }
-                _uiState.update { it.copy(isSearching = true, searchFailed = false) }
-                searchPodcasts(term)
+                _uiState.update { it.copy(results = emptyList(), isSearching = true, searchFailed = false) }
+                // A typed term wins over the category, whose chips only show while the field is empty.
+                val found = if (term.isNotEmpty()) searchPodcasts(term) else searchPodcasts.top(category)
+                found
                     .onSuccess { results ->
-                        analytics.logEvent(AnalyticsEvent.SearchDirectory(results.size))
+                        if (term.isNotEmpty()) analytics.logEvent(AnalyticsEvent.SearchDirectory(results.size))
                         _uiState.update { it.copy(results = results, isSearching = false) }
                     }
                     .onFailure { e ->
@@ -141,11 +154,13 @@ class DiscoverViewModel(
     }
 
     /** Compared by identity, so "Try again" searches the same term again. */
-    private class SearchRequest(val term: String)
+    private class SearchRequest(val term: String, val category: PodcastCategory?)
 }
 
 data class DiscoverUiState(
     val query: String = "",
+    /** The category whose chart shows while nothing is typed (18.2). */
+    val category: PodcastCategory? = null,
     val results: List<DirectoryResult> = emptyList(),
     val isSearching: Boolean = false,
     val searchFailed: Boolean = false,
@@ -159,6 +174,7 @@ data class DiscoverUiState(
 sealed interface DiscoverIntent {
     data class ChangeQuery(val query: String) : DiscoverIntent
     data object Retry : DiscoverIntent
+    data class SelectCategory(val category: PodcastCategory?) : DiscoverIntent
     data class Subscribe(val result: DirectoryResult) : DiscoverIntent
     data object OpenUrlDialog : DiscoverIntent
     data object DismissUrlDialog : DiscoverIntent

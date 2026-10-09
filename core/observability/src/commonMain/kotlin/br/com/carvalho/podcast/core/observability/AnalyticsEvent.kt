@@ -23,6 +23,9 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     /** A directory search (18.1). The term stays out: what someone looks for can say a lot about them. */
     class SearchDirectory(resultCount: Int) : AnalyticsEvent("search_directory", mapOf("results" to resultCount))
 
+    /** A category's chart opened in "Add podcast" (18.2). */
+    class BrowseCategory(category: String) : AnalyticsEvent("browse_category", mapOf("category" to category))
+
     class AddPodcastAttempt(host: String) : AnalyticsEvent("add_podcast_attempt", mapOf(HOST to host))
 
     class AddPodcastSuccess(host: String) : AnalyticsEvent("add_podcast_success", mapOf(HOST to host))

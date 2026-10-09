@@ -256,4 +256,26 @@ class LibraryContentTest {
         onNodeWithText(text(Res.string.category_all)).performClick()
         assertEquals(null, chosen)
     }
+
+    @Test
+    fun continueListeningLoadedAfterThePodcastsShowsAtTheTop() = runComposeUiTest {
+        val podcasts = (1..6).map {
+            LibraryEntry(Podcast("id-$it", "Podcast $it", "", null, null, null, emptyList(), "url$it", null, 0, true), 0, null)
+        }
+        val started = Episode(
+            id = "e1", podcastId = "id-1", title = "Started", description = null, audioUrl = "a", imageUrl = null,
+            duration = 600, publishDate = 0, isPlayed = false, playbackPosition = 120_000, isDownloaded = false,
+            fileSize = null,
+        )
+        // The podcasts and their categories arrive first, the started episodes a moment later.
+        var state by mutableStateOf(
+            LibraryUiState(podcasts = podcasts, categories = listOf(PodcastCategory.TECHNOLOGY, PodcastCategory.NEWS))
+        )
+        setContent { PodcastTheme { LibraryContent(state = state, actions = LibraryActions()) } }
+        waitForIdle()
+
+        state = state.copy(inProgress = listOf(started))
+
+        onNode(isHeading() and hasText(text(Res.string.continue_listening), ignoreCase = true)).assertIsDisplayed()
+    }
 }

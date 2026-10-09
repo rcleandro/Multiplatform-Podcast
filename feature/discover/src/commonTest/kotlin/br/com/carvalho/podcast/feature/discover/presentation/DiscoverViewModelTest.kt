@@ -13,6 +13,7 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
@@ -107,6 +108,37 @@ class DiscoverViewModelTest {
         assertEquals(listOf("news", "news"), directory.searchedTerms)
         assertFalse(viewModel.uiState.value.searchFailed)
         assertEquals(1, viewModel.uiState.value.results.size)
+    }
+
+    @Test
+    fun `a category shows its chart at once and a second tap closes it`() = runTest(dispatcher) {
+        directory.topResult = Result.success(listOf(found(HIPSTERS), found(OTHER)))
+        val viewModel = viewModel()
+
+        viewModel.onIntent(DiscoverIntent.SelectCategory(PodcastCategory.TECHNOLOGY))
+
+        assertEquals(listOf<PodcastCategory?>(PodcastCategory.TECHNOLOGY), directory.chartsAsked)
+        assertEquals(2, viewModel.uiState.value.results.size)
+        assertEquals(listOf("browse_category"), analytics.events)
+        assertEquals(mapOf<String, Any?>("category" to "technology"), analytics.params.single())
+
+        viewModel.onIntent(DiscoverIntent.SelectCategory(null))
+
+        assertNull(viewModel.uiState.value.category)
+        assertEquals(emptyList(), viewModel.uiState.value.results)
+    }
+
+    @Test
+    fun `typing searches even with a category open`() = runTest(dispatcher) {
+        directory.result = Result.success(listOf(found(OTHER)))
+        val viewModel = viewModel()
+        viewModel.onIntent(DiscoverIntent.SelectCategory(PodcastCategory.NEWS))
+
+        viewModel.onIntent(DiscoverIntent.ChangeQuery("other"))
+        waitForDebounce()
+
+        assertEquals(listOf("other"), directory.searchedTerms)
+        assertEquals(listOf(OTHER), viewModel.uiState.value.results.map { it.podcast.feedUrl })
     }
 
     @Test

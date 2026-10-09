@@ -1,5 +1,13 @@
 package br.com.carvalho.podcast.feature.discover.presentation
 
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import br.com.carvalho.podcast.core.ui.generated.resources.category_technology
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -62,6 +70,27 @@ class DiscoverContentTest {
         onNodeWithText(text(Res.string.add_by_url)).performClick()
 
         assertEquals(1, opened)
+    }
+
+    @Test
+    fun categoriesShowWhileNothingIsTypedAndOpenTheirChart() = runComposeUiTest {
+        var chosen: PodcastCategory? = null
+        var state by mutableStateOf(DiscoverUiState())
+        setContent {
+            PodcastTheme { DiscoverContent(state, DiscoverActions(onCategoryChange = { chosen = it })) }
+        }
+
+        onNodeWithText(text(Res.string.category_technology)).performScrollTo().performClick()
+        assertEquals(PodcastCategory.TECHNOLOGY, chosen)
+
+        // The open category closes with another tap.
+        state = DiscoverUiState(category = PodcastCategory.TECHNOLOGY, results = listOf(hipsters))
+        onNodeWithText(hipsters.podcast.title).assertExists()
+        onNodeWithText(text(Res.string.category_technology)).performScrollTo().performClick()
+        assertEquals(null, chosen)
+
+        state = DiscoverUiState(query = "hipsters", results = listOf(hipsters))
+        onAllNodesWithText(text(Res.string.category_technology)).assertCountEquals(0)
     }
 
     @Test

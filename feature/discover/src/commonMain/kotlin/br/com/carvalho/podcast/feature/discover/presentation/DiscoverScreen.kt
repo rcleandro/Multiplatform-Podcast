@@ -58,6 +58,8 @@ import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.ErrorState
+import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
+import br.com.carvalho.podcast.core.designsystem.component.FilterOption
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastListItem
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
@@ -82,9 +84,11 @@ import br.com.carvalho.podcast.core.ui.generated.resources.subscribe
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribe_to
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribed
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.SearchField
+import br.com.carvalho.podcast.presentation.format.label
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -105,6 +109,7 @@ fun DiscoverScreen(onBack: () -> Unit, viewModel: DiscoverViewModel = koinViewMo
             onBack = onBack,
             onQueryChange = { viewModel.onIntent(DiscoverIntent.ChangeQuery(it)) },
             onRetry = { viewModel.onIntent(DiscoverIntent.Retry) },
+            onCategoryChange = { viewModel.onIntent(DiscoverIntent.SelectCategory(it)) },
             onSubscribe = { viewModel.onIntent(DiscoverIntent.Subscribe(it)) },
             onOpenUrlDialog = { viewModel.onIntent(DiscoverIntent.OpenUrlDialog) },
             onUrlChange = { viewModel.onIntent(DiscoverIntent.ChangeUrl(it)) },
@@ -118,6 +123,7 @@ data class DiscoverActions(
     val onBack: () -> Unit = {},
     val onQueryChange: (String) -> Unit = {},
     val onRetry: () -> Unit = {},
+    val onCategoryChange: (PodcastCategory?) -> Unit = {},
     val onSubscribe: (DirectoryResult) -> Unit = {},
     val onOpenUrlDialog: () -> Unit = {},
     val onUrlChange: (String) -> Unit = {},
@@ -151,6 +157,7 @@ fun DiscoverContent(
                 placeholder = stringResource(Res.string.discover_search_placeholder),
                 modifier = Modifier.readableWidth().focusRequester(searchFocus),
             )
+            if (state.query.isBlank()) CategoryChips(state.category, actions.onCategoryChange)
             if (state.isAddingUrl) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             DiscoverBody(state, actions)
         }
@@ -164,7 +171,7 @@ fun DiscoverContent(
 @Composable
 private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
     when {
-        state.query.isBlank() -> EmptyState(
+        state.query.isBlank() && state.category == null -> EmptyState(
             icon = Icons.Rounded.Search,
             title = stringResource(Res.string.discover_hint_title),
             message = stringResource(Res.string.discover_hint_message),
@@ -196,6 +203,20 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
             }
         }
     }
+}
+
+/** The categories under the empty field: a tap shows the most popular podcasts of one, another tap closes it (18.2). */
+@Composable
+private fun CategoryChips(selected: PodcastCategory?, onCategoryChange: (PodcastCategory?) -> Unit) {
+    // In the user's alphabetical order: Apple's is the English one.
+    val labeled = PodcastCategory.entries.map { it to stringResource(it.label) }.sortedBy { it.second.lowercase() }
+    val categories = labeled.map { it.first }
+    FilterChipRow(
+        options = labeled.map { FilterOption(it.second) },
+        selectedIndex = categories.indexOf(selected),
+        onSelected = { index -> onCategoryChange(categories[index].takeIf { it != selected }) },
+        modifier = Modifier.readableWidth().padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
+    )
 }
 
 @Composable
