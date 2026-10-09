@@ -202,18 +202,23 @@ private fun LibraryTopBar(scrollBehavior: TopAppBarScrollBehavior, state: Librar
         title = {
             Text(text = stringResource(Res.string.library_title), modifier = Modifier.semantics { heading() })
         },
+        // Shorter than a large bar's default: the title sits closer to the actions before the library scrolls.
+        expandedHeight = TopAppBarDefaults.MediumAppBarExpandedHeight,
         actions = {
-            SortMenu(state.sort, actions.onSortChange, actions.onOrganize)
-            // The button shows the layout it switches to.
-            IconButton(onClick = actions.onToggleLayout) {
-                if (state.layout == LibraryLayout.GRID) {
-                    Icon(Icons.AutoMirrored.Rounded.ViewList, stringResource(Res.string.library_show_list))
-                } else {
-                    Icon(Icons.Rounded.GridView, stringResource(Res.string.library_show_grid))
+            // Sorting, the layout and refreshing act on podcasts: none while the library is empty (18.3).
+            if (state.podcasts.isNotEmpty()) {
+                SortMenu(state.sort, actions.onSortChange, actions.onOrganize)
+                // The button shows the layout it switches to.
+                IconButton(onClick = actions.onToggleLayout) {
+                    if (state.layout == LibraryLayout.GRID) {
+                        Icon(Icons.AutoMirrored.Rounded.ViewList, stringResource(Res.string.library_show_list))
+                    } else {
+                        Icon(Icons.Rounded.GridView, stringResource(Res.string.library_show_grid))
+                    }
                 }
-            }
-            IconButton(onClick = actions.onRefresh) {
-                Icon(Icons.Rounded.Refresh, contentDescription = stringResource(Res.string.refresh_all))
+                IconButton(onClick = actions.onRefresh) {
+                    Icon(Icons.Rounded.Refresh, contentDescription = stringResource(Res.string.refresh_all))
+                }
             }
             IconButton(onClick = actions.onSettingsClick) {
                 Icon(Icons.Rounded.Settings, contentDescription = stringResource(Res.string.settings))

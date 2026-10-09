@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import androidx.compose.material3.TopAppBarDefaults
+import br.com.carvalho.podcast.core.ui.generated.resources.refresh_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.onAllNodesWithText
@@ -206,6 +208,31 @@ class LibraryContentTest {
         onNodeWithText(text(Res.string.delete_podcast)).performClick()
 
         assertEquals("id-1", toDelete?.id)
+    }
+
+    @Test
+    fun anEmptyLibraryOffersOnlyTheSettingsInItsBar() = runComposeUiTest {
+        var state by mutableStateOf(LibraryUiState())
+        setContent { PodcastTheme { LibraryContent(state = state, actions = LibraryActions()) } }
+        onNodeWithContentDescription(text(Res.string.settings)).assertExists()
+        listOf(Res.string.library_sort, Res.string.library_show_grid, Res.string.refresh_all).forEach {
+            onAllNodesWithContentDescription(text(it)).assertCountEquals(0)
+        }
+
+        val podcast = Podcast("id-1", "Hipsters", "", null, "Alura", null, emptyList(), "url", null, 0, true)
+        state = LibraryUiState(podcasts = listOf(LibraryEntry(podcast, 0, null)))
+        onNodeWithContentDescription(text(Res.string.refresh_all)).assertExists()
+    }
+
+    @Test
+    fun theTitleSitsCloseToTheBarBeforeTheLibraryScrolls() = runComposeUiTest {
+        setContent { PodcastTheme { LibraryContent(state = LibraryUiState(), actions = LibraryActions()) } }
+
+        val title = onNode(isHeading() and hasText(text(Res.string.library_title))).getBoundsInRoot()
+        assertTrue(
+            title.bottom <= TopAppBarDefaults.MediumAppBarExpandedHeight,
+            "the title ends at ${title.bottom}, below a medium bar",
+        )
     }
 
     @Test
