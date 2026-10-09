@@ -1,5 +1,15 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.core.ui.generated.resources.move_down
+import br.com.carvalho.podcast.core.ui.generated.resources.drag_to_reorder
+import androidx.compose.ui.test.requestFocus
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.semantics.SemanticsActions.CustomActions
+import androidx.compose.ui.input.key.Key
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -113,6 +123,34 @@ class QueueContentTest {
         onNodeWithText("Episode next").performClick()
 
         assertEquals("next", played?.id)
+    }
+
+    @Test
+    fun whatComesNextMovesWithoutDraggingByScreenReaderOrKeyboard() = runComposeUiTest {
+        val third = episode("third")
+        var order: List<String>? = null
+        setContent {
+            PodcastTheme {
+                QueueContent(
+                    QueueUiState(current = playing, upNext = listOf(next, third)),
+                    QueueActions(onReorder = { order = it }),
+                )
+            }
+        }
+        onAllNodesWithContentDescription(text(Res.string.drag_to_reorder)).assertCountEquals(2)
+
+        val row = onNode(hasAnyDescendant(hasText("Episode next")) and SemanticsMatcher.keyIsDefined(CustomActions))
+        val moveDown = row.fetchSemanticsNode().config[CustomActions].first { it.label == text(Res.string.move_down) }
+        runOnIdle { moveDown.action() }
+        assertEquals(listOf("third", "next"), order)
+
+        order = null
+        onNodeWithText("Episode third").requestFocus().performKeyInput {
+            keyDown(Key.AltLeft)
+            pressKey(Key.DirectionUp)
+            keyUp(Key.AltLeft)
+        }
+        assertEquals(listOf("third", "next"), order)
     }
 
     private fun episode(id: String) = Episode(

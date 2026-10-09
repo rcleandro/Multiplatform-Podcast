@@ -36,11 +36,11 @@ import br.com.carvalho.podcast.core.designsystem.component.PodcastListItem
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
-import br.com.carvalho.podcast.core.ui.generated.resources.library_move_down
-import br.com.carvalho.podcast.core.ui.generated.resources.library_move_up
+import br.com.carvalho.podcast.core.ui.generated.resources.drag_to_reorder
 import br.com.carvalho.podcast.core.ui.generated.resources.library_organize_hint
 import br.com.carvalho.podcast.core.ui.generated.resources.library_organize_title
-import br.com.carvalho.podcast.core.ui.generated.resources.library_reorder
+import br.com.carvalho.podcast.core.ui.generated.resources.move_down
+import br.com.carvalho.podcast.core.ui.generated.resources.move_up
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -99,7 +99,7 @@ fun LibraryOrderContent(entries: List<LibraryEntry>, onReorder: (List<String>) -
                         trailing = {
                             Icon(
                                 Icons.Rounded.DragHandle,
-                                contentDescription = stringResource(Res.string.library_reorder),
+                                contentDescription = stringResource(Res.string.drag_to_reorder),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier
                                     .draggableHandle(onDragStopped = { onReorder(shown.ids()) })
@@ -133,8 +133,8 @@ private fun OrderTopBar(onBack: () -> Unit) {
 /** Reordering without dragging (TalkBack, VoiceOver): "move up" and "move down" on each podcast. */
 @Composable
 private fun Modifier.moveActions(entries: List<LibraryEntry>, index: Int, onReorder: (List<String>) -> Unit): Modifier {
-    val up = stringResource(Res.string.library_move_up)
-    val down = stringResource(Res.string.library_move_down)
+    val up = stringResource(Res.string.move_up)
+    val down = stringResource(Res.string.move_down)
     return semantics {
         customActions = listOfNotNull(
             CustomAccessibilityAction(up) {

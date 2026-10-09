@@ -27,7 +27,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import br.com.carvalho.podcast.domain.model.LibrarySort
-import br.com.carvalho.podcast.core.ui.generated.resources.library_reorder
+import br.com.carvalho.podcast.core.ui.generated.resources.drag_to_reorder
 import br.com.carvalho.podcast.core.ui.generated.resources.library_organize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -158,7 +158,7 @@ class LibraryContentTest {
             }
         }
         // The library itself stays clean: no drag handles, even in the custom order.
-        onAllNodesWithContentDescription(text(Res.string.library_reorder)).assertCountEquals(0)
+        onAllNodesWithContentDescription(text(Res.string.drag_to_reorder)).assertCountEquals(0)
 
         onNodeWithContentDescription(text(Res.string.library_sort)).performClick()
         onNodeWithText(text(Res.string.library_organize)).performClick()

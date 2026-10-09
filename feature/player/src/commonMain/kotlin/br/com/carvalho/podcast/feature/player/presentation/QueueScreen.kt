@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
@@ -28,9 +30,12 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import br.com.carvalho.podcast.core.AppConfig
@@ -64,6 +69,8 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 /** The queue (18.6), over the player or the tabs: what is playing and what comes next. */
 @Composable
@@ -77,6 +84,7 @@ fun QueueScreen(onBack: () -> Unit, viewModel: QueueViewModel = koinViewModel())
         actions = QueueActions(
             onBack = onBack,
             onPlay = { viewModel.onIntent(QueueIntent.Play(it)) },
+            onReorder = { viewModel.onIntent(QueueIntent.Reorder(it)) },
             onRemove = { episode ->
                 val index = state.upNext.indexOfFirst { it.id == episode.id }
                 viewModel.onIntent(QueueIntent.Remove(episode))
@@ -104,6 +112,7 @@ fun QueueScreen(onBack: () -> Unit, viewModel: QueueViewModel = koinViewModel())
 data class QueueActions(
     val onBack: () -> Unit = {},
     val onPlay: (Episode) -> Unit = {},
+    val onReorder: (List<String>) -> Unit = {},
     val onRemove: (Episode) -> Unit = {},
     val onRequestClear: () -> Unit = {},
     val onConfirmClear: () -> Unit = {},
@@ -171,11 +180,18 @@ fun QueueContent(
 
 @Composable
 private fun QueueList(state: QueueUiState, actions: QueueActions, padding: PaddingValues) {
-    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = padding) {
+    // Shown while dragging; sent when the drag ends, then replaced by the queue the player sends back (ADR 0007).
+    var shown by remember(state.upNext) { mutableStateOf(state.upNext) }
+    val listState = rememberLazyListState()
+    // By key, not index: the titles and the episode playing are items of the same list.
+    val reorderState = rememberReorderableLazyListState(listState) { from, to ->
+        shown = shown.movedByKey(from.key, to.key)
+    }
+    LazyColumn(state = listState, modifier = Modifier.fillMaxSize(), contentPadding = padding) {
         state.current?.let { current ->
             item(key = NOW_PLAYING_KEY) { ListTitle(stringResource(Res.string.now_playing)) }
             item(key = "current-${current.id}") {
-                QueueItem(current, state, actions, onRemove = null)
+                QueueItem(current, state, actions, onRemove = null, modifier = Modifier.readableWidth())
             }
         }
         if (state.upNext.isEmpty()) {
@@ -199,16 +215,32 @@ private fun QueueList(state: QueueUiState, actions: QueueActions, padding: Paddi
                 ListTitle("${stringResource(Res.string.up_next)} · $summary")
             }
         }
-        itemsIndexed(state.upNext, key = { _, episode -> episode.id }) { _, episode ->
-            SwipeToRemove(onRemove = { actions.onRemove(episode) }) {
-                QueueItem(episode, state, actions, onRemove = { actions.onRemove(episode) })
+        itemsIndexed(shown, key = { _, episode -> episode.id }) { index, episode ->
+            ReorderableItem(reorderState, key = episode.id) {
+                SwipeToRemove(onRemove = { actions.onRemove(episode) }) {
+                    MovableRow(shown, index, actions.onReorder) {
+                        QueueItem(
+                            episode,
+                            state,
+                            actions,
+                            onRemove = { actions.onRemove(episode) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun QueueItem(episode: Episode, state: QueueUiState, actions: QueueActions, onRemove: (() -> Unit)?) {
+private fun QueueItem(
+    episode: Episode,
+    state: QueueUiState,
+    actions: QueueActions,
+    onRemove: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
     val isCurrent = episode.id == state.current?.id
     EpisodeListItem(
         episode = episode,
@@ -222,7 +254,7 @@ private fun QueueItem(episode: Episode, state: QueueUiState, actions: QueueActio
         onCancelDownloadClick = { actions.onCancelDownload(episode) },
         onDeleteClick = { actions.onDeleteDownload(episode) },
         onRemoveFromQueue = onRemove,
-        modifier = Modifier.readableWidth().background(MaterialTheme.colorScheme.background),
+        modifier = modifier.background(MaterialTheme.colorScheme.background),
     )
 }
 

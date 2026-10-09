@@ -56,6 +56,11 @@ class QueueViewModel(
     fun onIntent(intent: QueueIntent) {
         when (intent) {
             is QueueIntent.Play -> onIo { playEpisode(intent.episode) }
+            // By id, against the queue as it is now: an episode that started playing meanwhile is no longer in it.
+            is QueueIntent.Reorder -> setQueue { queue ->
+                val byId = queue.associateBy { it.id }
+                intent.ids.mapNotNull(byId::get) + queue.filter { it.id !in intent.ids }
+            }
             is QueueIntent.Remove -> setQueue { it.filter { episode -> episode.id != intent.episode.id } }
             is QueueIntent.Restore -> setQueue {
                 it.toMutableList().apply { add(intent.index.coerceIn(0, size), intent.episode) }
@@ -96,6 +101,9 @@ sealed interface QueueIntent {
     /** Plays an episode of the queue, or pauses and resumes the current one. */
     data class Play(val episode: Episode) : QueueIntent
     data class Remove(val episode: Episode) : QueueIntent
+
+    /** The new order of what comes next, by episode id: after a drag, "move up/down" or Alt+arrow. */
+    data class Reorder(val ids: List<String>) : QueueIntent
 
     /** "Undo" after a removal: the episode goes back where it was. */
     data class Restore(val episode: Episode, val index: Int) : QueueIntent

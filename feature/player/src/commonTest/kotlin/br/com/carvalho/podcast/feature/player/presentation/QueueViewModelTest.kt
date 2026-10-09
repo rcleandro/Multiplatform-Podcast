@@ -75,6 +75,21 @@ class QueueViewModelTest {
     }
 
     @Test
+    fun aNewOrderKeepsToTheEpisodesStillInTheQueue() = runTest(dispatcher) {
+        val third = episode("third")
+        audioPlayer.setQueue(listOf(first, second, third))
+        val viewModel = viewModel()
+
+        viewModel.onIntent(QueueIntent.Reorder(listOf("third", "first", "second")))
+        assertEquals(listOf("third", "first", "second"), audioPlayer.playerState.value.queue.map { it.id })
+
+        // "first" started playing while the order was being changed: it is not put back.
+        audioPlayer.play(first)
+        viewModel.onIntent(QueueIntent.Reorder(listOf("second", "first", "third")))
+        assertEquals(listOf("second", "third"), audioPlayer.playerState.value.queue.map { it.id })
+    }
+
+    @Test
     fun clearingAsksFirstAndEmptiesWhatComesNext() = runTest(dispatcher) {
         audioPlayer.play(playing)
         audioPlayer.setQueue(listOf(first, second))

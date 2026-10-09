@@ -17,9 +17,9 @@
     <string name="library_sort_latest_episode">Episodio más reciente</string>
     <string name="library_sort_most_unplayed">Más sin escuchar</string>
     <string name="library_sort_custom">Personalizado</string>
-    <string name="library_reorder">Arrastra para reordenar</string>
-    <string name="library_move_up">Mover hacia arriba</string>
-    <string name="library_move_down">Mover hacia abajo</string>
+    <string name="drag_to_reorder">Arrastra para reordenar</string>
+    <string name="move_up">Mover hacia arriba</string>
+    <string name="move_down">Mover hacia abajo</string>
     <string name="library_organize">Organizar…</string>
     <string name="library_organize_title">Organizar biblioteca</string>
     <string name="library_organize_hint">Arrastra desde ☰ para cambiar el orden. Se guarda al instante.</string>

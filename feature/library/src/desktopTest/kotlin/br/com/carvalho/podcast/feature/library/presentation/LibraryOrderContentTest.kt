@@ -11,8 +11,8 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
-import br.com.carvalho.podcast.core.ui.generated.resources.library_move_down
-import br.com.carvalho.podcast.core.ui.generated.resources.library_reorder
+import br.com.carvalho.podcast.core.ui.generated.resources.move_down
+import br.com.carvalho.podcast.core.ui.generated.resources.drag_to_reorder
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import kotlin.test.Test
@@ -35,9 +35,9 @@ class LibraryOrderContentTest {
         var order: List<String>? = null
         setContent { PodcastTheme { LibraryOrderContent(entries, onReorder = { order = it }, onBack = {}) } }
 
-        onAllNodesWithContentDescription(text(Res.string.library_reorder)).assertCountEquals(entries.size)
+        onAllNodesWithContentDescription(text(Res.string.drag_to_reorder)).assertCountEquals(entries.size)
         val moveDown = onNodeWithText("A").fetchSemanticsNode().config[SemanticsActions.CustomActions]
-            .first { it.label == text(Res.string.library_move_down) }
+            .first { it.label == text(Res.string.move_down) }
         runOnIdle { moveDown.action() }
 
         assertEquals(listOf("B", "A", "C"), order)
