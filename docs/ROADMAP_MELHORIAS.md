@@ -94,6 +94,8 @@ graph LR
 7. **20 (release), 22 (segurança) e 23 (desempenho)** depois da 17, em paralelo com a 18 e a 19, como antes.
 8. **25 — UI nativa no iOS**, por último (decisão de 07/10/2026): reescreve a interface do iOS em SwiftUI sobre os
    ViewModels e o domínio que as outras fases deixaram prontos, então chega quando eles param de mudar.
+9. **26 — Adequação ao ECA Digital (Brasil)**, como última etapa (pedido do usuário em 09/10/2026): parte do
+   conteúdo explícito da 18.5, da telemetria da 16.4 e da fila da 18.6, e vale só para quem está no Brasil.
 
 **Regra de toda fase:** uma branch por fase a partir da `main` (`feature/phase-09-design-system`), um commit por
 subitem com o teste correspondente e a nota "Implementado" na seção do roadmap, e uma merge request no fim. Cada
@@ -1225,6 +1227,59 @@ dele; esta fase a substitui.
 
 **Critério de conclusão:** nenhuma tela do iOS em Compose; as mesmas funcionalidades das outras plataformas; Liquid
 Glass na barra de abas e nas barras de título do iOS 26; VoiceOver e Dynamic Type conferidos.
+
+---
+
+## Fase 26 — Adequação ao ECA Digital (Brasil)
+
+**Objetivo:** cumprir o Estatuto Digital da Criança e do Adolescente (Lei 15.211/2025, em vigor desde 17/03/2026,
+regulamentada pelo Decreto 12.880/2026 e fiscalizada pela ANPD, com multas a partir de janeiro de 2027) **só para
+quem está no Brasil**. Fora do Brasil o app continua como é. Pedido do usuário em 09/10/2026, como última etapa.
+
+**Por que o app entra:** a lei vale para produtos "direcionados a crianças e adolescentes ou de acesso provável por
+eles", onde quer que a empresa esteja. Um app de podcasts genérico, na Play Store e na App Store, tem acesso provável
+por menores. O que a lei pede de rede social (contas vinculadas a responsáveis), de loja (aferir idade e emitir o
+sinal) e de publicidade (perfilamento) não se aplica ou se aplica pouco: o app não tem contas, nem publicidade, nem
+conteúdo de usuários, nem compras.
+
+**Levantamento (09/10/2026, por fontes secundárias e pela Agência Gov):** o texto da lei no Planalto não abriu
+nesse dia. Antes da 26.1, conferir na íntegra a Lei 15.211/2025, o Decreto 12.880/2026 e as orientações definitivas
+de aferição de idade que a ANPD previu para a etapa II da fiscalização (a partir de agosto de 2026). O que interessa
+ao app:
+
+- **Conteúdo impróprio para menores de 18 anos** exige mecanismo confiável de idade a cada acesso, **sem
+  autodeclaração** (uma tela "tenho mais de 18" não vale). Podcasts e episódios marcados como explícitos entram aqui.
+- **Lojas e sistemas operacionais** aferem a idade ou a faixa etária e a repassam aos apps por API ("sinal de
+  idade"), com o mínimo de dados (a faixa, não a identidade). Receber o sinal não isenta o app de ter os próprios
+  cuidados.
+- **Padrão mais protetivo**: as configurações começam no modelo de maior proteção de privacidade; opções menos
+  restritivas só com explicação clara.
+- **Uso excessivo**: mecanismos contra reprodução automática (autoplay), recompensas por tempo de uso e
+  notificações que prolongam o uso.
+- **Dados**: nada de perfil comportamental de menores; o dado usado para saber a idade só serve para isso.
+- **Supervisão parental**: ferramentas para os responsáveis ligarem e desligarem as salvaguardas e acompanharem o
+  tempo de uso.
+- **Notificação de violações**: um canal para comunicar conteúdo que viole direitos de crianças e adolescentes.
+- **Fora do código**: relatório semestral de transparência só acima de 1 milhão de usuários cadastrados no Brasil
+  (o app não tem cadastro); representante legal no país para empresas estrangeiras; parecer jurídico sobre o
+  enquadramento.
+
+| Item | Status | Ação | Esforço |
+|---|---|---|---|
+| 26.1 ADR do enquadramento | 🔎 | Depois de ler a lei, o decreto e as orientações da ANPD: o que vale para o app e o que não vale, e por quê. Como saber que o usuário está no Brasil (país da conta da loja, quando o sinal o informa; senão o país do aparelho, `deviceCountry()`). O que fazer **sem sinal de idade** (Desktop, Web, aparelho sem conta, sinal negado): tratar como menor, que é o padrão protetor, ou como desconhecido. Quem decide com o app: o parecer jurídico | M |
+| 26.2 Sinal de idade | 🔎 | Ler a faixa etária que o sistema dá: no Android, a Play Age Signals API (com o `FakeAgeSignalsManager` nos testes); no iOS, a Declared Age Range (iOS 26). Conferir na 26.1 se as duas já respondem para o Brasil. Um `AgeSignal` no domínio (adulto, menor, desconhecido), lido ao abrir e quando o app volta ao primeiro plano, nunca guardado além do necessário nem enviado à telemetria | G |
+| 26.3 Conteúdo explícito para menores | 🔎 | No Brasil, com sinal de menor (e, se a 26.1 decidir, sem sinal), podcasts e episódios explícitos (18.5) somem da busca, dos populares, das sugestões, de links abertos (18.4) e da biblioteca, e não tocam; a opção "Mostrar conteúdo explícito" fica desligada e travada, com a explicação | M |
+| 26.4 Padrões protetores para menores | 🔎 | Com sinal de menor no Brasil: telemetria (16.4) e relatórios de erro desligados e fora da tela; nada de recomendação baseada no que a pessoa ouve; o que for opção começa no modo mais protetor, com explicação para mudar | M |
+| 26.5 Uso excessivo | 🔎 | Com sinal de menor no Brasil: a fila (18.6) não passa sozinha para o próximo episódio sem a pessoa pedir; notificações de episódio novo (18.18) desligadas por padrão; um aviso de tempo de uso, configurável pelos responsáveis | M |
+| 26.6 Supervisão parental | 🔎 | Primeiro, respeitar o que o sistema já dá aos responsáveis (Family Link no Android, Tempo de Uso no iOS) e documentar como usar com o app. Depois, se a 26.1 pedir, salvaguardas do app (explícito, tempo de uso) que só mudam com um PIN dos responsáveis | M |
+| 26.7 Notificar violações | 🔎 | "Denunciar" no menu do podcast e do episódio, com os motivos da lei; abre um e-mail ou formulário de contato do app com o podcast identificado (sem a URL do feed, que pode ter token, 16.1) e oferece esconder o conteúdo na hora. Na tela de ajuda, os canais oficiais (Disque 100, Comunica PF, ANPD) | P |
+| 26.8 Política de privacidade e textos | 🔎 | Política de privacidade e termos em português com a seção do ECA Digital: o que muda para menores no Brasil, que dado de idade é lido e para quê, e como os responsáveis agem. Linkados nas Configurações e nas lojas; ficha de classificação etária das lojas revista | P |
+| 26.9 Testes e verificação | 🔎 | Testes de ViewModel e de tela para adulto, menor e sem sinal, dentro e fora do Brasil; fluxos Maestro com sinal falso de menor; conferir no Razr e num iPhone com uma conta de menor | M |
+
+**Critério de conclusão:** no Brasil, com sinal de menor, nada explícito aparece nem toca, a telemetria fica
+desligada, não há reprodução automática nem notificação que prolongue o uso, e existe um canal para notificar
+violações; fora do Brasil e com sinal de adulto, o app é o mesmo de antes; a ADR registra o enquadramento e o parecer
+jurídico.
 
 ---
 
