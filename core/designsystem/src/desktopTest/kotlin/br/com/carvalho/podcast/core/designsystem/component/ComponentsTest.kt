@@ -1,5 +1,7 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_queue
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.height
@@ -314,6 +316,27 @@ class ComponentsTest {
         val label = text(Res.string.ds_open_player)
         onNode(SemanticsMatcher("click label is '$label'") { it.config.getOrNull(SemanticsActions.OnClick)?.label == label })
             .assertExists()
+    }
+
+    @Test
+    fun miniPlayerOpensTheQueueOnlyWhenOffered() = runComposeUiTest {
+        var queueOpened = 0
+        var offersQueue by mutableStateOf(false)
+        setContent {
+            PodcastTheme {
+                MiniPlayer(
+                    title = "Ep", subtitle = null, imageUrl = null, isPlaying = false, isLoading = false,
+                    progress = 0f, onPlayPause = {}, onClick = {},
+                    onQueueClick = if (offersQueue) ({ queueOpened++ }) else null,
+                )
+            }
+        }
+        onAllNodesWithContentDescription(text(Res.string.ds_open_queue)).assertCountEquals(0)
+
+        offersQueue = true
+        onNodeWithContentDescription(text(Res.string.ds_open_queue)).performClick()
+
+        assertEquals(1, queueOpened)
     }
 
     @Test

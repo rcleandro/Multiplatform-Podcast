@@ -39,6 +39,7 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
                 selectedTab = tab,
                 stacks = stacks,
                 isPlayerOpen = false,
+                isQueueOpen = false,
                 isOrganizingLibrary = false,
                 isAddingPodcast = false,
                 isShowingSettings = false,
@@ -58,6 +59,11 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
 
     fun onPlayerClicked() {
         _state.update { it.copy(isPlayerOpen = true) }
+    }
+
+    /** Opens the queue (18.6) over the player or the tabs, from the player and the mini player. */
+    fun onQueueClicked() {
+        _state.update { it.copy(isQueueOpen = true) }
     }
 
     /** Opens "Organize library" over the tabs, the only place that arranges the custom order. */
@@ -107,10 +113,14 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         setStack(listOf(Detail.Podcast(podcastId), Detail.Episode(episodeId)))
     }
 
-    /** Closes what covers the tabs (player, "Organize", "Add podcast", Settings), else pops the tab or goes home. */
+    /**
+     * Closes what covers the tabs (queue, player, "Organize", "Add podcast", Settings), else pops the tab or goes
+     * home.
+     */
     fun onBackClicked() {
         _state.update {
             when {
+                it.isQueueOpen -> it.copy(isQueueOpen = false)
                 it.isPlayerOpen -> it.copy(isPlayerOpen = false)
                 it.isOrganizingLibrary -> it.copy(isOrganizingLibrary = false)
                 it.isAddingPodcast -> it.copy(isAddingPodcast = false)
@@ -148,6 +158,8 @@ data class NavigationState(
     val selectedTab: Tab = Tab.Library,
     val stacks: Map<Tab, List<Detail>> = emptyMap(),
     val isPlayerOpen: Boolean = false,
+    /** The queue (18.6), over the player when it was opened from there. */
+    val isQueueOpen: Boolean = false,
     val isOrganizingLibrary: Boolean = false,
     val isAddingPodcast: Boolean = false,
     val isShowingSettings: Boolean = false,
@@ -158,6 +170,6 @@ data class NavigationState(
     val podcast: Detail.Podcast? get() = currentStack.filterIsInstance<Detail.Podcast>().lastOrNull()
     val episode: Detail.Episode? get() = currentStack.lastOrNull() as? Detail.Episode
     val canGoBack: Boolean
-        get() = isPlayerOpen || isOrganizingLibrary || isAddingPodcast || isShowingSettings ||
+        get() = isPlayerOpen || isQueueOpen || isOrganizingLibrary || isAddingPodcast || isShowingSettings ||
             currentStack.isNotEmpty() || selectedTab != Tab.Library
 }

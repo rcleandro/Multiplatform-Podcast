@@ -21,13 +21,14 @@ import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-private enum class PlayerDialog { Speed, SleepTimer, Queue }
+private enum class PlayerDialog { Speed, SleepTimer }
 
 @Composable
 fun PlayerScreen(
     viewModel: PlayerViewModel = koinViewModel(),
     onBackClick: () -> Unit,
     artworkModifier: Modifier = Modifier,
+    onQueueClick: () -> Unit = {},
 ) {
     val playerState by viewModel.playerState.collectAsState()
     var dialog by remember { mutableStateOf<PlayerDialog?>(null) }
@@ -48,7 +49,7 @@ fun PlayerScreen(
                 onPrevious = { viewModel.onIntent(PlayerIntent.Previous) },
                 onNext = { viewModel.onIntent(PlayerIntent.Next) },
                 onSpeedClick = { dialog = PlayerDialog.Speed },
-                onQueueClick = { dialog = PlayerDialog.Queue },
+                onQueueClick = onQueueClick,
                 onSleepTimerClick = { dialog = PlayerDialog.SleepTimer },
             ),
         )
@@ -72,15 +73,6 @@ fun PlayerScreen(
             playerState = playerState,
             onTimerSelected = {
                 viewModel.onIntent(PlayerIntent.SetSleepTimer(it))
-                dialog = null
-            },
-            onDismiss = { dialog = null }
-        )
-        PlayerDialog.Queue -> QueueDialog(
-            queue = playerState.queue,
-            currentEpisodeId = playerState.currentEpisode?.id,
-            onEpisodeSelected = {
-                viewModel.onIntent(PlayerIntent.Play(it))
                 dialog = null
             },
             onDismiss = { dialog = null }

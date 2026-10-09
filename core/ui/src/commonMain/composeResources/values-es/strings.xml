@@ -223,4 +223,16 @@
     <string name="language_english">English</string>
     <string name="language_portuguese">Português</string>
     <string name="language_spanish">Español</string>
+    <string name="up_next">A continuación</string>
+    <string name="queue_empty_title">Nada en la cola</string>
+    <string name="queue_empty_message">Agrega episodios con “Reproducir a continuación” o “Agregar a la cola” en el menú de un episodio.</string>
+    <string name="clear_queue">Vaciar cola</string>
+    <string name="clear_queue_message">Los episodios salen de la cola; no se borra nada.</string>
+    <string name="remove_from_queue">Quitar de la cola</string>
+    <string name="removed_from_queue">Quitado de la cola</string>
+    <string name="undo">Deshacer</string>
+    <plurals name="queue_summary">
+        <item quantity="one">%1$d episodio · %2$s</item>
+        <item quantity="other">%1$d episodios · %2$s</item>
+    </plurals>
 </resources>

@@ -1,0 +1,38 @@
+# 18.6: the queue opens from the mini player and from the player, over whatever is on screen.
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/queue.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Planet Money"
+- tapOn: "Mais recente"
+- extendedWaitUntil:
+    visible: "Pausar"
+    timeout: 30000
+- tapOn: "Pausar"
+# From the mini player: the episode playing, and nothing next yet.
+- tapOn: "Abrir fila"
+- assertVisible: "OUVINDO AGORA"
+- assertNotVisible: "A SEGUIR.*"
+- back
+- assertNotVisible: "OUVINDO AGORA"
+# From the player: back closes the queue and shows the player again.
+- tapOn:
+    text: "Planet Money"
+    index: 1
+- tapOn: "Fila"
+- assertVisible: "Fila de Reprodução"
+- back
+- assertVisible: "OUVINDO AGORA"

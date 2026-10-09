@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.RemoveDone
+import androidx.compose.material.icons.rounded.RemoveFromQueue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import br.com.carvalho.podcast.core.AppConfig
@@ -33,6 +34,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplaye
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
 import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
+import br.com.carvalho.podcast.core.ui.generated.resources.remove_from_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.retry_download
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
@@ -45,7 +47,7 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Maps an [Episode] and its download status to the design system [EpisodeRow], with its "⋮" menu: play or pause,
  * the download action of its state, and, where the screen offers them, mark as played or unplayed, mark it and the
- * older ones as played or unplayed and go to its podcast.
+ * older ones as played or unplayed, go to its podcast and leave the queue (18.6).
  */
 @Composable
 fun EpisodeListItem(
@@ -65,6 +67,7 @@ fun EpisodeListItem(
     onMarkOlderPlayed: (() -> Unit)? = null,
     onMarkOlderUnplayed: (() -> Unit)? = null,
     onGoToPodcast: (() -> Unit)? = null,
+    onRemoveFromQueue: (() -> Unit)? = null,
 ) {
     val durationMs = episode.duration * AppConfig.MILLIS_PER_SECOND
     val progress = if (durationMs > 0) episode.playbackPosition.toFloat() / durationMs else 0f
@@ -91,6 +94,8 @@ fun EpisodeListItem(
         onMarkOlderUnplayed
             ?.let { ItemAction(stringResource(Res.string.mark_older_as_unplayed), Icons.Rounded.RemoveDone, it) },
         onGoToPodcast?.let { ItemAction(stringResource(Res.string.go_to_podcast), Icons.Rounded.Podcasts, it) },
+        onRemoveFromQueue
+            ?.let { ItemAction(stringResource(Res.string.remove_from_queue), Icons.Rounded.RemoveFromQueue, it) },
     )
 
     EpisodeRow(

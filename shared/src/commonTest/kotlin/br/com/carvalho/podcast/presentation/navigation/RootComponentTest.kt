@@ -33,6 +33,20 @@ class RootComponentTest {
     }
 
     @Test
+    fun theQueueOpensOverThePlayerAndBackShowsThePlayerAgain() {
+        val root = createRoot()
+        root.onPlayerClicked()
+
+        root.onQueueClicked()
+        assertTrue(root.current.isQueueOpen)
+        assertTrue(backDispatcher.isEnabled)
+
+        root.onBackClicked()
+        assertFalse(root.current.isQueueOpen)
+        assertTrue(root.current.isPlayerOpen)
+    }
+
+    @Test
     fun aPodcastLinkOpensAddPodcastOverThePlayerUntilTheScreenTakesIt() {
         val root = createRoot()
         root.onPlayerClicked()

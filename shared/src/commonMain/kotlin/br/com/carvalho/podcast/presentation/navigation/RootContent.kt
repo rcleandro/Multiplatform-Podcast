@@ -64,6 +64,7 @@ import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
+import br.com.carvalho.podcast.feature.player.presentation.QueueScreen
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
 import br.com.carvalho.podcast.feature.settings.presentation.SettingsScreen
@@ -131,12 +132,17 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
         }
         Overlay(visible = state.isShowingSettings) { SettingsScreen(onBack = component::onBackClicked) }
         Overlay(visible = state.isPlayerOpen) {
-            PlayerScreen(onBackClick = component::onBackClicked, artworkModifier = sharedCover(this))
+            PlayerScreen(
+                onBackClick = component::onBackClicked,
+                artworkModifier = sharedCover(this),
+                onQueueClick = component::onQueueClicked,
+            )
         }
+        Overlay(visible = state.isQueueOpen) { QueueScreen(onBack = component::onBackClicked) }
     }
 }
 
-/** A screen that slides up over the tabs: the player, "Organize library", "Add podcast" and Settings. */
+/** A screen that slides up over the tabs: the player, the queue, "Organize library", "Add podcast" and Settings. */
 @Composable
 private fun Overlay(visible: Boolean, content: @Composable AnimatedVisibilityScope.() -> Unit) = AnimatedVisibility(
     visible = visible,
@@ -220,6 +226,7 @@ private fun TabContent(
                     playerState,
                     onPlayPause = onPlayPause,
                     onClick = component::onPlayerClicked,
+                    onQueueClick = component::onQueueClicked,
                     artworkModifier = sharedCover(this),
                 )
             }
@@ -265,6 +272,7 @@ private fun MiniPlayerBar(
     playerState: PlayerState,
     onPlayPause: () -> Unit,
     onClick: () -> Unit,
+    onQueueClick: () -> Unit,
     artworkModifier: Modifier,
 ) {
     val episode = playerState.currentEpisode ?: return
@@ -278,6 +286,7 @@ private fun MiniPlayerBar(
         progress = if (duration != null && duration > 0) playerState.position.toFloat() / duration else 0f,
         onPlayPause = onPlayPause,
         onClick = onClick,
+        onQueueClick = onQueueClick,
         artworkModifier = artworkModifier,
     )
 }

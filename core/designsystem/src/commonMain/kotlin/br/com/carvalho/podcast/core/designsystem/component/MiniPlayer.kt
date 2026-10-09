@@ -10,6 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,6 +27,7 @@ import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.generated.resources.Res
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_player
+import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_queue
 import org.jetbrains.compose.resources.stringResource
 
 /** Compact player docked above the navigation; the bottom edge is the episode progress. */
@@ -37,6 +42,8 @@ fun MiniPlayer(
     onPlayPause: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Opens the queue (18.6); without it the mini player has no queue button. */
+    onQueueClick: (() -> Unit)? = null,
     /** Lets the navigation share the cover with the full player. */
     artworkModifier: Modifier = Modifier,
 ) {
@@ -84,6 +91,14 @@ fun MiniPlayer(
                     }
                 }
                 Spacer(Modifier.width(Spacing.s))
+                onQueueClick?.let {
+                    IconButton(onClick = it) {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.QueueMusic,
+                            contentDescription = stringResource(Res.string.ds_open_queue),
+                        )
+                    }
+                }
                 PlayPauseButton(isPlaying = isPlaying, isLoading = isLoading, onClick = onPlayPause)
             }
             EpisodeProgressBar(progress = progress, modifier = Modifier.align(Alignment.BottomCenter))

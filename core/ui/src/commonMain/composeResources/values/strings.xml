@@ -224,4 +224,16 @@
     <string name="language_english">English</string>
     <string name="language_portuguese">Português</string>
     <string name="language_spanish">Español</string>
+    <string name="up_next">Up next</string>
+    <string name="queue_empty_title">Nothing up next</string>
+    <string name="queue_empty_message">Add episodes with “Play next” or “Add to queue” in an episode’s menu.</string>
+    <string name="clear_queue">Clear queue</string>
+    <string name="clear_queue_message">The episodes leave the queue; nothing is deleted.</string>
+    <string name="remove_from_queue">Remove from queue</string>
+    <string name="removed_from_queue">Removed from the queue</string>
+    <string name="undo">Undo</string>
+    <plurals name="queue_summary">
+        <item quantity="one">%1$d episode · %2$s</item>
+        <item quantity="other">%1$d episodes · %2$s</item>
+    </plurals>
 </resources>
