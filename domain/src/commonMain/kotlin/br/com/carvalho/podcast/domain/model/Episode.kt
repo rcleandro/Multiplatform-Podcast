@@ -20,5 +20,8 @@ data class Episode(
     /** The feed marks this episode as explicit (`itunes:explicit` on the item, 18.5). */
     val explicit: Boolean = false,
     /** In "New" until heard or dismissed (18.7). */
-    val isNew: Boolean = false
+    val isNew: Boolean = false,
+    /** `itunes:season`, for the season headers of the podcast's list (18.10). */
+    val season: Int? = null,
+    val type: EpisodeType = EpisodeType.FULL,
 )

@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.data.mapper
 
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeType
 
 fun EpisodeEntity.toDomain(): Episode = Episode(
     id = id,
@@ -20,6 +21,8 @@ fun EpisodeEntity.toDomain(): Episode = Episode(
     link = link,
     explicit = explicit,
     isNew = isNew,
+    season = season,
+    type = EpisodeType.of(episodeType),
 )
 
 fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
@@ -39,4 +42,6 @@ fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
     link = link,
     explicit = explicit,
     isNew = isNew,
+    season = season,
+    episodeType = type.takeIf { it != EpisodeType.FULL }?.name?.lowercase(),
 )

@@ -92,6 +92,9 @@
     <string name="filter_downloaded">Downloaded</string>
     <string name="episodes_newest_first">Newest first</string>
     <string name="episodes_oldest_first">Oldest first</string>
+    <string name="episode_trailer">Trailer</string>
+    <string name="episode_bonus">Bonus</string>
+    <string name="season_number">Season %1$d</string>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

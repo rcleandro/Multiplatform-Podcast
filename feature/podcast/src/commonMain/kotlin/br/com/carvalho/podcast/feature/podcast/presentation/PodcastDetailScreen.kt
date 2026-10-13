@@ -88,6 +88,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
 import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh
+import br.com.carvalho.podcast.core.ui.generated.resources.season_number
 import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
 import br.com.carvalho.podcast.core.ui.generated.resources.show_more
@@ -327,6 +328,7 @@ private fun EpisodeList(
         ) { index ->
             episodes[index]?.let { episode ->
                 val isCurrent = playerState.currentEpisode?.id == episode.id
+                seasonStartingAt(index) { episodes.peek(it)?.season }?.let { SeasonHeader(it) }
                 EpisodeListItem(
                     episode = episode,
                     modifier = Modifier.readableWidth(),
@@ -348,6 +350,20 @@ private fun EpisodeList(
             }
         }
     }
+}
+
+@Composable
+private fun SeasonHeader(season: Int) {
+    Text(
+        text = stringResource(Res.string.season_number, season),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .readableWidth()
+            .padding(horizontal = Spacing.l)
+            .padding(top = Spacing.m, bottom = Spacing.xs)
+            .semantics { heading() },
+    )
 }
 
 @Composable

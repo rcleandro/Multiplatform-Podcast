@@ -195,6 +195,15 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version14StartsEveryEpisodeAsARegularOneWithoutSeason() = runTest {
+        helper.createDatabase(SEASON_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(SEASON_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE season IS NULL AND episodeType IS NULL"))
+        }
+    }
+
     private fun SQLiteConnection.insertLibrary(queueJson: String? = "[]", episodeId: String = "e1") {
         execSQL(
             "INSERT INTO podcasts (id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, " +
@@ -228,7 +237,8 @@ class MigrationTest {
         const val EXPLICIT_VERSION = 11
         const val NEW_VERSION = 12
         const val ORDER_VERSION = 13
-        const val CURRENT_VERSION = 13
+        const val SEASON_VERSION = 14
+        const val CURRENT_VERSION = 14
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

@@ -47,6 +47,7 @@ import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.presentation.format.episodeTypeLabel
 import br.com.carvalho.podcast.presentation.format.explicitLabel
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
@@ -86,6 +87,7 @@ fun EpisodeListItem(
     val remaining = episode.remainingDuration()?.let { stringResource(Res.string.remaining_time, it) }
     val published = relativeTime(episode.publishDate, getCurrentTimestamp())?.text()
     val metadata = listOfNotNull(
+        episodeTypeLabel(episode.type),
         explicitLabel(episode.explicit),
         podcastTitle,
         published,

@@ -69,6 +69,8 @@ class FakeEpisodeDao : EpisodeDao {
         publishDate: Long,
         link: String?,
         explicit: Boolean,
+        season: Int?,
+        episodeType: String?,
     ) {
         episodes.value = episodes.value.map {
             if (it.id != id) {
@@ -77,7 +79,7 @@ class FakeEpisodeDao : EpisodeDao {
                 it.copy(
                     podcastTitle = podcastTitle, title = title, description = description, audioUrl = audioUrl,
                     imageUrl = imageUrl, duration = duration, publishDate = publishDate, link = link,
-                    explicit = explicit,
+                    explicit = explicit, season = season, episodeType = episodeType,
                 )
             }
         }

@@ -43,4 +43,7 @@ data class EpisodeEntity(
     @ColumnInfo(defaultValue = "0") val explicit: Boolean = false,
     /** In "New" until heard or dismissed (18.7), added in version 12; the feed never rewrites it. */
     @ColumnInfo(defaultValue = "0") val isNew: Boolean = false,
+    /** `itunes:season` and `itunes:episodeType` (`trailer`, `bonus`; null for a regular one), added in version 14. */
+    val season: Int? = null,
+    val episodeType: String? = null,
 )

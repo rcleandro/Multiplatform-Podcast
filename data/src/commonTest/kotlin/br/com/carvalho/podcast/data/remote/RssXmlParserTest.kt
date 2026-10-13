@@ -98,6 +98,7 @@ class RssXmlParserFieldsTest {
               <itunes:explicit>Yes</itunes:explicit>
               <itunes:season>2</itunes:season>
               <itunes:episode>7</itunes:episode>
+              <itunes:episodeType>bonus</itunes:episodeType>
             </item>
           </channel>
         </rss>
@@ -124,6 +125,7 @@ class RssXmlParserFieldsTest {
         assertEquals(true, episode.explicit)
         assertEquals(2, episode.season)
         assertEquals(7, episode.episode)
+        assertEquals("bonus", episode.episodeType)
         assertEquals("https://example.com/one", episode.link)
     }
 

@@ -1,6 +1,9 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
 import br.com.carvalho.podcast.core.ui.generated.resources.explicit
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_trailer
+import br.com.carvalho.podcast.core.ui.generated.resources.season_number
+import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_oldest_first
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
 import androidx.compose.ui.test.assertIsSelected
@@ -125,6 +128,30 @@ class PodcastDetailContentTest {
         onNodeWithText(text(Res.string.episodes_oldest_first)).assertIsSelected().performClick()
 
         assertEquals(true, oldestFirst)
+    }
+
+    @Test
+    fun seasonsGetAHeaderAndTrailersSaySo() = runComposeUiTest {
+        val seasons = listOf(
+            episodes[0].copy(season = 2, type = EpisodeType.TRAILER),
+            episodes[1].copy(season = 2),
+            episodes[2].copy(season = 1),
+        )
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false),
+                    episodes = flowOf(PagingData.from(seasons)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(),
+                )
+            }
+        }
+
+        waitUntilExactlyOneExists(hasText(text(Res.string.season_number, 2)))
+        onAllNodesWithText(text(Res.string.season_number, 1)).assertCountEquals(1)
+        onNodeWithText(text(Res.string.episode_trailer), substring = true).assertExists()
     }
 
     @Test

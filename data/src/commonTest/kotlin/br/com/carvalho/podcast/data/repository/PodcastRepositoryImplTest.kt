@@ -13,6 +13,7 @@ import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import androidx.paging.testing.asSnapshot
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import androidx.paging.PagingSource
 import kotlinx.coroutines.Dispatchers
@@ -243,7 +244,10 @@ class PodcastRepositoryImplTest {
             listOf(episodeEntity.copy(isPlayed = true, playbackPosition = 500L, isDownloaded = true))
         )
         val fromFeed = episodeEntity.toDomain()
-            .copy(title = "Ep 1 (fixed)", audioUrl = "audio-v2", link = "page", explicit = true)
+            .copy(
+                title = "Ep 1 (fixed)", audioUrl = "audio-v2", link = "page", explicit = true, season = 2,
+                type = EpisodeType.BONUS,
+            )
 
         repository.saveFeed(podcastEntity.toDomain(), listOf(fromFeed))
 
@@ -253,6 +257,9 @@ class PodcastRepositoryImplTest {
         // Episodes saved before version 10 get their page link on the next refresh (18.4).
         assertEquals("page", saved.link)
         assertTrue(saved.explicit)
+        // And their season and type (18.10).
+        assertEquals(2, saved.toDomain().season)
+        assertEquals(EpisodeType.BONUS, saved.toDomain().type)
         assertTrue(saved.isPlayed)
         assertEquals(500L, saved.playbackPosition)
         assertTrue(saved.isDownloaded)

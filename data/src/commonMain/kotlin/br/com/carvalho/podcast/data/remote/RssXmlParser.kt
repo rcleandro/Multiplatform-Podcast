@@ -65,6 +65,7 @@ object RssXmlParser {
             explicit = text("itunes:explicit")?.lowercase() in EXPLICIT_VALUES,
             season = text("itunes:season")?.toIntOrNull(),
             episode = text("itunes:episode")?.toIntOrNull(),
+            episodeType = text("itunes:episodeType"),
         )
     }
 

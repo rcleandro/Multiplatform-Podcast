@@ -40,5 +40,7 @@ data class RssEpisode(
     val imageUrl: String?,
     val explicit: Boolean,
     val season: Int?,
-    val episode: Int?
+    val episode: Int?,
+    /** `itunes:episodeType`: full, trailer or bonus (18.10). */
+    val episodeType: String? = null,
 )
