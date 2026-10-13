@@ -19,6 +19,7 @@ class FakeEpisodeDao : EpisodeDao {
         podcastId: String,
         onlyUnplayed: Boolean,
         onlyDownloaded: Boolean,
+        oldestFirst: Boolean,
     ): PagingSource<Int, EpisodeEntity> = throw NotImplementedError("Paging is tested against the real database")
 
     override fun searchPagingSource(
@@ -129,7 +130,7 @@ class FakeEpisodeDao : EpisodeDao {
                     title = fields.title, description = fields.description, imageUrl = fields.imageUrl,
                     author = fields.author, language = fields.language, categories = fields.categories,
                     feedUrl = fields.feedUrl, siteUrl = fields.siteUrl, lastUpdated = fields.lastUpdated,
-                    etag = fields.etag, lastModified = fields.lastModified,
+                    etag = fields.etag, lastModified = fields.lastModified, serial = fields.serial,
                 )
             }
         }

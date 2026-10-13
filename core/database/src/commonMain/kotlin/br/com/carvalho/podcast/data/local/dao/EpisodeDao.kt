@@ -29,13 +29,14 @@ interface EpisodeDao {
         WHERE podcastId = :podcastId
         AND (:onlyUnplayed = 0 OR isPlayed = 0)
         AND (:onlyDownloaded = 0 OR isDownloaded = 1)
-        ORDER BY publishDate DESC
+        ORDER BY CASE WHEN :oldestFirst THEN publishDate END ASC, publishDate DESC
     """
     )
     fun pagingSourceByPodcast(
         podcastId: String,
         onlyUnplayed: Boolean,
         onlyDownloaded: Boolean,
+        oldestFirst: Boolean = false,
     ): PagingSource<Int, EpisodeEntity>
 
     @Query(

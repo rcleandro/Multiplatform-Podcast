@@ -21,6 +21,8 @@ fun PodcastEntity.toDomain(): Podcast = Podcast(
     subscribedAt = subscribedAt,
     position = position,
     explicit = explicit,
+    serial = serial,
+    oldestFirst = oldestFirst,
 )
 
 fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
@@ -40,4 +42,6 @@ fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
     subscribedAt = subscribedAt,
     position = position,
     explicit = explicit,
+    serial = serial,
+    oldestFirst = oldestFirst,
 )

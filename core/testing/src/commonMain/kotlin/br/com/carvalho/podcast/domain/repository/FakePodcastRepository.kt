@@ -42,8 +42,12 @@ class FakePodcastRepository : PodcastRepository {
         it.filter { e -> e.podcastId == podcastId }
     }
 
-    /** One page with every match, newest first, like the database query. */
-    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> =
+    /** One page with every match, in the asked order, like the database query. */
+    override fun getEpisodesPaged(
+        podcastId: String,
+        filter: EpisodeFilter,
+        oldestFirst: Boolean,
+    ): Flow<PagingData<Episode>> =
         episodes.map { list ->
             val matching = list.filter { it.podcastId == podcastId }.filter {
                 when (filter) {
@@ -52,8 +56,13 @@ class FakePodcastRepository : PodcastRepository {
                     EpisodeFilter.DOWNLOADED -> it.isDownloaded
                 }
             }
-            PagingData.from(matching.sortedByDescending { it.publishDate })
+            val newestFirst = matching.sortedByDescending { it.publishDate }
+            PagingData.from(if (oldestFirst) newestFirst.reversed() else newestFirst)
         }
+
+    override suspend fun setEpisodeOrder(podcastId: String, oldestFirst: Boolean) {
+        podcasts.value = podcasts.value.map { if (it.id == podcastId) it.copy(oldestFirst = oldestFirst) else it }
+    }
 
     override suspend fun dismissNewEpisode(id: String) {
         episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false) else it }

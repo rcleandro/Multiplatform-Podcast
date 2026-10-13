@@ -61,14 +61,22 @@ class PodcastRepositoryImpl(
         }
     }
 
-    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> =
+    override fun getEpisodesPaged(
+        podcastId: String,
+        filter: EpisodeFilter,
+        oldestFirst: Boolean,
+    ): Flow<PagingData<Episode>> =
         pagedEpisodes {
             episodeDao.pagingSourceByPodcast(
                 podcastId,
                 onlyUnplayed = filter == EpisodeFilter.UNPLAYED,
                 onlyDownloaded = filter == EpisodeFilter.DOWNLOADED,
+                oldestFirst = oldestFirst,
             )
         }
+
+    override suspend fun setEpisodeOrder(podcastId: String, oldestFirst: Boolean) =
+        podcastDao.setOldestFirst(podcastId, oldestFirst)
 
     override fun searchEpisodes(query: String): Flow<List<Episode>> {
         return episodeDao.search(query).map { entities ->

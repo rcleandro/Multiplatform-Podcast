@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,10 +17,14 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -47,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -73,9 +79,12 @@ import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download_confirmation
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_newest_first
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_oldest_first
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
 import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh
@@ -126,6 +135,7 @@ fun PodcastDetailScreen(
             onShare = { uiState.podcast?.let { share(podcastShareText(it)) } },
             onRefresh = { viewModel.onIntent(PodcastDetailIntent.Refresh) },
             onFilterSelected = { viewModel.onIntent(PodcastDetailIntent.SetFilter(it)) },
+            onOldestFirstChange = { viewModel.onIntent(PodcastDetailIntent.SetOldestFirst(it)) },
             onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
             onRequestMarkOlder = { viewModel.onIntent(PodcastDetailIntent.RequestMarkOlder(it)) },
             onPlay = { viewModel.onIntent(PodcastDetailIntent.Play(it)) },
@@ -148,6 +158,7 @@ data class PodcastDetailActions(
     val onShare: () -> Unit = {},
     val onRefresh: () -> Unit = {},
     val onFilterSelected: (EpisodeFilter) -> Unit = {},
+    val onOldestFirstChange: (Boolean) -> Unit = {},
     val onEpisodeClick: (Episode) -> Unit = {},
     val onRequestMarkOlder: (OlderMark) -> Unit = {},
     val onPlay: (Episode) -> Unit = {},
@@ -188,6 +199,7 @@ fun PodcastDetailContent(
                 scrollBehavior,
                 state.podcast?.title?.takeIf { headerGone },
                 canShare = state.podcast != null,
+                oldestFirst = state.oldestFirst,
                 actions,
             )
         },
@@ -225,6 +237,7 @@ private fun PodcastDetailTopBar(
     scrollBehavior: TopAppBarScrollBehavior,
     title: String?,
     canShare: Boolean,
+    oldestFirst: Boolean,
     actions: PodcastDetailActions,
 ) {
     TopAppBar(
@@ -235,6 +248,7 @@ private fun PodcastDetailTopBar(
             }
         },
         actions = {
+            OrderMenu(oldestFirst, actions.onOldestFirstChange)
             if (canShare) {
                 IconButton(onClick = actions.onShare) {
                     Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
@@ -247,6 +261,31 @@ private fun PodcastDetailTopBar(
         ),
         scrollBehavior = scrollBehavior
     )
+}
+
+@Composable
+private fun OrderMenu(oldestFirst: Boolean, onChange: (Boolean) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = stringResource(Res.string.library_sort))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            mapOf(false to Res.string.episodes_newest_first, true to Res.string.episodes_oldest_first)
+                .forEach { (option, label) ->
+                    val chosen = option == oldestFirst
+                    DropdownMenuItem(
+                        text = { Text(stringResource(label)) },
+                        onClick = {
+                            expanded = false
+                            onChange(option)
+                        },
+                        trailingIcon = { if (chosen) Icon(Icons.Rounded.Check, contentDescription = null) },
+                        modifier = Modifier.semantics { selected = chosen },
+                    )
+                }
+        }
+    }
 }
 
 @Composable

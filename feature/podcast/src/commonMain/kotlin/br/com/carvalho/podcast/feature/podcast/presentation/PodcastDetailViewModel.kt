@@ -69,9 +69,9 @@ class PodcastDetailViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagedEpisodes: Flow<PagingData<Episode>> = _uiState
-        .map { it.filter }
+        .map { it.filter to it.oldestFirst }
         .distinctUntilChanged()
-        .flatMapLatest { filter -> repository.getEpisodesPaged(podcastId, filter) }
+        .flatMapLatest { (filter, oldestFirst) -> repository.getEpisodesPaged(podcastId, filter, oldestFirst) }
         .cachedIn(viewModelScope)
 
     init {
@@ -88,6 +88,7 @@ class PodcastDetailViewModel(
         when (intent) {
             PodcastDetailIntent.Refresh -> refresh()
             is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
+            is PodcastDetailIntent.SetOldestFirst -> setOldestFirst(intent.oldestFirst)
             is PodcastDetailIntent.Play -> play(intent.episode)
             is PodcastDetailIntent.Enqueue -> enqueue(intent.episode, intent.next)
             is PodcastDetailIntent.Download -> downloadEpisode(intent.episode)
@@ -120,6 +121,11 @@ class PodcastDetailViewModel(
     private fun setFilter(filter: EpisodeFilter) {
         analytics.logEvent(AnalyticsEvent.SetEpisodeFilter(filter.name))
         _uiState.update { it.copy(filter = filter) }
+    }
+
+    private fun setOldestFirst(oldestFirst: Boolean) {
+        analytics.logEvent(AnalyticsEvent.SetEpisodeOrder(oldestFirst))
+        viewModelScope.launch(dispatchers.io) { repository.setEpisodeOrder(podcastId, oldestFirst) }
     }
 
     private fun enqueue(episode: Episode, next: Boolean) = viewModelScope.launch(dispatchers.io) {
@@ -194,11 +200,15 @@ data class PodcastDetailUiState(
     val deleteEpisodeConfirmation: Episode? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-)
+) {
+    /** Before the podcast loads, newest first, as most shows want. */
+    val oldestFirst: Boolean get() = podcast?.episodesOldestFirst ?: false
+}
 
 sealed interface PodcastDetailIntent {
     data object Refresh : PodcastDetailIntent
     data class SetFilter(val filter: EpisodeFilter) : PodcastDetailIntent
+    data class SetOldestFirst(val oldestFirst: Boolean) : PodcastDetailIntent
     data class Play(val episode: Episode) : PodcastDetailIntent
 
     /** "Play next" when [next], else "Add to queue" (18.6). */

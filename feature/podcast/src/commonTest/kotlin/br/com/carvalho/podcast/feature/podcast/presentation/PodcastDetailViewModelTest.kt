@@ -221,6 +221,18 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
+    fun `a serial podcast lists oldest first until the user chooses otherwise`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(samplePodcast.copy(serial = true))
+        val viewModel = createViewModel()
+        assertTrue(viewModel.uiState.value.oldestFirst)
+
+        viewModel.onIntent(PodcastDetailIntent.SetOldestFirst(false))
+
+        assertEquals(false, repository.podcasts.value.single().oldestFirst)
+        assertFalse(viewModel.uiState.value.oldestFirst)
+    }
+
+    @Test
     fun `filter survives a podcast update`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
         val viewModel = createViewModel()

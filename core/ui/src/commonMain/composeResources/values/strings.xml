@@ -90,6 +90,8 @@
     <string name="filter_all">All</string>
     <string name="filter_unplayed">Unplayed</string>
     <string name="filter_downloaded">Downloaded</string>
+    <string name="episodes_newest_first">Newest first</string>
+    <string name="episodes_oldest_first">Oldest first</string>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

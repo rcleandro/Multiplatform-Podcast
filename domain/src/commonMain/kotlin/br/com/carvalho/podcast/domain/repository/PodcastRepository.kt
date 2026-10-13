@@ -23,7 +23,14 @@ interface PodcastRepository {
 
     /** The newest episode not played yet, for the podcast's "Latest" button. */
     fun getLatestUnplayedEpisode(podcastId: String): Flow<Episode?>
-    fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>>
+    fun getEpisodesPaged(
+        podcastId: String,
+        filter: EpisodeFilter,
+        oldestFirst: Boolean = false,
+    ): Flow<PagingData<Episode>>
+
+    /** The order the user chose for a podcast's episodes (18.10). */
+    suspend fun setEpisodeOrder(podcastId: String, oldestFirst: Boolean)
 
     fun getDownloadedEpisodes(): Flow<List<Episode>>
     fun getUnplayedEpisodes(): Flow<List<Episode>>

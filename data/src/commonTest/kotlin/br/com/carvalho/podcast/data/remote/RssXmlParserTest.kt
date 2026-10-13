@@ -89,6 +89,7 @@ class RssXmlParserFieldsTest {
             <itunes:category text="Technology"><itunes:category text="Tech News"/></itunes:category>
             <itunes:category text="Technology"/>
             <itunes:explicit>true</itunes:explicit>
+            <itunes:type>Serial</itunes:type>
             <item>
               <title>One</title>
               <link>https://example.com/one</link>
@@ -111,6 +112,7 @@ class RssXmlParserFieldsTest {
         assertEquals(60, feed.ttl)
         assertEquals(listOf("Technology", "Tech News"), feed.categories)
         assertEquals(true, feed.explicit)
+        assertEquals(true, feed.serial)
     }
 
     @Test

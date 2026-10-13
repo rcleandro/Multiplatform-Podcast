@@ -34,6 +34,7 @@ fun RssFeed.toPodcast(feedUrl: String): Podcast = Podcast(
     // Only kept for a new podcast: refreshing an existing one does not rewrite this column.
     subscribedAt = getCurrentTimestamp(),
     explicit = explicit,
+    serial = serial,
 )
 
 fun RssEpisode.toEpisode(podcastId: String, podcastTitle: String? = null): Episode = Episode(

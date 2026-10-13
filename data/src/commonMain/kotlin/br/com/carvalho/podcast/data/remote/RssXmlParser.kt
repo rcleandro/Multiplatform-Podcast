@@ -39,6 +39,7 @@ object RssXmlParser {
                 ?.attributes?.get("href"),
             newFeedUrl = channel.text("itunes:new-feed-url"),
             explicit = channel.text("itunes:explicit")?.lowercase() in EXPLICIT_VALUES,
+            serial = channel.text("itunes:type")?.lowercase() == "serial",
         )
     }
 

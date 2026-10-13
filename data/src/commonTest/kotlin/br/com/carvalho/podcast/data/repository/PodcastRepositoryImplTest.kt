@@ -349,6 +349,21 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `the chosen order lists the episodes oldest first and survives a refresh`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = podcastEntity.toDomain()
+        val episodes = (1..3).map { episodeEntity.copy(id = "e$it", publishDate = it.toLong()).toDomain() }
+        repository.saveFeed(podcast, episodes)
+
+        repository.setEpisodeOrder(podcastId, oldestFirst = true)
+        repository.saveFeed(podcast, episodes)
+
+        assertEquals(true, repository.getPodcastById(podcastId)?.oldestFirst)
+        val shown = repository.getEpisodesPaged(podcastId, EpisodeFilter.ALL, oldestFirst = true).asSnapshot()
+        assertEquals(listOf("e1", "e2", "e3"), shown.map { it.id })
+    }
+
+    @Test
     fun `the downloaded filter finds an episode beyond the first page`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)

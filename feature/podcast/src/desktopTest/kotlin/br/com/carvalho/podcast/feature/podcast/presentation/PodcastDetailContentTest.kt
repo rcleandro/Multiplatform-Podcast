@@ -1,6 +1,9 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
 import br.com.carvalho.podcast.core.ui.generated.resources.explicit
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_oldest_first
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
+import androidx.compose.ui.test.assertIsSelected
 import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.share
@@ -100,6 +103,28 @@ class PodcastDetailContentTest {
         onNodeWithContentDescription(text(Res.string.share)).performClick()
 
         assertEquals(1, shared)
+    }
+
+    @Test
+    fun theBarMenuListsTheEpisodesOldestFirst() = runComposeUiTest {
+        var oldestFirst: Boolean? = null
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast().copy(serial = true), isLoading = false),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onOldestFirstChange = { oldestFirst = it }),
+                )
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.library_sort)).performClick()
+        // A serial show starts oldest first.
+        onNodeWithText(text(Res.string.episodes_oldest_first)).assertIsSelected().performClick()
+
+        assertEquals(true, oldestFirst)
     }
 
     @Test

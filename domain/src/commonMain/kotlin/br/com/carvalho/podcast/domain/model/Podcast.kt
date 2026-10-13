@@ -20,4 +20,11 @@ data class Podcast(
     val position: Int = 0,
     /** The feed marks the whole show as explicit (`itunes:explicit` on the channel, 18.5). */
     val explicit: Boolean = false,
-)
+    /** The feed says the show is heard in order (`itunes:type` serial, 18.10). */
+    val serial: Boolean = false,
+    /** The order the user chose for the episodes; `null` follows the feed. */
+    val oldestFirst: Boolean? = null,
+) {
+    /** Serial shows list their episodes oldest first unless the user chose otherwise. */
+    val episodesOldestFirst: Boolean get() = oldestFirst ?: serial
+}

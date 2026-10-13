@@ -22,6 +22,8 @@ data class RssFeed(
     val permanentRedirect: String? = null,
     /** `itunes:explicit` on the channel: the whole show (18.5). */
     val explicit: Boolean = false,
+    /** `itunes:type` is `serial`: the show is heard in order, oldest first (18.10). */
+    val serial: Boolean = false,
 )
 
 data class RssEpisode(

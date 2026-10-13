@@ -186,6 +186,15 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version13ListsEveryPodcastAsTheFeedSays() = runTest {
+        helper.createDatabase(ORDER_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(ORDER_VERSION, migrations).use { connection ->
+            assertEquals("0|1", connection.text("SELECT serial || '|' || (oldestFirst IS NULL) FROM podcasts"))
+        }
+    }
+
     private fun SQLiteConnection.insertLibrary(queueJson: String? = "[]", episodeId: String = "e1") {
         execSQL(
             "INSERT INTO podcasts (id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, " +
@@ -218,7 +227,8 @@ class MigrationTest {
         const val LINK_VERSION = 10
         const val EXPLICIT_VERSION = 11
         const val NEW_VERSION = 12
-        const val CURRENT_VERSION = 12
+        const val ORDER_VERSION = 13
+        const val CURRENT_VERSION = 13
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

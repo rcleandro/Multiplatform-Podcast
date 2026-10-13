@@ -26,6 +26,10 @@ data class PodcastEntity(
     @ColumnInfo(defaultValue = "0") val position: Int = 0,
     /** `itunes:explicit` on the channel, added in version 11 (18.5). */
     @ColumnInfo(defaultValue = "0") val explicit: Boolean = false,
+    /** `itunes:type` serial on the channel, added in version 13 (18.10). */
+    @ColumnInfo(defaultValue = "0") val serial: Boolean = false,
+    /** The episode order the user chose, added in version 13; `null` follows [serial]. The feed never rewrites it. */
+    val oldestFirst: Boolean? = null,
 )
 
 /** The columns a feed owns: refreshing it updates these and keeps what the library set (subscribedAt, position). */
@@ -43,9 +47,10 @@ data class PodcastFeedFields(
     val etag: String?,
     val lastModified: String?,
     val explicit: Boolean,
+    val serial: Boolean,
 )
 
 fun PodcastEntity.feedFields() = PodcastFeedFields(
     id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, lastUpdated, etag, lastModified,
-    explicit,
+    explicit, serial,
 )
