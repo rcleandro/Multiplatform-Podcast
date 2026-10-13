@@ -1,5 +1,9 @@
 package br.com.carvalho.podcast.presentation.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.Close
@@ -16,10 +20,18 @@ import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.RemoveFromQueue
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import br.com.carvalho.podcast.core.AppConfig
+import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.DownloadState
 import br.com.carvalho.podcast.core.designsystem.component.EpisodePlayback
 import br.com.carvalho.podcast.core.designsystem.component.EpisodeRow
@@ -51,6 +63,7 @@ import br.com.carvalho.podcast.presentation.format.episodeTypeLabel
 import br.com.carvalho.podcast.presentation.format.explicitLabel
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -58,6 +71,8 @@ import org.jetbrains.compose.resources.stringResource
  * Maps an [Episode] and its download status to the design system [EpisodeRow], with its "⋮" menu: play or pause,
  * the download action of its state, and, where the screen offers them, mark as played or unplayed, mark it and the
  * older ones as played or unplayed, go to its podcast, and play it next, add it to the queue or take it out (18.6).
+ * Where the screen offers them, swiping right adds it to the queue and swiping left marks it played or unplayed
+ * (18.11).
  */
 @Composable
 fun EpisodeListItem(
@@ -119,22 +134,78 @@ fun EpisodeListItem(
         optionalAction(Res.string.remove_from_queue, Icons.Rounded.RemoveFromQueue, onRemoveFromQueue),
     )
 
-    EpisodeRow(
-        title = episode.title,
-        metadata = metadata,
-        imageUrl = episode.imageUrl,
-        playback = EpisodePlayback(
-            isPlaying = isPlaying,
-            isLoading = isBuffering,
-            progress = progress,
-            isPlayed = episode.isPlayed,
-        ),
-        downloadState = downloadState,
-        onClick = onClick,
-        actions = actions,
-        actionsLabel = stringResource(Res.string.episode_options),
+    SwipeActions(
+        onSwipeRight = onAddToQueue,
+        onSwipeLeft = if (episode.isPlayed) onMarkUnplayed else onMarkPlayed,
+        leftIcon = if (episode.isPlayed) Icons.Rounded.RemoveCircleOutline else Icons.Rounded.Done,
         modifier = modifier,
-    )
+    ) {
+        EpisodeRow(
+            title = episode.title,
+            metadata = metadata,
+            imageUrl = episode.imageUrl,
+            playback = EpisodePlayback(
+                isPlaying = isPlaying,
+                isLoading = isBuffering,
+                progress = progress,
+                isPlayed = episode.isPlayed,
+            ),
+            downloadState = downloadState,
+            onClick = onClick,
+            actions = actions,
+            actionsLabel = stringResource(Res.string.episode_options),
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        )
+    }
+}
+
+/** Swiping does the action of that side and puts the row back; nothing to swipe without either action. */
+@Composable
+private fun SwipeActions(
+    onSwipeRight: (() -> Unit)?,
+    onSwipeLeft: (() -> Unit)?,
+    leftIcon: ImageVector,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    // The queue swipes its rows away itself.
+    if (onSwipeRight == null && onSwipeLeft == null) {
+        Box(modifier) { content() }
+        return
+    }
+    val swipe = rememberSwipeToDismissBoxState()
+    val scope = rememberCoroutineScope()
+    SwipeToDismissBox(
+        state = swipe,
+        modifier = modifier,
+        enableDismissFromStartToEnd = onSwipeRight != null,
+        enableDismissFromEndToStart = onSwipeLeft != null,
+        backgroundContent = {
+            val toQueue = swipe.dismissDirection == SwipeToDismissBoxValue.StartToEnd
+            val colors = MaterialTheme.colorScheme
+            Box(
+                contentAlignment = if (toQueue) Alignment.CenterStart else Alignment.CenterEnd,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(if (toQueue) colors.primaryContainer else colors.tertiaryContainer)
+                    .padding(horizontal = Spacing.l),
+            ) {
+                Icon(
+                    if (toQueue) Icons.AutoMirrored.Rounded.PlaylistAdd else leftIcon,
+                    contentDescription = null,
+                    tint = if (toQueue) colors.onPrimaryContainer else colors.onTertiaryContainer,
+                )
+            }
+        },
+        onDismiss = { side ->
+            when (side) {
+                SwipeToDismissBoxValue.StartToEnd -> onSwipeRight?.invoke()
+                SwipeToDismissBoxValue.EndToStart -> onSwipeLeft?.invoke()
+                SwipeToDismissBoxValue.Settled -> Unit
+            }
+            scope.launch { swipe.reset() }
+        },
+    ) { content() }
 }
 
 /** An action the screen may leave out: none when it passes no [onClick]. */
