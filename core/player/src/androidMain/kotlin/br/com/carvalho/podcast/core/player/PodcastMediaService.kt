@@ -1,12 +1,14 @@
 package br.com.carvalho.podcast.core.player
 
 import android.content.Intent
+import android.media.audiofx.LoudnessEnhancer
 import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
@@ -29,6 +31,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.guava.future
@@ -38,6 +41,9 @@ import org.koin.android.ext.android.inject
 
 private const val TAG = "PodcastMediaService"
 private const val CUSTOM_COMMAND_SKIP_FORWARD = "CUSTOM_COMMAND_SKIP_FORWARD"
+
+/** How much quiet voices are lifted: 6 dB, clearly louder without clipping most speech. */
+private const val VOICE_BOOST_MILLIBELS = 600
 private const val CUSTOM_COMMAND_SKIP_BACKWARD = "CUSTOM_COMMAND_SKIP_BACKWARD"
 
 class PodcastMediaService : MediaLibraryService() {
@@ -46,6 +52,9 @@ class PodcastMediaService : MediaLibraryService() {
     private val preferences: PreferencesRepository by inject()
     private val tree by lazy { MediaTree(podcastRepository) { getString(R.string.library_title) } }
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    /** Lifts quiet voices (18.16); tied to the player's audio session, made again if that changes. */
+    private var voiceBoost: LoudnessEnhancer? = null
 
     @OptIn(UnstableApi::class)
     override fun onCreate() {
@@ -90,12 +99,32 @@ class PodcastMediaService : MediaLibraryService() {
                 sessionActivityPendingIntent?.let { setSessionActivity(it) }
             }
             .build()
+        // Settings' speech switches (18.16), applied as they change.
+        serviceScope.launch { preferences.skipSilence.collect { player.skipSilenceEnabled = it } }
+        serviceScope.launch { preferences.boostVoice.collect { boostVoice(player, it) } }
+        player.addListener(object : Player.Listener {
+            override fun onAudioSessionIdChanged(audioSessionId: Int) = boostVoice(player, preferences.boostVoice.value)
+        })
         // The notification and Android Auto show the jumps on their buttons: new ones when Settings change.
         serviceScope.launch {
             preferences.skipIntervals.drop(1).collect { intervals ->
                 mediaLibrarySession?.setCustomLayout(ImmutableList.copyOf(skipButtons(intervals)))
             }
         }
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun boostVoice(player: ExoPlayer, enabled: Boolean) {
+        voiceBoost?.release()
+        voiceBoost = null
+        if (!enabled) return
+        // ponytail: one fixed gain; a strength slider if someone finds it too much or too little.
+        voiceBoost = runCatching {
+            LoudnessEnhancer(player.audioSessionId).apply {
+                setTargetGain(VOICE_BOOST_MILLIBELS)
+                setEnabled(true)
+            }
+        }.onFailure { AppLogger.e(TAG, "Could not boost voices", it) }.getOrNull()
     }
 
     private val skipForwardCommand = SessionCommand(CUSTOM_COMMAND_SKIP_FORWARD, Bundle.EMPTY)
@@ -235,6 +264,9 @@ class PodcastMediaService : MediaLibraryService() {
 
     override fun onDestroy() {
         AppLogger.d(TAG, "onDestroy")
+        // The Settings collectors would reach a released player otherwise.
+        serviceScope.cancel()
+        voiceBoost?.release()
         mediaLibrarySession?.run {
             player.release()
             release()

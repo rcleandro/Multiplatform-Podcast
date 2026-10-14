@@ -48,6 +48,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.opml_importing
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_appearance
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_content
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all_confirmation
@@ -68,6 +70,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explici
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_backward
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_forward
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_silence
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_silence_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_subscriptions
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry_description
@@ -77,10 +81,10 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_light
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_system
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only_description
+import br.com.carvalho.podcast.core.util.canEnhanceSpeech
 import br.com.carvalho.podcast.core.util.canLimitDownloadsToWifi
 import br.com.carvalho.podcast.core.util.openSystemLanguageSettings
 import br.com.carvalho.podcast.domain.model.AppLanguage
-import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.presentation.file.rememberTextFilePicker
@@ -151,7 +155,7 @@ fun SettingsContent(
             }
             item { LanguageRow(state.language) { picking = Picker.LANGUAGE } }
             subscriptionSettings(state.opml, onImport = pickOpml, onExport = { onIntent(SettingsIntent.ExportOpml) })
-            playbackSettings(state.skipIntervals, onIntent)
+            playbackSettings(state, onIntent)
             state.usedBytes?.let { downloadSettings(it, state, onIntent) }
             contentAndPrivacySettings(state, onIntent)
         }
@@ -291,7 +295,8 @@ private fun LazyListScope.subscriptionSettings(status: OpmlStatus, onImport: () 
     }
 }
 
-private fun LazyListScope.playbackSettings(skips: SkipIntervals, onIntent: (SettingsIntent) -> Unit) {
+private fun LazyListScope.playbackSettings(state: SettingsUiState, onIntent: (SettingsIntent) -> Unit) {
+    val skips = state.skipIntervals
     item { Section(stringResource(Res.string.settings_playback)) }
     item {
         SkipChoice(stringResource(Res.string.settings_skip_backward), skips.backwardSeconds) {
@@ -301,6 +306,24 @@ private fun LazyListScope.playbackSettings(skips: SkipIntervals, onIntent: (Sett
     item {
         SkipChoice(stringResource(Res.string.settings_skip_forward), skips.forwardSeconds) {
             onIntent(SettingsIntent.SetSkipIntervals(skips.copy(forwardSeconds = it)))
+        }
+    }
+    if (canEnhanceSpeech) {
+        item {
+            SwitchRow(
+                title = stringResource(Res.string.settings_skip_silence),
+                description = stringResource(Res.string.settings_skip_silence_description),
+                checked = state.skipSilence,
+                onChange = { onIntent(SettingsIntent.SetSkipSilence(it)) },
+            )
+        }
+        item {
+            SwitchRow(
+                title = stringResource(Res.string.settings_boost_voice),
+                description = stringResource(Res.string.settings_boost_voice_description),
+                checked = state.boostVoice,
+                onChange = { onIntent(SettingsIntent.SetBoostVoice(it)) },
+            )
         }
     }
 }

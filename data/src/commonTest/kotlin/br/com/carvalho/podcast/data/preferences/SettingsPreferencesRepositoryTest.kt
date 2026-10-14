@@ -64,6 +64,12 @@ class SettingsPreferencesRepositoryTest {
         assertFalse(fresh.deleteFinishedDownloads.value)
         fresh.setDeleteFinishedDownloads(true)
         assertTrue(SettingsPreferencesRepository(settings).deleteFinishedDownloads.value)
+        // Speech (18.16): off until chosen, then kept.
+        assertFalse(fresh.skipSilence.value || fresh.boostVoice.value)
+        fresh.setSkipSilence(true)
+        fresh.setBoostVoice(true)
+        assertTrue(SettingsPreferencesRepository(settings).skipSilence.value)
+        assertTrue(SettingsPreferencesRepository(settings).boostVoice.value)
 
         fresh.setWifiOnlyDownloads(true)
         fresh.setDownloadLimitBytes(LIMIT)

@@ -33,6 +33,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.opml_importing
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
 import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
@@ -40,6 +41,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_silence
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_dark
@@ -186,6 +188,9 @@ class SettingsContentTest {
         assertEquals(5 * GB, limit)
         // A computer has no mobile data: no Wi-Fi only switch.
         onAllNodesWithText(text(Res.string.settings_wifi_only)).assertCountEquals(0)
+        // Nor a player that can skip silences or lift voices (18.16): those switches are Android's.
+        onAllNodesWithText(text(Res.string.settings_skip_silence)).assertCountEquals(0)
+        onAllNodesWithText(text(Res.string.settings_boost_voice)).assertCountEquals(0)
     }
 
     @Test

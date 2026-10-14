@@ -19,6 +19,8 @@ private const val WIFI_ONLY_DOWNLOADS = "wifi_only_downloads"
 private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
 private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
 private const val DELETE_FINISHED_DOWNLOADS = "delete_finished_downloads"
+private const val SKIP_SILENCE = "skip_silence"
+private const val BOOST_VOICE = "boost_voice"
 private const val SHOW_EXPLICIT = "show_explicit"
 private const val SKIP_BACKWARD_SECONDS = "skip_backward_seconds"
 private const val APP_LANGUAGE = "app_language"
@@ -68,6 +70,22 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setDownloadNextOnFinish(enabled: Boolean) {
         settings.putBoolean(DOWNLOAD_NEXT_ON_FINISH, enabled)
         downloadNext.value = enabled
+    }
+
+    private val silence = MutableStateFlow(settings.getBoolean(SKIP_SILENCE, defaultValue = false))
+    override val skipSilence: StateFlow<Boolean> = silence.asStateFlow()
+
+    override fun setSkipSilence(enabled: Boolean) {
+        settings.putBoolean(SKIP_SILENCE, enabled)
+        silence.value = enabled
+    }
+
+    private val voice = MutableStateFlow(settings.getBoolean(BOOST_VOICE, defaultValue = false))
+    override val boostVoice: StateFlow<Boolean> = voice.asStateFlow()
+
+    override fun setBoostVoice(enabled: Boolean) {
+        settings.putBoolean(BOOST_VOICE, enabled)
+        voice.value = enabled
     }
 
     private val deleteFinished = MutableStateFlow(settings.getBoolean(DELETE_FINISHED_DOWNLOADS, defaultValue = false))

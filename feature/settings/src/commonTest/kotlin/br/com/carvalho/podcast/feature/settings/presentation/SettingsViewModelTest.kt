@@ -112,6 +112,12 @@ class SettingsViewModelTest {
         viewModel.onIntent(SettingsIntent.SetDeleteFinished(true))
         assertEquals(true, preferences.deleteFinishedDownloads.value)
         assertEquals(true, viewModel.uiState.value.deleteFinishedDownloads)
+
+        viewModel.onIntent(SettingsIntent.SetSkipSilence(true))
+        viewModel.onIntent(SettingsIntent.SetBoostVoice(true))
+        assertEquals(true, preferences.skipSilence.value)
+        assertEquals(true, viewModel.uiState.value.skipSilence)
+        assertEquals(true, viewModel.uiState.value.boostVoice)
     }
 
     @Test

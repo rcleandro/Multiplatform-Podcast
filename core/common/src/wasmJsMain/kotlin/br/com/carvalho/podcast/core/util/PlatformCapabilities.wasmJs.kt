@@ -5,4 +5,6 @@ actual val supportsDownloads: Boolean = false
 
 actual val canLimitDownloadsToWifi: Boolean = false
 
+actual val canEnhanceSpeech: Boolean = false
+
 actual val openSystemLanguageSettings: (() -> Unit)? = null

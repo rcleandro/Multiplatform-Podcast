@@ -7,6 +7,12 @@ expect val supportsDownloads: Boolean
 expect val canLimitDownloadsToWifi: Boolean
 
 /**
+ * Whether the player can skip silences and lift voices (18.16): Media3 does both on Android; AVPlayer, JavaFX and the
+ * browser's audio element offer neither, so the switches show only there.
+ */
+expect val canEnhanceSpeech: Boolean
+
+/**
  * Opens the system's language settings for this app, where the app cannot choose its language itself (iOS keeps
  * that choice in its Settings); null where the app's Settings choose it.
  */

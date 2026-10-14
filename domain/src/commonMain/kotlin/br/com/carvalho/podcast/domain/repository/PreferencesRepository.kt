@@ -43,6 +43,15 @@ interface PreferencesRepository {
 
     fun setShowExplicit(enabled: Boolean)
 
+    /** Silences played through quicker, and voices made louder (18.16); off by default, Android only. */
+    val skipSilence: StateFlow<Boolean>
+
+    fun setSkipSilence(enabled: Boolean)
+
+    val boostVoice: StateFlow<Boolean>
+
+    fun setBoostVoice(enabled: Boolean)
+
     val skipIntervals: StateFlow<SkipIntervals>
 
     fun setSkipIntervals(intervals: SkipIntervals)

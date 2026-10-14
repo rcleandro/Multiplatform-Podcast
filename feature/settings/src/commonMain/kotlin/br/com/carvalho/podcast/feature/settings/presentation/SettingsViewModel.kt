@@ -46,7 +46,12 @@ class SettingsViewModel(
 
     val uiState: StateFlow<SettingsUiState> = combine(
         combine(preferences.themeMode, preferences.skipIntervals, preferences.appLanguage, ::Triple),
-        combine(preferences.telemetryEnabled, preferences.showExplicit, ::Pair),
+        combine(
+            preferences.telemetryEnabled,
+            preferences.showExplicit,
+            combine(preferences.skipSilence, preferences.boostVoice, ::Pair),
+            ::Triple,
+        ),
         preferences.wifiOnlyDownloads,
         combine(
             preferences.downloadLimitBytes,
@@ -55,13 +60,15 @@ class SettingsViewModel(
             ::Triple
         ),
         combine(usedBytes, disk, confirmingDeleteAll, opml, ::Measured),
-    ) { (theme, skips, language), (telemetry, explicit), wifiOnly, downloads, measured ->
+    ) { (theme, skips, language), (telemetry, explicit, speech), wifiOnly, downloads, measured ->
         val (limit, downloadNext, deleteFinished) = downloads
         SettingsUiState(
             themeMode = theme,
             language = language,
             telemetryEnabled = telemetry,
             showExplicit = explicit,
+            skipSilence = speech.first,
+            boostVoice = speech.second,
             usedBytes = measured.bytes,
             wifiOnlyDownloads = wifiOnly,
             downloadLimitBytes = limit,
@@ -122,6 +129,8 @@ class SettingsViewModel(
             is SettingsIntent.SetLanguage -> preferences.setAppLanguage(intent.language)
             is SettingsIntent.SetTelemetry -> preferences.setTelemetryEnabled(intent.enabled)
             is SettingsIntent.SetShowExplicit -> preferences.setShowExplicit(intent.enabled)
+            is SettingsIntent.SetSkipSilence -> preferences.setSkipSilence(intent.enabled)
+            is SettingsIntent.SetBoostVoice -> preferences.setBoostVoice(intent.enabled)
             is SettingsIntent.SetWifiOnly -> preferences.setWifiOnlyDownloads(intent.enabled)
             is SettingsIntent.SetDownloadLimit -> preferences.setDownloadLimitBytes(intent.bytes)
             is SettingsIntent.SetDownloadNext -> preferences.setDownloadNextOnFinish(intent.enabled)
@@ -145,6 +154,8 @@ data class SettingsUiState(
     val language: AppLanguage = AppLanguage.SYSTEM,
     val telemetryEnabled: Boolean = true,
     val showExplicit: Boolean = true,
+    val skipSilence: Boolean = false,
+    val boostVoice: Boolean = false,
     /** Disk space the downloads take; null while it is measured, and where there are no downloads (Web). */
     val usedBytes: Long? = null,
     val wifiOnlyDownloads: Boolean = false,
@@ -200,6 +211,8 @@ sealed interface SettingsIntent {
     data class SetLanguage(val language: AppLanguage) : SettingsIntent
     data class SetTelemetry(val enabled: Boolean) : SettingsIntent
     data class SetShowExplicit(val enabled: Boolean) : SettingsIntent
+    data class SetSkipSilence(val enabled: Boolean) : SettingsIntent
+    data class SetBoostVoice(val enabled: Boolean) : SettingsIntent
     data class SetWifiOnly(val enabled: Boolean) : SettingsIntent
     data class SetDownloadLimit(val bytes: Long?) : SettingsIntent
     data class SetDownloadNext(val enabled: Boolean) : SettingsIntent

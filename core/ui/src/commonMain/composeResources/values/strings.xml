@@ -133,6 +133,10 @@
     <string name="skip_outro_description">This much before the end counts as the end, skipping the credits.</string>
     <string name="sleep_timer_extend_short">+5 min</string>
     <string name="sleep_timer_extend">Add 5 minutes to the sleep timer</string>
+    <string name="settings_skip_silence">Skip silences</string>
+    <string name="settings_skip_silence_description">Pauses in the conversation go by quicker.</string>
+    <string name="settings_boost_voice">Boost voices</string>
+    <string name="settings_boost_voice_description">Makes quiet hosts louder, for noisy places.</string>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

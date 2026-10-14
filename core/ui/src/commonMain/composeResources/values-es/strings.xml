@@ -131,6 +131,10 @@
     <string name="skip_outro_description">Ese tanto antes del final ya cuenta como final, saltando el cierre.</string>
     <string name="sleep_timer_extend_short">+5 min</string>
     <string name="sleep_timer_extend">Sumar 5 minutos al temporizador</string>
+    <string name="settings_skip_silence">Saltar silencios</string>
+    <string name="settings_skip_silence_description">Las pausas de la conversación pasan más rápido.</string>
+    <string name="settings_boost_voice">Realzar voces</string>
+    <string name="settings_boost_voice_description">Sube a quien habla bajo, para lugares ruidosos.</string>
     <string name="filter_in_progress">En curso</string>
     <string name="episodes_tab">Episodios</string>
     <string name="in_progress_empty_title">Nada en curso</string>

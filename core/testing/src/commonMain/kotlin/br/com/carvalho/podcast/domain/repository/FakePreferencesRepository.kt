@@ -50,6 +50,18 @@ class FakePreferencesRepository : PreferencesRepository {
         deleteFinishedDownloads.value = enabled
     }
 
+    override val skipSilence = MutableStateFlow(false)
+
+    override fun setSkipSilence(enabled: Boolean) {
+        skipSilence.value = enabled
+    }
+
+    override val boostVoice = MutableStateFlow(false)
+
+    override fun setBoostVoice(enabled: Boolean) {
+        boostVoice.value = enabled
+    }
+
     override val skipIntervals = MutableStateFlow(SkipIntervals())
 
     override fun setSkipIntervals(intervals: SkipIntervals) {
