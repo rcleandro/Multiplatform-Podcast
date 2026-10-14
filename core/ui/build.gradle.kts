@@ -18,6 +18,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.composeIconsExtended)
             implementation(libs.compose.ui.backhandler)
+            implementation(libs.filekit.dialogs.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

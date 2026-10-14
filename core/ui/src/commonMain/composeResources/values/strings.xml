@@ -112,6 +112,16 @@
     <string name="clear_history_confirmation">Episodes leave History; whether they were heard and where they stopped stays.</string>
     <string name="history_empty_title">Nothing played yet</string>
     <string name="history_empty_message">The episodes you play show up here, the latest first.</string>
+    <string name="settings_subscriptions">Subscriptions</string>
+    <string name="settings_import_opml">Import OPML</string>
+    <string name="settings_import_opml_description">Subscribe to the podcasts of another app from its OPML file</string>
+    <string name="settings_export_opml">Export OPML</string>
+    <string name="settings_export_opml_description">Save your subscriptions in an OPML file for another app</string>
+    <string name="opml_importing">Importing %1$d of %2$d…</string>
+    <string name="opml_imported">Added: %1$d · Already in the library: %2$d · Could not read: %3$d</string>
+    <string name="opml_nothing_to_import">The file has no podcasts to import</string>
+    <string name="opml_exported">Saved with %1$d podcasts</string>
+    <string name="opml_export_failed">The file could not be saved</string>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

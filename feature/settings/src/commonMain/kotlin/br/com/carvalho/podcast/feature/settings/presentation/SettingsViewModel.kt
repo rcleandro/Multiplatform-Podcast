@@ -13,6 +13,9 @@ import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,19 +25,24 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Settings (18.5): the choices that change how the app works, each saved at once. */
+@Suppress("LongParameterList") // one dependency per thing the screen does
 class SettingsViewModel(
     private val preferences: PreferencesRepository,
     private val downloader: EpisodeDownloader,
     private val directories: AppDirectories,
     private val repository: PodcastRepository,
     private val dispatchers: CoroutineDispatchers,
+    private val importOpml: ImportOpmlUseCase,
+    private val exportOpml: ExportOpmlUseCase,
 ) : ViewModel() {
     private val usedBytes = MutableStateFlow<Long?>(null)
     private val disk = MutableStateFlow<DiskSpace?>(null)
     private val confirmingDeleteAll = MutableStateFlow(false)
+    private val opml = MutableStateFlow(OpmlState())
 
     val uiState: StateFlow<SettingsUiState> = combine(
         combine(preferences.themeMode, preferences.skipIntervals, preferences.appLanguage, ::Triple),
@@ -46,22 +54,24 @@ class SettingsViewModel(
             preferences.deleteFinishedDownloads,
             ::Triple
         ),
-        combine(usedBytes, disk, confirmingDeleteAll, ::Triple),
-    ) { (theme, skips, language), (telemetry, explicit), wifiOnly, downloads, (bytes, space, confirming) ->
+        combine(usedBytes, disk, confirmingDeleteAll, opml, ::Measured),
+    ) { (theme, skips, language), (telemetry, explicit), wifiOnly, downloads, measured ->
         val (limit, downloadNext, deleteFinished) = downloads
         SettingsUiState(
             themeMode = theme,
             language = language,
             telemetryEnabled = telemetry,
             showExplicit = explicit,
-            usedBytes = bytes,
+            usedBytes = measured.bytes,
             wifiOnlyDownloads = wifiOnly,
             downloadLimitBytes = limit,
             downloadNextOnFinish = downloadNext,
-            disk = space,
+            disk = measured.disk,
             deleteFinishedDownloads = deleteFinished,
-            isConfirmingDeleteAll = confirming,
+            isConfirmingDeleteAll = measured.confirming,
             skipIntervals = skips,
+            opml = measured.opml.status,
+            opmlToSave = measured.opml.toSave,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
@@ -87,6 +97,25 @@ class SettingsViewModel(
         }
     }
 
+    /** A file that cannot be read, or lists no feed, adds nothing and says so. */
+    private fun import(text: String?) {
+        if (opml.value.status is OpmlStatus.Importing) return
+        viewModelScope.launch(dispatchers.io) {
+            val result = text?.let {
+                importOpml(it) { done, total ->
+                    opml.update { state -> state.copy(status = OpmlStatus.Importing(done, total)) }
+                }
+            }
+            opml.update { it.copy(status = OpmlStatus.Imported(result ?: OpmlImport(0, 0, 0))) }
+        }
+    }
+
+    private fun export() = viewModelScope.launch(dispatchers.io) {
+        val export = exportOpml()
+        opml.update { it.copy(toSave = export.opml, exportedCount = export.podcasts) }
+    }
+
+    @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: SettingsIntent) {
         when (intent) {
             is SettingsIntent.SetTheme -> preferences.setThemeMode(intent.mode)
@@ -101,6 +130,12 @@ class SettingsViewModel(
             SettingsIntent.RequestDeleteAll -> confirmingDeleteAll.value = true
             SettingsIntent.DismissDeleteAll -> confirmingDeleteAll.value = false
             SettingsIntent.ConfirmDeleteAll -> deleteAllDownloads()
+            is SettingsIntent.ImportOpml -> import(intent.text)
+            SettingsIntent.ExportOpml -> export()
+            SettingsIntent.OpmlHandedOver -> opml.update { it.copy(toSave = null) }
+            is SettingsIntent.OpmlSaved -> opml.update {
+                it.copy(status = if (intent.saved) OpmlStatus.Exported(it.exportedCount) else OpmlStatus.ExportFailed)
+            }
         }
     }
 }
@@ -122,6 +157,10 @@ data class SettingsUiState(
     /** "Delete all downloads" waits for this confirmation. */
     val isConfirmingDeleteAll: Boolean = false,
     val skipIntervals: SkipIntervals = SkipIntervals(),
+    /** What the last OPML import or export did (18.13). */
+    val opml: OpmlStatus = OpmlStatus.Idle,
+    /** An exported OPML waiting for the screen to ask where to save it. */
+    val opmlToSave: String? = null,
 ) {
     /** The limits the slider stops at, ending with no limit (null). */
     val limitStops: List<Long?> get() = limitStops(disk?.let { it.freeBytes + (usedBytes ?: 0) }, downloadLimitBytes)
@@ -169,4 +208,31 @@ sealed interface SettingsIntent {
     data object RequestDeleteAll : SettingsIntent
     data object DismissDeleteAll : SettingsIntent
     data object ConfirmDeleteAll : SettingsIntent
+
+    /** The text of the file the user picked, or null when it could not be read (18.13). */
+    data class ImportOpml(val text: String?) : SettingsIntent
+    data object ExportOpml : SettingsIntent
+
+    /** The screen took [SettingsUiState.opmlToSave] to the save dialog. */
+    data object OpmlHandedOver : SettingsIntent
+    data class OpmlSaved(val saved: Boolean) : SettingsIntent
 }
+
+/** OPML import and export (18.13), shown under their rows. */
+sealed interface OpmlStatus {
+    data object Idle : OpmlStatus
+    data class Importing(val done: Int, val total: Int) : OpmlStatus
+
+    /** All zeros when the file had no feed to import. */
+    data class Imported(val result: OpmlImport) : OpmlStatus
+    data class Exported(val podcasts: Int) : OpmlStatus
+    data object ExportFailed : OpmlStatus
+}
+
+private data class OpmlState(
+    val status: OpmlStatus = OpmlStatus.Idle,
+    val toSave: String? = null,
+    val exportedCount: Int = 0,
+)
+
+private data class Measured(val bytes: Long?, val disk: DiskSpace?, val confirming: Boolean, val opml: OpmlState)

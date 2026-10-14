@@ -12,10 +12,12 @@ import br.com.carvalho.podcast.data.remote.ITunesPodcastDirectory
 import br.com.carvalho.podcast.data.remote.RssFeedDataSource
 import br.com.carvalho.podcast.data.remote.RssFeedDataSourceImpl
 import br.com.carvalho.podcast.data.remote.RssFeedSource
+import br.com.carvalho.podcast.data.remote.XmlOpmlFormat
 import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
 import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.FeedSource
+import br.com.carvalho.podcast.domain.repository.OpmlFormat
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastDirectory
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -26,6 +28,8 @@ import br.com.carvalho.podcast.domain.usecase.DeleteFinishedDownloadUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DownloadNextEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.feature.discover.discoverFeatureModule
@@ -56,6 +60,7 @@ val networkModule = module {
     single { createImageLoader(get()) }
     single<RssFeedDataSource> { RssFeedDataSourceImpl(get(), get()) }
     single<FeedSource> { RssFeedSource(get()) }
+    single<OpmlFormat> { XmlOpmlFormat }
     single<PodcastDirectory> { ITunesPodcastDirectory(get(), get()) }
 }
 
@@ -99,6 +104,8 @@ val repositoryModule = module {
 
 val useCaseModule = module {
     singleOf(::AddPodcastFromUrlUseCase)
+    singleOf(::ImportOpmlUseCase)
+    singleOf(::ExportOpmlUseCase)
     singleOf(::RefreshPodcastUseCase)
     singleOf(::DeletePodcastUseCase)
     singleOf(::PlayEpisodeUseCase)

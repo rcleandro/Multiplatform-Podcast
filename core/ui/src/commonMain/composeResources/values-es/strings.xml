@@ -110,6 +110,16 @@
     <string name="clear_history_confirmation">Los episodios salen del Historial; si se escucharon y dónde se pararon sigue igual.</string>
     <string name="history_empty_title">Nada reproducido todavía</string>
     <string name="history_empty_message">Los episodios que reproduzcas aparecen aquí, el más reciente primero.</string>
+    <string name="settings_subscriptions">Suscripciones</string>
+    <string name="settings_import_opml">Importar OPML</string>
+    <string name="settings_import_opml_description">Suscríbete a los podcasts de otra app con su archivo OPML</string>
+    <string name="settings_export_opml">Exportar OPML</string>
+    <string name="settings_export_opml_description">Guarda tus suscripciones en un archivo OPML para otra app</string>
+    <string name="opml_importing">Importando %1$d de %2$d…</string>
+    <string name="opml_imported">Añadidos: %1$d · Ya en la biblioteca: %2$d · Sin leer: %3$d</string>
+    <string name="opml_nothing_to_import">El archivo no tiene podcasts para importar</string>
+    <string name="opml_exported">Guardado con %1$d podcasts</string>
+    <string name="opml_export_failed">No se pudo guardar el archivo</string>
     <string name="filter_in_progress">En curso</string>
     <string name="episodes_tab">Episodios</string>
     <string name="in_progress_empty_title">Nada en curso</string>

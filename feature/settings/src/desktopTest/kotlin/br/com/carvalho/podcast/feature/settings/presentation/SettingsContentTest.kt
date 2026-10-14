@@ -1,52 +1,56 @@
 package br.com.carvalho.podcast.feature.settings.presentation
 
-import androidx.compose.ui.test.assertIsOn
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
-import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
-import br.com.carvalho.podcast.domain.model.SkipIntervals
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
-import br.com.carvalho.podcast.core.ui.generated.resources.delete
-import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.hasScrollToNodeAction
-import androidx.compose.ui.test.performScrollToNode
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import br.com.carvalho.podcast.core.ui.generated.resources.size_gigabytes
-import br.com.carvalho.podcast.core.util.DiskSpace
-import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.test.hasStateDescription
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.isSelectable
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
+import br.com.carvalho.podcast.core.ui.generated.resources.delete
+import br.com.carvalho.podcast.core.ui.generated.resources.opml_importing
+import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
+import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_dark
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_system
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
+import br.com.carvalho.podcast.core.ui.generated.resources.size_gigabytes
+import br.com.carvalho.podcast.core.util.DiskSpace
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
+import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -74,6 +78,22 @@ class SettingsContentTest {
 
         assertEquals(ThemeMode.DARK, chosen)
         onAllNodesWithText(text(Res.string.settings_theme_dark)).assertCountEquals(0)
+    }
+
+    @Test
+    fun theOpmlRowsSayHowTheImportGoesAndExportWhenTapped() = runComposeUiTest {
+        var status: OpmlStatus by mutableStateOf(OpmlStatus.Importing(done = 3, total = 40))
+        val intents = mutableListOf<SettingsIntent>()
+        setContent {
+            PodcastTheme { SettingsContent(SettingsUiState(opml = status), onBack = {}, onIntent = { intents += it }) }
+        }
+
+        onNodeWithText(text(Res.string.opml_importing, 3, 40)).assertExists()
+        status = OpmlStatus.Imported(OpmlImport(added = 0, known = 0, failed = 0))
+        onNodeWithText(text(Res.string.opml_nothing_to_import)).assertExists()
+
+        onNodeWithText(text(Res.string.settings_export_opml)).performClick()
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.ExportOpml), intents)
     }
 
     @Test
