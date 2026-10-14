@@ -12,7 +12,7 @@ import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.launch
 
 @Composable
-actual fun rememberTextFileSaver(onSaved: (Boolean) -> Unit): (String, String, String) -> Unit {
+actual fun rememberTextFileSaver(onSaved: (Boolean) -> Unit): (name: String, extension: String, text: String) -> Unit {
     val scope = rememberCoroutineScope()
     // The dialog only gives the place; the text waits here until it does.
     var pending by remember { mutableStateOf<String?>(null) }

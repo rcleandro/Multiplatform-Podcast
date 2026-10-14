@@ -131,6 +131,8 @@
     <string name="seconds_short">%1$d s</string>
     <string name="skip_intro_description">Episodes not begun start this far in, past the opening jingle.</string>
     <string name="skip_outro_description">This much before the end counts as the end, skipping the credits.</string>
+    <string name="sleep_timer_extend_short">+5 min</string>
+    <string name="sleep_timer_extend">Add 5 minutes to the sleep timer</string>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

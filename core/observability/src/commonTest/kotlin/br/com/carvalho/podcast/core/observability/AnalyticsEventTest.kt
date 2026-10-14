@@ -61,6 +61,7 @@ class AnalyticsEventTest {
             AnalyticsEvent.SetSleepTimer(MINUTES),
             AnalyticsEvent.SetSleepTimer(null),
             AnalyticsEvent.CancelSleepTimer,
+            AnalyticsEvent.ExtendSleepTimer(minutes = 5),
         )
         samples.forEach { covered(it) }
         return samples
@@ -78,7 +79,7 @@ class AnalyticsEventTest {
         is AnalyticsEvent.MarkPlayed, is AnalyticsEvent.MarkOlderPlayed, is AnalyticsEvent.PlayInPlayer,
         AnalyticsEvent.Pause, AnalyticsEvent.Resume, is AnalyticsEvent.Seek, AnalyticsEvent.SkipForward,
         AnalyticsEvent.SkipBackward, is AnalyticsEvent.SetSpeed, AnalyticsEvent.PlayNext, AnalyticsEvent.PlayPrevious,
-        is AnalyticsEvent.SetSleepTimer, AnalyticsEvent.CancelSleepTimer -> Unit
+        is AnalyticsEvent.SetSleepTimer, AnalyticsEvent.CancelSleepTimer, is AnalyticsEvent.ExtendSleepTimer -> Unit
     }
 
     /** Firebase: up to 40 characters, a letter first, then letters, digits and `_`; reserved prefixes rejected. */

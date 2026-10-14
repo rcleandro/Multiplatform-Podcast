@@ -21,4 +21,7 @@ interface AudioPlayer {
 
     /** `null` cancels it. */
     fun setSleepTimer(timer: SleepTimer?)
+
+    /** More time on a running timer of minutes (18.15); nothing otherwise. */
+    fun extendSleepTimer(minutes: Int)
 }

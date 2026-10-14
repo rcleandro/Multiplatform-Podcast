@@ -129,6 +129,8 @@
     <string name="seconds_short">%1$d s</string>
     <string name="skip_intro_description">Los episodios no empezados abren después de la cortina de entrada.</string>
     <string name="skip_outro_description">Ese tanto antes del final ya cuenta como final, saltando el cierre.</string>
+    <string name="sleep_timer_extend_short">+5 min</string>
+    <string name="sleep_timer_extend">Sumar 5 minutos al temporizador</string>
     <string name="filter_in_progress">En curso</string>
     <string name="episodes_tab">Episodios</string>
     <string name="in_progress_empty_title">Nada en curso</string>

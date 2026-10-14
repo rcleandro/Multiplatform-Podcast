@@ -71,6 +71,10 @@ class WebPlatformPlayer : PlatformPlayer {
         audio.currentTime = positionMs / MILLIS.toDouble()
     }
 
+    override fun setVolume(volume: Float) {
+        audio.volume = volume.toDouble()
+    }
+
     override fun setSpeed(speed: Float) {
         audio.playbackRate = speed.toDouble()
         audio.defaultPlaybackRate = speed.toDouble()

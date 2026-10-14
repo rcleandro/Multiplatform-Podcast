@@ -51,6 +51,7 @@ fun PlayerScreen(
                 onSpeedClick = { dialog = PlayerDialog.Speed },
                 onQueueClick = onQueueClick,
                 onSleepTimerClick = { dialog = PlayerDialog.SleepTimer },
+                onExtendSleepTimer = { viewModel.onIntent(PlayerIntent.ExtendSleepTimer) },
             ),
         )
         PodcastSnackbarHost(

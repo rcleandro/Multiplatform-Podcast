@@ -15,6 +15,7 @@ import platform.AVFoundation.play
 import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.AVFoundation.seekToTime
 import platform.AVFoundation.setRate
+import platform.AVFoundation.setVolume
 import platform.CoreMedia.CMTimeGetSeconds
 import platform.CoreMedia.CMTimeMake
 import platform.Foundation.NSNotificationCenter
@@ -84,6 +85,10 @@ class IosPlatformPlayer : PlatformPlayer {
     override fun seekTo(positionMs: Long) {
         player.seekToTime(CMTimeMake(positionMs, MILLIS))
         updateNowPlaying()
+    }
+
+    override fun setVolume(volume: Float) {
+        player.setVolume(volume)
     }
 
     override fun setSpeed(speed: Float) {

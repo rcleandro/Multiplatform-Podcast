@@ -69,6 +69,12 @@ class FakeAudioPlayer : AudioPlayer {
         _playerState.value = _playerState.value.copy(sleepTimer = timer)
     }
 
+    var extendedBy = 0
+
+    override fun extendSleepTimer(minutes: Int) {
+        extendedBy += minutes
+    }
+
     override fun setQueue(episodes: List<Episode>) {
         queueSet = episodes
         _playerState.value = _playerState.value.copy(queue = episodes)

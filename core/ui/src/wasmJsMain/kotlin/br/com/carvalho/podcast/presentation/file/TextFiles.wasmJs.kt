@@ -8,7 +8,7 @@ import kotlinx.coroutines.launch
 
 /** A browser has no "Save as" a page can open: the file is downloaded, and the browser asks where if set to. */
 @Composable
-actual fun rememberTextFileSaver(onSaved: (Boolean) -> Unit): (String, String, String) -> Unit {
+actual fun rememberTextFileSaver(onSaved: (Boolean) -> Unit): (name: String, extension: String, text: String) -> Unit {
     val scope = rememberCoroutineScope()
     return { name, extension, text ->
         scope.launch {

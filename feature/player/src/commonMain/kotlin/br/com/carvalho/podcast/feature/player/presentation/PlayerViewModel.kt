@@ -35,6 +35,10 @@ class PlayerViewModel(
             PlayerIntent.Previous -> playPrevious()
             is PlayerIntent.SetSpeed -> setSpeed(intent.speed)
             is PlayerIntent.SetSleepTimer -> setSleepTimer(intent.timer)
+            PlayerIntent.ExtendSleepTimer -> {
+                analytics.logEvent(AnalyticsEvent.ExtendSleepTimer(SLEEP_TIMER_EXTENSION_MINUTES))
+                audioPlayer.extendSleepTimer(SLEEP_TIMER_EXTENSION_MINUTES)
+            }
         }
     }
 
@@ -106,4 +110,10 @@ sealed interface PlayerIntent {
 
     /** `null` cancels the timer. */
     data class SetSleepTimer(val timer: SleepTimer?) : PlayerIntent
+
+    /** [SLEEP_TIMER_EXTENSION_MINUTES] more on a running timer (18.15). */
+    data object ExtendSleepTimer : PlayerIntent
 }
+
+/** What one tap on "+5 min" adds to the sleep timer. */
+const val SLEEP_TIMER_EXTENSION_MINUTES = 5

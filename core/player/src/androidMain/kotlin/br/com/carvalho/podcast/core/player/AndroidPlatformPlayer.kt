@@ -83,6 +83,8 @@ class AndroidPlatformPlayer(context: Context) : PlatformPlayer {
 
     override fun setSpeed(speed: Float) = command { it.playbackParameters = PlaybackParameters(speed) }
 
+    override fun setVolume(volume: Float) = command { it.volume = volume }
+
     private fun command(block: (MediaController) -> Unit) {
         controller?.let(block) ?: scope.launch { connected()?.let(block) }
     }

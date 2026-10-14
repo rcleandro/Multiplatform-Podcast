@@ -140,7 +140,7 @@ internal fun SleepTimerDialog(
     )
 }
 
-private fun formatRemainingTime(millis: Long?): String {
+internal fun formatRemainingTime(millis: Long?): String {
     if (millis == null) return ""
     val totalSeconds = millis / AppConfig.MILLIS_PER_SECOND
     val minutes = totalSeconds / SECONDS_PER_MINUTE

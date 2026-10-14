@@ -218,6 +218,44 @@ class PlaybackControllerTest {
     }
 
     @Test
+    fun theVolumeGoesDownOverTheLastMinuteAndBackUpWhenExtendedOrDone() = runTest(dispatcher) {
+        val controller = controller()
+        controller.play(first)
+        controller.setSleepTimer(SleepTimer.Minutes(2))
+        runCurrent()
+
+        advanceTimeBy(MINUTE_MS / 2)
+        assertEquals(1f, engine.volume)
+        advanceTimeBy(MINUTE_MS)
+        // Half a minute left: half the volume.
+        assertEquals(0.5f, engine.volume, absoluteTolerance = 0.02f)
+
+        controller.extendSleepTimer(5)
+        runCurrent()
+        assertEquals(1f, engine.volume)
+        assertEquals(5 * MINUTE_MS + MINUTE_MS / 2, controller.playerState.value.sleepTimerMillis)
+
+        advanceTimeBy(6 * MINUTE_MS)
+        assertFalse(engine.isPlaying)
+        assertEquals(1f, engine.volume)
+    }
+
+    @Test
+    fun cancellingTheTimerInItsLastMinuteBringsTheVolumeBack() = runTest(dispatcher) {
+        val controller = controller()
+        controller.play(first)
+        controller.setSleepTimer(SleepTimer.Minutes(1))
+        runCurrent()
+        advanceTimeBy(MINUTE_MS / 2)
+
+        controller.setSleepTimer(null)
+        runCurrent()
+
+        assertEquals(1f, engine.volume)
+        assertTrue(engine.isPlaying)
+    }
+
+    @Test
     fun theSpeedSurvivesAPause() = runTest(dispatcher) {
         val controller = controller()
         controller.play(first)

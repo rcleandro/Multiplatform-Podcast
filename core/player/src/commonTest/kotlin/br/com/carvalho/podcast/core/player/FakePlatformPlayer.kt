@@ -13,6 +13,8 @@ class FakePlatformPlayer : PlatformPlayer {
     var playWhenReady: Boolean? = null
     var isPlaying = false
     var currentSpeed = 1f
+    var volume = 1f
+        private set
     var shownSkipIntervals: SkipIntervals? = null
 
     override fun setSkipIntervals(intervals: SkipIntervals) {
@@ -45,6 +47,10 @@ class FakePlatformPlayer : PlatformPlayer {
 
     override fun seekTo(positionMs: Long) {
         this.positionMs = positionMs
+    }
+
+    override fun setVolume(volume: Float) {
+        this.volume = volume
     }
 
     override fun setSpeed(speed: Float) {

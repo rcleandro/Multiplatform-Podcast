@@ -33,6 +33,9 @@ interface PlatformPlayer {
     fun seekTo(positionMs: Long)
     fun setSpeed(speed: Float)
 
+    /** 0..1 of the episode's own loudness; the sleep timer lowers it in its last minute (18.15). */
+    fun setVolume(volume: Float)
+
     /** Where the system shows the jumps (the iOS lock screen), the ones chosen in Settings; elsewhere nothing. */
     fun setSkipIntervals(intervals: SkipIntervals) = Unit
 }

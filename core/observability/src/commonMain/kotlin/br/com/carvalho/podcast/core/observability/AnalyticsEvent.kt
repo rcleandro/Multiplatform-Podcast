@@ -101,6 +101,9 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     class SetSleepTimer(minutes: Int?) :
         AnalyticsEvent("set_sleep_timer", mapOf("minutes" to (minutes ?: "end_of_episode")))
 
+    /** More time on a running sleep timer (18.15). */
+    class ExtendSleepTimer(minutes: Int) : AnalyticsEvent("extend_sleep_timer", mapOf("minutes" to minutes))
+
     data object CancelSleepTimer : AnalyticsEvent("cancel_sleep_timer")
 
     private companion object {

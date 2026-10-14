@@ -57,6 +57,9 @@ class PlaybackController(
 
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
+
+    /** What is left of a timer of minutes; extending it adds here, while it runs. */
+    private var sleepRemainingMs = 0L
     private var lastSavedPosition: Long? = null
 
     /** The speed saved with the session; a podcast with its own speed (18.14) plays at that one instead. */
@@ -168,21 +171,38 @@ class PlaybackController(
     override fun setSleepTimer(timer: SleepTimer?) {
         sleepTimerJob?.cancel()
         _playerState.update { it.copy(sleepTimer = timer, sleepTimerMillis = null) }
+        onMain { engine.setVolume(FULL_VOLUME) }
         if (timer !is SleepTimer.Minutes) return
+        sleepRemainingMs = timer.minutes.minutes.inWholeMilliseconds
         sleepTimerJob = scope.launch {
             // ponytail: counts down with delay() so tests drive it in virtual time; scheduling lag adds a few
             // milliseconds per tick (about 2 s over 30 min). Use a TimeSource if that ever matters.
-            var remaining = timer.minutes.minutes.inWholeMilliseconds
-            while (remaining > 0) {
-                _playerState.update { it.copy(sleepTimerMillis = remaining) }
-                val tick = minOf(AppConfig.SLEEP_TIMER_TICK_MS, remaining)
+            while (sleepRemainingMs > 0) {
+                showSleepRemaining()
+                val tick = minOf(AppConfig.SLEEP_TIMER_TICK_MS, sleepRemainingMs)
                 delay(tick)
-                remaining -= tick
+                sleepRemainingMs -= tick
             }
             AppLogger.i(TAG, "Sleep timer finished")
             _playerState.update { it.copy(sleepTimer = null, sleepTimerMillis = null) }
             pause()
+            // Paused first, so the next play is heard at full volume and nothing jumps back up before the pause.
+            onMain { engine.setVolume(FULL_VOLUME) }
         }
+    }
+
+    override fun extendSleepTimer(minutes: Int) {
+        if (_playerState.value.sleepTimer !is SleepTimer.Minutes || sleepRemainingMs <= 0) return
+        sleepRemainingMs += minutes.minutes.inWholeMilliseconds
+        showSleepRemaining()
+    }
+
+    /** The time left on screen, and the volume going down with it over the last minute (18.15). */
+    private fun showSleepRemaining() {
+        val remaining = sleepRemainingMs
+        _playerState.update { it.copy(sleepTimerMillis = remaining) }
+        val volume = (remaining.toFloat() / SLEEP_FADE_MS).coerceAtMost(FULL_VOLUME)
+        onMain { engine.setVolume(volume) }
     }
 
     private suspend fun onEvent(event: PlatformEvent) {
@@ -351,5 +371,9 @@ class PlaybackController(
     private companion object {
         /** How often the position shown on screen is refreshed while playing. */
         const val PROGRESS_TICK_MS = 500L
+
+        /** The sleep timer's last minute, over which the volume goes down to nothing. */
+        const val SLEEP_FADE_MS = 60_000L
+        const val FULL_VOLUME = 1f
     }
 }

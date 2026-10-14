@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.Forward10
 import androidx.compose.material.icons.rounded.Forward30
 import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.MoreTime
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.Replay30
 import androidx.compose.material.icons.rounded.Replay5
@@ -68,10 +69,13 @@ import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.skip_backward
 import br.com.carvalho.podcast.core.ui.generated.resources.skip_forward
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_extend
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_extend_short
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_short
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.presentation.format.formatSpeed
 import org.jetbrains.compose.resources.stringResource
 
@@ -88,6 +92,7 @@ data class PlayerActions(
     val onSpeedClick: () -> Unit = {},
     val onQueueClick: () -> Unit = {},
     val onSleepTimerClick: () -> Unit = {},
+    val onExtendSleepTimer: () -> Unit = {},
 )
 
 /** Stateless full-screen player. */
@@ -235,13 +240,24 @@ private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
             active = false,
             onClick = actions.onQueueClick,
         )
+        // While minutes run down, the button shows what is left and "+5 min" sits beside it (18.15).
+        val remaining = state.sleepTimerMillis?.takeIf { state.sleepTimer is SleepTimer.Minutes }
         AuxButton(
             icon = Icons.Rounded.Timer,
-            label = stringResource(Res.string.sleep_timer_short),
+            label = remaining?.let(::formatRemainingTime) ?: stringResource(Res.string.sleep_timer_short),
             description = stringResource(Res.string.sleep_timer),
             active = state.sleepTimer != null,
             onClick = actions.onSleepTimerClick,
         )
+        if (remaining != null) {
+            AuxButton(
+                icon = Icons.Rounded.MoreTime,
+                label = stringResource(Res.string.sleep_timer_extend_short),
+                description = stringResource(Res.string.sleep_timer_extend),
+                active = false,
+                onClick = actions.onExtendSleepTimer,
+            )
+        }
     }
 }
 

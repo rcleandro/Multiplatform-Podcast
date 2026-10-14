@@ -14,6 +14,7 @@ private const val TAG = "DesktopPlatformPlayer"
 class DesktopPlatformPlayer : PlatformPlayer {
     private var player: MediaPlayer? = null
     private var speed = 1f
+    private var volume = 1f
     private var listener: (PlatformEvent) -> Unit = {}
 
     override val positionMs: Long get() = player?.currentTime?.toMillis()?.toLong() ?: 0
@@ -42,6 +43,7 @@ class DesktopPlatformPlayer : PlatformPlayer {
             onReady = Runnable {
                 if (positionMs > 0) seek(Duration.millis(positionMs.toDouble()))
                 rate = speed.toDouble()
+                volume = this@DesktopPlatformPlayer.volume.toDouble()
                 listener(PlatformEvent.BufferingChanged(false))
                 if (playWhenReady) play()
             }
@@ -69,6 +71,11 @@ class DesktopPlatformPlayer : PlatformPlayer {
 
     override fun seekTo(positionMs: Long) {
         player?.seek(Duration.millis(positionMs.toDouble()))
+    }
+
+    override fun setVolume(volume: Float) {
+        this.volume = volume
+        player?.volume = volume.toDouble()
     }
 
     override fun setSpeed(speed: Float) {

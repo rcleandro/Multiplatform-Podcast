@@ -129,6 +129,8 @@
     <string name="seconds_short">%1$d s</string>
     <string name="skip_intro_description">Episódios não começados abrem depois da vinheta de abertura.</string>
     <string name="skip_outro_description">Esse tanto antes do fim já conta como fim, pulando o encerramento.</string>
+    <string name="sleep_timer_extend_short">+5 min</string>
+    <string name="sleep_timer_extend">Somar 5 minutos ao timer</string>
     <string name="filter_in_progress">Em andamento</string>
     <string name="episodes_tab">Episódios</string>
     <string name="in_progress_empty_title">Nada em andamento</string>
