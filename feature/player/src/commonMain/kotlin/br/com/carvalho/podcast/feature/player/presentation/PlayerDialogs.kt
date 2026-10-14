@@ -32,6 +32,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.timer_disabled
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_end_of_episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.SleepTimer
+import br.com.carvalho.podcast.presentation.format.formatSpeed
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -146,8 +147,5 @@ private fun formatRemainingTime(millis: Long?): String {
     val seconds = totalSeconds % SECONDS_PER_MINUTE
     return "$minutes:${seconds.toString().padStart(2, '0')}"
 }
-
-/** "1×", "1.5×", "0.8×": no trailing ".0". */
-internal fun formatSpeed(speed: Float): String = speed.toString().removeSuffix(".0") + "×"
 
 private const val SECONDS_PER_MINUTE = 60

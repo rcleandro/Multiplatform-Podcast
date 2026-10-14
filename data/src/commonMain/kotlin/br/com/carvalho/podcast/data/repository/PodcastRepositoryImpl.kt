@@ -16,6 +16,7 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -74,6 +75,9 @@ class PodcastRepositoryImpl(
                 oldestFirst = oldestFirst,
             )
         }
+
+    override suspend fun setPodcastPlayback(podcastId: String, playback: PodcastPlayback) =
+        podcastDao.setPlayback(podcastId, playback.speed, playback.skipIntroSeconds, playback.skipOutroSeconds)
 
     override suspend fun setEpisodeOrder(podcastId: String, oldestFirst: Boolean) =
         podcastDao.setOldestFirst(podcastId, oldestFirst)

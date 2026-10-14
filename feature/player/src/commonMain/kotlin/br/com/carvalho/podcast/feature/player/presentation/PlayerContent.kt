@@ -72,6 +72,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_short
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.presentation.format.formatSpeed
 import org.jetbrains.compose.resources.stringResource
 
 /** Everything the player can ask for; the screen wires these to the view model and its dialogs. */

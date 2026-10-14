@@ -12,6 +12,7 @@ import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
@@ -23,18 +24,18 @@ import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PodcastDetailViewModelTest {
@@ -253,6 +254,17 @@ class PodcastDetailViewModelTest {
         }
         assertEquals(listOf("one", "two"), repository.episodes.value.filter { it.isPlayed }.map { it.id })
         assertTrue(viewModel.uiState.value.selection.isEmpty())
+    }
+
+    @Test
+    fun `the podcast's playback settings reach the repository`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(samplePodcast)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.SetPlayback(PodcastPlayback(speed = 1.5f, skipIntroSeconds = 30)))
+
+        assertEquals(PodcastPlayback(speed = 1.5f, skipIntroSeconds = 30), repository.podcasts.value.single().playback)
+        assertEquals(PodcastPlayback(speed = 1.5f, skipIntroSeconds = 30), viewModel.uiState.value.podcast?.playback)
     }
 
     @Test

@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -59,6 +60,10 @@ class FakePodcastRepository : PodcastRepository {
             val newestFirst = matching.sortedByDescending { it.publishDate }
             PagingData.from(if (oldestFirst) newestFirst.reversed() else newestFirst)
         }
+
+    override suspend fun setPodcastPlayback(podcastId: String, playback: PodcastPlayback) {
+        podcasts.value = podcasts.value.map { if (it.id == podcastId) it.copy(playback = playback) else it }
+    }
 
     override suspend fun setEpisodeOrder(podcastId: String, oldestFirst: Boolean) {
         podcasts.value = podcasts.value.map { if (it.id == podcastId) it.copy(oldestFirst = oldestFirst) else it }

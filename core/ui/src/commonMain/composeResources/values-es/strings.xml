@@ -120,6 +120,15 @@
     <string name="opml_nothing_to_import">El archivo no tiene podcasts para importar</string>
     <string name="opml_exported">Guardado con %1$d podcasts</string>
     <string name="opml_export_failed">No se pudo guardar el archivo</string>
+    <string name="podcast_playback">Ajustes de reproducción</string>
+    <string name="podcast_playback_title">Cómo suena este podcast</string>
+    <string name="speed_general">La misma del reproductor</string>
+    <string name="skip_intro">Saltar el inicio</string>
+    <string name="skip_outro">Saltar el final</string>
+    <string name="skip_off">No</string>
+    <string name="seconds_short">%1$d s</string>
+    <string name="skip_intro_description">Los episodios no empezados abren después de la cortina de entrada.</string>
+    <string name="skip_outro_description">Ese tanto antes del final ya cuenta como final, saltando el cierre.</string>
     <string name="filter_in_progress">En curso</string>
     <string name="episodes_tab">Episodios</string>
     <string name="in_progress_empty_title">Nada en curso</string>
@@ -249,7 +258,6 @@
     <string name="settings_playback">Reproducción</string>
     <string name="settings_skip_backward">Retroceder</string>
     <string name="settings_skip_forward">Avanzar</string>
-    <string name="seconds_short">%1$d s</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_ios">Elegir en los Ajustes de iOS</string>
     <string name="language_english">English</string>

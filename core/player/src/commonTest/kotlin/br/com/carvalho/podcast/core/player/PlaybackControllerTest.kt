@@ -5,6 +5,8 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.repository.FakePlayerRepository
@@ -60,6 +62,64 @@ class PlaybackControllerTest {
         skipIntervals = skips,
         scope = backgroundScope,
     ).also { runCurrent() }
+
+    @Test
+    fun anEpisodeNotBegunSkipsItsPodcastsJingleAndAStartedOneResumes() = runTest(dispatcher) {
+        podcastRepository.podcasts.value = listOf(podcast(PodcastPlayback(skipIntroSeconds = 30)))
+        podcastRepository.episodes.value = listOf(first, second.copy(playbackPosition = START_MS))
+        val controller = controller()
+
+        controller.play(first)
+        runCurrent()
+        assertEquals(30_000L, engine.loadedAt)
+
+        controller.play(second)
+        runCurrent()
+        assertEquals(START_MS, engine.loadedAt)
+    }
+
+    @Test
+    fun theClosingCreditsEndTheEpisodeAndTheQueueMovesOn() = runTest(dispatcher) {
+        podcastRepository.podcasts.value = listOf(podcast(PodcastPlayback(skipOutroSeconds = 20)))
+        podcastRepository.episodes.value = listOf(first, second)
+        val controller = controller()
+        controller.setQueue(listOf(second))
+        controller.play(first)
+        engine.durationMs = 600_000L
+        engine.positionMs = 579_000L
+        advanceTimeBy(1_000)
+        runCurrent()
+        assertEquals("first", controller.playerState.value.currentEpisode?.id)
+
+        engine.positionMs = 581_000L
+        advanceTimeBy(1_000)
+        runCurrent()
+
+        assertEquals(listOf("first" to listOf("second")), finishedWith)
+        assertTrue(podcastRepository.episodes.value.first { it.id == "first" }.isPlayed)
+        assertEquals("second", engine.loaded?.id)
+    }
+
+    @Test
+    fun aPodcastsOwnSpeedPlaysItsEpisodesAndLeavesTheGeneralOneAlone() = runTest(dispatcher) {
+        podcastRepository.podcasts.value = listOf(podcast(PodcastPlayback(speed = 1.5f)))
+        val other = episode("other").copy(podcastId = "elsewhere")
+        val controller = controller()
+        controller.setSpeed(1.25f)
+        runCurrent()
+
+        controller.play(first)
+        runCurrent()
+        assertEquals(1.5f, engine.currentSpeed)
+        // Changed during this podcast's episode: that episode only.
+        controller.setSpeed(2f)
+        runCurrent()
+        controller.play(other)
+        runCurrent()
+
+        assertEquals(1.25f, engine.currentSpeed)
+        assertEquals(1.25f, controller.playerState.value.speed)
+    }
 
     @Test
     fun anEpisodeThatEndsIsHandedOnWithItsQueue() = runTest(dispatcher) {
@@ -317,6 +377,12 @@ class PlaybackControllerTest {
     private fun episode(id: String) = Episode(
         id = id, podcastId = "p1", title = id, description = null, audioUrl = "https://audio/$id", imageUrl = null,
         duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null
+    )
+
+    private fun podcast(playback: PodcastPlayback) = Podcast(
+        id = "p1", title = "P1", description = "", imageUrl = null, author = null, language = null,
+        categories = emptyList(), feedUrl = "p1", siteUrl = null, lastUpdated = 0, isSubscribed = true,
+        playback = playback,
     )
 
     private companion object {

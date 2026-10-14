@@ -54,6 +54,9 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     class ActOnEpisodes(action: String, count: Int) :
         AnalyticsEvent("act_on_episodes", mapOf("action" to action, "count" to count))
 
+    /** A podcast's own speed or skipped start and end changed (18.14). */
+    data object SetPodcastPlayback : AnalyticsEvent("set_podcast_playback")
+
     /** A podcast's episodes listed oldest or newest first (18.10). */
     class SetEpisodeOrder(oldestFirst: Boolean) :
         AnalyticsEvent("set_episode_order", mapOf("order" to if (oldestFirst) "oldest_first" else "newest_first"))

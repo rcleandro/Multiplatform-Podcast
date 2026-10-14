@@ -37,6 +37,12 @@ interface PodcastDao {
     @Query("DELETE FROM podcasts WHERE id = :id")
     suspend fun deleteById(id: String)
 
+    @Query(
+        "UPDATE podcasts SET playbackSpeed = :speed, skipIntroSeconds = :introSeconds, " +
+            "skipOutroSeconds = :outroSeconds WHERE id = :id"
+    )
+    suspend fun setPlayback(id: String, speed: Float?, introSeconds: Int, outroSeconds: Int)
+
     @Query("UPDATE podcasts SET oldestFirst = :oldestFirst WHERE id = :id")
     suspend fun setOldestFirst(id: String, oldestFirst: Boolean)
 

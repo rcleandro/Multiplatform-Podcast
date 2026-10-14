@@ -222,6 +222,18 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version17PlaysEveryPodcastTheGeneralWay() = runTest {
+        helper.createDatabase(PODCAST_PLAYBACK_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(PODCAST_PLAYBACK_VERSION, migrations).use { connection ->
+            assertEquals(
+                "1|0|0",
+                connection.text("SELECT (playbackSpeed IS NULL) || '|' || skipIntroSeconds || '|' || skipOutroSeconds FROM podcasts"),
+            )
+        }
+    }
+
     private fun SQLiteConnection.insertLibrary(queueJson: String? = "[]", episodeId: String = "e1") {
         execSQL(
             "INSERT INTO podcasts (id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, " +
@@ -258,7 +270,8 @@ class MigrationTest {
         const val SEASON_VERSION = 14
         const val SAVED_VERSION = 15
         const val HISTORY_VERSION = 16
-        const val CURRENT_VERSION = 16
+        const val PODCAST_PLAYBACK_VERSION = 17
+        const val CURRENT_VERSION = 17
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

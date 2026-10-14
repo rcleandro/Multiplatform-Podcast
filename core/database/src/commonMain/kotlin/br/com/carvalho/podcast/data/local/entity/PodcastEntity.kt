@@ -30,6 +30,10 @@ data class PodcastEntity(
     @ColumnInfo(defaultValue = "0") val serial: Boolean = false,
     /** The episode order the user chose, added in version 13; `null` follows [serial]. The feed never rewrites it. */
     val oldestFirst: Boolean? = null,
+    /** How this podcast plays (18.14), added in version 17; null speed follows the general one. */
+    val playbackSpeed: Float? = null,
+    @ColumnInfo(defaultValue = "0") val skipIntroSeconds: Int = 0,
+    @ColumnInfo(defaultValue = "0") val skipOutroSeconds: Int = 0,
 )
 
 /** The columns a feed owns: refreshing it updates these and keeps what the library set (subscribedAt, position). */

@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import kotlinx.coroutines.flow.Flow
 
 @Suppress("TooManyFunctions") // one function per library query or change
@@ -28,6 +29,9 @@ interface PodcastRepository {
         filter: EpisodeFilter,
         oldestFirst: Boolean = false,
     ): Flow<PagingData<Episode>>
+
+    /** How a podcast plays (18.14). */
+    suspend fun setPodcastPlayback(podcastId: String, playback: PodcastPlayback)
 
     /** The order the user chose for a podcast's episodes (18.10). */
     suspend fun setEpisodeOrder(podcastId: String, oldestFirst: Boolean)

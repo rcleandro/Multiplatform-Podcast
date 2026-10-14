@@ -98,6 +98,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
@@ -156,6 +157,7 @@ fun PodcastDetailScreen(
             onClearSelection = { viewModel.onIntent(PodcastDetailIntent.ClearSelection) },
             onActOnSelection = { viewModel.onIntent(PodcastDetailIntent.ActOnSelection(it)) },
             onSetSaved = { episode, saved -> viewModel.onIntent(PodcastDetailIntent.SetSaved(episode, saved)) },
+            onPlaybackChange = { viewModel.onIntent(PodcastDetailIntent.SetPlayback(it)) },
         ),
     )
 }
@@ -185,6 +187,8 @@ data class PodcastDetailActions(
     val onClearSelection: () -> Unit = {},
     val onActOnSelection: (EpisodeAction) -> Unit = {},
     val onSetSaved: (Episode, Boolean) -> Unit = { _, _ -> },
+    /** The podcast's own speed and skipped start and end (18.14). */
+    val onPlaybackChange: (PodcastPlayback) -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -215,6 +219,7 @@ fun PodcastDetailContent(
                     state.podcast?.title?.takeIf { headerGone },
                     canShare = state.podcast != null,
                     oldestFirst = state.oldestFirst,
+                    playback = state.podcast?.playback,
                     actions,
                 )
             }
@@ -254,6 +259,7 @@ private fun PodcastDetailTopBar(
     title: String?,
     canShare: Boolean,
     oldestFirst: Boolean,
+    playback: PodcastPlayback?,
     actions: PodcastDetailActions,
 ) {
     TopAppBar(
@@ -264,6 +270,7 @@ private fun PodcastDetailTopBar(
             }
         },
         actions = {
+            playback?.let { PlaybackButton(it, actions.onPlaybackChange) }
             OrderMenu(oldestFirst, actions.onOldestFirstChange)
             if (canShare) {
                 IconButton(onClick = actions.onShare) {

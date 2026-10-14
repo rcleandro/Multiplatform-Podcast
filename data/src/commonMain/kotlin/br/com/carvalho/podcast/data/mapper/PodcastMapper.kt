@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.data.mapper
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import kotlinx.serialization.json.Json
 
 fun PodcastEntity.toDomain(): Podcast = Podcast(
@@ -23,6 +24,7 @@ fun PodcastEntity.toDomain(): Podcast = Podcast(
     explicit = explicit,
     serial = serial,
     oldestFirst = oldestFirst,
+    playback = PodcastPlayback(playbackSpeed, skipIntroSeconds, skipOutroSeconds),
 )
 
 fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
@@ -44,4 +46,7 @@ fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
     explicit = explicit,
     serial = serial,
     oldestFirst = oldestFirst,
+    playbackSpeed = playback.speed,
+    skipIntroSeconds = playback.skipIntroSeconds,
+    skipOutroSeconds = playback.skipOutroSeconds,
 )

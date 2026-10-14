@@ -15,6 +15,7 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
@@ -99,6 +100,10 @@ class PodcastDetailViewModel(
             PodcastDetailIntent.Refresh -> refresh()
             is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
             is PodcastDetailIntent.SetOldestFirst -> setOldestFirst(intent.oldestFirst)
+            is PodcastDetailIntent.SetPlayback -> {
+                analytics.logEvent(AnalyticsEvent.SetPodcastPlayback)
+                viewModelScope.launch(dispatchers.io) { repository.setPodcastPlayback(podcastId, intent.playback) }
+            }
             is PodcastDetailIntent.Play -> play(intent.episode)
             is PodcastDetailIntent.Enqueue -> enqueue(intent.episode, intent.next)
             is PodcastDetailIntent.Download -> downloadEpisode(intent.episode)
@@ -241,6 +246,9 @@ sealed interface PodcastDetailIntent {
     data object Refresh : PodcastDetailIntent
     data class SetFilter(val filter: EpisodeFilter) : PodcastDetailIntent
     data class SetOldestFirst(val oldestFirst: Boolean) : PodcastDetailIntent
+
+    /** The podcast's own speed and skipped start and end (18.14). */
+    data class SetPlayback(val playback: PodcastPlayback) : PodcastDetailIntent
     data class Play(val episode: Episode) : PodcastDetailIntent
 
     /** "Play next" when [next], else "Add to queue" (18.6). */

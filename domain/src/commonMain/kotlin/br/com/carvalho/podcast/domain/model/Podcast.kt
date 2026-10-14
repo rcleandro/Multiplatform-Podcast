@@ -24,6 +24,7 @@ data class Podcast(
     val serial: Boolean = false,
     /** The order the user chose for the episodes; `null` follows the feed. */
     val oldestFirst: Boolean? = null,
+    val playback: PodcastPlayback = PodcastPlayback(),
 ) {
     /** Serial shows list their episodes oldest first unless the user chose otherwise. */
     val episodesOldestFirst: Boolean get() = oldestFirst ?: serial

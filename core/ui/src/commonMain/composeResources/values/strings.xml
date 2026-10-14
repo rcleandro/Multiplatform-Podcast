@@ -122,6 +122,15 @@
     <string name="opml_nothing_to_import">The file has no podcasts to import</string>
     <string name="opml_exported">Saved with %1$d podcasts</string>
     <string name="opml_export_failed">The file could not be saved</string>
+    <string name="podcast_playback">Playback settings</string>
+    <string name="podcast_playback_title">How this podcast plays</string>
+    <string name="speed_general">As set in the player</string>
+    <string name="skip_intro">Skip the start</string>
+    <string name="skip_outro">Skip the end</string>
+    <string name="skip_off">Off</string>
+    <string name="seconds_short">%1$d s</string>
+    <string name="skip_intro_description">Episodes not begun start this far in, past the opening jingle.</string>
+    <string name="skip_outro_description">This much before the end counts as the end, skipping the credits.</string>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>
@@ -250,7 +259,6 @@
     <string name="settings_playback">Playback</string>
     <string name="settings_skip_backward">Skip back</string>
     <string name="settings_skip_forward">Skip forward</string>
-    <string name="seconds_short">%1$d s</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_ios">Choose in iOS Settings</string>
     <string name="language_english">English</string>

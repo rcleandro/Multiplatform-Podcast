@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -38,7 +39,9 @@ import br.com.carvalho.podcast.core.ui.generated.resources.play
 import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
 import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.podcast_playback
 import br.com.carvalho.podcast.core.ui.generated.resources.season_number
+import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.core.ui.generated.resources.selected_count
 import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
@@ -47,12 +50,9 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.presentation.component.OlderMark
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -62,6 +62,10 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class PodcastDetailContentTest {
@@ -183,6 +187,32 @@ class PodcastDetailContentTest {
 
         assertEquals(EpisodeAction.MARK_PLAYED, acted)
         assertEquals(1, closed)
+    }
+
+    @Test
+    fun theBarOpensThePodcastsPlaybackSettings() = runComposeUiTest {
+        var changed: PodcastPlayback? = null
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(
+                        podcast = podcast().copy(playback = PodcastPlayback(speed = 1.5f)),
+                        isLoading = false,
+                    ),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onPlaybackChange = { changed = it }),
+                )
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.podcast_playback)).performClick()
+        onNode(isSelectable() and hasText("1.5×")).assertIsSelected()
+        onAllNodesWithText(text(Res.string.seconds_short, 30))[0].performClick()
+
+        // The first row of seconds is the start's; the podcast's speed stays.
+        assertEquals(PodcastPlayback(speed = 1.5f, skipIntroSeconds = 30), changed)
     }
 
     @Test
