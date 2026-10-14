@@ -333,7 +333,8 @@ private fun EpisodeList(
                 ),
                 selectedIndex = state.filter.ordinal,
                 onSelected = { actions.onFilterSelected(EpisodeFilter.entries[it]) },
-                modifier = Modifier.readableWidth().padding(horizontal = Spacing.l, vertical = Spacing.s),
+                modifier = Modifier.readableWidth().padding(vertical = Spacing.s),
+                contentPadding = PaddingValues(horizontal = Spacing.l),
             )
         }
         items(

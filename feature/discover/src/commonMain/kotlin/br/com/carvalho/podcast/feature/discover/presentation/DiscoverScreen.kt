@@ -315,7 +315,8 @@ private fun CategoryChips(selected: PodcastCategory?, onCategoryChange: (Podcast
         options = labeled.map { FilterOption(it.second) },
         selectedIndex = categories.indexOf(selected),
         onSelected = { index -> onCategoryChange(categories[index].takeIf { it != selected }) },
-        modifier = Modifier.readableWidth().padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
+        modifier = Modifier.readableWidth().padding(bottom = Spacing.s),
+        contentPadding = PaddingValues(horizontal = Spacing.l),
     )
 }
 

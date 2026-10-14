@@ -225,7 +225,8 @@ private fun SearchTopBar(
                 options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
                 selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
                 onSelected = { onFilterChange(filters[it].first) },
-                modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
+                modifier = Modifier.padding(bottom = Spacing.s),
+                contentPadding = PaddingValues(horizontal = Spacing.l),
             )
         }
     }
