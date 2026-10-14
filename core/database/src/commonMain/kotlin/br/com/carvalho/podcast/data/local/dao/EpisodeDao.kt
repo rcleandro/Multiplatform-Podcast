@@ -46,6 +46,7 @@ interface EpisodeDao {
         AND (:onlyInProgress = 0 OR (playbackPosition > 0 AND isPlayed = 0))
         AND (:onlyDownloaded = 0 OR isDownloaded = 1)
         AND (:onlyNew = 0 OR (isNew = 1 AND isPlayed = 0))
+        AND (:onlySaved = 0 OR isSaved = 1)
         ORDER BY publishDate DESC
     """
     )
@@ -54,6 +55,7 @@ interface EpisodeDao {
         onlyInProgress: Boolean = false,
         onlyDownloaded: Boolean = false,
         onlyNew: Boolean = false,
+        onlySaved: Boolean = false,
     ): PagingSource<Int, EpisodeEntity>
 
     @Query("SELECT * FROM episodes WHERE id = :id")
@@ -145,6 +147,9 @@ interface EpisodeDao {
 
     @Query("UPDATE episodes SET isNew = 1 WHERE id IN (:ids)")
     suspend fun markNew(ids: List<String>)
+
+    @Query("UPDATE episodes SET isSaved = :saved WHERE id = :id")
+    suspend fun setSaved(id: String, saved: Boolean)
 
     /** Out of "New" (18.7): dismissed, or started. */
     @Query("UPDATE episodes SET isNew = 0 WHERE id = :id")

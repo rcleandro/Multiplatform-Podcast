@@ -54,6 +54,9 @@ interface PodcastRepository {
     /** Back to not played, from the start. */
     suspend fun markEpisodeAsUnplayed(id: String)
 
+    /** Into "Saved", or out of it (18.12). */
+    suspend fun setEpisodeSaved(id: String, saved: Boolean)
+
     /** Saves a podcast and its episodes all at once: if any of it fails, nothing is saved. */
     suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>)
     suspend fun deletePodcast(id: String)

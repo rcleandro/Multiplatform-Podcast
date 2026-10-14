@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.Inbox
@@ -71,11 +72,14 @@ import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_new
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_saved
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.no_downloads
+import br.com.carvalho.podcast.core.ui.generated.resources.saved_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.saved_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
@@ -146,6 +150,7 @@ fun SearchScreen(
             onToggleSelection = { viewModel.onIntent(SearchIntent.ToggleSelection(it)) },
             onClearSelection = { viewModel.onIntent(SearchIntent.ClearSelection) },
             onActOnSelection = { viewModel.onIntent(SearchIntent.ActOnSelection(it)) },
+            onSetSaved = { episode, saved -> viewModel.onIntent(SearchIntent.SetSaved(episode, saved)) },
         ),
         snackbarHostState = snackbarHostState,
     )
@@ -175,6 +180,7 @@ data class SearchActions(
     val onToggleSelection: (Episode) -> Unit = {},
     val onClearSelection: () -> Unit = {},
     val onActOnSelection: (EpisodeAction) -> Unit = {},
+    val onSetSaved: (Episode, Boolean) -> Unit = { _, _ -> },
 )
 
 /** The fixed "Episodes" title over the search field and filters, which collapse with [scrollState]. */
@@ -294,6 +300,7 @@ private val filters = listOfNotNull(
     EpisodeListFilter.NEW to Res.string.filter_new,
     EpisodeListFilter.ALL to Res.string.filter_all,
     EpisodeListFilter.IN_PROGRESS to Res.string.filter_in_progress,
+    EpisodeListFilter.SAVED to Res.string.filter_saved,
     (EpisodeListFilter.DOWNLOADED to Res.string.filter_downloaded).takeIf { supportsDownloads },
 )
 
@@ -311,6 +318,12 @@ private fun EmptyFilter(state: SearchUiState, modifier: Modifier) {
             icon = Icons.Rounded.Inbox,
             title = stringResource(Res.string.new_empty_title),
             message = stringResource(Res.string.new_empty_message),
+            modifier = modifier,
+        )
+        state.filter == EpisodeListFilter.SAVED -> EmptyState(
+            icon = Icons.Rounded.BookmarkBorder,
+            title = stringResource(Res.string.saved_empty_title),
+            message = stringResource(Res.string.saved_empty_message),
             modifier = modifier,
         )
         state.filter == EpisodeListFilter.IN_PROGRESS -> EmptyState(
@@ -456,6 +469,7 @@ private fun EpisodeRowAt(
             onMarkOlderUnplayed = { actions.onRequestMarkOlder(OlderMark(episode, played = false)) },
             onGoToPodcast = { actions.onPodcastClick(episode) },
             onSelect = { actions.onToggleSelection(episode) },
+            onToggleSaved = { actions.onSetSaved(episode, !episode.isSaved) },
             selecting = selection.isNotEmpty(),
             selected = selection.any { it.id == episode.id },
         )

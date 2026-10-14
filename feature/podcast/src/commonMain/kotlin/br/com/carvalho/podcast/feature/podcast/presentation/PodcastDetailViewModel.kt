@@ -95,6 +95,7 @@ class PodcastDetailViewModel(
                 _uiState.update { it.copy(selection = it.selection.toggled(intent.episode)) }
             PodcastDetailIntent.ClearSelection -> _uiState.update { it.copy(selection = emptyList()) }
             is PodcastDetailIntent.ActOnSelection -> actOnSelection(intent.action)
+            is PodcastDetailIntent.SetSaved -> setSaved(intent.episode, intent.saved)
             PodcastDetailIntent.Refresh -> refresh()
             is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
             is PodcastDetailIntent.SetOldestFirst -> setOldestFirst(intent.oldestFirst)
@@ -135,6 +136,11 @@ class PodcastDetailViewModel(
     private fun setOldestFirst(oldestFirst: Boolean) {
         analytics.logEvent(AnalyticsEvent.SetEpisodeOrder(oldestFirst))
         viewModelScope.launch(dispatchers.io) { repository.setEpisodeOrder(podcastId, oldestFirst) }
+    }
+
+    private fun setSaved(episode: Episode, saved: Boolean) {
+        analytics.logEvent(AnalyticsEvent.SaveEpisode(saved))
+        viewModelScope.launch(dispatchers.io) { repository.setEpisodeSaved(episode.id, saved) }
     }
 
     private fun actOnSelection(action: EpisodeAction) {
@@ -231,6 +237,7 @@ sealed interface PodcastDetailIntent {
     data class ToggleSelection(val episode: Episode) : PodcastDetailIntent
     data object ClearSelection : PodcastDetailIntent
     data class ActOnSelection(val action: EpisodeAction) : PodcastDetailIntent
+    data class SetSaved(val episode: Episode, val saved: Boolean) : PodcastDetailIntent
     data object Refresh : PodcastDetailIntent
     data class SetFilter(val filter: EpisodeFilter) : PodcastDetailIntent
     data class SetOldestFirst(val oldestFirst: Boolean) : PodcastDetailIntent

@@ -91,6 +91,7 @@ class PodcastRepositoryImpl(
                 onlyInProgress = filter == EpisodeListFilter.IN_PROGRESS,
                 onlyDownloaded = filter == EpisodeListFilter.DOWNLOADED,
                 onlyNew = filter == EpisodeListFilter.NEW,
+                onlySaved = filter == EpisodeListFilter.SAVED,
             )
         }
 
@@ -98,6 +99,8 @@ class PodcastRepositoryImpl(
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = source)
             .flow
             .map { page -> page.map { it.toDomain() } }
+
+    override suspend fun setEpisodeSaved(id: String, saved: Boolean) = episodeDao.setSaved(id, saved)
 
     override fun getDownloadedEpisodes(): Flow<List<Episode>> {
         return episodeDao.getDownloaded().map { entities ->

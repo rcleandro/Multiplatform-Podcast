@@ -102,6 +102,11 @@
     <string name="bulk_downloading">Downloading: %1$d</string>
     <string name="bulk_played">Marked as played: %1$d</string>
     <string name="bulk_unplayed">Marked as unplayed: %1$d</string>
+    <string name="filter_saved">Saved</string>
+    <string name="save_episode">Save episode</string>
+    <string name="unsave_episode">Remove from saved</string>
+    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_message">Save an episode from its ⋮ menu to hear it later.</string>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

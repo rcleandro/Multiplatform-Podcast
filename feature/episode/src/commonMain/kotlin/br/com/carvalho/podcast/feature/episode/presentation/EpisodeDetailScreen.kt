@@ -18,6 +18,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Delete
@@ -83,8 +85,10 @@ import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
 import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.resume_remaining
+import br.com.carvalho.podcast.core.ui.generated.resources.save_episode
 import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
+import br.com.carvalho.podcast.core.ui.generated.resources.unsave_episode
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.model.Episode
@@ -120,6 +124,7 @@ fun EpisodeDetailScreen(
             onPlayPause = { viewModel.onIntent(EpisodeDetailIntent.PlayPause) },
             onRetry = { viewModel.onIntent(EpisodeDetailIntent.Retry) },
             onEnqueue = { viewModel.onIntent(EpisodeDetailIntent.Enqueue(next = it)) },
+            onSetSaved = { viewModel.onIntent(EpisodeDetailIntent.SetSaved(it)) },
             onDownload = { viewModel.onIntent(EpisodeDetailIntent.Download) },
             onCancelDownload = { viewModel.onIntent(EpisodeDetailIntent.CancelDownload) },
             onDeleteDownload = { viewModel.onIntent(EpisodeDetailIntent.DeleteDownload) },
@@ -136,6 +141,7 @@ data class EpisodeDetailActions(
     val onRetry: () -> Unit = {},
     /** "Play next" when true, else "Add to queue" (18.6). */
     val onEnqueue: (Boolean) -> Unit = {},
+    val onSetSaved: (Boolean) -> Unit = {},
     val onDownload: () -> Unit = {},
     val onCancelDownload: () -> Unit = {},
     val onDeleteDownload: () -> Unit = {},
@@ -165,6 +171,7 @@ fun EpisodeDetailContent(
                     }
                 },
                 actions = {
+                    state.episode?.let { episode -> SaveButton(episode.isSaved, actions.onSetSaved) }
                     if (state.episode != null) {
                         IconButton(onClick = actions.onShare) {
                             Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
@@ -292,6 +299,17 @@ private fun PlayPauseButton(episode: Episode, state: EpisodeDetailUiState, onCli
         Icon(if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null)
         Spacer(modifier = Modifier.width(Spacing.s))
         Text(label)
+    }
+}
+
+/** Puts the episode into "Saved" or takes it out (18.12); filled while saved. */
+@Composable
+private fun SaveButton(saved: Boolean, onSetSaved: (Boolean) -> Unit) {
+    IconButton(onClick = { onSetSaved(!saved) }) {
+        Icon(
+            if (saved) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
+            contentDescription = stringResource(if (saved) Res.string.unsave_episode else Res.string.save_episode),
+        )
     }
 }
 

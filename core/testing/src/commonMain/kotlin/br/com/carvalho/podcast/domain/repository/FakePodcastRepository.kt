@@ -116,6 +116,10 @@ class FakePodcastRepository : PodcastRepository {
         }
     }
 
+    override suspend fun setEpisodeSaved(id: String, saved: Boolean) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isSaved = saved) else it }
+    }
+
     override suspend fun markEpisodeAsUnplayed(id: String) {
         episodes.value = episodes.value.map {
             if (it.id == id) it.copy(isPlayed = false, playbackPosition = 0) else it

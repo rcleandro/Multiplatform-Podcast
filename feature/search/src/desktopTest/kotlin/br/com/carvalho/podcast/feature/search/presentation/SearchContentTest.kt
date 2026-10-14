@@ -1,83 +1,85 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
-import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.onAllNodesWithText
-import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_title
-import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_all_new
-import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_new
-import br.com.carvalho.podcast.core.ui.generated.resources.filter_new
-import br.com.carvalho.podcast.core.designsystem.Sizes
-import androidx.compose.ui.test.v2.runDesktopComposeUiTest
-import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
-import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
-import androidx.compose.ui.test.assertIsNotDisplayed
-import androidx.compose.ui.test.swipeDown
-import androidx.compose.ui.test.swipeUp
-import androidx.compose.ui.test.performTouchInput
-import br.com.carvalho.podcast.core.ui.generated.resources.go_to_podcast
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
-import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
-import androidx.compose.ui.test.onNodeWithContentDescription
-import br.com.carvalho.podcast.presentation.component.OlderMark
-import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasScrollToIndexAction
-import androidx.compose.ui.test.hasAnyDescendant
-import androidx.compose.ui.test.performScrollToIndex
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.test.waitUntilExactlyOneExists
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.v2.runComposeUiTest
-import androidx.paging.PagingData
-import androidx.paging.compose.collectAsLazyPagingItems
-import br.com.carvalho.podcast.core.designsystem.PodcastTheme
-import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
-import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.model.EpisodeListFilter
-import br.com.carvalho.podcast.domain.model.PlayerState
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import br.com.carvalho.podcast.core.util.getCurrentTimestamp
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.minutes
-import androidx.compose.ui.test.isHeading
-import androidx.compose.ui.test.isSelected
-import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_24_hours
-import br.com.carvalho.podcast.core.ui.generated.resources.date_group_older
-import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_30_days
-import kotlin.test.Test
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isHeading
+import androidx.compose.ui.test.isSelected
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.compose.ui.unit.dp
-import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import androidx.paging.compose.collectAsLazyPagingItems
+import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
+import br.com.carvalho.podcast.core.designsystem.PodcastTheme
+import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_24_hours
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_30_days
+import br.com.carvalho.podcast.core.ui.generated.resources.date_group_older
+import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_all_new
+import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_new
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_new
+import br.com.carvalho.podcast.core.ui.generated.resources.go_to_podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_title
+import br.com.carvalho.podcast.core.ui.generated.resources.save_episode
+import br.com.carvalho.podcast.core.ui.generated.resources.saved_empty_title
+import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.presentation.component.OlderMark
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 
 @OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class SearchContentTest {
@@ -209,6 +211,49 @@ class SearchContentTest {
         onNodeWithText(text(Res.string.dismiss_all_new)).performClick()
 
         assertEquals(listOf("e1", null), dismissed)
+    }
+
+    @Test
+    fun anEpisodeIsSavedFromItsMenu() = runComposeUiTest {
+        val episode = Episode(
+            id = "e1", podcastId = "p", title = "Episode", description = null, audioUrl = "a", imageUrl = null,
+            duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null
+        )
+        var saved: Pair<Episode, Boolean>? = null
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(filter = EpisodeListFilter.SAVED),
+                    results = flowOf(PagingData.from(listOf(episode))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(onSetSaved = { e, s -> saved = e to s }),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Episode"))
+
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.save_episode)).performClick()
+        assertEquals(episode to true, saved)
+    }
+
+    @Test
+    fun anEmptySavedSaysHowToFillIt() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(filter = EpisodeListFilter.SAVED),
+                    results = Pager(PagingConfig(pageSize = 10)) { ListPagingSource(emptyList<Episode>()) }.flow
+                        .collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(),
+                )
+            }
+        }
+
+        waitUntilExactlyOneExists(hasText(text(Res.string.saved_empty_title)))
     }
 
     @Test

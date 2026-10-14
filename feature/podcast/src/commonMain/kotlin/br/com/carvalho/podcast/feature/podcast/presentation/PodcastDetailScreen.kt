@@ -155,6 +155,7 @@ fun PodcastDetailScreen(
             onToggleSelection = { viewModel.onIntent(PodcastDetailIntent.ToggleSelection(it)) },
             onClearSelection = { viewModel.onIntent(PodcastDetailIntent.ClearSelection) },
             onActOnSelection = { viewModel.onIntent(PodcastDetailIntent.ActOnSelection(it)) },
+            onSetSaved = { episode, saved -> viewModel.onIntent(PodcastDetailIntent.SetSaved(episode, saved)) },
         ),
     )
 }
@@ -183,6 +184,7 @@ data class PodcastDetailActions(
     val onToggleSelection: (Episode) -> Unit = {},
     val onClearSelection: () -> Unit = {},
     val onActOnSelection: (EpisodeAction) -> Unit = {},
+    val onSetSaved: (Episode, Boolean) -> Unit = { _, _ -> },
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -360,6 +362,7 @@ private fun EpisodeList(
                     onCancelDownloadClick = { actions.onCancelDownload(episode) },
                     onDeleteClick = { actions.onRemoveDownload(episode) },
                     onSelect = { actions.onToggleSelection(episode) },
+                    onToggleSaved = { actions.onSetSaved(episode, !episode.isSaved) },
                     selecting = state.selection.isNotEmpty(),
                     selected = state.selection.any { it.id == episode.id },
                 )

@@ -153,6 +153,18 @@ class SearchViewModelTest {
         assertEquals(emptyList(), viewModel.uiState.value.selection)
     }
 
+    @Test
+    fun `saving an episode reaches the repository and so does taking it out`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(episode("e1", 1))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(SearchIntent.SetSaved(episode("e1", 1), saved = true))
+        assertEquals(true, repository.episodes.value.single().isSaved)
+
+        viewModel.onIntent(SearchIntent.SetSaved(episode("e1", 1), saved = false))
+        assertEquals(false, repository.episodes.value.single().isSaved)
+    }
+
     private fun episode(id: String, publishDate: Long, podcastId: String = "p1") = Episode(
         id = id, podcastId = podcastId, title = id, description = null, audioUrl = "a", imageUrl = null,
         duration = 0, publishDate = publishDate, isPlayed = true, playbackPosition = 0, isDownloaded = false,

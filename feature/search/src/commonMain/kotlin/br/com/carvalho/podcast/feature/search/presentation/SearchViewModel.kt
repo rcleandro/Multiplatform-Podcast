@@ -50,7 +50,8 @@ import kotlinx.coroutines.launch
 private const val TAG = "SearchViewModel"
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-@Suppress("LongParameterList") // one dependency per thing the tab does (list, download, play, offline start)
+// One dependency per thing the tab does (list, download, play, offline start), one function per intent.
+@Suppress("LongParameterList", "TooManyFunctions")
 class SearchViewModel(
     private val repository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
@@ -104,6 +105,7 @@ class SearchViewModel(
                 _uiState.update { it.copy(selection = it.selection.toggled(intent.episode)) }
             SearchIntent.ClearSelection -> _uiState.update { it.copy(selection = emptyList()) }
             is SearchIntent.ActOnSelection -> actOnSelection(intent.action)
+            is SearchIntent.SetSaved -> setSaved(intent.episode, intent.saved)
             is SearchIntent.ChangeQuery -> _uiState.update { it.copy(searchQuery = intent.query) }
             is SearchIntent.ChangeFilter -> _uiState.update { it.copy(filter = intent.filter) }
             SearchIntent.Refresh -> _refreshTrigger.value += 1
@@ -147,6 +149,11 @@ class SearchViewModel(
                 repository.markOlderEpisodesAsUnplayed(episode.podcastId, episode.publishDate)
             }
         }
+    }
+
+    private fun setSaved(episode: Episode, saved: Boolean) {
+        analytics.logEvent(AnalyticsEvent.SaveEpisode(saved))
+        viewModelScope.launch(dispatchers.io) { repository.setEpisodeSaved(episode.id, saved) }
     }
 
     private fun actOnSelection(action: EpisodeAction) {
@@ -210,6 +217,7 @@ sealed interface SearchIntent {
     data class ToggleSelection(val episode: Episode) : SearchIntent
     data object ClearSelection : SearchIntent
     data class ActOnSelection(val action: EpisodeAction) : SearchIntent
+    data class SetSaved(val episode: Episode, val saved: Boolean) : SearchIntent
     data class ChangeQuery(val query: String) : SearchIntent
     data class ChangeFilter(val filter: EpisodeListFilter) : SearchIntent
     data object Refresh : SearchIntent

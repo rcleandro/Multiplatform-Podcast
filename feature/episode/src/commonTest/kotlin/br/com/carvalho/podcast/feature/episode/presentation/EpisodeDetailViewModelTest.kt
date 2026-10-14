@@ -78,6 +78,17 @@ class EpisodeDetailViewModelTest {
     }
 
     @Test
+    fun `the save button saves the episode and shows it saved`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(EpisodeDetailIntent.SetSaved(saved = true))
+
+        assertEquals(true, viewModel.uiState.value.episode?.isSaved)
+        assertEquals(true, repository.episodes.value.single().isSaved)
+    }
+
+    @Test
     fun `the download button follows the download`() = runTest(testDispatcher) {
         repository.episodes.value = listOf(sampleEpisode)
         val viewModel = createViewModel()

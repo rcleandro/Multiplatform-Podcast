@@ -27,8 +27,13 @@ class FakeEpisodeDao : EpisodeDao {
         onlyInProgress: Boolean,
         onlyDownloaded: Boolean,
         onlyNew: Boolean,
+        onlySaved: Boolean,
     ): PagingSource<Int, EpisodeEntity> =
         throw NotImplementedError("Paging is tested against the real database")
+
+    override suspend fun setSaved(id: String, saved: Boolean) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isSaved = saved) else it }
+    }
 
     override suspend fun idsOf(podcastId: String): List<String> =
         episodes.value.filter { it.podcastId == podcastId }.map { it.id }

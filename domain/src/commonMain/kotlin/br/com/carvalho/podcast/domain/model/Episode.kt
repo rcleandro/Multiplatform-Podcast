@@ -24,4 +24,6 @@ data class Episode(
     /** `itunes:season`, for the season headers of the podcast's list (18.10). */
     val season: Int? = null,
     val type: EpisodeType = EpisodeType.FULL,
+    /** Kept in "Saved" until the user takes it out (18.12). */
+    val isSaved: Boolean = false,
 )

@@ -74,6 +74,11 @@ class EpisodeDetailViewModel(
                 repository.markEpisodeAsPlayed(it.id)
                 reload()
             }
+            is EpisodeDetailIntent.SetSaved -> withEpisode {
+                analytics.logEvent(AnalyticsEvent.SaveEpisode(intent.saved))
+                repository.setEpisodeSaved(it.id, intent.saved)
+                reload()
+            }
             EpisodeDetailIntent.MarkUnplayed -> withEpisode {
                 repository.markEpisodeAsUnplayed(it.id)
                 reload()
@@ -141,4 +146,7 @@ sealed interface EpisodeDetailIntent {
     data object DeleteDownload : EpisodeDetailIntent
     data object MarkPlayed : EpisodeDetailIntent
     data object MarkUnplayed : EpisodeDetailIntent
+
+    /** Into "Saved", or out of it (18.12). */
+    data class SetSaved(val saved: Boolean) : EpisodeDetailIntent
 }

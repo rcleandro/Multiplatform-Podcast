@@ -46,4 +46,6 @@ data class EpisodeEntity(
     /** `itunes:season` and `itunes:episodeType` (`trailer`, `bonus`; null for a regular one), added in version 14. */
     val season: Int? = null,
     val episodeType: String? = null,
+    /** In "Saved" (18.12), added in version 15; the feed never rewrites it. */
+    @ColumnInfo(defaultValue = "0") val isSaved: Boolean = false,
 )

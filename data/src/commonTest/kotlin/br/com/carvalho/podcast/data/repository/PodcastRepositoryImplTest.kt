@@ -1,27 +1,27 @@
 package br.com.carvalho.podcast.data.repository
 
+import androidx.paging.PagingSource
+import androidx.paging.testing.asSnapshot
 import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.local.createInMemoryDatabase
-import br.com.carvalho.podcast.data.local.isDatabaseSupported
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.data.local.isDatabaseSupported
 import br.com.carvalho.podcast.data.mapper.toDomain
+import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
-import androidx.paging.testing.asSnapshot
-import br.com.carvalho.podcast.domain.model.EpisodeFilter
-import br.com.carvalho.podcast.domain.model.EpisodeType
-import br.com.carvalho.podcast.domain.model.EpisodeListFilter
-import androidx.paging.PagingSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -368,6 +368,22 @@ class PodcastRepositoryImplTest {
         assertEquals(true, repository.getPodcastById(podcastId)?.oldestFirst)
         val shown = repository.getEpisodesPaged(podcastId, EpisodeFilter.ALL, oldestFirst = true).asSnapshot()
         assertEquals(listOf("e1", "e2", "e3"), shown.map { it.id })
+    }
+
+    @Test
+    fun `a saved episode shows under Saved and stays saved through a refresh`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = podcastEntity.toDomain()
+        val episodes = (1..3).map { episodeEntity.copy(id = "e$it", publishDate = it.toLong()).toDomain() }
+        repository.saveFeed(podcast, episodes)
+
+        repository.setEpisodeSaved("e2", saved = true)
+        repository.saveFeed(podcast, episodes)
+
+        val saved = repository.searchEpisodesPaged(null, EpisodeListFilter.SAVED).asSnapshot()
+        assertEquals(listOf("e2"), saved.map { it.id })
+        repository.setEpisodeSaved("e2", saved = false)
+        assertEquals(emptyList(), repository.searchEpisodesPaged(null, EpisodeListFilter.SAVED).asSnapshot())
     }
 
     @Test

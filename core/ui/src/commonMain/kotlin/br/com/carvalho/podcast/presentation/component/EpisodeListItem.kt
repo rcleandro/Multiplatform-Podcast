@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.rounded.BookmarkAdd
+import androidx.compose.material.icons.rounded.BookmarkRemove
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
@@ -56,7 +58,9 @@ import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
 import br.com.carvalho.podcast.core.ui.generated.resources.remove_from_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.retry_download
+import br.com.carvalho.podcast.core.ui.generated.resources.save_episode
 import br.com.carvalho.podcast.core.ui.generated.resources.select
+import br.com.carvalho.podcast.core.ui.generated.resources.unsave_episode
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -102,6 +106,7 @@ fun EpisodeListItem(
     onAddToQueue: (() -> Unit)? = null,
     onDismissNew: (() -> Unit)? = null,
     onSelect: (() -> Unit)? = null,
+    onToggleSaved: (() -> Unit)? = null,
     selecting: Boolean = false,
     selected: Boolean = false,
 ) {
@@ -135,6 +140,11 @@ fun EpisodeListItem(
             Icons.Rounded.RemoveCircleOutline,
             onMarkUnplayed.takeIf { episode.isPlayed },
         ),
+        if (episode.isSaved) {
+            optionalAction(Res.string.unsave_episode, Icons.Rounded.BookmarkRemove, onToggleSaved)
+        } else {
+            optionalAction(Res.string.save_episode, Icons.Rounded.BookmarkAdd, onToggleSaved)
+        },
         optionalAction(Res.string.mark_older_as_played, Icons.Rounded.DoneAll, onMarkOlderPlayed),
         optionalAction(Res.string.mark_older_as_unplayed, Icons.Rounded.RemoveDone, onMarkOlderUnplayed),
         optionalAction(Res.string.dismiss_new, Icons.Rounded.VisibilityOff, onDismissNew),
