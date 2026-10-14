@@ -1,0 +1,55 @@
+# 18.14–18.18: a podcast's own settings (skip its jingle), the sleep timer's "+5 min", and the Android-only switches
+# in Settings. Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/playback-settings.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Planet Money"
+# This podcast skips 30 s at the start: an episode not begun opens past them.
+- tapOn: "Ajustes de reprodução"
+- assertVisible: "Este podcast"
+- assertVisible: "Avisar episódios novos"
+- tapOn:
+    text: "30 s"
+    index: 0
+- back
+- tapOn: "Mais recente"
+# The mini player's subtitle, below the podcast's own name in the header.
+- tapOn:
+    text: "Planet Money"
+    index: 1
+- extendedWaitUntil:
+    visible: "OUVINDO AGORA"
+    timeout: 10000
+- assertVisible: "0:3[0-9]"
+# The sleep timer counts down on its button and "+5 min" adds to it.
+- tapOn: "Timer para dormir"
+- tapOn: "5 minutos"
+- assertVisible: "4:[0-9]{2}"
+- tapOn: "Somar 5 minutos ao timer"
+- assertVisible: "9:[0-9]{2}"
+- tapOn: "Timer para dormir"
+- tapOn: "Desativado"
+- tapOn: "Pausar"
+# Settings show what only Android does: background updates with their notification, silences and voices.
+- back
+- back
+- tapOn: "Biblioteca"
+- tapOn: "Configurações"
+- assertVisible: "A cada 6 horas"
+- assertVisible: "Avisar episódios novos"
+- scrollUntilVisible:
+    element: "Realçar vozes"
+- assertVisible: "Pular silêncios"
