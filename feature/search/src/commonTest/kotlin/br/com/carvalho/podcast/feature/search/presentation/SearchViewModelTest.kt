@@ -1,34 +1,37 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
-import br.com.carvalho.podcast.core.ui.generated.resources.queued_last
-import br.com.carvalho.podcast.presentation.component.OlderMark
-import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import app.cash.turbine.test
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.error_storage_full
+import br.com.carvalho.podcast.core.ui.generated.resources.bulk_queued
 import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
-import br.com.carvalho.podcast.domain.model.EpisodeListFilter
-import br.com.carvalho.podcast.domain.download.DownloadStatus
-import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
-import br.com.carvalho.podcast.presentation.UiMessage
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
-import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.core.ui.generated.resources.error_storage_full
+import br.com.carvalho.podcast.core.ui.generated.resources.queued_last
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.util.FakeNetworkMonitor
+import br.com.carvalho.podcast.domain.download.DownloadStatus
+import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
+import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.presentation.component.OlderMark
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
-import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
@@ -52,6 +55,7 @@ class SearchViewModelTest {
 
     private fun createViewModel() = SearchViewModel(
         repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer),
+        ActOnEpisodesUseCase(repository, episodeDownloader, EnqueueEpisodeUseCase(audioPlayer)),
         networkMonitor, dispatchers, FakeAnalytics()
     )
 
@@ -129,6 +133,25 @@ class SearchViewModelTest {
                 repository.episodes.value.associate { it.id to it.isPlayed },
             )
         }
+
+    @Test
+    fun `the selected episodes go to the queue together and the selection closes`() = runTest(testDispatcher) {
+        audioPlayer.play(episode("playing", 0))
+        val viewModel = createViewModel()
+        val one = episode("one", 1)
+        val two = episode("two", 2)
+
+        viewModel.onIntent(SearchIntent.ToggleSelection(two))
+        viewModel.onIntent(SearchIntent.ToggleSelection(one))
+        viewModel.messages.test {
+            viewModel.onIntent(SearchIntent.ActOnSelection(EpisodeAction.ADD_TO_QUEUE))
+            assertEquals(UiMessage(Res.string.bulk_queued, listOf(2)), awaitItem())
+        }
+
+        // In the order chosen.
+        assertEquals(listOf("two", "one"), audioPlayer.playerState.value.queue.map { it.id })
+        assertEquals(emptyList(), viewModel.uiState.value.selection)
+    }
 
     private fun episode(id: String, publishDate: Long, podcastId: String = "p1") = Episode(
         id = id, podcastId = podcastId, title = id, description = null, audioUrl = "a", imageUrl = null,

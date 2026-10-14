@@ -17,11 +17,15 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.component.message
+import br.com.carvalho.podcast.presentation.component.toggled
 import br.com.carvalho.podcast.presentation.failureMessages
 import br.com.carvalho.podcast.presentation.message
 import br.com.carvalho.podcast.presentation.toMessage
@@ -51,6 +55,7 @@ class PodcastDetailViewModel(
     audioPlayer: AudioPlayer,
     private val playEpisode: PlayEpisodeUseCase,
     private val enqueueEpisode: EnqueueEpisodeUseCase,
+    private val actOnEpisodes: ActOnEpisodesUseCase,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
     private val episodeDownloader: EpisodeDownloader,
     private val repository: PodcastRepository,
@@ -86,6 +91,10 @@ class PodcastDetailViewModel(
     @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: PodcastDetailIntent) {
         when (intent) {
+            is PodcastDetailIntent.ToggleSelection ->
+                _uiState.update { it.copy(selection = it.selection.toggled(intent.episode)) }
+            PodcastDetailIntent.ClearSelection -> _uiState.update { it.copy(selection = emptyList()) }
+            is PodcastDetailIntent.ActOnSelection -> actOnSelection(intent.action)
             PodcastDetailIntent.Refresh -> refresh()
             is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
             is PodcastDetailIntent.SetOldestFirst -> setOldestFirst(intent.oldestFirst)
@@ -126,6 +135,16 @@ class PodcastDetailViewModel(
     private fun setOldestFirst(oldestFirst: Boolean) {
         analytics.logEvent(AnalyticsEvent.SetEpisodeOrder(oldestFirst))
         viewModelScope.launch(dispatchers.io) { repository.setEpisodeOrder(podcastId, oldestFirst) }
+    }
+
+    private fun actOnSelection(action: EpisodeAction) {
+        val episodes = _uiState.value.selection
+        _uiState.update { it.copy(selection = emptyList()) }
+        analytics.logEvent(AnalyticsEvent.ActOnEpisodes(action.name, episodes.size))
+        viewModelScope.launch(dispatchers.io) {
+            actOnEpisodes(episodes, action)
+            _messages.send(action.message(episodes.size))
+        }
     }
 
     private fun enqueue(episode: Episode, next: Boolean) = viewModelScope.launch(dispatchers.io) {
@@ -200,12 +219,18 @@ data class PodcastDetailUiState(
     val deleteEpisodeConfirmation: Episode? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
+    /** The episodes chosen to act on together, in the order chosen; empty when not selecting (18.11). */
+    val selection: List<Episode> = emptyList(),
 ) {
     /** Before the podcast loads, newest first, as most shows want. */
     val oldestFirst: Boolean get() = podcast?.episodesOldestFirst ?: false
 }
 
 sealed interface PodcastDetailIntent {
+    /** Several episodes chosen at once (18.11): a long press starts, each tap adds or drops one. */
+    data class ToggleSelection(val episode: Episode) : PodcastDetailIntent
+    data object ClearSelection : PodcastDetailIntent
+    data class ActOnSelection(val action: EpisodeAction) : PodcastDetailIntent
     data object Refresh : PodcastDetailIntent
     data class SetFilter(val filter: EpisodeFilter) : PodcastDetailIntent
     data class SetOldestFirst(val oldestFirst: Boolean) : PodcastDetailIntent

@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.core.designsystem.component
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,8 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
@@ -54,6 +58,9 @@ data class EpisodePlayback(
  * [metadata] is the already formatted line ("3 days · 47min"); the row adds the "Playing", "New", "Played" and
  * download markers.
  * A null [downloadState] leaves out the download markers, for platforms without downloads.
+ * While several episodes are being selected (18.11) [selected] is not null: the row shows whether it is chosen,
+ * tapping it is [onClick] (the screen toggles it) and the "⋮" button goes away. A long press does [onLongClick],
+ * named [longClickLabel] for screen readers, when given; otherwise it opens the menu.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -68,24 +75,28 @@ fun EpisodeRow(
     actionsLabel: String,
     modifier: Modifier = Modifier,
     isNew: Boolean = false,
+    selected: Boolean? = null,
+    onLongClick: (() -> Unit)? = null,
+    longClickLabel: String = actionsLabel,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
+    val selecting = selected != null
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         modifier = modifier
             .fillMaxWidth()
-            .onSecondaryClick { menuOpen = true }
-            .combinedClickable(onClick = onClick, onLongClick = { menuOpen = true }, onLongClickLabel = actionsLabel)
-            .padding(start = Spacing.l, top = Spacing.s, bottom = Spacing.s),
+            .background(if (selected == true) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+            .onSecondaryClick { if (!selecting) menuOpen = true }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = (onLongClick ?: { menuOpen = true }).takeIf { !selecting },
+                onLongClickLabel = longClickLabel,
+            )
+            .then(if (selecting) Modifier.semantics { this.selected = selected == true } else Modifier)
+            .padding(start = Spacing.l, top = Spacing.s, bottom = Spacing.s, end = if (selecting) Spacing.l else 0.dp),
     ) {
-        PodcastArtwork(
-            imageUrl = imageUrl,
-            contentDescription = null,
-            shape = MaterialTheme.shapes.small,
-            dimmed = playback.isPlayed,
-            modifier = Modifier.size(Sizes.artworkS),
-        )
+        Leading(selected == true, imageUrl, dimmed = playback.isPlayed)
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
             MetadataLine(metadata = metadata, marker = marker(playback, downloadState, isNew))
             Text(
@@ -105,7 +116,7 @@ fun EpisodeRow(
                 EpisodeProgressBar(progress = playback.progress, modifier = Modifier.padding(top = Spacing.xs))
             }
         }
-        MoreOptionsButton(actionsLabel, onClick = { menuOpen = true })
+        if (!selecting) MoreOptionsButton(actionsLabel, onClick = { menuOpen = true })
     }
     if (menuOpen) {
         ItemActionsSheet(
@@ -114,6 +125,27 @@ fun EpisodeRow(
             imageUrl = imageUrl,
             actions = actions,
             onDismiss = { menuOpen = false },
+        )
+    }
+}
+
+/** The artwork, or a check in its place once the row is selected. */
+@Composable
+private fun Leading(selected: Boolean, imageUrl: String?, dimmed: Boolean) {
+    if (selected) {
+        Icon(
+            Icons.Rounded.CheckCircle,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(Sizes.artworkS),
+        )
+    } else {
+        PodcastArtwork(
+            imageUrl = imageUrl,
+            contentDescription = null,
+            shape = MaterialTheme.shapes.small,
+            dimmed = dimmed,
+            modifier = Modifier.size(Sizes.artworkS),
         )
     }
 }

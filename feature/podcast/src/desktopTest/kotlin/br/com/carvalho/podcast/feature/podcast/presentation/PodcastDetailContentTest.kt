@@ -1,25 +1,17 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
-import br.com.carvalho.podcast.core.ui.generated.resources.explicit
-import br.com.carvalho.podcast.core.ui.generated.resources.episode_trailer
-import br.com.carvalho.podcast.core.ui.generated.resources.season_number
-import br.com.carvalho.podcast.domain.model.EpisodeType
-import br.com.carvalho.podcast.core.ui.generated.resources.episodes_oldest_first
-import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
-import androidx.compose.ui.test.assertIsSelected
-import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
-import br.com.carvalho.podcast.core.ui.generated.resources.play_next
-import br.com.carvalho.podcast.core.ui.generated.resources.share
-import androidx.compose.ui.test.onAllNodesWithContentDescription
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_unplayed_confirmation
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
-import br.com.carvalho.podcast.presentation.component.OlderMark
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.hasScrollToIndexAction
-import androidx.compose.ui.test.hasAnyDescendant
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
@@ -29,27 +21,38 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
+import br.com.carvalho.podcast.core.ui.generated.resources.cancel
+import br.com.carvalho.podcast.core.ui.generated.resources.close_selection
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_trailer
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_oldest_first
+import br.com.carvalho.podcast.core.ui.generated.resources.explicit
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_unplayed_confirmation
+import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
+import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.season_number
+import br.com.carvalho.podcast.core.ui.generated.resources.selected_count
+import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
 import br.com.carvalho.podcast.core.ui.generated.resources.show_more
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
-import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import androidx.compose.ui.test.onNodeWithContentDescription
-import br.com.carvalho.podcast.core.ui.generated.resources.cancel
-import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
-import br.com.carvalho.podcast.core.ui.generated.resources.play
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -152,6 +155,34 @@ class PodcastDetailContentTest {
         waitUntilExactlyOneExists(hasText(text(Res.string.season_number, 2)))
         onAllNodesWithText(text(Res.string.season_number, 1)).assertCountEquals(1)
         onNodeWithText(text(Res.string.episode_trailer), substring = true).assertExists()
+    }
+
+    @Test
+    fun whileSelectingTheBarCountsTheEpisodesAndActsOnThem() = runComposeUiTest {
+        var acted: EpisodeAction? = null
+        var closed = 0
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(
+                        podcast = podcast(),
+                        isLoading = false,
+                        selection = episodes.take(2),
+                    ),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onActOnSelection = { acted = it }, onClearSelection = { closed++ }),
+                )
+            }
+        }
+
+        onNodeWithText(text(Res.string.selected_count, 2)).assertExists()
+        onNodeWithContentDescription(text(Res.string.mark_as_played)).performClick()
+        onNodeWithContentDescription(text(Res.string.close_selection)).performClick()
+
+        assertEquals(EpisodeAction.MARK_PLAYED, acted)
+        assertEquals(1, closed)
     }
 
     @Test

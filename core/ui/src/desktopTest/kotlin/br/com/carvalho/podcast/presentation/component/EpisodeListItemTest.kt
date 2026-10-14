@@ -4,7 +4,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.isSelected
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
@@ -49,5 +52,33 @@ class EpisodeListItemTest {
         waitForIdle()
 
         assertEquals(listOf("queue", "played", "unplayed"), done)
+    }
+
+    @Test
+    fun aLongPressStartsTheSelectionAndThenATapChoosesInsteadOfOpening() = runComposeUiTest {
+        var selections = 0
+        var opened = 0
+        var selecting by mutableStateOf(false)
+        setContent {
+            PodcastTheme {
+                EpisodeListItem(
+                    episode = episode,
+                    onClick = { opened++ },
+                    onPlayClick = {},
+                    onSelect = { selections++ },
+                    selecting = selecting,
+                    selected = selecting,
+                )
+            }
+        }
+
+        onNodeWithText("Episode 1").performTouchInput { longClick() }
+        assertEquals(1, selections)
+
+        selecting = true
+        onNodeWithText("Episode 1").performClick()
+        assertEquals(2, selections)
+        assertEquals(0, opened)
+        onNode(isSelected()).assertExists()
     }
 }

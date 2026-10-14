@@ -1,37 +1,40 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
-import br.com.carvalho.podcast.core.ui.generated.resources.queued_next
-import br.com.carvalho.podcast.presentation.component.OlderMark
+import app.cash.turbine.test
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.bulk_played
 import br.com.carvalho.podcast.core.ui.generated.resources.error_no_connection
-import br.com.carvalho.podcast.domain.repository.FakeFeedSource
-import br.com.carvalho.podcast.domain.repository.FetchedFeed
-import app.cash.turbine.test
+import br.com.carvalho.podcast.core.ui.generated.resources.queued_next
+import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
+import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.repository.FetchedFeed
+import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
-import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.presentation.component.OlderMark
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import br.com.carvalho.podcast.presentation.UiMessage
-import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
-import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PodcastDetailViewModelTest {
@@ -58,7 +61,8 @@ class PodcastDetailViewModelTest {
     }
 
     private fun createViewModel() = PodcastDetailViewModel(
-        podcastId, audioPlayer, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer), refreshUseCase,
+        podcastId, audioPlayer, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer),
+        ActOnEpisodesUseCase(repository, episodeDownloader, EnqueueEpisodeUseCase(audioPlayer)), refreshUseCase,
         episodeDownloader, repository, dispatchers, FakeAnalytics()
     )
 
@@ -230,6 +234,25 @@ class PodcastDetailViewModelTest {
 
         assertEquals(false, repository.podcasts.value.single().oldestFirst)
         assertFalse(viewModel.uiState.value.oldestFirst)
+    }
+
+    @Test
+    fun `the selected episodes are marked played together and the selection closes`() = runTest(testDispatcher) {
+        val one = sampleEpisode.copy(id = "one")
+        val two = sampleEpisode.copy(id = "two")
+        val other = sampleEpisode.copy(id = "other")
+        repository.episodes.value = listOf(one, two, other)
+        val viewModel = createViewModel()
+
+        listOf(one, other, two, other).forEach { viewModel.onIntent(PodcastDetailIntent.ToggleSelection(it)) }
+        assertEquals(listOf("one", "two"), viewModel.uiState.value.selection.map { it.id })
+
+        viewModel.messages.test {
+            viewModel.onIntent(PodcastDetailIntent.ActOnSelection(EpisodeAction.MARK_PLAYED))
+            assertEquals(UiMessage(Res.string.bulk_played, listOf(2)), awaitItem())
+        }
+        assertEquals(listOf("one", "two"), repository.episodes.value.filter { it.isPlayed }.map { it.id })
+        assertTrue(viewModel.uiState.value.selection.isEmpty())
     }
 
     @Test

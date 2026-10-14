@@ -86,8 +86,10 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import br.com.carvalho.podcast.presentation.component.EpisodeSelectionBar
 import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
 import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.presentation.component.SearchField
@@ -141,6 +143,9 @@ fun SearchScreen(
             onConfirmMarkOlder = { viewModel.onIntent(SearchIntent.ConfirmMarkOlder(it)) },
             onDismissMarkOlder = { viewModel.onIntent(SearchIntent.DismissMarkOlder) },
             onPodcastClick = { onPodcastClick(it.podcastId) },
+            onToggleSelection = { viewModel.onIntent(SearchIntent.ToggleSelection(it)) },
+            onClearSelection = { viewModel.onIntent(SearchIntent.ClearSelection) },
+            onActOnSelection = { viewModel.onIntent(SearchIntent.ActOnSelection(it)) },
         ),
         snackbarHostState = snackbarHostState,
     )
@@ -166,6 +171,10 @@ data class SearchActions(
     val onConfirmMarkOlder: (OlderMark) -> Unit = {},
     val onDismissMarkOlder: () -> Unit = {},
     val onPodcastClick: (Episode) -> Unit = {},
+    /** Several episodes at once (18.11). */
+    val onToggleSelection: (Episode) -> Unit = {},
+    val onClearSelection: () -> Unit = {},
+    val onActOnSelection: (EpisodeAction) -> Unit = {},
 )
 
 /** The fixed "Episodes" title over the search field and filters, which collapse with [scrollState]. */
@@ -218,7 +227,13 @@ fun SearchContent(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { SearchTopBar(state, scrollBehavior.state, actions.onQueryChange, onFilterChange) },
+        topBar = {
+            if (state.selection.isNotEmpty()) {
+                EpisodeSelectionBar(state.selection.size, actions.onActOnSelection, actions.onClearSelection)
+            } else {
+                SearchTopBar(state, scrollBehavior.state, actions.onQueryChange, onFilterChange)
+            }
+        },
         snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
@@ -367,7 +382,7 @@ private fun SearchResults(
                 }
             }
             item(key = results.peek(index)?.id ?: "placeholder-$index", contentType = "episode") {
-                EpisodeRowAt(index, results, playerState, activeDownloads, actions)
+                EpisodeRowAt(index, results, playerState, activeDownloads, actions, state.selection)
             }
         }
         if (results.loadState.append is LoadState.Loading) {
@@ -416,6 +431,7 @@ private fun EpisodeRowAt(
     playerState: PlayerState,
     activeDownloads: Map<String, DownloadStatus>,
     actions: SearchActions,
+    selection: List<Episode>,
 ) {
     results[index]?.let { episode ->
         val isCurrent = playerState.currentEpisode?.id == episode.id
@@ -439,6 +455,9 @@ private fun EpisodeRowAt(
             onMarkOlderPlayed = { actions.onRequestMarkOlder(OlderMark(episode, played = true)) },
             onMarkOlderUnplayed = { actions.onRequestMarkOlder(OlderMark(episode, played = false)) },
             onGoToPodcast = { actions.onPodcastClick(episode) },
+            onSelect = { actions.onToggleSelection(episode) },
+            selecting = selection.isNotEmpty(),
+            selected = selection.any { it.id == episode.id },
         )
     }
 }

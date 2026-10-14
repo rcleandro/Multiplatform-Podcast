@@ -98,8 +98,10 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import br.com.carvalho.podcast.presentation.component.EpisodeSelectionBar
 import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
 import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.presentation.share.podcastShareText
@@ -150,6 +152,9 @@ fun PodcastDetailScreen(
             onMarkUnplayed = { viewModel.onIntent(PodcastDetailIntent.MarkUnplayed(it)) },
             onConfirmMarkOlder = { viewModel.onIntent(PodcastDetailIntent.ConfirmMarkOlder(it)) },
             onDismissMarkOlder = { viewModel.onIntent(PodcastDetailIntent.DismissMarkOlder) },
+            onToggleSelection = { viewModel.onIntent(PodcastDetailIntent.ToggleSelection(it)) },
+            onClearSelection = { viewModel.onIntent(PodcastDetailIntent.ClearSelection) },
+            onActOnSelection = { viewModel.onIntent(PodcastDetailIntent.ActOnSelection(it)) },
         ),
     )
 }
@@ -174,6 +179,10 @@ data class PodcastDetailActions(
     val onMarkUnplayed: (Episode) -> Unit = {},
     val onConfirmMarkOlder: (OlderMark) -> Unit = {},
     val onDismissMarkOlder: () -> Unit = {},
+    /** Several episodes at once (18.11). */
+    val onToggleSelection: (Episode) -> Unit = {},
+    val onClearSelection: () -> Unit = {},
+    val onActOnSelection: (EpisodeAction) -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -196,13 +205,17 @@ fun PodcastDetailContent(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
         topBar = {
-            PodcastDetailTopBar(
-                scrollBehavior,
-                state.podcast?.title?.takeIf { headerGone },
-                canShare = state.podcast != null,
-                oldestFirst = state.oldestFirst,
-                actions,
-            )
+            if (state.selection.isNotEmpty()) {
+                EpisodeSelectionBar(state.selection.size, actions.onActOnSelection, actions.onClearSelection)
+            } else {
+                PodcastDetailTopBar(
+                    scrollBehavior,
+                    state.podcast?.title?.takeIf { headerGone },
+                    canShare = state.podcast != null,
+                    oldestFirst = state.oldestFirst,
+                    actions,
+                )
+            }
         },
         // The tinted header runs behind the bar, which stays clear until the header scrolls away.
         containerColor = MaterialTheme.colorScheme.background,
@@ -345,7 +358,10 @@ private fun EpisodeList(
                     onMarkOlderUnplayed = { actions.onRequestMarkOlder(OlderMark(episode, played = false)) },
                     onDownloadClick = { actions.onDownload(episode) },
                     onCancelDownloadClick = { actions.onCancelDownload(episode) },
-                    onDeleteClick = { actions.onRemoveDownload(episode) }
+                    onDeleteClick = { actions.onRemoveDownload(episode) },
+                    onSelect = { actions.onToggleSelection(episode) },
+                    selecting = state.selection.isNotEmpty(),
+                    selected = state.selection.any { it.id == episode.id },
                 )
             }
         }

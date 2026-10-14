@@ -93,6 +93,13 @@
     <string name="episode_trailer">Tráiler</string>
     <string name="episode_bonus">Extra</string>
     <string name="season_number">Temporada %1$d</string>
+    <string name="select">Seleccionar</string>
+    <string name="selected_count">%1$d seleccionados</string>
+    <string name="close_selection">Cerrar selección</string>
+    <string name="bulk_queued">Añadidos a la cola: %1$d</string>
+    <string name="bulk_downloading">Descargando: %1$d</string>
+    <string name="bulk_played">Marcados como escuchados: %1$d</string>
+    <string name="bulk_unplayed">Marcados como no escuchados: %1$d</string>
     <string name="filter_in_progress">En curso</string>
     <string name="episodes_tab">Episodios</string>
     <string name="in_progress_empty_title">Nada en curso</string>

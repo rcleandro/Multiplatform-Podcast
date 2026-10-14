@@ -17,6 +17,7 @@ kotlin {
             api(libs.components.resources)
             implementation(libs.kotlinx.datetime)
             implementation(libs.composeIconsExtended)
+            implementation(libs.compose.ui.backhandler)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Done
@@ -55,6 +56,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
 import br.com.carvalho.podcast.core.ui.generated.resources.remove_from_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.retry_download
+import br.com.carvalho.podcast.core.ui.generated.resources.select
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -73,7 +75,10 @@ import org.jetbrains.compose.resources.stringResource
  * older ones as played or unplayed, go to its podcast, and play it next, add it to the queue or take it out (18.6).
  * Where the screen offers them, swiping right adds it to the queue and swiping left marks it played or unplayed
  * (18.11).
+ * With [onSelect], a long press or "Select" in the menu starts choosing several episodes; while [selecting], a tap
+ * chooses or drops this one and there is nothing to swipe.
  */
+@Suppress("LongMethod") // one line per menu action and per row parameter
 @Composable
 fun EpisodeListItem(
     episode: Episode,
@@ -96,6 +101,9 @@ fun EpisodeListItem(
     onPlayNext: (() -> Unit)? = null,
     onAddToQueue: (() -> Unit)? = null,
     onDismissNew: (() -> Unit)? = null,
+    onSelect: (() -> Unit)? = null,
+    selecting: Boolean = false,
+    selected: Boolean = false,
 ) {
     val durationMs = episode.duration * AppConfig.MILLIS_PER_SECOND
     val progress = if (durationMs > 0) episode.playbackPosition.toFloat() / durationMs else 0f
@@ -132,11 +140,12 @@ fun EpisodeListItem(
         optionalAction(Res.string.dismiss_new, Icons.Rounded.VisibilityOff, onDismissNew),
         optionalAction(Res.string.go_to_podcast, Icons.Rounded.Podcasts, onGoToPodcast),
         optionalAction(Res.string.remove_from_queue, Icons.Rounded.RemoveFromQueue, onRemoveFromQueue),
+        optionalAction(Res.string.select, Icons.Rounded.CheckCircleOutline, onSelect),
     )
 
     SwipeActions(
-        onSwipeRight = onAddToQueue,
-        onSwipeLeft = if (episode.isPlayed) onMarkUnplayed else onMarkPlayed,
+        onSwipeRight = onAddToQueue.takeIf { !selecting },
+        onSwipeLeft = (if (episode.isPlayed) onMarkUnplayed else onMarkPlayed).takeIf { !selecting },
         leftIcon = if (episode.isPlayed) Icons.Rounded.RemoveCircleOutline else Icons.Rounded.Done,
         modifier = modifier,
     ) {
@@ -151,10 +160,13 @@ fun EpisodeListItem(
                 isPlayed = episode.isPlayed,
             ),
             downloadState = downloadState,
-            onClick = onClick,
+            onClick = onSelect?.takeIf { selecting } ?: onClick,
             actions = actions,
             actionsLabel = stringResource(Res.string.episode_options),
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
+            selected = selected.takeIf { selecting },
+            onLongClick = onSelect,
+            longClickLabel = stringResource(if (onSelect != null) Res.string.select else Res.string.episode_options),
         )
     }
 }

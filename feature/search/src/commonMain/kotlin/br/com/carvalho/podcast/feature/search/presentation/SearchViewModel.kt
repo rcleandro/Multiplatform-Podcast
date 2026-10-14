@@ -17,10 +17,14 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.component.message
+import br.com.carvalho.podcast.presentation.component.toggled
 import br.com.carvalho.podcast.presentation.failureMessages
 import br.com.carvalho.podcast.presentation.message
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -53,6 +57,7 @@ class SearchViewModel(
     audioPlayer: AudioPlayer,
     private val playEpisode: PlayEpisodeUseCase,
     private val enqueueEpisode: EnqueueEpisodeUseCase,
+    private val actOnEpisodes: ActOnEpisodesUseCase,
     networkMonitor: NetworkMonitor,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics
@@ -95,6 +100,10 @@ class SearchViewModel(
     @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: SearchIntent) {
         when (intent) {
+            is SearchIntent.ToggleSelection ->
+                _uiState.update { it.copy(selection = it.selection.toggled(intent.episode)) }
+            SearchIntent.ClearSelection -> _uiState.update { it.copy(selection = emptyList()) }
+            is SearchIntent.ActOnSelection -> actOnSelection(intent.action)
             is SearchIntent.ChangeQuery -> _uiState.update { it.copy(searchQuery = intent.query) }
             is SearchIntent.ChangeFilter -> _uiState.update { it.copy(filter = intent.filter) }
             SearchIntent.Refresh -> _refreshTrigger.value += 1
@@ -140,6 +149,16 @@ class SearchViewModel(
         }
     }
 
+    private fun actOnSelection(action: EpisodeAction) {
+        val episodes = _uiState.value.selection
+        _uiState.update { it.copy(selection = emptyList()) }
+        analytics.logEvent(AnalyticsEvent.ActOnEpisodes(action.name, episodes.size))
+        viewModelScope.launch(dispatchers.io) {
+            actOnEpisodes(episodes, action)
+            notices.send(action.message(episodes.size))
+        }
+    }
+
     private fun enqueue(episode: Episode, next: Boolean) = viewModelScope.launch(dispatchers.io) {
         enqueueEpisode(episode, next).message()?.let { notices.send(it) }
     }
@@ -182,9 +201,15 @@ data class SearchUiState(
     val deleteEpisodeConfirmation: Episode? = null,
     /** Marking many episodes at once, waiting for confirmation. */
     val olderMark: OlderMark? = null,
+    /** The episodes chosen to act on together, in the order chosen; empty when not selecting (18.11). */
+    val selection: List<Episode> = emptyList(),
 )
 
 sealed interface SearchIntent {
+    /** Several episodes chosen at once (18.11): a long press starts, each tap adds or drops one. */
+    data class ToggleSelection(val episode: Episode) : SearchIntent
+    data object ClearSelection : SearchIntent
+    data class ActOnSelection(val action: EpisodeAction) : SearchIntent
     data class ChangeQuery(val query: String) : SearchIntent
     data class ChangeFilter(val filter: EpisodeListFilter) : SearchIntent
     data object Refresh : SearchIntent
