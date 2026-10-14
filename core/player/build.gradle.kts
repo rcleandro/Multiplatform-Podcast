@@ -17,6 +17,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.media3.exoplayer)
             implementation(libs.media3.session)
+            // Chromecast (18.17): the receiver Google hosts for everyone, no Cast developer account.
+            implementation(libs.media3.cast)
             implementation(libs.kotlinx.coroutines.guava)
             implementation(libs.koin.android)
         }

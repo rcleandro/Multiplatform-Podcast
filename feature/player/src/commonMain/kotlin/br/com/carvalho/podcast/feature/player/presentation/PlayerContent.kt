@@ -112,6 +112,7 @@ fun PlayerContent(
                 title = stringResource(Res.string.now_playing),
                 actions = {
                     if (state.currentEpisode != null) {
+                        CastButton()
                         IconButton(onClick = actions.onShare) {
                             Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
                         }

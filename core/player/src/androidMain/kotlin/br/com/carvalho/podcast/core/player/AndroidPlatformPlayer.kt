@@ -62,6 +62,8 @@ class AndroidPlatformPlayer(context: Context) : PlatformPlayer {
         val item = MediaItem.Builder()
             .setMediaId(episode.id)
             .setUri(episode.playableUri())
+            // A downloaded episode plays from its file; a Chromecast needs the address it came from (18.17).
+            .setRequestMetadata(MediaItem.RequestMetadata.Builder().setMediaUri(episode.audioUrl.toUri()).build())
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(episode.title)

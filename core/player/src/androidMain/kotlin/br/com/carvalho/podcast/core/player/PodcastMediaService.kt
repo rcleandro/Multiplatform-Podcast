@@ -4,6 +4,8 @@ import android.content.Intent
 import android.media.audiofx.LoudnessEnhancer
 import android.os.Bundle
 import androidx.annotation.OptIn
+import androidx.media3.cast.CastPlayer
+import androidx.media3.cast.RemoteCastPlayer
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -94,7 +96,13 @@ class PodcastMediaService : MediaLibraryService() {
                 )
             }
 
-        mediaLibrarySession = MediaLibrarySession.Builder(this, player, LibraryCallback())
+        // Plays on the phone, or on a Chromecast while a Cast session is on, carrying the position across (18.17).
+        val castPlayer = CastPlayer.Builder(this)
+            .setLocalPlayer(player)
+            .setRemotePlayer(RemoteCastPlayer.Builder(this).setMediaItemConverter(EpisodeCastConverter()).build())
+            .build()
+
+        mediaLibrarySession = MediaLibrarySession.Builder(this, castPlayer, LibraryCallback())
             .apply {
                 sessionActivityPendingIntent?.let { setSessionActivity(it) }
             }
