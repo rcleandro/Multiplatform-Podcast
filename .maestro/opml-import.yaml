@@ -1,0 +1,17 @@
+# 18.13: "Import OPML" in the "Add podcast" menu opens the system's picker and says how the import went, with the
+# keyboard out of the way. Needs the debug app installed, a device in Portuguese, internet, and the file in Downloads:
+#   adb push my-podcasts.opml /sdcard/Download/teste-podcasts.opml
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/opml-import.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp
+- tapOn: "Adicionar Podcast"
+- tapOn: "Mais opções"
+- tapOn: "Importar OPML"
+- extendedWaitUntil:
+    visible: "teste-podcasts.opml"
+    timeout: 15000
+- tapOn: "teste-podcasts.opml"
+- extendedWaitUntil:
+    visible: "Adicionados: .*"
+    timeout: 60000

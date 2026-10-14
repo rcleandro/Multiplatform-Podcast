@@ -9,10 +9,10 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
+import br.com.carvalho.podcast.domain.repository.FakeOpmlFormat
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
-import br.com.carvalho.podcast.domain.repository.OpmlFormat
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
@@ -40,11 +40,6 @@ class SettingsViewModelTest {
     private val repository = FakePodcastRepository()
     private val feedSource = FakeFeedSource()
 
-    /** One feed address per line: the view model is tested without XML. */
-    private val opmlFormat = object : OpmlFormat {
-        override fun read(opml: String) = opml.lines().filter { it.isNotBlank() }
-        override fun write(podcasts: List<Podcast>) = podcasts.joinToString("\n") { it.feedUrl }
-    }
 
     @BeforeTest
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -56,8 +51,8 @@ class SettingsViewModelTest {
         SettingsViewModel(
             preferences, downloader, AppDirectories(FakeFileSystem(), "/app".toPath()), repository,
             CoroutineDispatchers(main = dispatcher, io = dispatcher),
-            ImportOpmlUseCase(opmlFormat, AddPodcastFromUrlUseCase(feedSource, repository)),
-            ExportOpmlUseCase(repository, opmlFormat),
+            ImportOpmlUseCase(FakeOpmlFormat, AddPodcastFromUrlUseCase(feedSource, repository)),
+            ExportOpmlUseCase(repository, FakeOpmlFormat),
         )
 
     @Test

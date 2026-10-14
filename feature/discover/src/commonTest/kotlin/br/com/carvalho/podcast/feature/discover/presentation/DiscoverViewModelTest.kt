@@ -10,18 +10,21 @@ import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_feed
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_url
 import br.com.carvalho.podcast.core.ui.generated.resources.error_open_link
 import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
+import br.com.carvalho.podcast.core.ui.generated.resources.opml_imported
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
+import br.com.carvalho.podcast.domain.repository.FakeOpmlFormat
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
-import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
+import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.OpenPodcastLinkUseCase
 import br.com.carvalho.podcast.domain.usecase.SearchPodcastsUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
@@ -62,6 +65,7 @@ class DiscoverViewModelTest {
         SearchPodcastsUseCase(directory, repository, FakePreferencesRepository()),
         AddPodcastFromUrlUseCase(feedSource, repository),
         OpenPodcastLinkUseCase(directory, feedSource, repository),
+        ImportOpmlUseCase(FakeOpmlFormat, AddPodcastFromUrlUseCase(feedSource, repository)),
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher),
         analytics,
     )
@@ -211,6 +215,20 @@ class DiscoverViewModelTest {
         addByUrl(viewModel, "https://feed.example/rss")
 
         viewModel.messages.test { assertEquals(UiMessage(Res.string.error_podcast_exists), awaitItem()) }
+    }
+
+    @Test
+    fun `importing an OPML file subscribes and says how it went`() = runTest(dispatcher) {
+        repository.podcasts.value = listOf(podcast("https://known.example/rss"))
+        feedSource.result = Result.success(FetchedFeed(podcast("https://new.example/rss"), emptyList()))
+        val viewModel = viewModel()
+
+        viewModel.messages.test {
+            viewModel.onIntent(DiscoverIntent.ImportOpml("https://new.example/rss\nhttps://known.example/rss"))
+            assertEquals(UiMessage(Res.string.opml_imported, listOf(1, 1, 0)), awaitItem())
+        }
+        assertNull(viewModel.uiState.value.importProgress)
+        assertEquals(2, repository.podcasts.value.size)
     }
 
     @Test

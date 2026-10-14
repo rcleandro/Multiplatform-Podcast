@@ -84,6 +84,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
 import br.com.carvalho.podcast.core.ui.generated.resources.popular
 import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_label
 import br.com.carvalho.podcast.core.ui.generated.resources.rss_url_placeholder
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_import_opml
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribe
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribe_to
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribed
@@ -94,6 +95,7 @@ import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.SearchField
+import br.com.carvalho.podcast.presentation.file.rememberTextFilePicker
 import br.com.carvalho.podcast.presentation.format.explicitLabel
 import br.com.carvalho.podcast.presentation.format.label
 import kotlinx.coroutines.flow.collectLatest
@@ -143,6 +145,7 @@ fun DiscoverScreen(
             onUrlChange = { viewModel.onIntent(DiscoverIntent.ChangeUrl(it)) },
             onConfirmUrl = { viewModel.onIntent(DiscoverIntent.ConfirmUrl) },
             onDismissUrlDialog = { viewModel.onIntent(DiscoverIntent.DismissUrlDialog) },
+            onImportOpml = rememberTextFilePicker { viewModel.onIntent(DiscoverIntent.ImportOpml(it)) },
         ),
     )
 }
@@ -157,6 +160,8 @@ data class DiscoverActions(
     val onUrlChange: (String) -> Unit = {},
     val onConfirmUrl: () -> Unit = {},
     val onDismissUrlDialog: () -> Unit = {},
+    /** Opens the file picker for an OPML file (18.13). */
+    val onImportOpml: () -> Unit = {},
 )
 
 @Composable
@@ -168,7 +173,17 @@ fun DiscoverContent(
 ) {
     Scaffold(
         modifier = modifier,
-        topBar = { DiscoverTopBar(actions) },
+        topBar = {
+            Column {
+                DiscoverTopBar(actions)
+                state.importProgress?.let { (done, total) ->
+                    LinearProgressIndicator(
+                        progress = { if (total == 0) 0f else done.toFloat() / total },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        },
         snackbarHost = { PodcastSnackbarHost(snackbarHostState, clearMiniPlayer = false) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
@@ -346,6 +361,7 @@ private fun SubscribeButton(result: DirectoryResult, isSubscribing: Boolean, onC
 @Composable
 private fun DiscoverTopBar(actions: DiscoverActions) {
     var menuOpen by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
     TopAppBar(
         title = { Text(stringResource(Res.string.add_podcast), modifier = Modifier.semantics { heading() }) },
         navigationIcon = {
@@ -363,6 +379,15 @@ private fun DiscoverTopBar(actions: DiscoverActions) {
                     onClick = {
                         menuOpen = false
                         actions.onOpenUrlDialog()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(Res.string.settings_import_opml)) },
+                    onClick = {
+                        menuOpen = false
+                        // Back from the picker the search field would take the keyboard again, over the result.
+                        focusManager.clearFocus()
+                        actions.onImportOpml()
                     },
                 )
             }

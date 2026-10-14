@@ -18,11 +18,13 @@ import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
+import br.com.carvalho.podcast.domain.repository.FakeOpmlFormat
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
-import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.OpenPodcastLinkUseCase
 import br.com.carvalho.podcast.domain.usecase.SearchPodcastsUseCase
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +60,7 @@ class PodcastSuggestionsTest {
         SearchPodcastsUseCase(directory, repository, FakePreferencesRepository()),
         AddPodcastFromUrlUseCase(feedSource, repository),
         OpenPodcastLinkUseCase(directory, feedSource, repository),
+        ImportOpmlUseCase(FakeOpmlFormat, AddPodcastFromUrlUseCase(feedSource, repository)),
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher),
         FakeAnalytics(),
     )

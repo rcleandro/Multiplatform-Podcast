@@ -10,12 +10,16 @@ import br.com.carvalho.podcast.core.observability.urlHost
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.error_add_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.error_open_link
+import br.com.carvalho.podcast.core.ui.generated.resources.opml_imported
+import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
+import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.OpenPodcastLinkUseCase
+import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.domain.usecase.SearchPodcastsUseCase
 import br.com.carvalho.podcast.domain.usecase.validFeedUrl
 import br.com.carvalho.podcast.presentation.UiMessage
@@ -43,6 +47,7 @@ class DiscoverViewModel(
     private val searchPodcasts: SearchPodcastsUseCase,
     private val addPodcast: AddPodcastFromUrlUseCase,
     private val openLink: OpenPodcastLinkUseCase,
+    private val importOpml: ImportOpmlUseCase,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics,
 ) : ViewModel() {
@@ -69,6 +74,24 @@ class DiscoverViewModel(
         viewModelScope.launch(dispatchers.io) { searchAsTheUserTypes() }
     }
 
+    /** Subscribes to an OPML file's feeds (18.13) and says how it went; the screen stays, as with "Subscribe". */
+    private fun import(text: String?) {
+        if (_uiState.value.importProgress != null) return
+        viewModelScope.launch(dispatchers.io) {
+            val result = text?.let {
+                importOpml(it) { done, total -> _uiState.update { s -> s.copy(importProgress = done to total) } }
+            } ?: OpmlImport(0, 0, 0)
+            _uiState.update { it.copy(importProgress = null) }
+            _messages.send(
+                if (result == OpmlImport(0, 0, 0)) {
+                    UiMessage(Res.string.opml_nothing_to_import)
+                } else {
+                    UiMessage(Res.string.opml_imported, listOf(result.added, result.known, result.failed))
+                }
+            )
+        }
+    }
+
     fun onIntent(intent: DiscoverIntent) {
         when (intent) {
             is DiscoverIntent.ChangeQuery -> {
@@ -86,6 +109,7 @@ class DiscoverViewModel(
             DiscoverIntent.DismissUrlDialog -> _uiState.update { it.copy(isUrlDialogOpen = false, url = "") }
             is DiscoverIntent.ChangeUrl -> _uiState.update { it.copy(url = intent.url) }
             DiscoverIntent.ConfirmUrl -> addByUrl()
+            is DiscoverIntent.ImportOpml -> import(intent.text)
             is DiscoverIntent.OpenLink -> openPodcastLink(intent.link)
             is DiscoverIntent.Open -> open(intent.session)
         }
@@ -219,6 +243,8 @@ data class DiscoverUiState(
     /** The podcast of a link opened in the app (18.4), shown above the rest while nothing is typed. */
     val linked: DirectoryResult? = null,
     val isOpeningLink: Boolean = false,
+    /** Feeds of an OPML file done out of how many, while it imports (18.13). */
+    val importProgress: Pair<Int, Int>? = null,
 )
 
 sealed interface DiscoverIntent {
@@ -230,6 +256,9 @@ sealed interface DiscoverIntent {
     data object DismissUrlDialog : DiscoverIntent
     data class ChangeUrl(val url: String) : DiscoverIntent
     data object ConfirmUrl : DiscoverIntent
+
+    /** The text of the OPML file the user picked, or null when it could not be read (18.13). */
+    data class ImportOpml(val text: String?) : DiscoverIntent
     data class OpenLink(val link: String) : DiscoverIntent
 
     /** The screen opened ([session] counts the openings): a new one starts clean. */
