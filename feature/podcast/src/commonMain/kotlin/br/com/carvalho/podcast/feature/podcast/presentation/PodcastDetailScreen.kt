@@ -159,6 +159,7 @@ fun PodcastDetailScreen(
             onSetSaved = { episode, saved -> viewModel.onIntent(PodcastDetailIntent.SetSaved(episode, saved)) },
             onPlaybackChange = { viewModel.onIntent(PodcastDetailIntent.SetPlayback(it)) },
             onNotificationsChange = { viewModel.onIntent(PodcastDetailIntent.SetNotifications(it)) },
+            onAutoDownloadChange = { viewModel.onIntent(PodcastDetailIntent.SetAutoDownload(it)) },
         ),
     )
 }
@@ -192,6 +193,8 @@ data class PodcastDetailActions(
     val onPlaybackChange: (PodcastPlayback) -> Unit = {},
     /** Whether this podcast's new episodes notify (18.18). */
     val onNotificationsChange: (Boolean) -> Unit = {},
+    /** How many of the newest unheard episodes stay downloaded (18.19). */
+    val onAutoDownloadChange: (Int) -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

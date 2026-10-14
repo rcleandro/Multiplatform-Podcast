@@ -24,6 +24,7 @@ import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.AutoDownloadUseCase
 import br.com.carvalho.podcast.domain.usecase.DeleteFinishedDownloadUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DownloadNextEpisodeUseCase
@@ -107,6 +108,7 @@ val useCaseModule = module {
     singleOf(::AddPodcastFromUrlUseCase)
     singleOf(::ImportOpmlUseCase)
     singleOf(::RefreshInBackgroundUseCase)
+    singleOf(::AutoDownloadUseCase)
     singleOf(::ExportOpmlUseCase)
     singleOf(::RefreshPodcastUseCase)
     singleOf(::DeletePodcastUseCase)

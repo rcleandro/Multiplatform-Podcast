@@ -278,6 +278,17 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
+    fun `choosing how many to download saves it and reads the feed again`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(samplePodcast)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.SetAutoDownload(3))
+
+        assertEquals(3, repository.podcasts.value.single().autoDownloadCount)
+        assertEquals(podcastId, feedSource.podcastIdAskedFor)
+    }
+
+    @Test
     fun `filter survives a podcast update`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
         val viewModel = createViewModel()

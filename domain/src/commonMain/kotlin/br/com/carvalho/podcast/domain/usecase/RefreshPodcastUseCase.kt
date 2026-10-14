@@ -20,7 +20,9 @@ private const val MAX_CONCURRENT_REFRESHES = 4
 
 class RefreshPodcastUseCase(
     private val feedSource: FeedSource,
-    private val podcastRepository: PodcastRepository
+    private val podcastRepository: PodcastRepository,
+    /** After each feed read, unchanged or not, its podcast's newest episodes are kept downloaded (18.19). */
+    private val autoDownload: AutoDownloadUseCase? = null,
 ) {
     suspend operator fun invoke(podcastId: String): Result<Unit> {
         val podcast = podcastRepository.getPodcastById(podcastId)
@@ -45,6 +47,7 @@ class RefreshPodcastUseCase(
                 AppLogger.e(TAG, "Failed to refresh podcast: ${podcast.title}", e)
             }.also {
                 Metrics.record(Metrics.FEED_REFRESH, start.elapsedNow(), "outcome" to outcome)
+                if (it.isSuccess) autoDownload?.invoke(podcast.id)
             }
     }
 

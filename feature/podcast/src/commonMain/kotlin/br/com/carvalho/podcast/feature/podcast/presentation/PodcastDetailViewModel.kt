@@ -100,6 +100,11 @@ class PodcastDetailViewModel(
             PodcastDetailIntent.Refresh -> refresh()
             is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
             is PodcastDetailIntent.SetOldestFirst -> setOldestFirst(intent.oldestFirst)
+            is PodcastDetailIntent.SetAutoDownload -> viewModelScope.launch(dispatchers.io) {
+                repository.setPodcastAutoDownload(podcastId, intent.count)
+                // The refresh downloads what the new choice asks for, after reading the feed once more.
+                refreshPodcastUseCase(podcastId)
+            }
             is PodcastDetailIntent.SetNotifications -> viewModelScope.launch(dispatchers.io) {
                 repository.setPodcastNotifications(podcastId, intent.enabled)
             }
@@ -249,6 +254,9 @@ sealed interface PodcastDetailIntent {
     data object Refresh : PodcastDetailIntent
     data class SetFilter(val filter: EpisodeFilter) : PodcastDetailIntent
     data class SetOldestFirst(val oldestFirst: Boolean) : PodcastDetailIntent
+
+    /** How many of the newest unheard episodes stay downloaded (18.19). */
+    data class SetAutoDownload(val count: Int) : PodcastDetailIntent
 
     /** Whether this podcast's new episodes notify (18.18). */
     data class SetNotifications(val enabled: Boolean) : PodcastDetailIntent

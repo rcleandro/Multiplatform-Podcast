@@ -76,6 +76,9 @@ class PodcastRepositoryImpl(
             )
         }
 
+    override suspend fun setPodcastAutoDownload(podcastId: String, count: Int) =
+        podcastDao.setAutoDownload(podcastId, count)
+
     override suspend fun setPodcastNotifications(podcastId: String, enabled: Boolean) =
         podcastDao.setNotifications(podcastId, enabled)
 

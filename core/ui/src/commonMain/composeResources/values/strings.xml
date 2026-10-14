@@ -146,6 +146,9 @@
     <string name="new_episodes_channel">New episodes</string>
     <string name="podcast_settings_title">This podcast</string>
     <plurals name="new_episodes_count"><item quantity="one">%1$d new episode</item><item quantity="other">%1$d new episodes</item></plurals>
+    <string name="auto_download">Download by itself</string>
+    <string name="auto_download_description">The newest episodes not heard yet stay downloaded, on Wi-Fi only if Settings say so.</string>
+    <plurals name="auto_download_newest"><item quantity="one">The newest</item><item quantity="other">The %1$d newest</item></plurals>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

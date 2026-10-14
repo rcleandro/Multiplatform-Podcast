@@ -26,6 +26,7 @@ fun PodcastEntity.toDomain(): Podcast = Podcast(
     oldestFirst = oldestFirst,
     playback = PodcastPlayback(playbackSpeed, skipIntroSeconds, skipOutroSeconds),
     notifyNewEpisodes = notifyNewEpisodes,
+    autoDownloadCount = autoDownloadCount,
 )
 
 fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
@@ -51,4 +52,5 @@ fun Podcast.toEntity(): PodcastEntity = PodcastEntity(
     skipIntroSeconds = playback.skipIntroSeconds,
     skipOutroSeconds = playback.skipOutroSeconds,
     notifyNewEpisodes = notifyNewEpisodes,
+    autoDownloadCount = autoDownloadCount,
 )

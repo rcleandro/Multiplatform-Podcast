@@ -44,6 +44,9 @@ interface PodcastDao {
     )
     suspend fun setPlayback(id: String, speed: Float?, introSeconds: Int, outroSeconds: Int)
 
+    @Query("UPDATE podcasts SET autoDownloadCount = :count WHERE id = :id")
+    suspend fun setAutoDownload(id: String, count: Int)
+
     @Query("UPDATE podcasts SET notifyNewEpisodes = :enabled WHERE id = :id")
     suspend fun setNotifications(id: String, enabled: Boolean)
 

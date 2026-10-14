@@ -27,6 +27,8 @@ data class Podcast(
     val playback: PodcastPlayback = PodcastPlayback(),
     /** Whether new episodes found in the background say so in a notification (18.18). */
     val notifyNewEpisodes: Boolean = true,
+    /** How many of the newest unheard episodes stay downloaded (18.19); 0 downloads nothing by itself. */
+    val autoDownloadCount: Int = 0,
 ) {
     /** Serial shows list their episodes oldest first unless the user chose otherwise. */
     val episodesOldestFirst: Boolean get() = oldestFirst ?: serial

@@ -144,6 +144,9 @@
     <string name="new_episodes_channel">Episodios nuevos</string>
     <string name="podcast_settings_title">Este podcast</string>
     <plurals name="new_episodes_count"><item quantity="one">%1$d episodio nuevo</item><item quantity="other">%1$d episodios nuevos</item></plurals>
+    <string name="auto_download">Descargar solo</string>
+    <string name="auto_download_description">Los episodios más nuevos aún no escuchados quedan descargados, solo con Wi-Fi si los Ajustes lo piden.</string>
+    <plurals name="auto_download_newest"><item quantity="one">El más nuevo</item><item quantity="other">Los %1$d más nuevos</item></plurals>
     <string name="filter_in_progress">En curso</string>
     <string name="episodes_tab">Episodios</string>
     <string name="in_progress_empty_title">Nada en curso</string>

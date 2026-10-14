@@ -243,6 +243,15 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version19DownloadsNothingByItself() = runTest {
+        helper.createDatabase(AUTO_DOWNLOAD_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(AUTO_DOWNLOAD_VERSION, migrations).use { connection ->
+            assertEquals("0", connection.text("SELECT autoDownloadCount FROM podcasts WHERE id = 'p1'"))
+        }
+    }
+
     private fun SQLiteConnection.insertLibrary(queueJson: String? = "[]", episodeId: String = "e1") {
         execSQL(
             "INSERT INTO podcasts (id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, " +
@@ -281,7 +290,8 @@ class MigrationTest {
         const val HISTORY_VERSION = 16
         const val PODCAST_PLAYBACK_VERSION = 17
         const val NOTIFY_VERSION = 18
-        const val CURRENT_VERSION = 18
+        const val AUTO_DOWNLOAD_VERSION = 19
+        const val CURRENT_VERSION = 19
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

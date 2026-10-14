@@ -30,6 +30,9 @@ interface PodcastRepository {
         oldestFirst: Boolean = false,
     ): Flow<PagingData<Episode>>
 
+    /** How many of a podcast's newest unheard episodes stay downloaded (18.19). */
+    suspend fun setPodcastAutoDownload(podcastId: String, count: Int)
+
     /** Whether a podcast's new episodes notify (18.18). */
     suspend fun setPodcastNotifications(podcastId: String, enabled: Boolean)
 

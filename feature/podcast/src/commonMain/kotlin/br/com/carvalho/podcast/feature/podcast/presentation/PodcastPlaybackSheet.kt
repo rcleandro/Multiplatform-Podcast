@@ -34,6 +34,9 @@ import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
 import br.com.carvalho.podcast.core.designsystem.component.FilterOption
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.auto_download
+import br.com.carvalho.podcast.core.ui.generated.resources.auto_download_description
+import br.com.carvalho.podcast.core.ui.generated.resources.auto_download_newest
 import br.com.carvalho.podcast.core.ui.generated.resources.playback_speed
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_notify_new
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_playback
@@ -46,10 +49,13 @@ import br.com.carvalho.podcast.core.ui.generated.resources.skip_outro
 import br.com.carvalho.podcast.core.ui.generated.resources.skip_outro_description
 import br.com.carvalho.podcast.core.ui.generated.resources.speed_general
 import br.com.carvalho.podcast.core.util.canRefreshInBackground
+import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
+import br.com.carvalho.podcast.domain.usecase.AutoDownload
 import br.com.carvalho.podcast.presentation.format.formatSpeed
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 /** How long a jingle or the credits can be skipped; 0 skips nothing. */
@@ -63,6 +69,7 @@ fun PodcastPlaybackSheet(
     podcast: Podcast,
     onChange: (PodcastPlayback) -> Unit,
     onNotificationsChange: (Boolean) -> Unit,
+    onAutoDownloadChange: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val playback = podcast.playback
@@ -98,29 +105,49 @@ fun PodcastPlaybackSheet(
                 selected = SKIP_SECONDS.indexOf(playback.skipOutroSeconds).coerceAtLeast(0),
                 onSelected = { onChange(playback.copy(skipOutroSeconds = SKIP_SECONDS[it])) },
             )
-            // Only where new episodes are looked for in the background (18.18).
-            if (canRefreshInBackground) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .toggleable(
-                            value = podcast.notifyNewEpisodes,
-                            role = Role.Switch,
-                            onValueChange = onNotificationsChange,
-                        )
-                        .padding(horizontal = Spacing.l, vertical = Spacing.m),
-                ) {
-                    Text(
-                        stringResource(Res.string.podcast_notify_new),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Switch(checked = podcast.notifyNewEpisodes, onCheckedChange = null)
-                }
+            if (supportsDownloads) {
+                Choice(
+                    title = Res.string.auto_download,
+                    description = Res.string.auto_download_description,
+                    options = AutoDownload.CHOICES.map { autoDownloadLabel(it) },
+                    selected = AutoDownload.CHOICES.indexOf(podcast.autoDownloadCount).coerceAtLeast(0),
+                    onSelected = { onAutoDownloadChange(AutoDownload.CHOICES[it]) },
+                )
             }
+            // Only where new episodes are looked for in the background (18.18).
+            if (canRefreshInBackground) NotifySwitch(podcast.notifyNewEpisodes, onNotificationsChange)
         }
     }
 }
+
+@Composable
+private fun NotifySwitch(checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .toggleable(
+                value = checked,
+                role = Role.Switch,
+                onValueChange = onChange,
+            )
+            .padding(horizontal = Spacing.l, vertical = Spacing.m),
+    ) {
+        Text(
+            stringResource(Res.string.podcast_notify_new),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.weight(1f),
+        )
+        Switch(checked = checked, onCheckedChange = null)
+    }
+}
+
+@Composable
+private fun autoDownloadLabel(count: Int): String =
+    if (count == 0) {
+        stringResource(Res.string.skip_off)
+    } else {
+        pluralStringResource(Res.plurals.auto_download_newest, count, count)
+    }
 
 @Composable
 private fun secondsLabel(seconds: Int): String =
@@ -169,6 +196,7 @@ internal fun PlaybackButton(podcast: Podcast, actions: PodcastDetailActions) {
             podcast,
             actions.onPlaybackChange,
             actions.onNotificationsChange,
+            actions.onAutoDownloadChange,
             onDismiss = { open = false },
         )
     }
