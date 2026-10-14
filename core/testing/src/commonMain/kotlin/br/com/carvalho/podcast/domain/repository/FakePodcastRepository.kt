@@ -68,6 +68,14 @@ class FakePodcastRepository : PodcastRepository {
         episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false) else it }
     }
 
+    override suspend fun markEpisodeStarted(id: String, at: Long) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false, lastPlayedAt = at) else it }
+    }
+
+    override suspend fun clearHistory() {
+        episodes.value = episodes.value.map { it.copy(lastPlayedAt = null) }
+    }
+
     override suspend fun dismissAllNewEpisodes() {
         episodes.value = episodes.value.map { it.copy(isNew = false) }
     }

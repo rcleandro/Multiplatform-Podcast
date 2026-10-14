@@ -24,6 +24,7 @@ fun EpisodeEntity.toDomain(): Episode = Episode(
     season = season,
     type = EpisodeType.of(episodeType),
     isSaved = isSaved,
+    lastPlayedAt = lastPlayedAt,
 )
 
 fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
@@ -46,4 +47,5 @@ fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
     season = season,
     episodeType = type.takeIf { it != EpisodeType.FULL }?.name?.lowercase(),
     isSaved = isSaved,
+    lastPlayedAt = lastPlayedAt,
 )

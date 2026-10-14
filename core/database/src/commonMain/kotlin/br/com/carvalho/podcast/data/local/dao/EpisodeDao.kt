@@ -47,15 +47,18 @@ interface EpisodeDao {
         AND (:onlyDownloaded = 0 OR isDownloaded = 1)
         AND (:onlyNew = 0 OR (isNew = 1 AND isPlayed = 0))
         AND (:onlySaved = 0 OR isSaved = 1)
-        ORDER BY publishDate DESC
+        AND (:history = 0 OR lastPlayedAt IS NOT NULL)
+        ORDER BY CASE WHEN :history THEN lastPlayedAt END DESC, publishDate DESC
     """
     )
+    @Suppress("LongParameterList") // one flag per filter of the Episodes tab
     fun searchPagingSource(
         query: String,
         onlyInProgress: Boolean = false,
         onlyDownloaded: Boolean = false,
         onlyNew: Boolean = false,
         onlySaved: Boolean = false,
+        history: Boolean = false,
     ): PagingSource<Int, EpisodeEntity>
 
     @Query("SELECT * FROM episodes WHERE id = :id")
@@ -64,12 +67,11 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE isPlayed = 0 ORDER BY publishDate DESC")
     fun getUnplayed(): Flow<List<EpisodeEntity>>
 
-    // ponytail: newest first, since nothing records when an episode was last played; add that column if the
-    // library should show the most recently heard first.
+    // The one heard last first; episodes started before version 16 have no date and follow, newest first.
     @Query(
         """
         SELECT * FROM episodes WHERE playbackPosition > 0 AND isPlayed = 0
-        ORDER BY publishDate DESC LIMIT :limit
+        ORDER BY lastPlayedAt DESC, publishDate DESC LIMIT :limit
     """
     )
     fun getInProgress(limit: Int): Flow<List<EpisodeEntity>>
@@ -147,6 +149,12 @@ interface EpisodeDao {
 
     @Query("UPDATE episodes SET isNew = 1 WHERE id IN (:ids)")
     suspend fun markNew(ids: List<String>)
+
+    @Query("UPDATE episodes SET isNew = 0, lastPlayedAt = :at WHERE id = :id")
+    suspend fun markStarted(id: String, at: Long)
+
+    @Query("UPDATE episodes SET lastPlayedAt = NULL WHERE lastPlayedAt IS NOT NULL")
+    suspend fun clearHistory()
 
     @Query("UPDATE episodes SET isSaved = :saved WHERE id = :id")
     suspend fun setSaved(id: String, saved: Boolean)

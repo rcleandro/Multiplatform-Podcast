@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.DownloadDone
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Search
@@ -60,6 +62,9 @@ import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
+import br.com.carvalho.podcast.core.ui.generated.resources.clear
+import br.com.carvalho.podcast.core.ui.generated.resources.clear_history
+import br.com.carvalho.podcast.core.ui.generated.resources.clear_history_confirmation
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download_confirmation
@@ -70,9 +75,12 @@ import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
 import br.com.carvalho.podcast.core.ui.generated.resources.error_loading_results
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_history
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_new
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_saved
+import br.com.carvalho.podcast.core.ui.generated.resources.history_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.history_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_message
@@ -151,6 +159,9 @@ fun SearchScreen(
             onClearSelection = { viewModel.onIntent(SearchIntent.ClearSelection) },
             onActOnSelection = { viewModel.onIntent(SearchIntent.ActOnSelection(it)) },
             onSetSaved = { episode, saved -> viewModel.onIntent(SearchIntent.SetSaved(episode, saved)) },
+            onRequestClearHistory = { viewModel.onIntent(SearchIntent.RequestClearHistory) },
+            onConfirmClearHistory = { viewModel.onIntent(SearchIntent.ConfirmClearHistory) },
+            onDismissClearHistory = { viewModel.onIntent(SearchIntent.DismissClearHistory) },
         ),
         snackbarHostState = snackbarHostState,
     )
@@ -181,6 +192,10 @@ data class SearchActions(
     val onClearSelection: () -> Unit = {},
     val onActOnSelection: (EpisodeAction) -> Unit = {},
     val onSetSaved: (Episode, Boolean) -> Unit = { _, _ -> },
+    /** "Clear history": asked, confirmed or given up (18.12). */
+    val onRequestClearHistory: () -> Unit = {},
+    val onConfirmClearHistory: () -> Unit = {},
+    val onDismissClearHistory: () -> Unit = {},
 )
 
 /** The fixed "Episodes" title over the search field and filters, which collapse with [scrollState]. */
@@ -267,17 +282,55 @@ fun SearchContent(
             )
         }
 
-        state.deleteEpisodeConfirmation?.let { episode ->
-            ConfirmDialog(
-                title = stringResource(Res.string.delete_download),
-                message = stringResource(Res.string.delete_download_confirmation, episode.title),
-                confirmLabel = stringResource(Res.string.delete),
-                dismissLabel = stringResource(Res.string.cancel),
-                onConfirm = { actions.onConfirmRemoveDownload(episode) },
-                onDismiss = actions.onDismissRemoveDownload,
-            )
+        SearchDialogs(state, actions)
+    }
+}
+
+/** "Dismiss all" above New and "Clear history" above History, when there is something to act on. */
+private fun LazyListScope.listAction(state: SearchUiState, count: Int, actions: SearchActions) {
+    if (count == 0) return
+    val label = when (state.filter) {
+        EpisodeListFilter.NEW -> Res.string.dismiss_all_new
+        EpisodeListFilter.HISTORY -> Res.string.clear_history
+        else -> return
+    }
+    item(key = "list-action-${state.filter}") {
+        Box(Modifier.readableWidth().padding(horizontal = Spacing.s), contentAlignment = Alignment.CenterEnd) {
+            TextButton(
+                onClick = {
+                    if (state.filter == EpisodeListFilter.NEW) {
+                        actions.onDismissNew(null)
+                    } else {
+                        actions.onRequestClearHistory()
+                    }
+                },
+            ) { Text(stringResource(label)) }
         }
-        state.olderMark?.let { MarkOlderDialog(it, actions.onConfirmMarkOlder, actions.onDismissMarkOlder) }
+    }
+}
+
+@Composable
+private fun SearchDialogs(state: SearchUiState, actions: SearchActions) {
+    state.deleteEpisodeConfirmation?.let { episode ->
+        ConfirmDialog(
+            title = stringResource(Res.string.delete_download),
+            message = stringResource(Res.string.delete_download_confirmation, episode.title),
+            confirmLabel = stringResource(Res.string.delete),
+            dismissLabel = stringResource(Res.string.cancel),
+            onConfirm = { actions.onConfirmRemoveDownload(episode) },
+            onDismiss = actions.onDismissRemoveDownload,
+        )
+    }
+    state.olderMark?.let { MarkOlderDialog(it, actions.onConfirmMarkOlder, actions.onDismissMarkOlder) }
+    if (state.clearHistoryConfirmation) {
+        ConfirmDialog(
+            title = stringResource(Res.string.clear_history),
+            message = stringResource(Res.string.clear_history_confirmation),
+            confirmLabel = stringResource(Res.string.clear),
+            dismissLabel = stringResource(Res.string.cancel),
+            onConfirm = actions.onConfirmClearHistory,
+            onDismiss = actions.onDismissClearHistory,
+        )
     }
 }
 
@@ -302,6 +355,7 @@ private val filters = listOfNotNull(
     EpisodeListFilter.IN_PROGRESS to Res.string.filter_in_progress,
     EpisodeListFilter.SAVED to Res.string.filter_saved,
     (EpisodeListFilter.DOWNLOADED to Res.string.filter_downloaded).takeIf { supportsDownloads },
+    EpisodeListFilter.HISTORY to Res.string.filter_history,
 )
 
 /** Each filter says why it is empty; a search that finds nothing says so whatever the filter. */
@@ -318,6 +372,12 @@ private fun EmptyFilter(state: SearchUiState, modifier: Modifier) {
             icon = Icons.Rounded.Inbox,
             title = stringResource(Res.string.new_empty_title),
             message = stringResource(Res.string.new_empty_message),
+            modifier = modifier,
+        )
+        state.filter == EpisodeListFilter.HISTORY -> EmptyState(
+            icon = Icons.Rounded.History,
+            title = stringResource(Res.string.history_empty_title),
+            message = stringResource(Res.string.history_empty_message),
             modifier = modifier,
         )
         state.filter == EpisodeListFilter.SAVED -> EmptyState(
@@ -356,15 +416,7 @@ private fun SearchResults(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
     ) {
-        if (state.filter == EpisodeListFilter.NEW && results.itemCount > 0) {
-            item(key = DISMISS_ALL_KEY) {
-                Box(Modifier.readableWidth().padding(horizontal = Spacing.s), contentAlignment = Alignment.CenterEnd) {
-                    TextButton(onClick = { actions.onDismissNew(null) }) {
-                        Text(stringResource(Res.string.dismiss_all_new))
-                    }
-                }
-            }
-        }
+        listAction(state, results.itemCount, actions)
         if (state.filter == EpisodeListFilter.DOWNLOADED) {
             item {
                 Text(
@@ -380,7 +432,12 @@ private fun SearchResults(
         var group: DateGroup? = null
         val now = getCurrentTimestamp()
         for (index in 0 until results.itemCount) {
-            val episodeGroup = results.peek(index)?.let { dateGroup(it.publishDate, now) }
+            // History groups by when each episode last played; the others by when it came out.
+            val episodeGroup = results.peek(index)?.let {
+                val played = it.lastPlayedAt.takeIf { state.filter == EpisodeListFilter.HISTORY }
+                val date = played ?: it.publishDate
+                dateGroup(date, now)
+            }
             if (episodeGroup != null && episodeGroup != group) {
                 group = episodeGroup
                 stickyHeader(key = "group-$episodeGroup", contentType = "group") {
@@ -475,5 +532,3 @@ private fun EpisodeRowAt(
         )
     }
 }
-
-private const val DISMISS_ALL_KEY = "dismiss-all-new"

@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
@@ -90,8 +91,8 @@ class PlaybackController(
             )
         }
         lastSavedPosition = null
-        // Started: no longer waiting in "New" (18.7).
-        runCatching { podcastRepository.dismissNewEpisode(episode.id) }
+        // Started: no longer waiting in "New" (18.7), and at the top of "History" (18.12).
+        runCatching { podcastRepository.markEpisodeStarted(episode.id, getCurrentTimestamp()) }
         withContext(dispatchers.main) {
             engine.load(playable, positionMs = start, playWhenReady = true)
             engine.setSpeed(_playerState.value.speed)

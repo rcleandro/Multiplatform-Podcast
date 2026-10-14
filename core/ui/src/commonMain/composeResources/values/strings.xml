@@ -107,6 +107,11 @@
     <string name="unsave_episode">Remove from saved</string>
     <string name="saved_empty_title">Nothing saved yet</string>
     <string name="saved_empty_message">Save an episode from its ⋮ menu to hear it later.</string>
+    <string name="filter_history">History</string>
+    <string name="clear_history">Clear history</string>
+    <string name="clear_history_confirmation">Episodes leave History; whether they were heard and where they stopped stays.</string>
+    <string name="history_empty_title">Nothing played yet</string>
+    <string name="history_empty_message">The episodes you play show up here, the latest first.</string>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

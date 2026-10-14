@@ -387,6 +387,30 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `history lists what played, the latest first, and clearing it changes nothing else`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = podcastEntity.toDomain()
+        val episodes = (1..3).map { episodeEntity.copy(id = "e$it", publishDate = it.toLong()).toDomain() }
+        repository.saveFeed(podcast, episodes)
+        repository.updateEpisodeProgress("e1", 5_000L)
+        repository.updateEpisodeProgress("e3", 5_000L)
+
+        // The oldest episode played last.
+        repository.markEpisodeStarted("e3", at = 100L)
+        repository.markEpisodeStarted("e1", at = 200L)
+        repository.saveFeed(podcast, episodes)
+
+        val history = repository.searchEpisodesPaged(null, EpisodeListFilter.HISTORY).asSnapshot()
+        assertEquals(listOf("e1", "e3"), history.map { it.id })
+        // "Continue listening" puts the one heard last first too.
+        assertEquals(listOf("e1", "e3"), repository.getInProgressEpisodes().first().map { it.id })
+
+        repository.clearHistory()
+        assertEquals(emptyList(), repository.searchEpisodesPaged(null, EpisodeListFilter.HISTORY).asSnapshot())
+        assertEquals(5_000L, repository.getEpisodeById("e1")?.playbackPosition)
+    }
+
+    @Test
     fun `the downloaded filter finds an episode beyond the first page`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)

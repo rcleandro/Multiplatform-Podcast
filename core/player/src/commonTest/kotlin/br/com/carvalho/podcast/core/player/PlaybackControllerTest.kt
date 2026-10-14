@@ -1,16 +1,16 @@
 package br.com.carvalho.podcast.core.player
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.repository.FakePlayerRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.PlaybackState
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -19,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -276,7 +277,7 @@ class PlaybackControllerTest {
     }
 
     @Test
-    fun aStartedEpisodeLeavesNew() = runTest(dispatcher) {
+    fun aStartedEpisodeLeavesNewAndEntersHistory() = runTest(dispatcher) {
         podcastRepository.episodes.value = listOf(first.copy(isNew = true))
         val controller = controller()
 
@@ -284,6 +285,7 @@ class PlaybackControllerTest {
         runCurrent()
 
         assertFalse(podcastRepository.episodes.value.single().isNew)
+        assertNotNull(podcastRepository.episodes.value.single().lastPlayedAt)
     }
 
     @Test

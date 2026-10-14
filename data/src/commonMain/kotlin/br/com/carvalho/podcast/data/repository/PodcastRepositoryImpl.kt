@@ -92,6 +92,7 @@ class PodcastRepositoryImpl(
                 onlyDownloaded = filter == EpisodeListFilter.DOWNLOADED,
                 onlyNew = filter == EpisodeListFilter.NEW,
                 onlySaved = filter == EpisodeListFilter.SAVED,
+                history = filter == EpisodeListFilter.HISTORY,
             )
         }
 
@@ -131,6 +132,10 @@ class PodcastRepositoryImpl(
     }
 
     override suspend fun dismissNewEpisode(id: String) = episodeDao.dismissNew(id)
+
+    override suspend fun markEpisodeStarted(id: String, at: Long) = episodeDao.markStarted(id, at)
+
+    override suspend fun clearHistory() = episodeDao.clearHistory()
 
     override suspend fun dismissAllNewEpisodes() = episodeDao.dismissAllNew()
 

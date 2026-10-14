@@ -106,6 +106,9 @@ class SearchViewModel(
             SearchIntent.ClearSelection -> _uiState.update { it.copy(selection = emptyList()) }
             is SearchIntent.ActOnSelection -> actOnSelection(intent.action)
             is SearchIntent.SetSaved -> setSaved(intent.episode, intent.saved)
+            SearchIntent.RequestClearHistory -> _uiState.update { it.copy(clearHistoryConfirmation = true) }
+            SearchIntent.DismissClearHistory -> _uiState.update { it.copy(clearHistoryConfirmation = false) }
+            SearchIntent.ConfirmClearHistory -> clearHistory()
             is SearchIntent.ChangeQuery -> _uiState.update { it.copy(searchQuery = intent.query) }
             is SearchIntent.ChangeFilter -> _uiState.update { it.copy(filter = intent.filter) }
             SearchIntent.Refresh -> _refreshTrigger.value += 1
@@ -149,6 +152,12 @@ class SearchViewModel(
                 repository.markOlderEpisodesAsUnplayed(episode.podcastId, episode.publishDate)
             }
         }
+    }
+
+    private fun clearHistory() {
+        analytics.logEvent(AnalyticsEvent.ClearHistory)
+        _uiState.update { it.copy(clearHistoryConfirmation = false) }
+        viewModelScope.launch(dispatchers.io) { repository.clearHistory() }
     }
 
     private fun setSaved(episode: Episode, saved: Boolean) {
@@ -210,6 +219,8 @@ data class SearchUiState(
     val olderMark: OlderMark? = null,
     /** The episodes chosen to act on together, in the order chosen; empty when not selecting (18.11). */
     val selection: List<Episode> = emptyList(),
+    /** "Clear history", waiting for confirmation (18.12). */
+    val clearHistoryConfirmation: Boolean = false,
 )
 
 sealed interface SearchIntent {
@@ -218,6 +229,9 @@ sealed interface SearchIntent {
     data object ClearSelection : SearchIntent
     data class ActOnSelection(val action: EpisodeAction) : SearchIntent
     data class SetSaved(val episode: Episode, val saved: Boolean) : SearchIntent
+    data object RequestClearHistory : SearchIntent
+    data object ConfirmClearHistory : SearchIntent
+    data object DismissClearHistory : SearchIntent
     data class ChangeQuery(val query: String) : SearchIntent
     data class ChangeFilter(val filter: EpisodeListFilter) : SearchIntent
     data object Refresh : SearchIntent

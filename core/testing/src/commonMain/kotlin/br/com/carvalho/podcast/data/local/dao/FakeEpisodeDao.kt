@@ -28,8 +28,17 @@ class FakeEpisodeDao : EpisodeDao {
         onlyDownloaded: Boolean,
         onlyNew: Boolean,
         onlySaved: Boolean,
+        history: Boolean,
     ): PagingSource<Int, EpisodeEntity> =
         throw NotImplementedError("Paging is tested against the real database")
+
+    override suspend fun markStarted(id: String, at: Long) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false, lastPlayedAt = at) else it }
+    }
+
+    override suspend fun clearHistory() {
+        episodes.value = episodes.value.map { it.copy(lastPlayedAt = null) }
+    }
 
     override suspend fun setSaved(id: String, saved: Boolean) {
         episodes.value = episodes.value.map { if (it.id == id) it.copy(isSaved = saved) else it }

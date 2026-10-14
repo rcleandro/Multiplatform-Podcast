@@ -22,16 +22,18 @@ import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
@@ -163,6 +165,22 @@ class SearchViewModelTest {
 
         viewModel.onIntent(SearchIntent.SetSaved(episode("e1", 1), saved = false))
         assertEquals(false, repository.episodes.value.single().isSaved)
+    }
+
+    @Test
+    fun `clearing the history asks first and only clears on confirm`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(episode("e1", 1).copy(lastPlayedAt = 10L))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(SearchIntent.RequestClearHistory)
+        assertTrue(viewModel.uiState.value.clearHistoryConfirmation)
+        viewModel.onIntent(SearchIntent.DismissClearHistory)
+        assertEquals(10L, repository.episodes.value.single().lastPlayedAt)
+
+        viewModel.onIntent(SearchIntent.RequestClearHistory)
+        viewModel.onIntent(SearchIntent.ConfirmClearHistory)
+        assertEquals(null, repository.episodes.value.single().lastPlayedAt)
+        assertFalse(viewModel.uiState.value.clearHistoryConfirmation)
     }
 
     private fun episode(id: String, publishDate: Long, podcastId: String = "p1") = Episode(

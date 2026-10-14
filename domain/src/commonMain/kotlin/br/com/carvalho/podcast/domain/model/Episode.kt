@@ -26,4 +26,6 @@ data class Episode(
     val type: EpisodeType = EpisodeType.FULL,
     /** Kept in "Saved" until the user takes it out (18.12). */
     val isSaved: Boolean = false,
+    /** When it last started playing (epoch ms), for "History" (18.12); null if never played here. */
+    val lastPlayedAt: Long? = null,
 )

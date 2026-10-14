@@ -39,6 +39,7 @@ import br.com.carvalho.podcast.core.designsystem.LocalMiniPlayerInset
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.clear_history
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_24_hours
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_30_days
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_older
@@ -236,6 +237,33 @@ class SearchContentTest {
         onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
         onNodeWithText(text(Res.string.save_episode)).performClick()
         assertEquals(episode to true, saved)
+    }
+
+    @Test
+    fun historyGroupsByWhenEpisodesPlayedAndOffersToClearItself() = runComposeUiTest {
+        val episode = Episode(
+            id = "e1", podcastId = "p", title = "Episode", description = null, audioUrl = "a", imageUrl = null,
+            duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null,
+            lastPlayedAt = getCurrentTimestamp(),
+        )
+        var asked = 0
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = SearchUiState(filter = EpisodeListFilter.HISTORY),
+                    results = flowOf(PagingData.from(listOf(episode))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(onRequestClearHistory = { asked++ }),
+                )
+            }
+        }
+        // Grouped by when it played, not by when it came out (1970).
+        waitUntilExactlyOneExists(hasText("Episode"))
+        onNode(isHeading() and hasText(text(Res.string.date_group_last_24_hours), ignoreCase = true)).assertExists()
+
+        onNodeWithText(text(Res.string.clear_history)).performClick()
+        assertEquals(1, asked)
     }
 
     @Test

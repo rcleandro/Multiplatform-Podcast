@@ -44,6 +44,9 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
 
     class SetEpisodeFilter(filter: String) : AnalyticsEvent("set_episode_filter", mapOf("filter" to filter))
 
+    /** "History" emptied (18.12). */
+    data object ClearHistory : AnalyticsEvent("clear_history")
+
     /** An episode put into "Saved" or taken out of it (18.12). */
     class SaveEpisode(saved: Boolean) : AnalyticsEvent(if (saved) "save_episode" else "unsave_episode")
 

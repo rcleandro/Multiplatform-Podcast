@@ -49,6 +49,12 @@ interface PodcastRepository {
     /** Takes an episode out of "New" (18.7): dismissed, or started. */
     suspend fun dismissNewEpisode(id: String)
 
+    /** Started playing at [at]: out of "New" (18.7) and to the top of "History" (18.12). */
+    suspend fun markEpisodeStarted(id: String, at: Long)
+
+    /** Empties "History"; nothing else about the episodes changes. */
+    suspend fun clearHistory()
+
     suspend fun dismissAllNewEpisodes()
 
     /** Back to not played, from the start. */
