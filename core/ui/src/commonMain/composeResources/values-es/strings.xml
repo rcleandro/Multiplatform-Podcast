@@ -135,6 +135,10 @@
     <string name="settings_skip_silence_description">Las pausas de la conversación pasan más rápido.</string>
     <string name="settings_boost_voice">Realzar voces</string>
     <string name="settings_boost_voice_description">Sube a quien habla bajo, para lugares ruidosos.</string>
+    <string name="settings_updates">Actualización</string>
+    <string name="settings_refresh">Buscar episodios nuevos</string>
+    <string name="settings_refresh_never">Nunca, solo al abrir la app</string>
+    <plurals name="settings_refresh_every"><item quantity="one">Cada hora</item><item quantity="other">Cada %1$d horas</item></plurals>
     <string name="filter_in_progress">En curso</string>
     <string name="episodes_tab">Episodios</string>
     <string name="in_progress_empty_title">Nada en curso</string>

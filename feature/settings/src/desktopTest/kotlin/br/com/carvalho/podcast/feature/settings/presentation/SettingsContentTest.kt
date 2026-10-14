@@ -39,6 +39,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finis
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_silence
@@ -191,6 +192,8 @@ class SettingsContentTest {
         // Nor a player that can skip silences or lift voices (18.16): those switches are Android's.
         onAllNodesWithText(text(Res.string.settings_skip_silence)).assertCountEquals(0)
         onAllNodesWithText(text(Res.string.settings_boost_voice)).assertCountEquals(0)
+        // Nor a background refresh: a computer looks for new episodes when the app opens (18.18).
+        onAllNodesWithText(text(Res.string.settings_refresh)).assertCountEquals(0)
     }
 
     @Test

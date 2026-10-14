@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.domain.repository
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +49,12 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override fun setDeleteFinishedDownloads(enabled: Boolean) {
         deleteFinishedDownloads.value = enabled
+    }
+
+    override val refreshIntervalHours = MutableStateFlow(RefreshInterval.DEFAULT_HOURS)
+
+    override fun setRefreshIntervalHours(hours: Int) {
+        refreshIntervalHours.value = hours
     }
 
     override val skipSilence = MutableStateFlow(false)

@@ -64,6 +64,12 @@ class SettingsPreferencesRepositoryTest {
         assertFalse(fresh.deleteFinishedDownloads.value)
         fresh.setDeleteFinishedDownloads(true)
         assertTrue(SettingsPreferencesRepository(settings).deleteFinishedDownloads.value)
+        // Background refresh (18.18): every 6 hours until chosen; a value no longer offered goes back to that.
+        assertEquals(6, fresh.refreshIntervalHours.value)
+        fresh.setRefreshIntervalHours(0)
+        assertEquals(0, SettingsPreferencesRepository(settings).refreshIntervalHours.value)
+        settings.putInt("refresh_interval_hours", 5)
+        assertEquals(6, SettingsPreferencesRepository(settings).refreshIntervalHours.value)
         // Speech (18.16): off until chosen, then kept.
         assertFalse(fresh.skipSilence.value || fresh.boostVoice.value)
         fresh.setSkipSilence(true)

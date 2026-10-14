@@ -113,6 +113,10 @@ class SettingsViewModelTest {
         assertEquals(true, preferences.deleteFinishedDownloads.value)
         assertEquals(true, viewModel.uiState.value.deleteFinishedDownloads)
 
+        viewModel.onIntent(SettingsIntent.SetRefreshInterval(12))
+        assertEquals(12, preferences.refreshIntervalHours.value)
+        assertEquals(12, viewModel.uiState.value.refreshIntervalHours)
+
         viewModel.onIntent(SettingsIntent.SetSkipSilence(true))
         viewModel.onIntent(SettingsIntent.SetBoostVoice(true))
         assertEquals(true, preferences.skipSilence.value)

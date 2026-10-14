@@ -7,4 +7,6 @@ actual val canLimitDownloadsToWifi: Boolean = false
 
 actual val canEnhanceSpeech: Boolean = false
 
+actual val canRefreshInBackground: Boolean = false
+
 actual val openSystemLanguageSettings: (() -> Unit)? = null

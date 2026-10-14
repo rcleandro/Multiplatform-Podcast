@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.data.preferences
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
@@ -20,6 +21,7 @@ private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
 private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
 private const val DELETE_FINISHED_DOWNLOADS = "delete_finished_downloads"
 private const val SKIP_SILENCE = "skip_silence"
+private const val REFRESH_INTERVAL_HOURS = "refresh_interval_hours"
 private const val BOOST_VOICE = "boost_voice"
 private const val SHOW_EXPLICIT = "show_explicit"
 private const val SKIP_BACKWARD_SECONDS = "skip_backward_seconds"
@@ -70,6 +72,17 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setDownloadNextOnFinish(enabled: Boolean) {
         settings.putBoolean(DOWNLOAD_NEXT_ON_FINISH, enabled)
         downloadNext.value = enabled
+    }
+
+    private val refreshHours = MutableStateFlow(
+        settings.getInt(REFRESH_INTERVAL_HOURS, RefreshInterval.DEFAULT_HOURS)
+            .takeIf { it in RefreshInterval.CHOICES } ?: RefreshInterval.DEFAULT_HOURS
+    )
+    override val refreshIntervalHours: StateFlow<Int> = refreshHours.asStateFlow()
+
+    override fun setRefreshIntervalHours(hours: Int) {
+        settings.putInt(REFRESH_INTERVAL_HOURS, hours)
+        refreshHours.value = hours
     }
 
     private val silence = MutableStateFlow(settings.getBoolean(SKIP_SILENCE, defaultValue = false))

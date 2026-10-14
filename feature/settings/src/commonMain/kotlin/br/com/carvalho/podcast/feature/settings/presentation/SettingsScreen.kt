@@ -66,6 +66,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language_ios
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_playback
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_backward
@@ -83,8 +84,10 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only_description
 import br.com.carvalho.podcast.core.util.canEnhanceSpeech
 import br.com.carvalho.podcast.core.util.canLimitDownloadsToWifi
+import br.com.carvalho.podcast.core.util.canRefreshInBackground
 import br.com.carvalho.podcast.core.util.openSystemLanguageSettings
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.presentation.file.rememberTextFilePicker
@@ -155,6 +158,7 @@ fun SettingsContent(
             }
             item { LanguageRow(state.language) { picking = Picker.LANGUAGE } }
             subscriptionSettings(state.opml, onImport = pickOpml, onExport = { onIntent(SettingsIntent.ExportOpml) })
+            if (canRefreshInBackground) updateSettings(state.refreshIntervalHours) { picking = Picker.REFRESH }
             playbackSettings(state, onIntent)
             state.usedBytes?.let { downloadSettings(it, state, onIntent) }
             contentAndPrivacySettings(state, onIntent)
@@ -179,7 +183,7 @@ fun SettingsContent(
 }
 
 /** Settings whose choices open in a dialog, so the screen stays short as they grow (18.5). */
-private enum class Picker { THEME, LANGUAGE }
+private enum class Picker { THEME, LANGUAGE, REFRESH }
 
 /** The choices of [picker]; [onDone] closes it, whether one was picked or not. */
 @Composable
@@ -197,6 +201,16 @@ private fun PickerDialog(
             onSelect = {
                 onDone()
                 onIntent(SettingsIntent.SetTheme(it))
+            },
+            onDismiss = onDone,
+        )
+        Picker.REFRESH -> ChoiceDialog(
+            title = stringResource(Res.string.settings_refresh),
+            options = RefreshInterval.CHOICES.map { it to refreshLabel(it) },
+            selected = state.refreshIntervalHours,
+            onSelect = {
+                onDone()
+                onIntent(SettingsIntent.SetRefreshInterval(it))
             },
             onDismiss = onDone,
         )

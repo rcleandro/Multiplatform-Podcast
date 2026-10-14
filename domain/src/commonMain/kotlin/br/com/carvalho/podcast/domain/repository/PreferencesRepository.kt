@@ -43,6 +43,11 @@ interface PreferencesRepository {
 
     fun setShowExplicit(enabled: Boolean)
 
+    /** Hours between looks for new episodes while the app is closed (18.18); 0 never looks. */
+    val refreshIntervalHours: StateFlow<Int>
+
+    fun setRefreshIntervalHours(hours: Int)
+
     /** Silences played through quicker, and voices made louder (18.16); off by default, Android only. */
     val skipSilence: StateFlow<Boolean>
 
