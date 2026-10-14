@@ -1,0 +1,75 @@
+# 18.10–18.12: saving an episode, selecting it to act on it, the history of what played and the podcast's order.
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/episode-actions.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Episódios"
+- tapOn: "Todos"
+# Saved: from the menu into its own filter, with nothing else there.
+- tapOn:
+    text: "Opções do episódio"
+    index: 0
+- tapOn: "Salvar episódio"
+- tapOn: "Salvos"
+- assertVisible:
+    text: "Opções do episódio"
+    index: 0
+- assertNotVisible:
+    text: "Opções do episódio"
+    index: 1
+# Selecting: "Select" in the menu opens the selection bar, which acts on the chosen and closes.
+- tapOn:
+    text: "Opções do episódio"
+    index: 0
+- tapOn: "Selecionar"
+- assertVisible: "1 selecionados"
+- tapOn: "Marcar como ouvido"
+- assertVisible: "Marcados como ouvidos: 1"
+- assertNotVisible: "1 selecionados"
+# History: empty until something plays, then cleared on confirmation.
+# The filters do not fit a phone's width: swipe their row to reach History.
+- swipe:
+    start: "90%, 20%"
+    end: "10%, 20%"
+- tapOn: "Histórico"
+- assertVisible: "Nada tocado ainda"
+- swipe:
+    start: "10%, 20%"
+    end: "90%, 20%"
+- tapOn: "Todos"
+- tapOn:
+    text: "Opções do episódio"
+    index: 0
+- tapOn: "Reproduzir"
+- swipe:
+    start: "90%, 20%"
+    end: "10%, 20%"
+- tapOn: "Histórico"
+- extendedWaitUntil:
+    visible: "Limpar histórico"
+    timeout: 10000
+- tapOn: "Limpar histórico"
+- tapOn: "Limpar"
+- assertVisible: "Nada tocado ainda"
+# The podcast's order: "Oldest first" is kept.
+- tapOn: "Biblioteca"
+- tapOn: "Planet Money"
+- tapOn: "Ordenar"
+- tapOn: "Mais antigos primeiro"
+# Reopened, the podcast still lists the oldest first: its first episode is older than the one playing (this week).
+- back
+- tapOn: "Planet Money"
+- assertNotVisible: "Há .* dias.*"
