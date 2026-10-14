@@ -1,0 +1,22 @@
+<resources>
+    <string name="ds_play">Воспроизвести</string>
+    <string name="ds_pause">Пауза</string>
+    <string name="ds_loading">Загрузка</string>
+    <string name="ds_resume_progress">Продолжить, прослушано %1$d%%</string>
+    <string name="ds_download">Скачать</string>
+    <string name="ds_download_queued">В очереди, отменить загрузку</string>
+    <string name="ds_downloading">Загрузка %1$d%%, отменить</string>
+    <string name="ds_downloaded">Скачано, удалить загрузку</string>
+    <string name="ds_download_failed">Не удалось скачать, повторить</string>
+    <string name="ds_new">Новый</string>
+    <string name="ds_played">Прослушано</string>
+    <string name="ds_downloaded_label">Скачано</string>
+    <string name="ds_playing">Играет</string>
+    <string name="ds_downloading_label">Скачивается</string>
+    <string name="ds_queued_label">В очереди</string>
+    <string name="ds_download_failed_label">Не удалось скачать</string>
+    <string name="ds_position_of_duration">%1$s из %2$s</string>
+    <plurals name="ds_unplayed_count"><item quantity="one">%1$d непрослушанный выпуск</item><item quantity="few">%1$d непрослушанных выпуска</item><item quantity="many">%1$d непрослушанных выпусков</item><item quantity="other">%1$d непрослушанных выпуска</item></plurals>
+    <string name="ds_open_player">Открыть плеер</string>
+    <string name="ds_open_queue">Открыть очередь</string>
+</resources>

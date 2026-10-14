@@ -1,0 +1,22 @@
+<resources>
+    <string name="ds_play">Putar</string>
+    <string name="ds_pause">Jeda</string>
+    <string name="ds_loading">Memuat</string>
+    <string name="ds_resume_progress">Lanjutkan, %1$d%% sudah didengar</string>
+    <string name="ds_download">Unduh</string>
+    <string name="ds_download_queued">Mengantre, batalkan unduhan</string>
+    <string name="ds_downloading">Mengunduh %1$d%%, batalkan</string>
+    <string name="ds_downloaded">Sudah diunduh, hapus unduhan</string>
+    <string name="ds_download_failed">Unduhan gagal, coba lagi</string>
+    <string name="ds_new">Baru</string>
+    <string name="ds_played">Sudah didengar</string>
+    <string name="ds_downloaded_label">Sudah diunduh</string>
+    <string name="ds_playing">Diputar</string>
+    <string name="ds_downloading_label">Mengunduh</string>
+    <string name="ds_queued_label">Mengantre</string>
+    <string name="ds_download_failed_label">Unduhan gagal</string>
+    <string name="ds_position_of_duration">%1$s dari %2$s</string>
+    <plurals name="ds_unplayed_count"><item quantity="other">%1$d episode belum didengar</item></plurals>
+    <string name="ds_open_player">Buka pemutar</string>
+    <string name="ds_open_queue">Buka antrean</string>
+</resources>

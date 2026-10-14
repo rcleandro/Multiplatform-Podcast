@@ -1,0 +1,22 @@
+<resources>
+    <string name="ds_play">재생</string>
+    <string name="ds_pause">일시정지</string>
+    <string name="ds_loading">불러오는 중</string>
+    <string name="ds_resume_progress">이어 듣기, %1$d%% 들음</string>
+    <string name="ds_download">다운로드</string>
+    <string name="ds_download_queued">대기 중, 다운로드 취소</string>
+    <string name="ds_downloading">다운로드 중 %1$d%%, 취소</string>
+    <string name="ds_downloaded">다운로드됨, 다운로드 삭제</string>
+    <string name="ds_download_failed">다운로드 실패, 다시 시도</string>
+    <string name="ds_new">새 에피소드</string>
+    <string name="ds_played">들음</string>
+    <string name="ds_downloaded_label">다운로드됨</string>
+    <string name="ds_playing">재생 중</string>
+    <string name="ds_downloading_label">다운로드 중</string>
+    <string name="ds_queued_label">대기 중</string>
+    <string name="ds_download_failed_label">다운로드 실패</string>
+    <string name="ds_position_of_duration">%1$s / %2$s</string>
+    <plurals name="ds_unplayed_count"><item quantity="other">듣지 않은 에피소드 %1$d개</item></plurals>
+    <string name="ds_open_player">플레이어 열기</string>
+    <string name="ds_open_queue">재생 대기열 열기</string>
+</resources>

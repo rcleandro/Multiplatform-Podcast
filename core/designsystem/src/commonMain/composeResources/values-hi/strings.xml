@@ -1,0 +1,22 @@
+<resources>
+    <string name="ds_play">चलाएं</string>
+    <string name="ds_pause">रोकें</string>
+    <string name="ds_loading">लोड हो रहा है</string>
+    <string name="ds_resume_progress">फिर से शुरू करें, %1$d%% सुना गया</string>
+    <string name="ds_download">डाउनलोड करें</string>
+    <string name="ds_download_queued">कतार में, डाउनलोड रद्द करें</string>
+    <string name="ds_downloading">%1$d%% डाउनलोड हो रहा है, रद्द करें</string>
+    <string name="ds_downloaded">डाउनलोड हो गया, डाउनलोड हटाएं</string>
+    <string name="ds_download_failed">डाउनलोड नहीं हुआ, फिर से कोशिश करें</string>
+    <string name="ds_new">नया</string>
+    <string name="ds_played">सुना गया</string>
+    <string name="ds_downloaded_label">डाउनलोड हो गया</string>
+    <string name="ds_playing">चल रहा है</string>
+    <string name="ds_downloading_label">डाउनलोड हो रहा है</string>
+    <string name="ds_queued_label">कतार में</string>
+    <string name="ds_download_failed_label">डाउनलोड नहीं हुआ</string>
+    <string name="ds_position_of_duration">%2$s में से %1$s</string>
+    <plurals name="ds_unplayed_count"><item quantity="one">%1$d बिना सुना एपिसोड</item><item quantity="other">%1$d बिना सुने एपिसोड</item></plurals>
+    <string name="ds_open_player">प्लेयर खोलें</string>
+    <string name="ds_open_queue">कतार खोलें</string>
+</resources>

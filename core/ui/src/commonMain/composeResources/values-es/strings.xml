@@ -284,6 +284,17 @@
     <string name="language_english">English</string>
     <string name="language_portuguese">Português</string>
     <string name="language_spanish">Español</string>
+    <string name="language_french">Français</string>
+    <string name="language_german">Deutsch</string>
+    <string name="language_italian">Italiano</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_chinese">简体中文</string>
+    <string name="language_hindi">हिन्दी</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_indonesian">Bahasa Indonesia</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_turkish">Türkçe</string>
     <string name="up_next">A continuación</string>
     <string name="queue_empty_title">Nada en la cola</string>
     <string name="queue_empty_message">Agrega episodios con “Reproducir a continuación” o “Agregar a la cola” en el menú de un episodio.</string>

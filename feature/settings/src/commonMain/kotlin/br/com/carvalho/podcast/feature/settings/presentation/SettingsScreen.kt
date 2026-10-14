@@ -38,9 +38,20 @@ import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
+import br.com.carvalho.podcast.core.ui.generated.resources.language_arabic
+import br.com.carvalho.podcast.core.ui.generated.resources.language_chinese
 import br.com.carvalho.podcast.core.ui.generated.resources.language_english
+import br.com.carvalho.podcast.core.ui.generated.resources.language_french
+import br.com.carvalho.podcast.core.ui.generated.resources.language_german
+import br.com.carvalho.podcast.core.ui.generated.resources.language_hindi
+import br.com.carvalho.podcast.core.ui.generated.resources.language_indonesian
+import br.com.carvalho.podcast.core.ui.generated.resources.language_italian
+import br.com.carvalho.podcast.core.ui.generated.resources.language_japanese
+import br.com.carvalho.podcast.core.ui.generated.resources.language_korean
 import br.com.carvalho.podcast.core.ui.generated.resources.language_portuguese
+import br.com.carvalho.podcast.core.ui.generated.resources.language_russian
 import br.com.carvalho.podcast.core.ui.generated.resources.language_spanish
+import br.com.carvalho.podcast.core.ui.generated.resources.language_turkish
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_export_failed
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_exported
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_imported
@@ -118,6 +129,17 @@ private val LANGUAGE_LABELS: Map<AppLanguage, StringResource> = mapOf(
     AppLanguage.ENGLISH to Res.string.language_english,
     AppLanguage.PORTUGUESE to Res.string.language_portuguese,
     AppLanguage.SPANISH to Res.string.language_spanish,
+    AppLanguage.FRENCH to Res.string.language_french,
+    AppLanguage.GERMAN to Res.string.language_german,
+    AppLanguage.ITALIAN to Res.string.language_italian,
+    AppLanguage.JAPANESE to Res.string.language_japanese,
+    AppLanguage.KOREAN to Res.string.language_korean,
+    AppLanguage.CHINESE to Res.string.language_chinese,
+    AppLanguage.HINDI to Res.string.language_hindi,
+    AppLanguage.ARABIC to Res.string.language_arabic,
+    AppLanguage.INDONESIAN to Res.string.language_indonesian,
+    AppLanguage.RUSSIAN to Res.string.language_russian,
+    AppLanguage.TURKISH to Res.string.language_turkish,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

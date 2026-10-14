@@ -4,9 +4,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.unit.LayoutDirection
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.domain.model.AppLanguage
@@ -36,5 +38,26 @@ class AppLanguagesTest {
         language = AppLanguage.SYSTEM
         waitForIdle()
         assertEquals(systemLocale, Locale.getDefault())
+    }
+
+    @Test
+    fun arabicTurnsTheLayoutRightToLeftAndTheOthersLeftToRight() = runComposeUiTest {
+        var language by mutableStateOf(AppLanguage.ARABIC)
+        var direction: LayoutDirection? = null
+        setContent {
+            ProvideAppLanguage(language) {
+                ProvideLayoutDirection {
+                    direction = LocalLayoutDirection.current
+                    Text(stringResource(Res.string.settings))
+                }
+            }
+        }
+
+        onNodeWithText("الإعدادات").assertExists()
+        assertEquals(LayoutDirection.Rtl, direction)
+
+        language = AppLanguage.JAPANESE
+        onNodeWithText("設定").assertExists()
+        assertEquals(LayoutDirection.Ltr, direction)
     }
 }

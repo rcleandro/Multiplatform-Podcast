@@ -1,0 +1,22 @@
+<resources>
+    <string name="ds_play">تشغيل</string>
+    <string name="ds_pause">إيقاف مؤقت</string>
+    <string name="ds_loading">جارٍ التحميل</string>
+    <string name="ds_resume_progress">استئناف، تم الاستماع إلى %1$d%%</string>
+    <string name="ds_download">تنزيل</string>
+    <string name="ds_download_queued">في الانتظار، إلغاء التنزيل</string>
+    <string name="ds_downloading">جارٍ التنزيل %1$d%%، إلغاء</string>
+    <string name="ds_downloaded">تم التنزيل، إزالة التنزيل</string>
+    <string name="ds_download_failed">تعذّر التنزيل، أعد المحاولة</string>
+    <string name="ds_new">جديد</string>
+    <string name="ds_played">تم الاستماع</string>
+    <string name="ds_downloaded_label">تم التنزيل</string>
+    <string name="ds_playing">قيد التشغيل</string>
+    <string name="ds_downloading_label">جارٍ التنزيل</string>
+    <string name="ds_queued_label">في الانتظار</string>
+    <string name="ds_download_failed_label">تعذّر التنزيل</string>
+    <string name="ds_position_of_duration">%1$s من %2$s</string>
+    <plurals name="ds_unplayed_count"><item quantity="zero">%1$d حلقة لم يُستمع إليها</item><item quantity="one">حلقة واحدة لم يُستمع إليها</item><item quantity="two">حلقتان لم يُستمع إليهما</item><item quantity="few">%1$d حلقات لم يُستمع إليها</item><item quantity="many">%1$d حلقة لم يُستمع إليها</item><item quantity="other">%1$d حلقة لم يُستمع إليها</item></plurals>
+    <string name="ds_open_player">فتح المشغّل</string>
+    <string name="ds_open_queue">فتح قائمة الانتظار</string>
+</resources>

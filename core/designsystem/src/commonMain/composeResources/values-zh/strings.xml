@@ -1,0 +1,22 @@
+<resources>
+    <string name="ds_play">播放</string>
+    <string name="ds_pause">暂停</string>
+    <string name="ds_loading">正在加载</string>
+    <string name="ds_resume_progress">继续播放，已听 %1$d%%</string>
+    <string name="ds_download">下载</string>
+    <string name="ds_download_queued">排队中，取消下载</string>
+    <string name="ds_downloading">正在下载 %1$d%%，取消</string>
+    <string name="ds_downloaded">已下载，移除下载</string>
+    <string name="ds_download_failed">下载失败，重试</string>
+    <string name="ds_new">新</string>
+    <string name="ds_played">已听</string>
+    <string name="ds_downloaded_label">已下载</string>
+    <string name="ds_playing">正在播放</string>
+    <string name="ds_downloading_label">正在下载</string>
+    <string name="ds_queued_label">排队中</string>
+    <string name="ds_download_failed_label">下载失败</string>
+    <string name="ds_position_of_duration">%1$s / %2$s</string>
+    <plurals name="ds_unplayed_count"><item quantity="other">%1$d 个未听单集</item></plurals>
+    <string name="ds_open_player">打开播放器</string>
+    <string name="ds_open_queue">打开播放队列</string>
+</resources>
