@@ -156,6 +156,9 @@ interface EpisodeDao {
     @Query("UPDATE episodes SET lastPlayedAt = NULL WHERE lastPlayedAt IS NOT NULL")
     suspend fun clearHistory()
 
+    @Query("SELECT * FROM episodes WHERE isNew = 1 AND isPlayed = 0 ORDER BY publishDate DESC")
+    suspend fun getNew(): List<EpisodeEntity>
+
     @Query("UPDATE episodes SET isSaved = :saved WHERE id = :id")
     suspend fun setSaved(id: String, saved: Boolean)
 

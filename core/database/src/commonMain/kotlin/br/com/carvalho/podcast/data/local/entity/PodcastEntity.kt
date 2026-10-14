@@ -34,6 +34,8 @@ data class PodcastEntity(
     val playbackSpeed: Float? = null,
     @ColumnInfo(defaultValue = "0") val skipIntroSeconds: Int = 0,
     @ColumnInfo(defaultValue = "0") val skipOutroSeconds: Int = 0,
+    /** New episodes found in the background notify (18.18), added in version 18; on by default. */
+    @ColumnInfo(defaultValue = "1") val notifyNewEpisodes: Boolean = true,
 )
 
 /** The columns a feed owns: refreshing it updates these and keeps what the library set (subscribedAt, position). */

@@ -123,7 +123,6 @@
     <string name="opml_exported">Saved with %1$d podcasts</string>
     <string name="opml_export_failed">The file could not be saved</string>
     <string name="podcast_playback">Playback settings</string>
-    <string name="podcast_playback_title">How this podcast plays</string>
     <string name="speed_general">As set in the player</string>
     <string name="skip_intro">Skip the start</string>
     <string name="skip_outro">Skip the end</string>
@@ -141,6 +140,12 @@
     <string name="settings_refresh">Look for new episodes</string>
     <string name="settings_refresh_never">Never, only when the app opens</string>
     <plurals name="settings_refresh_every"><item quantity="one">Every hour</item><item quantity="other">Every %1$d hours</item></plurals>
+    <string name="settings_notify_new">Notify new episodes</string>
+    <string name="settings_notify_new_description">When the look in the background finds any.</string>
+    <string name="podcast_notify_new">Notify new episodes</string>
+    <string name="new_episodes_channel">New episodes</string>
+    <string name="podcast_settings_title">This podcast</string>
+    <plurals name="new_episodes_count"><item quantity="one">%1$d new episode</item><item quantity="other">%1$d new episodes</item></plurals>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

@@ -70,6 +70,9 @@ class SettingsPreferencesRepositoryTest {
         assertEquals(0, SettingsPreferencesRepository(settings).refreshIntervalHours.value)
         settings.putInt("refresh_interval_hours", 5)
         assertEquals(6, SettingsPreferencesRepository(settings).refreshIntervalHours.value)
+        assertTrue(fresh.notifyNewEpisodes.value)
+        fresh.setNotifyNewEpisodes(false)
+        assertFalse(SettingsPreferencesRepository(settings).notifyNewEpisodes.value)
         // Speech (18.16): off until chosen, then kept.
         assertFalse(fresh.skipSilence.value || fresh.boostVoice.value)
         fresh.setSkipSilence(true)

@@ -1,6 +1,11 @@
 package br.com.carvalho.podcast.core.refresh
 
+import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -8,12 +13,19 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.new_episodes_channel
+import br.com.carvalho.podcast.core.ui.generated.resources.new_episodes_count
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
-import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.RefreshInBackgroundUseCase
+import br.com.carvalho.podcast.shared.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.jetbrains.compose.resources.getPluralString
+import org.jetbrains.compose.resources.getString
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.mp.KoinPlatform.getKoin
@@ -46,14 +58,51 @@ object BackgroundRefresh {
     }
 }
 
-/** One look at every feed, the same as pulling the library down; new episodes land in "New" (18.7). */
+/**
+ * One look at every feed, the same as pulling the library down; new episodes land in "New" (18.7) and, unless
+ * Settings or their podcast say otherwise, in a notification.
+ */
 class RefreshWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params), KoinComponent {
-    private val refresh: RefreshPodcastUseCase by inject()
+    private val refresh: RefreshInBackgroundUseCase by inject()
 
     override suspend fun doWork(): Result {
-        val summary = refresh.refreshAll()
-        AppLogger.i(TAG, "Refreshed ${summary.total} podcasts in the background, ${summary.failures.size} failed")
+        val result = refresh()
+        AppLogger.i(TAG, "Background refresh found ${result.toNotify.size} episodes to tell about")
+        if (result.toNotify.isNotEmpty()) notify(result.toNotify)
         // Every feed failing is most likely the network: try again later instead of waiting a whole interval.
-        return if (summary.allFailed) Result.retry() else Result.success()
+        return if (result.allFailed) Result.retry() else Result.success()
+    }
+
+    /** One notification for what this look found: the episode itself, or how many and from which podcasts. */
+    @SuppressLint("MissingPermission") // checked first; without it Android 13+ shows nothing
+    private suspend fun notify(episodes: List<Episode>) {
+        val manager = NotificationManagerCompat.from(applicationContext)
+        if (!manager.areNotificationsEnabled()) return
+        manager.createNotificationChannel(
+            NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_DEFAULT)
+                .setName(getString(Res.string.new_episodes_channel))
+                .build()
+        )
+        val single = episodes.singleOrNull()
+        val count = episodes.size
+        val title = single?.podcastTitle ?: getPluralString(Res.plurals.new_episodes_count, count, count)
+        val text = single?.title ?: episodes.mapNotNull { it.podcastTitle }.distinct().joinToString(", ")
+        val open = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
+            ?.let { PendingIntent.getActivity(applicationContext, 0, it, PendingIntent.FLAG_IMMUTABLE) }
+        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_new_episodes)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setContentIntent(open)
+            .setAutoCancel(true)
+            .build()
+        manager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private companion object {
+        const val CHANNEL_ID = "new_episodes"
+
+        /** One at a time: a newer look replaces what the last one said. */
+        const val NOTIFICATION_ID = 1818
     }
 }

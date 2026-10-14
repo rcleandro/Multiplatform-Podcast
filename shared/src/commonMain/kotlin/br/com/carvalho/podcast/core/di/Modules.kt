@@ -31,6 +31,7 @@ import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.RefreshInBackgroundUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.feature.discover.discoverFeatureModule
 import br.com.carvalho.podcast.feature.episode.episodeFeatureModule
@@ -105,6 +106,7 @@ val repositoryModule = module {
 val useCaseModule = module {
     singleOf(::AddPodcastFromUrlUseCase)
     singleOf(::ImportOpmlUseCase)
+    singleOf(::RefreshInBackgroundUseCase)
     singleOf(::ExportOpmlUseCase)
     singleOf(::RefreshPodcastUseCase)
     singleOf(::DeletePodcastUseCase)

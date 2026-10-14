@@ -43,6 +43,11 @@ interface PreferencesRepository {
 
     fun setShowExplicit(enabled: Boolean)
 
+    /** Whether new episodes found in the background say so in a notification (18.18); on by default. */
+    val notifyNewEpisodes: StateFlow<Boolean>
+
+    fun setNotifyNewEpisodes(enabled: Boolean)
+
     /** Hours between looks for new episodes while the app is closed (18.18); 0 never looks. */
     val refreshIntervalHours: StateFlow<Int>
 

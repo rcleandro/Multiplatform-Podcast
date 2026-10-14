@@ -76,6 +76,11 @@ class PodcastRepositoryImpl(
             )
         }
 
+    override suspend fun setPodcastNotifications(podcastId: String, enabled: Boolean) =
+        podcastDao.setNotifications(podcastId, enabled)
+
+    override suspend fun getNewEpisodes(): List<Episode> = episodeDao.getNew().map { it.toDomain() }
+
     override suspend fun setPodcastPlayback(podcastId: String, playback: PodcastPlayback) =
         podcastDao.setPlayback(podcastId, playback.speed, playback.skipIntroSeconds, playback.skipOutroSeconds)
 

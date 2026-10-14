@@ -158,7 +158,7 @@ fun SettingsContent(
             }
             item { LanguageRow(state.language) { picking = Picker.LANGUAGE } }
             subscriptionSettings(state.opml, onImport = pickOpml, onExport = { onIntent(SettingsIntent.ExportOpml) })
-            if (canRefreshInBackground) updateSettings(state.refreshIntervalHours) { picking = Picker.REFRESH }
+            if (canRefreshInBackground) updateSettings(state, onPick = { picking = Picker.REFRESH }, onIntent)
             playbackSettings(state, onIntent)
             state.usedBytes?.let { downloadSettings(it, state, onIntent) }
             contentAndPrivacySettings(state, onIntent)

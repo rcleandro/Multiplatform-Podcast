@@ -30,6 +30,12 @@ interface PodcastRepository {
         oldestFirst: Boolean = false,
     ): Flow<PagingData<Episode>>
 
+    /** Whether a podcast's new episodes notify (18.18). */
+    suspend fun setPodcastNotifications(podcastId: String, enabled: Boolean)
+
+    /** What waits in "New" (18.7), newest first. */
+    suspend fun getNewEpisodes(): List<Episode>
+
     /** How a podcast plays (18.14). */
     suspend fun setPodcastPlayback(podcastId: String, playback: PodcastPlayback)
 

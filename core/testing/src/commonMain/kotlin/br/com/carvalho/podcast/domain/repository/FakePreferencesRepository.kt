@@ -51,6 +51,12 @@ class FakePreferencesRepository : PreferencesRepository {
         deleteFinishedDownloads.value = enabled
     }
 
+    override val notifyNewEpisodes = MutableStateFlow(true)
+
+    override fun setNotifyNewEpisodes(enabled: Boolean) {
+        notifyNewEpisodes.value = enabled
+    }
+
     override val refreshIntervalHours = MutableStateFlow(RefreshInterval.DEFAULT_HOURS)
 
     override fun setRefreshIntervalHours(hours: Int) {

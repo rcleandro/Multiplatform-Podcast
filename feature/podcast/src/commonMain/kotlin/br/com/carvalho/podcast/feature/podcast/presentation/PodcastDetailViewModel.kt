@@ -100,6 +100,9 @@ class PodcastDetailViewModel(
             PodcastDetailIntent.Refresh -> refresh()
             is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
             is PodcastDetailIntent.SetOldestFirst -> setOldestFirst(intent.oldestFirst)
+            is PodcastDetailIntent.SetNotifications -> viewModelScope.launch(dispatchers.io) {
+                repository.setPodcastNotifications(podcastId, intent.enabled)
+            }
             is PodcastDetailIntent.SetPlayback -> {
                 analytics.logEvent(AnalyticsEvent.SetPodcastPlayback)
                 viewModelScope.launch(dispatchers.io) { repository.setPodcastPlayback(podcastId, intent.playback) }
@@ -246,6 +249,9 @@ sealed interface PodcastDetailIntent {
     data object Refresh : PodcastDetailIntent
     data class SetFilter(val filter: EpisodeFilter) : PodcastDetailIntent
     data class SetOldestFirst(val oldestFirst: Boolean) : PodcastDetailIntent
+
+    /** Whether this podcast's new episodes notify (18.18). */
+    data class SetNotifications(val enabled: Boolean) : PodcastDetailIntent
 
     /** The podcast's own speed and skipped start and end (18.14). */
     data class SetPlayback(val playback: PodcastPlayback) : PodcastDetailIntent

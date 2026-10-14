@@ -53,7 +53,12 @@ class SettingsViewModel(
             combine(preferences.skipSilence, preferences.boostVoice, ::Pair),
             ::Triple,
         ),
-        combine(preferences.wifiOnlyDownloads, preferences.refreshIntervalHours, ::Pair),
+        combine(
+            preferences.wifiOnlyDownloads,
+            preferences.refreshIntervalHours,
+            preferences.notifyNewEpisodes,
+            ::Triple,
+        ),
         combine(
             preferences.downloadLimitBytes,
             preferences.downloadNextOnFinish,
@@ -61,7 +66,8 @@ class SettingsViewModel(
             ::Triple
         ),
         combine(usedBytes, disk, confirmingDeleteAll, opml, ::Measured),
-    ) { (theme, skips, language), (telemetry, explicit, speech), (wifiOnly, refreshHours), downloads, measured ->
+    ) { (theme, skips, language), (telemetry, explicit, speech), updates, downloads, measured ->
+        val (wifiOnly, refreshHours, notify) = updates
         val (limit, downloadNext, deleteFinished) = downloads
         SettingsUiState(
             themeMode = theme,
@@ -73,6 +79,7 @@ class SettingsViewModel(
             usedBytes = measured.bytes,
             wifiOnlyDownloads = wifiOnly,
             refreshIntervalHours = refreshHours,
+            notifyNewEpisodes = notify,
             downloadLimitBytes = limit,
             downloadNextOnFinish = downloadNext,
             disk = measured.disk,
@@ -133,6 +140,7 @@ class SettingsViewModel(
             is SettingsIntent.SetShowExplicit -> preferences.setShowExplicit(intent.enabled)
             is SettingsIntent.SetSkipSilence -> preferences.setSkipSilence(intent.enabled)
             is SettingsIntent.SetRefreshInterval -> preferences.setRefreshIntervalHours(intent.hours)
+            is SettingsIntent.SetNotifyNewEpisodes -> preferences.setNotifyNewEpisodes(intent.enabled)
             is SettingsIntent.SetBoostVoice -> preferences.setBoostVoice(intent.enabled)
             is SettingsIntent.SetWifiOnly -> preferences.setWifiOnlyDownloads(intent.enabled)
             is SettingsIntent.SetDownloadLimit -> preferences.setDownloadLimitBytes(intent.bytes)
@@ -164,6 +172,7 @@ data class SettingsUiState(
     val wifiOnlyDownloads: Boolean = false,
     /** Hours between looks for new episodes while closed (18.18); 0 never looks. */
     val refreshIntervalHours: Int = RefreshInterval.DEFAULT_HOURS,
+    val notifyNewEpisodes: Boolean = true,
     /** Null for no limit. */
     val downloadLimitBytes: Long? = null,
     val downloadNextOnFinish: Boolean = false,
@@ -218,6 +227,7 @@ sealed interface SettingsIntent {
     data class SetShowExplicit(val enabled: Boolean) : SettingsIntent
     data class SetSkipSilence(val enabled: Boolean) : SettingsIntent
     data class SetRefreshInterval(val hours: Int) : SettingsIntent
+    data class SetNotifyNewEpisodes(val enabled: Boolean) : SettingsIntent
     data class SetBoostVoice(val enabled: Boolean) : SettingsIntent
     data class SetWifiOnly(val enabled: Boolean) : SettingsIntent
     data class SetDownloadLimit(val bytes: Long?) : SettingsIntent

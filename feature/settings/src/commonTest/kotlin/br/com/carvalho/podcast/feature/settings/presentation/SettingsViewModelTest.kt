@@ -117,6 +117,10 @@ class SettingsViewModelTest {
         assertEquals(12, preferences.refreshIntervalHours.value)
         assertEquals(12, viewModel.uiState.value.refreshIntervalHours)
 
+        viewModel.onIntent(SettingsIntent.SetNotifyNewEpisodes(false))
+        assertEquals(false, preferences.notifyNewEpisodes.value)
+        assertEquals(false, viewModel.uiState.value.notifyNewEpisodes)
+
         viewModel.onIntent(SettingsIntent.SetSkipSilence(true))
         viewModel.onIntent(SettingsIntent.SetBoostVoice(true))
         assertEquals(true, preferences.skipSilence.value)

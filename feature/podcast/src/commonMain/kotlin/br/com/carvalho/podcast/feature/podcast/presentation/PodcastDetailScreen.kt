@@ -158,6 +158,7 @@ fun PodcastDetailScreen(
             onActOnSelection = { viewModel.onIntent(PodcastDetailIntent.ActOnSelection(it)) },
             onSetSaved = { episode, saved -> viewModel.onIntent(PodcastDetailIntent.SetSaved(episode, saved)) },
             onPlaybackChange = { viewModel.onIntent(PodcastDetailIntent.SetPlayback(it)) },
+            onNotificationsChange = { viewModel.onIntent(PodcastDetailIntent.SetNotifications(it)) },
         ),
     )
 }
@@ -189,6 +190,8 @@ data class PodcastDetailActions(
     val onSetSaved: (Episode, Boolean) -> Unit = { _, _ -> },
     /** The podcast's own speed and skipped start and end (18.14). */
     val onPlaybackChange: (PodcastPlayback) -> Unit = {},
+    /** Whether this podcast's new episodes notify (18.18). */
+    val onNotificationsChange: (Boolean) -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -219,7 +222,7 @@ fun PodcastDetailContent(
                     state.podcast?.title?.takeIf { headerGone },
                     canShare = state.podcast != null,
                     oldestFirst = state.oldestFirst,
-                    playback = state.podcast?.playback,
+                    podcast = state.podcast,
                     actions,
                 )
             }
@@ -259,7 +262,7 @@ private fun PodcastDetailTopBar(
     title: String?,
     canShare: Boolean,
     oldestFirst: Boolean,
-    playback: PodcastPlayback?,
+    podcast: Podcast?,
     actions: PodcastDetailActions,
 ) {
     TopAppBar(
@@ -270,7 +273,7 @@ private fun PodcastDetailTopBar(
             }
         },
         actions = {
-            playback?.let { PlaybackButton(it, actions.onPlaybackChange) }
+            podcast?.let { PlaybackButton(it, actions) }
             OrderMenu(oldestFirst, actions.onOldestFirstChange)
             if (canShare) {
                 IconButton(onClick = actions.onShare) {

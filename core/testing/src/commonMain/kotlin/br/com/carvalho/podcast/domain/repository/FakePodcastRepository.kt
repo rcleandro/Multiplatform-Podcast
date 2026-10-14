@@ -61,6 +61,13 @@ class FakePodcastRepository : PodcastRepository {
             PagingData.from(if (oldestFirst) newestFirst.reversed() else newestFirst)
         }
 
+    override suspend fun setPodcastNotifications(podcastId: String, enabled: Boolean) {
+        podcasts.value = podcasts.value.map { if (it.id == podcastId) it.copy(notifyNewEpisodes = enabled) else it }
+    }
+
+    override suspend fun getNewEpisodes(): List<Episode> =
+        episodes.value.filter { it.isNew && !it.isPlayed }.sortedByDescending { it.publishDate }
+
     override suspend fun setPodcastPlayback(podcastId: String, playback: PodcastPlayback) {
         podcasts.value = podcasts.value.map { if (it.id == podcastId) it.copy(playback = playback) else it }
     }

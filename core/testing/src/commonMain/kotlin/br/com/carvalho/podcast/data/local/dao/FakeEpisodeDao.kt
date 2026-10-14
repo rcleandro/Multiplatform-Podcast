@@ -40,6 +40,9 @@ class FakeEpisodeDao : EpisodeDao {
         episodes.value = episodes.value.map { it.copy(lastPlayedAt = null) }
     }
 
+    override suspend fun getNew(): List<EpisodeEntity> =
+        episodes.value.filter { it.isNew && !it.isPlayed }.sortedByDescending { it.publishDate }
+
     override suspend fun setSaved(id: String, saved: Boolean) {
         episodes.value = episodes.value.map { if (it.id == id) it.copy(isSaved = saved) else it }
     }

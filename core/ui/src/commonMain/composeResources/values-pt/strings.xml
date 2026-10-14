@@ -121,7 +121,6 @@
     <string name="opml_exported">Salvo com %1$d podcasts</string>
     <string name="opml_export_failed">Não foi possível salvar o arquivo</string>
     <string name="podcast_playback">Ajustes de reprodução</string>
-    <string name="podcast_playback_title">Como este podcast toca</string>
     <string name="speed_general">A mesma do player</string>
     <string name="skip_intro">Pular o início</string>
     <string name="skip_outro">Pular o fim</string>
@@ -139,6 +138,12 @@
     <string name="settings_refresh">Procurar episódios novos</string>
     <string name="settings_refresh_never">Nunca, só ao abrir o app</string>
     <plurals name="settings_refresh_every"><item quantity="one">A cada hora</item><item quantity="other">A cada %1$d horas</item></plurals>
+    <string name="settings_notify_new">Avisar episódios novos</string>
+    <string name="settings_notify_new_description">Quando a procura em segundo plano encontrar algum.</string>
+    <string name="podcast_notify_new">Avisar episódios novos</string>
+    <string name="new_episodes_channel">Episódios novos</string>
+    <string name="podcast_settings_title">Este podcast</string>
+    <plurals name="new_episodes_count"><item quantity="one">%1$d episódio novo</item><item quantity="other">%1$d episódios novos</item></plurals>
     <string name="filter_in_progress">Em andamento</string>
     <string name="episodes_tab">Episódios</string>
     <string name="in_progress_empty_title">Nada em andamento</string>

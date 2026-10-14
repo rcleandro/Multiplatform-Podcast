@@ -268,6 +268,16 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
+    fun `turning the podcast's notifications off reaches the repository`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(samplePodcast)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.SetNotifications(false))
+
+        assertFalse(repository.podcasts.value.single().notifyNewEpisodes)
+    }
+
+    @Test
     fun `filter survives a podcast update`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(samplePodcast)
         val viewModel = createViewModel()
