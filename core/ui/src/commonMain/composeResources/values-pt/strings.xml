@@ -147,6 +147,9 @@
     <string name="auto_download">Baixar sozinho</string>
     <string name="auto_download_description">Os episódios mais novos ainda não ouvidos ficam baixados, só no Wi-Fi se as Configurações pedirem.</string>
     <plurals name="auto_download_newest"><item quantity="one">O mais novo</item><item quantity="other">Os %1$d mais novos</item></plurals>
+    <string name="settings_delete_after">Apagar downloads depois de</string>
+    <string name="settings_delete_after_never">Manter</string>
+    <plurals name="settings_delete_after_days"><item quantity="one">%1$d dia</item><item quantity="other">%1$d dias</item></plurals>
     <string name="filter_in_progress">Em andamento</string>
     <string name="episodes_tab">Episódios</string>
     <string name="in_progress_empty_title">Nada em andamento</string>

@@ -50,4 +50,6 @@ data class EpisodeEntity(
     @ColumnInfo(defaultValue = "0") val isSaved: Boolean = false,
     /** When it last started playing, for "History" (18.12), added in version 16; the feed never rewrites it. */
     val lastPlayedAt: Long? = null,
+    /** When its download finished (18.19), added in version 20; downloads from before have none. */
+    val downloadedAt: Long? = null,
 )

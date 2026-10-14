@@ -113,6 +113,9 @@ class SettingsViewModelTest {
         assertEquals(true, preferences.deleteFinishedDownloads.value)
         assertEquals(true, viewModel.uiState.value.deleteFinishedDownloads)
 
+        viewModel.onIntent(SettingsIntent.SetDeleteAfter(14))
+        assertEquals(14, viewModel.uiState.value.deleteDownloadsAfterDays)
+
         viewModel.onIntent(SettingsIntent.SetRefreshInterval(12))
         assertEquals(12, preferences.refreshIntervalHours.value)
         assertEquals(12, viewModel.uiState.value.refreshIntervalHours)

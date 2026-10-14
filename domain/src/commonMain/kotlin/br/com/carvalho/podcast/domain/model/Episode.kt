@@ -28,4 +28,6 @@ data class Episode(
     val isSaved: Boolean = false,
     /** When it last started playing (epoch ms), for "History" (18.12); null if never played here. */
     val lastPlayedAt: Long? = null,
+    /** When its download finished (epoch ms), for deleting old downloads (18.19); null if not downloaded since. */
+    val downloadedAt: Long? = null,
 )

@@ -23,6 +23,8 @@ class RefreshPodcastUseCase(
     private val podcastRepository: PodcastRepository,
     /** After each feed read, unchanged or not, its podcast's newest episodes are kept downloaded (18.19). */
     private val autoDownload: AutoDownloadUseCase? = null,
+    /** After every feed is read, downloads older than Settings allow go (18.19). */
+    private val deleteOldDownloads: DeleteOldDownloadsUseCase? = null,
 ) {
     suspend operator fun invoke(podcastId: String): Result<Unit> {
         val podcast = podcastRepository.getPodcastById(podcastId)
@@ -60,6 +62,7 @@ class RefreshPodcastUseCase(
         val results = coroutineScope {
             podcasts.map { async { permits.withPermit { invoke(it.id) } } }.awaitAll()
         }
+        deleteOldDownloads?.invoke()
         return RefreshSummary(total = results.size, failures = results.mapNotNull { it.exceptionOrNull() }).also {
             Metrics.record(
                 Metrics.REFRESH_ALL,

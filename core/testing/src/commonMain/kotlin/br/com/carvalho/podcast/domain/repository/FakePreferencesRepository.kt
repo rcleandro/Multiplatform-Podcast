@@ -45,6 +45,12 @@ class FakePreferencesRepository : PreferencesRepository {
         downloadNextOnFinish.value = enabled
     }
 
+    override val deleteDownloadsAfterDays = MutableStateFlow(0)
+
+    override fun setDeleteDownloadsAfterDays(days: Int) {
+        deleteDownloadsAfterDays.value = days
+    }
+
     override val deleteFinishedDownloads = MutableStateFlow(false)
 
     override fun setDeleteFinishedDownloads(enabled: Boolean) {

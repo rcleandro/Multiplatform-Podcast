@@ -51,6 +51,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_appearance
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_content
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all_confirmation
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
@@ -89,6 +90,7 @@ import br.com.carvalho.podcast.core.util.openSystemLanguageSettings
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.ThemeMode
+import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloads
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.presentation.file.rememberTextFilePicker
 import br.com.carvalho.podcast.presentation.file.rememberTextFileSaver
@@ -160,7 +162,7 @@ fun SettingsContent(
             subscriptionSettings(state.opml, onImport = pickOpml, onExport = { onIntent(SettingsIntent.ExportOpml) })
             if (canRefreshInBackground) updateSettings(state, onPick = { picking = Picker.REFRESH }, onIntent)
             playbackSettings(state, onIntent)
-            state.usedBytes?.let { downloadSettings(it, state, onIntent) }
+            state.usedBytes?.let { downloadSettings(it, state, onIntent) { picking = Picker.DELETE_AFTER } }
             contentAndPrivacySettings(state, onIntent)
         }
     }
@@ -183,7 +185,7 @@ fun SettingsContent(
 }
 
 /** Settings whose choices open in a dialog, so the screen stays short as they grow (18.5). */
-private enum class Picker { THEME, LANGUAGE, REFRESH }
+private enum class Picker { THEME, LANGUAGE, REFRESH, DELETE_AFTER }
 
 /** The choices of [picker]; [onDone] closes it, whether one was picked or not. */
 @Composable
@@ -201,6 +203,16 @@ private fun PickerDialog(
             onSelect = {
                 onDone()
                 onIntent(SettingsIntent.SetTheme(it))
+            },
+            onDismiss = onDone,
+        )
+        Picker.DELETE_AFTER -> ChoiceDialog(
+            title = stringResource(Res.string.settings_delete_after),
+            options = DeleteOldDownloads.CHOICES.map { it to deleteAfterLabel(it) },
+            selected = state.deleteDownloadsAfterDays,
+            onSelect = {
+                onDone()
+                onIntent(SettingsIntent.SetDeleteAfter(it))
             },
             onDismiss = onDone,
         )
@@ -343,7 +355,12 @@ private fun LazyListScope.playbackSettings(state: SettingsUiState, onIntent: (Se
 }
 
 /** Where there are downloads: their space, Wi-Fi only on phones and tablets, their limit and the next episode. */
-private fun LazyListScope.downloadSettings(bytes: Long, state: SettingsUiState, onIntent: (SettingsIntent) -> Unit) {
+private fun LazyListScope.downloadSettings(
+    bytes: Long,
+    state: SettingsUiState,
+    onIntent: (SettingsIntent) -> Unit,
+    onPickDeleteAfter: () -> Unit,
+) {
     item { Section(stringResource(Res.string.settings_downloads)) }
     item {
         val space = state.disk
@@ -384,6 +401,7 @@ private fun LazyListScope.downloadSettings(bytes: Long, state: SettingsUiState, 
             onChange = { onIntent(SettingsIntent.SetDeleteFinished(it)) },
         )
     }
+    deleteAfterRow(state.deleteDownloadsAfterDays, onPickDeleteAfter)
     if (bytes > 0) {
         item {
             OutlinedButton(

@@ -5,6 +5,7 @@ import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.data.remote.toAppError
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -159,7 +160,7 @@ class KtorEpisodeDownloader(
 
     /** Records a file already in the downloads folder as the episode's download. */
     internal suspend fun markDownloaded(episodeId: String, fileName: String) {
-        episodeDao.updateDownloadFile(episodeId, fileName)
+        episodeDao.updateDownloadFile(episodeId, fileName, downloadedAt = getCurrentTimestamp())
         val destPath = directories.downloadPath(fileName)
         updateStatus(episodeId, DownloadStatus.Completed(destPath.toString()))
         AppLogger.d(TAG, "Download completed for $episodeId: $destPath")

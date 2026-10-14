@@ -67,6 +67,7 @@ class KtorEpisodeDownloaderTest {
         }
 
         val downloader = createDownloader(mockEngine)
+        episodeDao.insertAll(listOf(sampleEpisode.toEntity()))
 
         downloader.activeDownloads.test {
             assertEquals(emptyMap(), awaitItem())
@@ -85,6 +86,8 @@ class KtorEpisodeDownloaderTest {
 
             assertTrue(fileSystem.exists(baseDir / "downloads" / "e1.mp3"))
         }
+        // When it finished is kept, for deleting old downloads (18.19).
+        assertTrue(episodeDao.episodes.value.single { it.id == sampleEpisode.id }.downloadedAt != null)
     }
 
     @Test

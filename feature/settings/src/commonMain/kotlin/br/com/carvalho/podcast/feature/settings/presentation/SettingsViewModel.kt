@@ -62,13 +62,14 @@ class SettingsViewModel(
         combine(
             preferences.downloadLimitBytes,
             preferences.downloadNextOnFinish,
-            preferences.deleteFinishedDownloads,
+            combine(preferences.deleteFinishedDownloads, preferences.deleteDownloadsAfterDays, ::Pair),
             ::Triple
         ),
         combine(usedBytes, disk, confirmingDeleteAll, opml, ::Measured),
     ) { (theme, skips, language), (telemetry, explicit, speech), updates, downloads, measured ->
         val (wifiOnly, refreshHours, notify) = updates
-        val (limit, downloadNext, deleteFinished) = downloads
+        val (limit, downloadNext, deleting) = downloads
+        val (deleteFinished, deleteAfterDays) = deleting
         SettingsUiState(
             themeMode = theme,
             language = language,
@@ -84,6 +85,7 @@ class SettingsViewModel(
             downloadNextOnFinish = downloadNext,
             disk = measured.disk,
             deleteFinishedDownloads = deleteFinished,
+            deleteDownloadsAfterDays = deleteAfterDays,
             isConfirmingDeleteAll = measured.confirming,
             skipIntervals = skips,
             opml = measured.opml.status,
@@ -146,6 +148,7 @@ class SettingsViewModel(
             is SettingsIntent.SetDownloadLimit -> preferences.setDownloadLimitBytes(intent.bytes)
             is SettingsIntent.SetDownloadNext -> preferences.setDownloadNextOnFinish(intent.enabled)
             is SettingsIntent.SetDeleteFinished -> preferences.setDeleteFinishedDownloads(intent.enabled)
+            is SettingsIntent.SetDeleteAfter -> preferences.setDeleteDownloadsAfterDays(intent.days)
             is SettingsIntent.SetSkipIntervals -> preferences.setSkipIntervals(intent.intervals)
             SettingsIntent.RequestDeleteAll -> confirmingDeleteAll.value = true
             SettingsIntent.DismissDeleteAll -> confirmingDeleteAll.value = false
@@ -179,6 +182,8 @@ data class SettingsUiState(
     /** The disk the downloads live on; null where it is not known. */
     val disk: DiskSpace? = null,
     val deleteFinishedDownloads: Boolean = false,
+    /** Days a download stays before it is deleted (18.19); 0 keeps them. */
+    val deleteDownloadsAfterDays: Int = 0,
     /** "Delete all downloads" waits for this confirmation. */
     val isConfirmingDeleteAll: Boolean = false,
     val skipIntervals: SkipIntervals = SkipIntervals(),
@@ -233,6 +238,7 @@ sealed interface SettingsIntent {
     data class SetDownloadLimit(val bytes: Long?) : SettingsIntent
     data class SetDownloadNext(val enabled: Boolean) : SettingsIntent
     data class SetDeleteFinished(val enabled: Boolean) : SettingsIntent
+    data class SetDeleteAfter(val days: Int) : SettingsIntent
     data class SetSkipIntervals(val intervals: SkipIntervals) : SettingsIntent
     data object RequestDeleteAll : SettingsIntent
     data object DismissDeleteAll : SettingsIntent

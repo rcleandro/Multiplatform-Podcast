@@ -149,6 +149,9 @@
     <string name="auto_download">Download by itself</string>
     <string name="auto_download_description">The newest episodes not heard yet stay downloaded, on Wi-Fi only if Settings say so.</string>
     <plurals name="auto_download_newest"><item quantity="one">The newest</item><item quantity="other">The %1$d newest</item></plurals>
+    <string name="settings_delete_after">Delete downloads after</string>
+    <string name="settings_delete_after_never">Keep them</string>
+    <plurals name="settings_delete_after_days"><item quantity="one">%1$d day</item><item quantity="other">%1$d days</item></plurals>
     <string name="filter_in_progress">In progress</string>
     <string name="episodes_tab">Episodes</string>
     <string name="in_progress_empty_title">Nothing in progress</string>

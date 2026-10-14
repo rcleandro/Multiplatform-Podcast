@@ -7,6 +7,7 @@ import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloads
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,7 @@ private const val WIFI_ONLY_DOWNLOADS = "wifi_only_downloads"
 private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
 private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
 private const val DELETE_FINISHED_DOWNLOADS = "delete_finished_downloads"
+private const val DELETE_DOWNLOADS_AFTER_DAYS = "delete_downloads_after_days"
 private const val SKIP_SILENCE = "skip_silence"
 private const val REFRESH_INTERVAL_HOURS = "refresh_interval_hours"
 private const val NOTIFY_NEW_EPISODES = "notify_new_episodes"
@@ -108,6 +110,16 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setBoostVoice(enabled: Boolean) {
         settings.putBoolean(BOOST_VOICE, enabled)
         voice.value = enabled
+    }
+
+    private val deleteAfter = MutableStateFlow(
+        settings.getInt(DELETE_DOWNLOADS_AFTER_DAYS, 0).takeIf { it in DeleteOldDownloads.CHOICES } ?: 0
+    )
+    override val deleteDownloadsAfterDays: StateFlow<Int> = deleteAfter.asStateFlow()
+
+    override fun setDeleteDownloadsAfterDays(days: Int) {
+        settings.putInt(DELETE_DOWNLOADS_AFTER_DAYS, days)
+        deleteAfter.value = days
     }
 
     private val deleteFinished = MutableStateFlow(settings.getBoolean(DELETE_FINISHED_DOWNLOADS, defaultValue = false))

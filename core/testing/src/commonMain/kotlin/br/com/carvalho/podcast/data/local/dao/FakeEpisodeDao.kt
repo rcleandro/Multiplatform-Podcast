@@ -155,9 +155,9 @@ class FakeEpisodeDao : EpisodeDao {
         }
     }
 
-    override suspend fun updateDownloadFile(id: String, fileName: String?) {
+    override suspend fun updateDownloadFile(id: String, fileName: String?, downloadedAt: Long?) {
         episodes.value = episodes.value.map {
-            if (it.id == id) it.copy(downloadFile = fileName, isDownloaded = fileName != null) else it
+            if (it.id == id) it.copy(downloadFile = fileName, isDownloaded = fileName != null, downloadedAt = downloadedAt) else it
         }
     }
 

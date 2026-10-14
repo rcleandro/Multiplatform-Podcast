@@ -3,6 +3,9 @@ package br.com.carvalho.podcast.feature.settings.presentation
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after_days
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after_never
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_notify_new
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_notify_new_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh
@@ -47,3 +50,23 @@ internal fun refreshLabel(hours: Int): String =
     } else {
         pluralStringResource(Res.plurals.settings_refresh_every, hours, hours)
     }
+
+/** "30 days", or kept. */
+@Composable
+internal fun deleteAfterLabel(days: Int): String =
+    if (days == 0) {
+        stringResource(Res.string.settings_delete_after_never)
+    } else {
+        pluralStringResource(Res.plurals.settings_delete_after_days, days, days)
+    }
+
+/** Opens the choice of how long downloads stay (18.19). */
+internal fun LazyListScope.deleteAfterRow(days: Int, onPick: () -> Unit) {
+    item {
+        PickerRow(
+            title = stringResource(Res.string.settings_delete_after),
+            value = deleteAfterLabel(days),
+            onClick = onPick,
+        )
+    }
+}
