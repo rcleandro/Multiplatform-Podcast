@@ -38,6 +38,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup
+import br.com.carvalho.podcast.core.ui.generated.resources.stats_title
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
@@ -137,6 +138,7 @@ class SettingsContentTest {
             }
         }
 
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_show_explicit)))
         onNodeWithText(text(Res.string.settings_show_explicit_description)).assertExists()
         onNodeWithText(text(Res.string.settings_show_explicit)).assertIsOn().performClick()
 
@@ -172,6 +174,7 @@ class SettingsContentTest {
             }
         }
 
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText("50", substring = true))
         onNode(hasText("50", substring = true)).assertExists()
     }
 
@@ -209,7 +212,9 @@ class SettingsContentTest {
         // One sentence for screen readers, with the sizes of the bar, in the runner's language.
         val app = runBlocking { getString(Res.string.size_gigabytes, 1, 0) }
         val free = runBlocking { getString(Res.string.size_gigabytes, 12, 0) }
-        onNode(hasContentDescription(app, substring = true) and hasContentDescription(free, substring = true)).assertExists()
+        val bar = hasContentDescription(app, substring = true) and hasContentDescription(free, substring = true)
+        onNode(hasScrollToNodeAction()).performScrollToNode(bar)
+        onNode(bar).assertExists()
     }
 
     @Test
@@ -274,5 +279,17 @@ class SettingsContentTest {
 
         state = state.copy(backup = OpmlStatus.NotABackup)
         list.performScrollToNode(hasText(text(Res.string.backup_not_valid)))
+    }
+
+    @Test
+    fun theListeningStatsOpenFromTheTopOfSettings() = runComposeUiTest {
+        var opened = 0
+        setContent {
+            PodcastTheme { SettingsContent(SettingsUiState(), onBack = {}, onIntent = {}, onOpenStats = { opened++ }) }
+        }
+
+        onNodeWithText(text(Res.string.stats_title)).performClick()
+
+        assertEquals(1, opened)
     }
 }

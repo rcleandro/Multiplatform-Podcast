@@ -27,6 +27,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
+import kotlin.time.ComparableTimeMark
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
@@ -54,6 +55,8 @@ class PlaybackController(
     private val chapterSource: ChapterSource = ChapterSource { emptyList() },
     /** Where the progress loop and the sleep timer run; tests pass one they can end. */
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + dispatchers.main),
+    /** The clock listening time is measured with (19.5); tests pass their virtual one. */
+    private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic,
 ) : AudioPlayer {
     private val _playerState = MutableStateFlow(PlayerState())
     override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
@@ -61,6 +64,13 @@ class PlaybackController(
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
     private var chaptersJob: Job? = null
+
+    /** Heard since the last save (19.5): real time, and how far the episode moved in it. */
+    private var heardMs = 0L
+    private var movedMs = 0L
+
+    /** When and where the progress was last read while playing; null while paused. */
+    private var lastTick: Pair<ComparableTimeMark, Long>? = null
 
     /** What the platform was last told about chapters, so it hears again only when the chapter changes. */
     private var shownChapter: String? = null
@@ -93,6 +103,8 @@ class PlaybackController(
     }
 
     override suspend fun play(episode: Episode) {
+        // The time heard of the episode leaving goes to its own podcast.
+        _playerState.value.currentEpisode?.let { withContext(dispatchers.io) { saveListening(it) } }
         val requested = TimeSource.Monotonic.markNow()
         val playable = withLocalFile(episode)
         playRequest = requested to if (playable.localPath != null) "local" else "stream"
@@ -235,6 +247,8 @@ class PlaybackController(
         } else {
             progressJob?.cancel()
             readProgress()
+            countListening()
+            lastTick = null
             save()
         }
     }
@@ -265,9 +279,11 @@ class PlaybackController(
 
     private fun startProgress() {
         progressJob?.cancel()
+        lastTick = null
         progressJob = scope.launch {
             while (isActive) {
                 readProgress()
+                countListening()
                 if (reachedOutro()) {
                     // Its own coroutine: ending cancels this loop.
                     scope.launch {
@@ -306,6 +322,34 @@ class PlaybackController(
         onMain { engine.showChapter(title) }
     }
 
+    /**
+     * Adds the time since the last tick to what was heard, with how far the episode moved in it; a move backwards or
+     * faster than any speed plays is a seek, and does not count.
+     */
+    private fun countListening() {
+        val now = timeSource.markNow()
+        val position = _playerState.value.position
+        lastTick?.let { (then, from) ->
+            val elapsed = (now - then).inWholeMilliseconds
+            val moved = position - from
+            if (moved in 0..elapsed * MAX_MOVE_PER_MS) {
+                heardMs += elapsed
+                movedMs += moved
+            }
+        }
+        lastTick = now to position
+    }
+
+    /** What was heard of [episode] since the last save, to its podcast's totals. */
+    private suspend fun saveListening(episode: Episode) {
+        if (heardMs <= 0) return
+        val heard = heardMs
+        val saved = movedMs - heardMs
+        heardMs = 0
+        movedMs = 0
+        runCatching { playerRepository.addListening(episode.podcastId, getCurrentTimestamp(), heard, saved) }
+    }
+
     private fun movedPastLastSave(): Boolean {
         val saved = lastSavedPosition ?: return true
         return abs(_playerState.value.position - saved) >= AppConfig.PLAYBACK_SAVE_INTERVAL_MS
@@ -317,6 +361,7 @@ class PlaybackController(
         val episode = state.currentEpisode ?: return
         lastSavedPosition = state.position
         withContext(dispatchers.io) {
+            saveListening(episode)
             playerRepository.savePlaybackState(episode.id, state.position, generalSpeed, state.queue)
             val duration = state.duration
             if (duration != null && duration > 0 && state.position > duration * AppConfig.PLAYBACK_FINISHED_THRESHOLD) {
@@ -407,5 +452,8 @@ class PlaybackController(
         /** The sleep timer's last minute, over which the volume goes down to nothing. */
         const val SLEEP_FADE_MS = 60_000L
         const val FULL_VOLUME = 1f
+
+        /** Faster than the fastest speed with silences skipped: a move beyond this is a seek. */
+        const val MAX_MOVE_PER_MS = 4
     }
 }

@@ -43,6 +43,7 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
                 isOrganizingLibrary = false,
                 isAddingPodcast = false,
                 isShowingSettings = false,
+                isShowingStats = false,
             )
         }
     }
@@ -87,6 +88,7 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
                 isPlayerOpen = false,
                 isOrganizingLibrary = false,
                 isShowingSettings = false,
+                isShowingStats = false,
                 isAddingPodcast = true,
                 addPodcastSession = it.addPodcastSession + 1,
                 podcastLink = link,
@@ -101,6 +103,11 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
     /** Opens Settings over the tabs, from the gear in the library's bar (18.5, ADR 0005). */
     fun onOpenSettings() {
         _state.update { it.copy(isShowingSettings = true) }
+    }
+
+    /** Opens the listening stats over Settings (19.5); going back returns to Settings. */
+    fun onOpenListeningStats() {
+        _state.update { it.copy(isShowingStats = true) }
     }
 
     fun onPodcastSelected(podcastId: String) {
@@ -125,6 +132,7 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
                 it.isPlayerOpen -> it.copy(isPlayerOpen = false)
                 it.isOrganizingLibrary -> it.copy(isOrganizingLibrary = false)
                 it.isAddingPodcast -> it.copy(isAddingPodcast = false)
+                it.isShowingStats -> it.copy(isShowingStats = false)
                 it.isShowingSettings -> it.copy(isShowingSettings = false)
                 it.currentStack.isNotEmpty() ->
                     it.copy(stacks = it.stacks + (it.selectedTab to it.currentStack.dropLast(1)))
@@ -164,6 +172,8 @@ data class NavigationState(
     val isOrganizingLibrary: Boolean = false,
     val isAddingPodcast: Boolean = false,
     val isShowingSettings: Boolean = false,
+    /** The listening stats (19.5), over Settings. */
+    val isShowingStats: Boolean = false,
     /**
      * Counts the times "Add podcast" was opened: each opening starts clean, while a rotation or a fold, which keep
      * this number, keep what was typed.
@@ -177,5 +187,5 @@ data class NavigationState(
     val episode: Detail.Episode? get() = currentStack.lastOrNull() as? Detail.Episode
     val canGoBack: Boolean
         get() = isPlayerOpen || isQueueOpen || isOrganizingLibrary || isAddingPodcast || isShowingSettings ||
-            currentStack.isNotEmpty() || selectedTab != Tab.Library
+            isShowingStats || currentStack.isNotEmpty() || selectedTab != Tab.Library
 }

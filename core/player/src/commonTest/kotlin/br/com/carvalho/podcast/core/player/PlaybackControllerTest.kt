@@ -64,6 +64,7 @@ class PlaybackControllerTest {
         skipIntervals = skips,
         chapterSource = { chapters[it.id].orEmpty() },
         scope = backgroundScope,
+        timeSource = testScheduler.timeSource,
     ).also { runCurrent() }
 
     @Test
@@ -88,6 +89,29 @@ class PlaybackControllerTest {
         runCurrent()
         assertEquals(emptyList(), controller.playerState.value.chapters)
         assertEquals(listOf("Intro", "News", null), engine.shownChapters)
+    }
+
+    @Test
+    fun timeHeardIsRealTimeAndTheSpeedSavesTheRestButASeekCountsForNothing() = runTest(dispatcher) {
+        val controller = controller()
+        controller.play(first)
+        runCurrent()
+
+        // Ten ticks at 1.5x: 5 s of real time moved the episode 7.5 s.
+        repeat(10) {
+            engine.positionMs += TICK_MS * 3 / 2
+            advanceTimeBy(TICK_MS)
+            runCurrent()
+        }
+        engine.positionMs += 10 * MINUTE_MS
+        advanceTimeBy(TICK_MS)
+        runCurrent()
+        controller.pause()
+        runCurrent()
+
+        val heard = playerRepository.listened
+        assertEquals(setOf(first.podcastId), heard.map { it.first }.toSet())
+        assertEquals(10 * TICK_MS to 5 * TICK_MS, heard.sumOf { it.second } to heard.sumOf { it.third })
     }
 
     @Test

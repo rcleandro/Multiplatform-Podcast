@@ -142,6 +142,19 @@ class RootComponentTest {
     }
 
     @Test
+    fun theListeningStatsOpenOverSettingsAndBackReturnsToSettings() {
+        val root = createRoot()
+        root.onOpenSettings()
+
+        root.onOpenListeningStats()
+        assertTrue(root.current.isShowingStats)
+        backDispatcher.back()
+
+        assertFalse(root.current.isShowingStats)
+        assertTrue(root.current.isShowingSettings)
+    }
+
+    @Test
     fun selectingAnEpisodeOpensItOverItsPodcast() {
         val root = createRoot()
 

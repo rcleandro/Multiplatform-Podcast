@@ -67,6 +67,7 @@ import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.player.presentation.QueueScreen
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
+import br.com.carvalho.podcast.feature.settings.presentation.ListeningStatsScreen
 import br.com.carvalho.podcast.feature.settings.presentation.SettingsScreen
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.StringResource
@@ -131,7 +132,7 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
                 onOpenPodcast = component::onPodcastSelected,
             )
         }
-        Overlay(visible = state.isShowingSettings) { SettingsScreen(onBack = component::onBackClicked) }
+        SettingsOverlays(state, component)
         Overlay(visible = state.isPlayerOpen) {
             PlayerScreen(
                 onBackClick = component::onBackClicked,
@@ -141,6 +142,15 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
         }
         Overlay(visible = state.isQueueOpen) { QueueScreen(onBack = component::onBackClicked) }
     }
+}
+
+/** Settings over the tabs, and the listening stats (19.5) over Settings. */
+@Composable
+private fun SettingsOverlays(state: NavigationState, component: RootComponent) {
+    Overlay(visible = state.isShowingSettings) {
+        SettingsScreen(onBack = component::onBackClicked, onOpenStats = component::onOpenListeningStats)
+    }
+    Overlay(visible = state.isShowingStats) { ListeningStatsScreen(onBack = component::onBackClicked) }
 }
 
 /** A screen that slides up over the tabs: the player, the queue, "Organize library", "Add podcast" and Settings. */

@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.Bookmark
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.ListeningStats
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -31,6 +32,16 @@ class FakePlayerRepository : PlayerRepository {
     }
 
     override suspend fun allBookmarks(): List<Bookmark> = savedBookmarks.value
+
+    /** Each call to [addListening]: podcast, listened and saved. */
+    val listened = mutableListOf<Triple<String, Long, Long>>()
+    val stats = MutableStateFlow(ListeningStats())
+
+    override suspend fun addListening(podcastId: String, at: Long, listenedMs: Long, savedMs: Long) {
+        listened += Triple(podcastId, listenedMs, savedMs)
+    }
+
+    override fun listeningStats(): Flow<ListeningStats> = stats
 
     override suspend fun deleteBookmark(id: Long) {
         savedBookmarks.value = savedBookmarks.value.filterNot { it.id == id }

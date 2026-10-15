@@ -102,7 +102,7 @@ val playerModule = module {
 
 val repositoryModule = module {
     single<PodcastRepository> { PodcastRepositoryImpl(get(), get()) }
-    single<PlayerRepository> { PlayerRepositoryImpl(get()) }
+    single<PlayerRepository> { PlayerRepositoryImpl(get(), get()) }
     // Settings comes from each platform module (ADR 0006).
     single<PreferencesRepository> { SettingsPreferencesRepository(get()) }
     // Each platform binds EpisodeDownloader: Android and iOS wrap this one to download in the background.

@@ -83,6 +83,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_light
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_system
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only_description
+import br.com.carvalho.podcast.core.ui.generated.resources.stats_description
+import br.com.carvalho.podcast.core.ui.generated.resources.stats_title
 import br.com.carvalho.podcast.core.util.canEnhanceSpeech
 import br.com.carvalho.podcast.core.util.canLimitDownloadsToWifi
 import br.com.carvalho.podcast.core.util.canRefreshInBackground
@@ -98,9 +100,13 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = koinViewModel()) {
+fun SettingsScreen(
+    onBack: () -> Unit,
+    onOpenStats: () -> Unit = {},
+    viewModel: SettingsViewModel = koinViewModel(),
+) {
     val state by viewModel.uiState.collectAsState()
-    SettingsContent(state = state, onBack = onBack, onIntent = viewModel::onIntent)
+    SettingsContent(state = state, onBack = onBack, onIntent = viewModel::onIntent, onOpenStats = onOpenStats)
 }
 
 private val THEME_LABELS: Map<ThemeMode, StringResource> = mapOf(
@@ -135,6 +141,7 @@ fun SettingsContent(
     onBack: () -> Unit,
     onIntent: (SettingsIntent) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenStats: () -> Unit = {},
 ) {
     var picking by rememberSaveable { mutableStateOf<Picker?>(null) }
     val (pickOpml, pickBackup) = rememberSubscriptionFiles(state, onIntent)
@@ -158,6 +165,7 @@ fun SettingsContent(
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             modifier = Modifier.fillMaxSize().padding(padding),
         ) {
+            statsRow(onOpenStats)
             item { Section(stringResource(Res.string.settings_appearance)) }
             item {
                 PickerRow(
@@ -278,6 +286,17 @@ private fun LazyListScope.contentAndPrivacySettings(state: SettingsUiState, onIn
             description = stringResource(Res.string.settings_telemetry_description),
             checked = state.telemetryEnabled,
             onChange = { onIntent(SettingsIntent.SetTelemetry(it)) },
+        )
+    }
+}
+
+/** The listening stats (19.5), first: what people look at more than they change settings. */
+private fun LazyListScope.statsRow(onOpenStats: () -> Unit) {
+    item {
+        PickerRow(
+            title = stringResource(Res.string.stats_title),
+            value = stringResource(Res.string.stats_description),
+            onClick = onOpenStats,
         )
     }
 }
