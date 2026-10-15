@@ -21,6 +21,9 @@ import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import androidx.wear.compose.navigation.SwipeDismissableNavHost
+import androidx.wear.compose.navigation.composable
+import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -85,5 +88,25 @@ class WearScreensTest {
         watch { PopularContent(listOf(DirectoryResult(found, isSubscribed = true)), onSubscribe = {}) }
 
         compose.onNodeWithText(text(Res.string.subscribed)).assertExists()
+    }
+
+    @Test
+    fun aPodcastWhoseIdIsAFeedAddressOpensWithItsWholeId() {
+        val feed = "https://www.omnycontent.com/d/playlist/651a/podcast.rss?key=a%20b"
+        var opened: String? = null
+        lateinit var navigate: (String) -> Unit
+        watch {
+            val navController = rememberSwipeDismissableNavController()
+            navigate = { navController.navigate(podcastRoute(it)) }
+            SwipeDismissableNavHost(navController = navController, startDestination = "home") {
+                composable("home") {}
+                composable(PODCAST_ROUTE) { opened = it.arguments?.getString(PODCAST_ID) }
+            }
+        }
+
+        compose.runOnIdle { navigate(feed) }
+        compose.waitForIdle()
+
+        assertEquals(feed, opened)
     }
 }
