@@ -142,6 +142,18 @@ class RootComponentTest {
     }
 
     @Test
+    fun similarPodcastsOpenAddPodcastOnceWithThePodcastAsked() {
+        val root = createRoot()
+
+        root.onShowSimilar("p1")
+        assertTrue(root.current.isAddingPodcast)
+        assertEquals("p1", root.current.similarTo)
+        root.onSimilarHandled()
+
+        assertEquals(null, root.current.similarTo)
+    }
+
+    @Test
     fun theListeningStatsOpenOverSettingsAndBackReturnsToSettings() {
         val root = createRoot()
         root.onOpenSettings()

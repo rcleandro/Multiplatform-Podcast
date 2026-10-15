@@ -231,6 +231,10 @@
     <string name="size_megabytes">%1$d МБ</string>
     <string name="size_gigabytes">%1$d,%2$d ГБ</string>
     <string name="discover_search_placeholder">Поиск по названию, автору или теме</string>
+    <string name="for_you">Для вас</string>
+    <string name="similar_to">Похожие на %1$s</string>
+    <string name="similar_button">Похожие подкасты</string>
+    <string name="similar_none">Сейчас похожего ничего не найдено</string>
     <string name="add_by_url">Добавить по адресу ленты</string>
     <string name="more_options">Другие действия</string>
     <string name="subscribe">Подписаться</string>

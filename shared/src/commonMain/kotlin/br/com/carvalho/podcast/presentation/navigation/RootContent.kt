@@ -123,15 +123,7 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
         }
 
         Overlay(visible = state.isOrganizingLibrary) { LibraryOrderScreen(onBack = component::onBackClicked) }
-        Overlay(visible = state.isAddingPodcast) {
-            DiscoverScreen(
-                onBack = component::onBackClicked,
-                session = state.addPodcastSession,
-                link = state.podcastLink,
-                onLinkHandled = component::onPodcastLinkHandled,
-                onOpenPodcast = component::onPodcastSelected,
-            )
-        }
+        AddPodcastOverlay(state, component)
         SettingsOverlays(state, component)
         Overlay(visible = state.isPlayerOpen) {
             PlayerScreen(
@@ -141,6 +133,22 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
             )
         }
         Overlay(visible = state.isQueueOpen) { QueueScreen(onBack = component::onBackClicked) }
+    }
+}
+
+/** "Add podcast" over the tabs: the directory, a link opened in the app (18.4) or podcasts like one (19.6). */
+@Composable
+private fun AddPodcastOverlay(state: NavigationState, component: RootComponent) {
+    Overlay(visible = state.isAddingPodcast) {
+        DiscoverScreen(
+            onBack = component::onBackClicked,
+            session = state.addPodcastSession,
+            link = state.podcastLink,
+            onLinkHandled = component::onPodcastLinkHandled,
+            onOpenPodcast = component::onPodcastSelected,
+            similarTo = state.similarTo,
+            onSimilarHandled = component::onSimilarHandled,
+        )
     }
 }
 
@@ -274,7 +282,8 @@ private fun DetailPane(component: RootComponent, podcast: Detail.Podcast?) {
     PodcastDetailScreen(
         podcastId = podcast.podcastId,
         onBackClick = component::onBackClicked,
-        onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcast.podcastId) }
+        onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcast.podcastId) },
+        onSimilarClick = component::onShowSimilar,
     )
 }
 

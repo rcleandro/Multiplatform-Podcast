@@ -8,6 +8,9 @@ class FakePodcastDirectory : PodcastDirectory {
     val searchedTerms = mutableListOf<String>()
     var topResult: Result<List<DirectoryPodcast>> = Result.success(emptyList())
     val chartsAsked = mutableListOf<PodcastCategory?>()
+
+    /** Overrides [topResult] for one category's chart. */
+    val topByCategory = mutableMapOf<PodcastCategory?, Result<List<DirectoryPodcast>>>()
     var lookupResult: Result<DirectoryPodcast?> = Result.success(null)
     val lookedUp = mutableListOf<Long>()
 
@@ -18,7 +21,7 @@ class FakePodcastDirectory : PodcastDirectory {
 
     override suspend fun top(category: PodcastCategory?): Result<List<DirectoryPodcast>> {
         chartsAsked += category
-        return topResult
+        return topByCategory[category] ?: topResult
     }
 
     override suspend fun lookup(id: Long): Result<DirectoryPodcast?> {

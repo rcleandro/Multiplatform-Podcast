@@ -231,6 +231,10 @@
     <string name="size_megabytes">%1$d Mo</string>
     <string name="size_gigabytes">%1$d,%2$d Go</string>
     <string name="discover_search_placeholder">Rechercher par nom, auteur ou sujet</string>
+    <string name="for_you">Pour vous</string>
+    <string name="similar_to">Dans le même esprit que %1$s</string>
+    <string name="similar_button">Podcasts similaires</string>
+    <string name="similar_none">Rien de similaire pour l’instant</string>
     <string name="add_by_url">Ajouter par l'adresse du flux</string>
     <string name="more_options">Plus d'options</string>
     <string name="subscribe">S'abonner</string>

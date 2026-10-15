@@ -1,0 +1,28 @@
+# 19.6: "For you" in "Add podcast" from the library's categories, and podcasts like one asked from its page.
+# Needs the debug app installed, a device in Portuguese and internet (the feed and the directory are real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/recommendations.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Adicionar Podcast"
+- extendedWaitUntil:
+    visible: "PARA VOCÊ"
+    timeout: 30000
+- back
+- tapOn: "Planet Money"
+- tapOn: "Podcasts parecidos"
+- extendedWaitUntil:
+    visible: "PARECIDOS COM PLANET MONEY"
+    timeout: 30000

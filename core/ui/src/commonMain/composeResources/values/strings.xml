@@ -248,6 +248,10 @@
     <string name="size_megabytes">%1$d MB</string>
     <string name="size_gigabytes">%1$d.%2$d GB</string>
     <string name="discover_search_placeholder">Search by name, author or subject</string>
+    <string name="for_you">For you</string>
+    <string name="similar_to">Like %1$s</string>
+    <string name="similar_button">Similar podcasts</string>
+    <string name="similar_none">Nothing similar found right now</string>
     <string name="add_by_url">Add by feed address</string>
     <string name="more_options">More options</string>
     <string name="subscribe">Subscribe</string>

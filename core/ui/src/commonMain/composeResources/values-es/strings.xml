@@ -247,6 +247,10 @@
     <string name="size_megabytes">%1$d MB</string>
     <string name="size_gigabytes">%1$d,%2$d GB</string>
     <string name="discover_search_placeholder">Buscar por nombre, autor o tema</string>
+    <string name="for_you">Para ti</string>
+    <string name="similar_to">Parecidos a %1$s</string>
+    <string name="similar_button">Pódcasts parecidos</string>
+    <string name="similar_none">No se encontró nada parecido ahora</string>
     <string name="add_by_url">Añadir por la dirección del feed</string>
     <string name="more_options">Más opciones</string>
     <string name="subscribe">Suscribirse</string>

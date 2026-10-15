@@ -231,6 +231,10 @@
     <string name="size_megabytes">%1$d MB</string>
     <string name="size_gigabytes">%1$d.%2$d GB</string>
     <string name="discover_search_placeholder">이름, 제작자, 주제로 검색</string>
+    <string name="for_you">추천</string>
+    <string name="similar_to">%1$s와(과) 비슷한 팟캐스트</string>
+    <string name="similar_button">비슷한 팟캐스트</string>
+    <string name="similar_none">지금은 비슷한 팟캐스트가 없습니다</string>
     <string name="add_by_url">피드 주소로 추가</string>
     <string name="more_options">옵션 더보기</string>
     <string name="subscribe">구독</string>

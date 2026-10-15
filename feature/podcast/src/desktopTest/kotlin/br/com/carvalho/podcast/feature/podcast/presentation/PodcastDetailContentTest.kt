@@ -46,6 +46,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.selected_count
 import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
 import br.com.carvalho.podcast.core.ui.generated.resources.show_more
+import br.com.carvalho.podcast.core.ui.generated.resources.similar_button
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.domain.model.PlayerState
@@ -423,5 +424,25 @@ class PodcastDetailContentTest {
         onNodeWithText(text(Res.string.mark_as_unplayed)).performClick()
 
         assertEquals("e1", unplayed?.id)
+    }
+
+    @Test
+    fun theHeaderAsksForSimilarPodcasts() = runComposeUiTest {
+        var asked = 0
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onSimilar = { asked++ }),
+                )
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.similar_button)).performClick()
+
+        assertEquals(1, asked)
     }
 }

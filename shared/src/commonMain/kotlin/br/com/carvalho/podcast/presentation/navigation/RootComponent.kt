@@ -100,6 +100,17 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         _state.update { it.copy(podcastLink = null) }
     }
 
+    /** "Add podcast" with podcasts like the library's [podcastId] above the chart (19.6), from that podcast's page. */
+    fun onShowSimilar(podcastId: String) {
+        _state.update {
+            it.copy(isAddingPodcast = true, addPodcastSession = it.addPodcastSession + 1, similarTo = podcastId)
+        }
+    }
+
+    fun onSimilarHandled() {
+        _state.update { it.copy(similarTo = null) }
+    }
+
     /** Opens Settings over the tabs, from the gear in the library's bar (18.5, ADR 0005). */
     fun onOpenSettings() {
         _state.update { it.copy(isShowingSettings = true) }
@@ -181,6 +192,8 @@ data class NavigationState(
     val addPodcastSession: Int = 0,
     /** A podcast link waiting for "Add podcast" to show it (18.4). */
     val podcastLink: String? = null,
+    /** A podcast whose similar ones "Add podcast" shows (19.6), held until the screen takes it. */
+    val similarTo: String? = null,
 ) {
     val currentStack: List<Detail> get() = stacks[selectedTab].orEmpty()
     val podcast: Detail.Podcast? get() = currentStack.filterIsInstance<Detail.Podcast>().lastOrNull()

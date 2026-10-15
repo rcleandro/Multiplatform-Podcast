@@ -231,6 +231,10 @@
     <string name="size_megabytes">%1$d MB</string>
     <string name="size_gigabytes">%1$d.%2$d GB</string>
     <string name="discover_search_placeholder">नाम, लेखक या विषय से खोजें</string>
+    <string name="for_you">आपके लिए</string>
+    <string name="similar_to">%1$s जैसे</string>
+    <string name="similar_button">मिलते-जुलते पॉडकास्ट</string>
+    <string name="similar_none">अभी कुछ मिलता-जुलता नहीं मिला</string>
     <string name="add_by_url">फ़ीड के पते से जोड़ें</string>
     <string name="more_options">और विकल्प</string>
     <string name="subscribe">सदस्यता लें</string>

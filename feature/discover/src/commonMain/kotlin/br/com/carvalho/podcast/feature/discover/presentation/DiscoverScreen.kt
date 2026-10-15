@@ -115,6 +115,9 @@ fun DiscoverScreen(
     link: String? = null,
     onLinkHandled: () -> Unit = {},
     onOpenPodcast: (String) -> Unit = {},
+    /** A podcast of the library whose similar ones to show (19.6); handed back once taken, like [link]. */
+    similarTo: String? = null,
+    onSimilarHandled: () -> Unit = {},
     viewModel: DiscoverViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -129,6 +132,12 @@ fun DiscoverScreen(
         if (link != null) {
             viewModel.onIntent(DiscoverIntent.OpenLink(link))
             onLinkHandled()
+        }
+    }
+    LaunchedEffect(similarTo) {
+        if (similarTo != null) {
+            viewModel.onIntent(DiscoverIntent.ShowSimilar(similarTo))
+            onSimilarHandled()
         }
     }
 
@@ -249,6 +258,7 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
                             ListTitle(stringResource(Res.string.opened_link))
                             ResultRow(linked, linked.podcast.feedUrl in state.subscribing, actions.onSubscribe)
                         }
+                        Recommendations(state, actions)
                         // A chart says which one: the overall (18.3) or a category's (18.2).
                         ListTitle(stringResource(state.category?.label ?: Res.string.popular))
                     }
@@ -262,7 +272,7 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
 }
 
 @Composable
-private fun ListTitle(text: String) = SectionTitle(text, Modifier.readableWidth().padding(vertical = Spacing.s))
+internal fun ListTitle(text: String) = SectionTitle(text, Modifier.readableWidth().padding(vertical = Spacing.s))
 
 private const val HEADER_KEY = "header"
 
@@ -321,7 +331,7 @@ private fun CategoryChips(selected: PodcastCategory?, onCategoryChange: (Podcast
 }
 
 @Composable
-private fun ResultRow(result: DirectoryResult, isSubscribing: Boolean, onSubscribe: (DirectoryResult) -> Unit) {
+internal fun ResultRow(result: DirectoryResult, isSubscribing: Boolean, onSubscribe: (DirectoryResult) -> Unit) {
     val podcast = result.podcast
     val episodes = podcast.episodeCount?.let { pluralStringResource(Res.plurals.podcast_episode_count, it, it) }
     PodcastListItem(

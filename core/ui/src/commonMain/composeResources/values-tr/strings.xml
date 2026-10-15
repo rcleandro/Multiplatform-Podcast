@@ -231,6 +231,10 @@
     <string name="size_megabytes">%1$d MB</string>
     <string name="size_gigabytes">%1$d,%2$d GB</string>
     <string name="discover_search_placeholder">Ad, yazar veya konuya göre arayın</string>
+    <string name="for_you">Size özel</string>
+    <string name="similar_to">%1$s benzeri</string>
+    <string name="similar_button">Benzer podcast’ler</string>
+    <string name="similar_none">Şu an benzer bir şey bulunamadı</string>
     <string name="add_by_url">Akış adresiyle ekle</string>
     <string name="more_options">Diğer seçenekler</string>
     <string name="subscribe">Abone ol</string>

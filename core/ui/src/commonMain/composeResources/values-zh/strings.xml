@@ -231,6 +231,10 @@
     <string name="size_megabytes">%1$d MB</string>
     <string name="size_gigabytes">%1$d.%2$d GB</string>
     <string name="discover_search_placeholder">按名称、作者或主题搜索</string>
+    <string name="for_you">为你推荐</string>
+    <string name="similar_to">与 %1$s 相似</string>
+    <string name="similar_button">相似的播客</string>
+    <string name="similar_none">暂时没有找到相似的播客</string>
     <string name="add_by_url">通过订阅源地址添加</string>
     <string name="more_options">更多选项</string>
     <string name="subscribe">订阅</string>

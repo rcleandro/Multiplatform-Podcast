@@ -118,6 +118,9 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
 
     class PlaySmartPlaylist(episodes: Int) : AnalyticsEvent("play_smart_playlist", mapOf("episodes" to episodes))
 
+    /** "Similar to this" opened from a podcast's page (19.6), with how many it found. */
+    class ShowSimilar(found: Int) : AnalyticsEvent("show_similar", mapOf("found" to found))
+
     /** Played from a bookmark on the episode's page. */
     data object PlayBookmark : AnalyticsEvent("play_bookmark")
 
