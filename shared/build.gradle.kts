@@ -8,7 +8,7 @@ plugins {
 kotlin {
     android {
         namespace = "br.com.carvalho.podcast.shared"
-        withHostTest {}
+        withHostTest { isIncludeAndroidResources = true }
     }
 
     cocoapods {
@@ -174,6 +174,11 @@ kotlin {
 
         val androidHostTest by getting {
             dependsOn(jvmCommonTest)
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.robolectric)
+                implementation(libs.androidx.work.testing)
+            }
         }
 
         val desktopTest by getting {
