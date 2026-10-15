@@ -30,6 +30,9 @@ import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -41,6 +44,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.category_news
 import br.com.carvalho.podcast.core.ui.generated.resources.error_search_directory
 import br.com.carvalho.podcast.core.ui.generated.resources.more_options
 import br.com.carvalho.podcast.core.ui.generated.resources.paste
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_import_opml
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribe_to
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribed
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
@@ -223,6 +227,25 @@ class DiscoverContentTest {
         onNodeWithText(text(Res.string.add_by_url)).performClick()
 
         assertEquals(1, opened)
+    }
+
+    @Test
+    fun theMenuOffersToImportAnOpmlFile() = runComposeUiTest {
+        var imported = 0
+        setContent { PodcastTheme { DiscoverContent(DiscoverUiState(), DiscoverActions(onImportOpml = { imported++ })) } }
+
+        onNodeWithContentDescription(text(Res.string.more_options)).performClick()
+        onNodeWithText(text(Res.string.settings_import_opml)).performClick()
+
+        assertEquals(1, imported)
+    }
+
+    @Test
+    fun anImportShowsHowFarItWent() = runComposeUiTest {
+        setContent { PodcastTheme { DiscoverContent(DiscoverUiState(importProgress = 1 to 4), DiscoverActions()) } }
+
+        onNode(SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo, ProgressBarRangeInfo(0.25f, 0f..1f)))
+            .assertExists()
     }
 
     @Test

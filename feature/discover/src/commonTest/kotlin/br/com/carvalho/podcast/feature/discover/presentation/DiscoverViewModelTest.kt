@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_url
 import br.com.carvalho.podcast.core.ui.generated.resources.error_open_link
 import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_imported
+import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
@@ -229,6 +230,17 @@ class DiscoverViewModelTest {
         }
         assertNull(viewModel.uiState.value.importProgress)
         assertEquals(2, repository.podcasts.value.size)
+    }
+
+    @Test
+    fun `a file that could not be read says there was nothing to import`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.messages.test {
+            viewModel.onIntent(DiscoverIntent.ImportOpml(null))
+            assertEquals(UiMessage(Res.string.opml_nothing_to_import), awaitItem())
+        }
+        assertNull(viewModel.uiState.value.importProgress)
     }
 
     @Test

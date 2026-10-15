@@ -107,6 +107,27 @@ class QueueViewModelTest {
     }
 
     @Test
+    fun anEpisodeOfTheQueueCanBeDownloadedCancelledAndDeleted() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(QueueIntent.Download(first))
+        viewModel.onIntent(QueueIntent.CancelDownload(second))
+        viewModel.onIntent(QueueIntent.DeleteDownload(first))
+
+        assertEquals("first", downloader.downloadCalledWith?.id)
+        assertEquals("second", downloader.cancelCalledWith)
+        assertEquals("first", downloader.deleteCalledWith)
+    }
+
+    @Test
+    fun movingByKeyIgnoresKeysThatAreNotEpisodesOfTheQueue() {
+        val queue = listOf(first, second, playing)
+
+        assertEquals(listOf("playing", "first", "second"), queue.movedByKey("playing", "first").map { it.id })
+        assertEquals(queue, queue.movedByKey("header", "first"))
+    }
+
+    @Test
     fun tappingAnEpisodeOfTheQueuePlaysIt() = runTest(dispatcher) {
         audioPlayer.setQueue(listOf(first, second))
         val viewModel = viewModel()

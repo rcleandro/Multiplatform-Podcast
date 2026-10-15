@@ -162,6 +162,18 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
+    fun `saving an episode and unsaving it reach the repository`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PodcastDetailIntent.SetSaved(sampleEpisode, saved = true))
+        assertTrue(repository.episodes.value.single().isSaved)
+
+        viewModel.onIntent(PodcastDetailIntent.SetSaved(sampleEpisode, saved = false))
+        assertFalse(repository.episodes.value.single().isSaved)
+    }
+
+    @Test
     fun `downloading an episode hands it to the downloader`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 

@@ -137,6 +137,16 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun `extending the sleep timer adds its minutes and is reported`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PlayerIntent.ExtendSleepTimer)
+
+        assertEquals(SLEEP_TIMER_EXTENSION_MINUTES, audioPlayer.extendedBy)
+        assertEquals(listOf("extend_sleep_timer"), analytics.events)
+    }
+
+    @Test
     fun `every command is reported to analytics`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         audioPlayer.play(episode("e1"))

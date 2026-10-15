@@ -107,6 +107,30 @@ class DaoIntegrationTest {
         assertEquals(true, byId.getValue("new").isPlayed)
     }
 
+    @Test
+    fun `reordering the library saves the custom order`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        listOf("a", "b", "c").forEach { podcastDao.insert(it.createPodcastEntity()) }
+
+        podcastDao.reorder(listOf("c", "a", "b"))
+
+        val positions = podcastDao.getAll().first().associate { it.id to it.position }
+        assertEquals(mapOf("c" to 0, "a" to 1, "b" to 2), positions)
+    }
+
+    @Test
+    fun `replacing the queue keeps the new order and drops the old one`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        podcastDao.insert("p1".createPodcastEntity())
+        episodeDao.insertAll(listOf("e1", "e2", "e3").map { createEpisodeEntity(it, "p1") })
+        val playbackStateDao = database.playbackStateDao()
+
+        playbackStateDao.replaceQueue(listOf("e1", "e2"))
+        playbackStateDao.replaceQueue(listOf("e3", "e1"))
+
+        assertEquals(listOf("e3", "e1"), playbackStateDao.getQueue().map { it.id })
+    }
+
     private fun String.createPodcastEntity() = PodcastEntity(
         id = this,
         title = "Title $this",
