@@ -1,0 +1,24 @@
+# 18.4: a podcast link opens "Add podcast" with the podcast to subscribe to; once subscribed, the link opens it.
+# Needs the debug app installed, a device in Portuguese and internet:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/open-link.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://hipsters.tech/feed/podcast/"
+- extendedWaitUntil:
+    visible: "Link aberto"
+    timeout: 30000
+- tapOn: "Assinar Hipsters Ponto Tech"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- openLink: "pcast://hipsters.tech/feed/podcast/"
+- extendedWaitUntil:
+    visible: "Atualizar"
+    timeout: 20000
+- assertVisible: "Hipsters Ponto Tech"
+- assertNotVisible: "Link aberto"

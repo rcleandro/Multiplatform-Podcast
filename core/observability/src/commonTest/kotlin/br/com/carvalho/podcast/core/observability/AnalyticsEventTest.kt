@@ -25,6 +25,9 @@ class AnalyticsEventTest {
         val samples = PlaySource.entries.map { AnalyticsEvent.PlayEpisode(EPISODE, it) } + listOf(
             AnalyticsEvent.LoadEpisodeDetail(EPISODE),
             AnalyticsEvent.LoadEpisodeDetailError(EPISODE, error),
+            AnalyticsEvent.SearchDirectory(resultCount = 3),
+            AnalyticsEvent.BrowseCategory("technology"),
+            AnalyticsEvent.OpenPodcastLink(HOST),
             AnalyticsEvent.AddPodcastAttempt(HOST),
             AnalyticsEvent.AddPodcastSuccess(HOST),
             AnalyticsEvent.AddPodcastFailure(HOST, error),
@@ -32,6 +35,14 @@ class AnalyticsEventTest {
             AnalyticsEvent.RefreshAllPodcasts,
             AnalyticsEvent.RefreshPodcast(HOST),
             AnalyticsEvent.SetEpisodeFilter("UNPLAYED"),
+            AnalyticsEvent.SetEpisodeOrder(oldestFirst = true),
+            AnalyticsEvent.ActOnEpisodes("MARK_PLAYED", count = 3),
+            AnalyticsEvent.SaveEpisode(saved = true),
+            AnalyticsEvent.SaveEpisode(saved = false),
+            AnalyticsEvent.ClearHistory,
+            AnalyticsEvent.SetPodcastPlayback,
+            AnalyticsEvent.DismissNew(all = false),
+            AnalyticsEvent.DismissNew(all = true),
             AnalyticsEvent.DownloadEpisode(EPISODE),
             AnalyticsEvent.DeleteDownload(EPISODE),
             AnalyticsEvent.MarkPlayed(EPISODE, played = true),
@@ -50,6 +61,7 @@ class AnalyticsEventTest {
             AnalyticsEvent.SetSleepTimer(MINUTES),
             AnalyticsEvent.SetSleepTimer(null),
             AnalyticsEvent.CancelSleepTimer,
+            AnalyticsEvent.ExtendSleepTimer(minutes = 5),
         )
         samples.forEach { covered(it) }
         return samples
@@ -58,13 +70,16 @@ class AnalyticsEventTest {
     @Suppress("CyclomaticComplexMethod")
     private fun covered(event: AnalyticsEvent) = when (event) {
         is AnalyticsEvent.PlayEpisode, is AnalyticsEvent.LoadEpisodeDetail, is AnalyticsEvent.LoadEpisodeDetailError,
+        is AnalyticsEvent.SearchDirectory, is AnalyticsEvent.BrowseCategory, is AnalyticsEvent.OpenPodcastLink,
         is AnalyticsEvent.AddPodcastAttempt, is AnalyticsEvent.AddPodcastSuccess, is AnalyticsEvent.AddPodcastFailure,
         is AnalyticsEvent.DeletePodcast, AnalyticsEvent.RefreshAllPodcasts, is AnalyticsEvent.RefreshPodcast,
-        is AnalyticsEvent.SetEpisodeFilter, is AnalyticsEvent.DownloadEpisode, is AnalyticsEvent.DeleteDownload,
+        is AnalyticsEvent.SetEpisodeFilter, is AnalyticsEvent.SetEpisodeOrder,
+        is AnalyticsEvent.ActOnEpisodes, is AnalyticsEvent.SaveEpisode,
+        AnalyticsEvent.ClearHistory, AnalyticsEvent.SetPodcastPlayback, is AnalyticsEvent.DismissNew, is AnalyticsEvent.DownloadEpisode, is AnalyticsEvent.DeleteDownload,
         is AnalyticsEvent.MarkPlayed, is AnalyticsEvent.MarkOlderPlayed, is AnalyticsEvent.PlayInPlayer,
         AnalyticsEvent.Pause, AnalyticsEvent.Resume, is AnalyticsEvent.Seek, AnalyticsEvent.SkipForward,
         AnalyticsEvent.SkipBackward, is AnalyticsEvent.SetSpeed, AnalyticsEvent.PlayNext, AnalyticsEvent.PlayPrevious,
-        is AnalyticsEvent.SetSleepTimer, AnalyticsEvent.CancelSleepTimer -> Unit
+        is AnalyticsEvent.SetSleepTimer, AnalyticsEvent.CancelSleepTimer, is AnalyticsEvent.ExtendSleepTimer -> Unit
     }
 
     /** Firebase: up to 40 characters, a letter first, then letters, digits and `_`; reserved prefixes rejected. */

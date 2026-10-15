@@ -29,7 +29,8 @@ import org.koin.mp.KoinPlatform.getKoin
 private const val MIN_WINDOW_WIDTH = 360
 private const val MIN_WINDOW_HEIGHT = 320
 
-fun main() {
+/** A podcast link given on the command line opens in "Add podcast" (18.4). */
+fun main(args: Array<String>) {
     initKoin()
     val audioPlayer = getKoin().get<AudioPlayer>()
 
@@ -73,6 +74,7 @@ fun main() {
             LaunchedEffect(Unit) { window.minimumSize = Dimension(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT) }
             val lifecycle = remember { LifecycleRegistry() }
             val root = remember { RootComponent(DefaultComponentContext(lifecycle = lifecycle)) }
+            LaunchedEffect(root) { args.firstOrNull()?.let(root::onPodcastLink) }
             App(root, keyboardShortcuts = true)
         }
     }

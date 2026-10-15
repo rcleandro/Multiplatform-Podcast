@@ -1,5 +1,13 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
+import androidx.compose.material3.TopAppBarDefaults
+import br.com.carvalho.podcast.core.ui.generated.resources.refresh_all
+import br.com.carvalho.podcast.core.ui.generated.resources.settings
+import androidx.compose.material3.Text
+import androidx.compose.ui.test.onAllNodesWithText
+import br.com.carvalho.podcast.core.ui.generated.resources.category_all
+import br.com.carvalho.podcast.core.ui.generated.resources.category_technology
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
@@ -21,7 +29,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import br.com.carvalho.podcast.domain.model.LibrarySort
-import br.com.carvalho.podcast.core.ui.generated.resources.library_reorder
+import br.com.carvalho.podcast.core.ui.generated.resources.drag_to_reorder
 import br.com.carvalho.podcast.core.ui.generated.resources.library_organize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,13 +49,6 @@ import kotlin.test.assertTrue
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.ClipboardManager
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.performImeAction
-import br.com.carvalho.podcast.core.ui.generated.resources.paste
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
@@ -159,54 +160,12 @@ class LibraryContentTest {
             }
         }
         // The library itself stays clean: no drag handles, even in the custom order.
-        onAllNodesWithContentDescription(text(Res.string.library_reorder)).assertCountEquals(0)
+        onAllNodesWithContentDescription(text(Res.string.drag_to_reorder)).assertCountEquals(0)
 
         onNodeWithContentDescription(text(Res.string.library_sort)).performClick()
         onNodeWithText(text(Res.string.library_organize)).performClick()
 
         assertEquals(1, organize)
-    }
-
-    @Test
-    fun theAddDialogIsReadyToTypeAndSendsWithTheKeyboard() = runComposeUiTest {
-        var confirmed = 0
-        setContent {
-            PodcastTheme {
-                LibraryContent(
-                    state = LibraryUiState(isAddDialogOpen = true, addUrl = "feeds.example.com/rss"),
-                    actions = LibraryActions(onAddConfirm = { confirmed++ }),
-                )
-            }
-        }
-        val field = onNode(hasSetTextAction())
-
-        field.assertIsFocused()
-        field.performImeAction()
-
-        assertEquals(1, confirmed)
-    }
-
-    @Test
-    fun pasteFillsTheAddress() = runComposeUiTest {
-        var typed: String? = null
-        val clipboard = object : ClipboardManager {
-            override fun getText() = AnnotatedString("https://feeds.example.com/rss")
-            override fun setText(annotatedString: AnnotatedString) = Unit
-        }
-        setContent {
-            PodcastTheme {
-                CompositionLocalProvider(LocalClipboardManager provides clipboard) {
-                    LibraryContent(
-                        state = LibraryUiState(isAddDialogOpen = true),
-                        actions = LibraryActions(onUrlChange = { typed = it }),
-                    )
-                }
-            }
-        }
-
-        onNodeWithContentDescription(text(Res.string.paste)).performClick()
-
-        assertEquals("https://feeds.example.com/rss", typed)
     }
 
     @Test
@@ -252,6 +211,31 @@ class LibraryContentTest {
     }
 
     @Test
+    fun anEmptyLibraryOffersOnlyTheSettingsInItsBar() = runComposeUiTest {
+        var state by mutableStateOf(LibraryUiState())
+        setContent { PodcastTheme { LibraryContent(state = state, actions = LibraryActions()) } }
+        onNodeWithContentDescription(text(Res.string.settings)).assertExists()
+        listOf(Res.string.library_sort, Res.string.library_show_grid, Res.string.refresh_all).forEach {
+            onAllNodesWithContentDescription(text(it)).assertCountEquals(0)
+        }
+
+        val podcast = Podcast("id-1", "Hipsters", "", null, "Alura", null, emptyList(), "url", null, 0, true)
+        state = LibraryUiState(podcasts = listOf(LibraryEntry(podcast, 0, null)))
+        onNodeWithContentDescription(text(Res.string.refresh_all)).assertExists()
+    }
+
+    @Test
+    fun theTitleSitsCloseToTheBarBeforeTheLibraryScrolls() = runComposeUiTest {
+        setContent { PodcastTheme { LibraryContent(state = LibraryUiState(), actions = LibraryActions()) } }
+
+        val title = onNode(isHeading() and hasText(text(Res.string.library_title))).getBoundsInRoot()
+        assertTrue(
+            title.bottom <= TopAppBarDefaults.MediumAppBarExpandedHeight,
+            "the title ends at ${title.bottom}, below a medium bar",
+        )
+    }
+
+    @Test
     fun screenTitlesAreHeadings() = runComposeUiTest {
         setContent { PodcastTheme { LibraryContent(state = LibraryUiState(), actions = LibraryActions()) } }
         onNode(isHeading() and hasText(text(Res.string.library_title))).assertExists()
@@ -280,5 +264,77 @@ class LibraryContentTest {
         onNodeWithText("Started episode").performClick()
 
         assertEquals("e1", played)
+    }
+
+    @Test
+    fun categoryChipsShowWhenTheyTellPodcastsApartAndFilter() = runComposeUiTest {
+        var chosen: PodcastCategory? = PodcastCategory.NEWS
+        val podcast = Podcast("id-1", "Hipsters", "", null, "Alura", null, emptyList(), "url", null, 0, true)
+        var state by mutableStateOf(
+            LibraryUiState(podcasts = listOf(LibraryEntry(podcast, 0, null)), categories = listOf(PodcastCategory.TECHNOLOGY))
+        )
+        setContent {
+            PodcastTheme { LibraryContent(state = state, actions = LibraryActions(onCategoryChange = { chosen = it })) }
+        }
+        // One category cannot filter anything: no chips.
+        onAllNodesWithText(text(Res.string.category_technology)).assertCountEquals(0)
+
+        state = state.copy(categories = listOf(PodcastCategory.TECHNOLOGY, PodcastCategory.NEWS))
+        onNodeWithText(text(Res.string.category_technology)).performClick()
+        assertEquals(PodcastCategory.TECHNOLOGY, chosen)
+        onNodeWithText(text(Res.string.category_all)).performClick()
+        assertEquals(null, chosen)
+    }
+
+    @Test
+    fun continueListeningLoadedAfterThePodcastsShowsAtTheTop() = runComposeUiTest {
+        val podcasts = (1..6).map {
+            LibraryEntry(Podcast("id-$it", "Podcast $it", "", null, null, null, emptyList(), "url$it", null, 0, true), 0, null)
+        }
+        val started = Episode(
+            id = "e1", podcastId = "id-1", title = "Started", description = null, audioUrl = "a", imageUrl = null,
+            duration = 600, publishDate = 0, isPlayed = false, playbackPosition = 120_000, isDownloaded = false,
+            fileSize = null,
+        )
+        // The podcasts and their categories arrive first, the started episodes a moment later.
+        var state by mutableStateOf(
+            LibraryUiState(podcasts = podcasts, categories = listOf(PodcastCategory.TECHNOLOGY, PodcastCategory.NEWS))
+        )
+        setContent { PodcastTheme { LibraryContent(state = state, actions = LibraryActions()) } }
+        waitForIdle()
+
+        state = state.copy(inProgress = listOf(started))
+
+        onNode(isHeading() and hasText(text(Res.string.continue_listening), ignoreCase = true)).assertIsDisplayed()
+    }
+
+    @Test
+    fun theAppCanFillTheEmptyLibraryWithSuggestions() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                LibraryContent(state = LibraryUiState(), actions = LibraryActions(), emptyLibrary = { Text("Suggestions") })
+            }
+        }
+
+        onNodeWithText("Suggestions").assertExists()
+        onAllNodesWithText(text(Res.string.no_podcasts_found)).assertCountEquals(0)
+    }
+
+    @Test
+    fun theGearOpensSettings() = runComposeUiTest {
+        var opened = 0
+        val podcast = Podcast("id-1", "Hipsters", "", null, "Alura", null, emptyList(), "url", null, 0, true)
+        setContent {
+            PodcastTheme {
+                LibraryContent(
+                    state = LibraryUiState(podcasts = listOf(LibraryEntry(podcast, 0, null))),
+                    actions = LibraryActions(onSettingsClick = { opened++ }),
+                )
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.settings)).performClick()
+
+        assertEquals(1, opened)
     }
 }

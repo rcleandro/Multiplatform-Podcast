@@ -17,10 +17,16 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.component.message
+import br.com.carvalho.podcast.presentation.component.toggled
 import br.com.carvalho.podcast.presentation.failureMessages
+import br.com.carvalho.podcast.presentation.message
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
@@ -44,12 +50,15 @@ import kotlinx.coroutines.launch
 private const val TAG = "SearchViewModel"
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-@Suppress("LongParameterList") // one dependency per thing the tab does (list, download, play, offline start)
+// One dependency per thing the tab does (list, download, play, offline start), one function per intent.
+@Suppress("LongParameterList", "TooManyFunctions")
 class SearchViewModel(
     private val repository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
     audioPlayer: AudioPlayer,
     private val playEpisode: PlayEpisodeUseCase,
+    private val enqueueEpisode: EnqueueEpisodeUseCase,
+    private val actOnEpisodes: ActOnEpisodesUseCase,
     networkMonitor: NetworkMonitor,
     private val dispatchers: CoroutineDispatchers,
     private val analytics: Analytics
@@ -62,10 +71,10 @@ class SearchViewModel(
 
     val activeDownloads = episodeDownloader.activeDownloads
 
-    private val removed = Channel<UiMessage>(Channel.BUFFERED)
+    private val notices = Channel<UiMessage>(Channel.BUFFERED)
 
-    /** Why a download failed, and that one was removed, shown as a snackbar. */
-    val messages: Flow<UiMessage> = merge(episodeDownloader.failureMessages(), removed.receiveAsFlow())
+    /** Why a download failed, that one was removed and where an episode went in the queue, shown as a snackbar. */
+    val messages: Flow<UiMessage> = merge(episodeDownloader.failureMessages(), notices.receiveAsFlow())
     val playerState = audioPlayer.playerState
 
     val pagedResults: Flow<PagingData<Episode>> = _uiState.map { it.searchQuery to it.filter }
@@ -89,12 +98,22 @@ class SearchViewModel(
         }
     }
 
+    @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: SearchIntent) {
         when (intent) {
+            is SearchIntent.ToggleSelection ->
+                _uiState.update { it.copy(selection = it.selection.toggled(intent.episode)) }
+            SearchIntent.ClearSelection -> _uiState.update { it.copy(selection = emptyList()) }
+            is SearchIntent.ActOnSelection -> actOnSelection(intent.action)
+            is SearchIntent.SetSaved -> setSaved(intent.episode, intent.saved)
+            SearchIntent.RequestClearHistory -> _uiState.update { it.copy(clearHistoryConfirmation = true) }
+            SearchIntent.DismissClearHistory -> _uiState.update { it.copy(clearHistoryConfirmation = false) }
+            SearchIntent.ConfirmClearHistory -> clearHistory()
             is SearchIntent.ChangeQuery -> _uiState.update { it.copy(searchQuery = intent.query) }
             is SearchIntent.ChangeFilter -> _uiState.update { it.copy(filter = intent.filter) }
             SearchIntent.Refresh -> _refreshTrigger.value += 1
             is SearchIntent.Play -> play(intent.episode)
+            is SearchIntent.Enqueue -> enqueue(intent.episode, intent.next)
             is SearchIntent.Download -> downloadEpisode(intent.episode)
             is SearchIntent.CancelDownload -> cancelDownload(intent.episode.id)
             is SearchIntent.RequestDeleteDownload ->
@@ -102,9 +121,18 @@ class SearchViewModel(
             is SearchIntent.ConfirmDeleteDownload -> deleteDownload(intent.episode.id)
             SearchIntent.DismissDeleteDownload -> _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
             is SearchIntent.SetPlayed -> setPlayed(intent.episode, intent.played)
+            is SearchIntent.DismissNew -> dismissNew(intent.episode)
             is SearchIntent.RequestMarkOlder -> _uiState.update { it.copy(olderMark = intent.mark) }
             SearchIntent.DismissMarkOlder -> _uiState.update { it.copy(olderMark = null) }
             is SearchIntent.ConfirmMarkOlder -> markOlder(intent.mark)
+        }
+    }
+
+    /** Out of "New" without hearing it (18.7): one episode, or all of them when [episode] is null. */
+    private fun dismissNew(episode: Episode?) {
+        analytics.logEvent(AnalyticsEvent.DismissNew(all = episode == null))
+        viewModelScope.launch(dispatchers.io) {
+            if (episode == null) repository.dismissAllNewEpisodes() else repository.dismissNewEpisode(episode.id)
         }
     }
 
@@ -124,6 +152,31 @@ class SearchViewModel(
                 repository.markOlderEpisodesAsUnplayed(episode.podcastId, episode.publishDate)
             }
         }
+    }
+
+    private fun clearHistory() {
+        analytics.logEvent(AnalyticsEvent.ClearHistory)
+        _uiState.update { it.copy(clearHistoryConfirmation = false) }
+        viewModelScope.launch(dispatchers.io) { repository.clearHistory() }
+    }
+
+    private fun setSaved(episode: Episode, saved: Boolean) {
+        analytics.logEvent(AnalyticsEvent.SaveEpisode(saved))
+        viewModelScope.launch(dispatchers.io) { repository.setEpisodeSaved(episode.id, saved) }
+    }
+
+    private fun actOnSelection(action: EpisodeAction) {
+        val episodes = _uiState.value.selection
+        _uiState.update { it.copy(selection = emptyList()) }
+        analytics.logEvent(AnalyticsEvent.ActOnEpisodes(action.name, episodes.size))
+        viewModelScope.launch(dispatchers.io) {
+            actOnEpisodes(episodes, action)
+            notices.send(action.message(episodes.size))
+        }
+    }
+
+    private fun enqueue(episode: Episode, next: Boolean) = viewModelScope.launch(dispatchers.io) {
+        enqueueEpisode(episode, next).message()?.let { notices.send(it) }
     }
 
     private fun play(episode: Episode) {
@@ -150,32 +203,51 @@ class SearchViewModel(
         _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
-            removed.send(UiMessage(Res.string.download_deleted))
+            notices.send(UiMessage(Res.string.download_deleted))
         }
     }
 }
 
 data class SearchUiState(
     val searchQuery: String = "",
-    val filter: EpisodeListFilter = EpisodeListFilter.ALL,
+    /** "New" first: what arrived and is waiting to be heard (18.7, ADR 0005). */
+    val filter: EpisodeListFilter = EpisodeListFilter.NEW,
     /** Disk space the downloads take, shown with the "Downloaded" filter. */
     val usedBytes: Long = 0,
     val deleteEpisodeConfirmation: Episode? = null,
     /** Marking many episodes at once, waiting for confirmation. */
     val olderMark: OlderMark? = null,
+    /** The episodes chosen to act on together, in the order chosen; empty when not selecting (18.11). */
+    val selection: List<Episode> = emptyList(),
+    /** "Clear history", waiting for confirmation (18.12). */
+    val clearHistoryConfirmation: Boolean = false,
 )
 
 sealed interface SearchIntent {
+    /** Several episodes chosen at once (18.11): a long press starts, each tap adds or drops one. */
+    data class ToggleSelection(val episode: Episode) : SearchIntent
+    data object ClearSelection : SearchIntent
+    data class ActOnSelection(val action: EpisodeAction) : SearchIntent
+    data class SetSaved(val episode: Episode, val saved: Boolean) : SearchIntent
+    data object RequestClearHistory : SearchIntent
+    data object ConfirmClearHistory : SearchIntent
+    data object DismissClearHistory : SearchIntent
     data class ChangeQuery(val query: String) : SearchIntent
     data class ChangeFilter(val filter: EpisodeListFilter) : SearchIntent
     data object Refresh : SearchIntent
     data class Play(val episode: Episode) : SearchIntent
+
+    /** "Play next" when [next], else "Add to queue" (18.6). */
+    data class Enqueue(val episode: Episode, val next: Boolean) : SearchIntent
     data class Download(val episode: Episode) : SearchIntent
     data class CancelDownload(val episode: Episode) : SearchIntent
     data class RequestDeleteDownload(val episode: Episode) : SearchIntent
     data class ConfirmDeleteDownload(val episode: Episode) : SearchIntent
     data object DismissDeleteDownload : SearchIntent
     data class SetPlayed(val episode: Episode, val played: Boolean) : SearchIntent
+
+    /** Takes [episode] out of "New", or every episode when null (18.7). */
+    data class DismissNew(val episode: Episode?) : SearchIntent
     data class RequestMarkOlder(val mark: OlderMark) : SearchIntent
     data class ConfirmMarkOlder(val mark: OlderMark) : SearchIntent
     data object DismissMarkOlder : SearchIntent

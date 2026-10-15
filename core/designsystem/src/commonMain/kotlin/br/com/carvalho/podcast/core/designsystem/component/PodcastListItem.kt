@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 
-/** Library row: small cover, title, author and a line such as "2 days ago · 3 unplayed"; [dragHandle] at the end. */
+/** Podcast row: small cover, title, author and a line such as "2 days ago · 3 unplayed"; [trailing] at the end. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PodcastListItem(
@@ -34,7 +34,7 @@ fun PodcastListItem(
     modifier: Modifier = Modifier,
     actions: List<ItemAction> = emptyList(),
     actionsLabel: String? = null,
-    dragHandle: (@Composable () -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val openMenu = { menuOpen = true }.takeIf { actions.isNotEmpty() }
@@ -80,6 +80,6 @@ fun PodcastListItem(
                 onExpandedChange = { menuOpen = it },
             )
         }
-        dragHandle?.invoke()
+        trailing?.invoke()
     }
 }

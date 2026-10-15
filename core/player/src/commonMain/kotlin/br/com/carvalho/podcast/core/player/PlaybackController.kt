@@ -4,9 +4,12 @@ import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
@@ -34,13 +37,18 @@ private const val TAG = "PlaybackController"
  * restoring the session, sleep timer and speed. [PlatformPlayer] only plays what it is told. Lives as long as the
  * process; nothing releases it.
  */
-@Suppress("TooManyFunctions") // one function per player command, plus the event handling
+// One function per player command, plus the event handling; its collaborators, an end hook and the test scope.
+@Suppress("TooManyFunctions", "LongParameterList")
 class PlaybackController(
     private val engine: PlatformPlayer,
     private val playerRepository: PlayerRepository,
     private val podcastRepository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
     private val dispatchers: CoroutineDispatchers,
+    /** Called when an episode ends, with the queue it was in: Settings may want the next one downloaded (18.5). */
+    private val onFinished: suspend (finished: Episode, queue: List<Episode>) -> Unit = { _, _ -> },
+    /** The jumps chosen in Settings (18.5), for the remote buttons and everything that reads the player's state. */
+    private val skipIntervals: StateFlow<SkipIntervals> = MutableStateFlow(SkipIntervals()),
     /** Where the progress loop and the sleep timer run; tests pass one they can end. */
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + dispatchers.main),
 ) : AudioPlayer {
@@ -49,13 +57,28 @@ class PlaybackController(
 
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
+
+    /** What is left of a timer of minutes; extending it adds here, while it runs. */
+    private var sleepRemainingMs = 0L
     private var lastSavedPosition: Long? = null
+
+    /** The speed saved with the session; a podcast with its own speed (18.14) plays at that one instead. */
+    private var generalSpeed = PlayerState().speed
+
+    /** How the current episode's podcast plays (18.14). */
+    private var playback = PodcastPlayback()
 
     /** Set when an episode is asked to play, cleared by the first sound; feeds [Metrics.TIME_TO_AUDIO]. */
     private var playRequest: Pair<TimeMark, String>? = null
 
     init {
         engine.setListener { event -> scope.launch { onEvent(event) } }
+        scope.launch {
+            skipIntervals.collect { intervals ->
+                _playerState.update { it.copy(skipIntervals = intervals) }
+                engine.setSkipIntervals(intervals)
+            }
+        }
         scope.launch {
             engine.awaitReady()
             restoreSession()
@@ -66,11 +89,27 @@ class PlaybackController(
         val requested = TimeSource.Monotonic.markNow()
         val playable = withLocalFile(episode)
         playRequest = requested to if (playable.localPath != null) "local" else "stream"
-        _playerState.update { it.copy(currentEpisode = playable, position = 0, duration = null, isBuffering = true) }
+        playback = podcastPlayback(episode)
+        // An episode not begun skips its podcast's jingle (18.14); one already started resumes where it stopped.
+        val start = startPosition(episode).takeIf { it > 0 } ?: introEnd(episode)
+        val speed = playback.speed ?: generalSpeed
+        // The queue holds what comes next: the episode played leaves it, wherever it was (18.6).
+        _playerState.update { state ->
+            state.copy(
+                currentEpisode = playable,
+                position = start,
+                duration = null,
+                isBuffering = true,
+                speed = speed,
+                queue = state.queue.filter { it.id != episode.id },
+            )
+        }
         lastSavedPosition = null
+        // Started: no longer waiting in "New" (18.7), and at the top of "History" (18.12).
+        runCatching { podcastRepository.markEpisodeStarted(episode.id, getCurrentTimestamp()) }
         withContext(dispatchers.main) {
-            engine.load(playable, positionMs = 0, playWhenReady = true)
-            engine.setSpeed(_playerState.value.speed)
+            engine.load(playable, positionMs = start, playWhenReady = true)
+            engine.setSpeed(speed)
         }
     }
 
@@ -103,16 +142,22 @@ class PlaybackController(
 
     /** Kept across pauses and episodes; the platforms used to reset it to 1x on pause. */
     override fun setSpeed(speed: Float) {
+        // Changed while a podcast with its own speed plays, it lasts that episode; Settings keep the podcast's.
+        if (playback.speed == null) generalSpeed = speed
         _playerState.update { it.copy(speed = speed) }
         onMain { engine.setSpeed(speed) }
     }
 
+    /** Saved at once: a queue arranged while paused survives the app closing. */
     override fun setQueue(episodes: List<Episode>) {
-        _playerState.update { it.copy(queue = episodes) }
+        val current = _playerState.value.currentEpisode?.id
+        _playerState.update { it.copy(queue = episodes.filter { episode -> episode.id != current }) }
+        // ponytail: with nothing playing there is no session row to save the queue in; it lives until the app closes.
+        scope.launch { save() }
     }
 
     override fun playNext() {
-        val next = neighbour(offset = 1)
+        val next = _playerState.value.queue.firstOrNull()
         if (next == null) {
             pause()
             return
@@ -120,29 +165,44 @@ class PlaybackController(
         scope.launch { play(next) }
     }
 
-    override fun playPrevious() {
-        val previous = neighbour(offset = -1)
-        if (previous == null) seekTo(0) else scope.launch { play(previous) }
-    }
+    /** A finished episode leaves the queue, so there is nothing before the current one: it starts over. */
+    override fun playPrevious() = seekTo(0)
 
     override fun setSleepTimer(timer: SleepTimer?) {
         sleepTimerJob?.cancel()
         _playerState.update { it.copy(sleepTimer = timer, sleepTimerMillis = null) }
+        onMain { engine.setVolume(FULL_VOLUME) }
         if (timer !is SleepTimer.Minutes) return
+        sleepRemainingMs = timer.minutes.minutes.inWholeMilliseconds
         sleepTimerJob = scope.launch {
             // ponytail: counts down with delay() so tests drive it in virtual time; scheduling lag adds a few
             // milliseconds per tick (about 2 s over 30 min). Use a TimeSource if that ever matters.
-            var remaining = timer.minutes.minutes.inWholeMilliseconds
-            while (remaining > 0) {
-                _playerState.update { it.copy(sleepTimerMillis = remaining) }
-                val tick = minOf(AppConfig.SLEEP_TIMER_TICK_MS, remaining)
+            while (sleepRemainingMs > 0) {
+                showSleepRemaining()
+                val tick = minOf(AppConfig.SLEEP_TIMER_TICK_MS, sleepRemainingMs)
                 delay(tick)
-                remaining -= tick
+                sleepRemainingMs -= tick
             }
             AppLogger.i(TAG, "Sleep timer finished")
             _playerState.update { it.copy(sleepTimer = null, sleepTimerMillis = null) }
             pause()
+            // Paused first, so the next play is heard at full volume and nothing jumps back up before the pause.
+            onMain { engine.setVolume(FULL_VOLUME) }
         }
+    }
+
+    override fun extendSleepTimer(minutes: Int) {
+        if (_playerState.value.sleepTimer !is SleepTimer.Minutes || sleepRemainingMs <= 0) return
+        sleepRemainingMs += minutes.minutes.inWholeMilliseconds
+        showSleepRemaining()
+    }
+
+    /** The time left on screen, and the volume going down with it over the last minute (18.15). */
+    private fun showSleepRemaining() {
+        val remaining = sleepRemainingMs
+        _playerState.update { it.copy(sleepTimerMillis = remaining) }
+        val volume = (remaining.toFloat() / SLEEP_FADE_MS).coerceAtMost(FULL_VOLUME)
+        onMain { engine.setVolume(volume) }
     }
 
     private suspend fun onEvent(event: PlatformEvent) {
@@ -172,8 +232,8 @@ class PlaybackController(
     private fun onRemote(command: RemoteCommand) = when (command) {
         RemoteCommand.PLAY -> resume()
         RemoteCommand.PAUSE -> pause()
-        RemoteCommand.SKIP_FORWARD -> skipForward(AppConfig.SKIP_FORWARD_SECONDS)
-        RemoteCommand.SKIP_BACKWARD -> skipBackward(AppConfig.SKIP_BACKWARD_SECONDS)
+        RemoteCommand.SKIP_FORWARD -> skipForward(skipIntervals.value.forwardSeconds)
+        RemoteCommand.SKIP_BACKWARD -> skipBackward(skipIntervals.value.backwardSeconds)
         RemoteCommand.NEXT -> playNext()
         RemoteCommand.PREVIOUS -> playPrevious()
     }
@@ -182,7 +242,10 @@ class PlaybackController(
     private suspend fun onEnded() {
         progressJob?.cancel()
         val finished = _playerState.value.currentEpisode ?: return
-        withContext(dispatchers.io) { podcastRepository.markEpisodeAsPlayed(finished.id) }
+        withContext(dispatchers.io) {
+            podcastRepository.markEpisodeAsPlayed(finished.id)
+            onFinished(finished, _playerState.value.queue)
+        }
         if (_playerState.value.sleepTimer == SleepTimer.EndOfEpisode) {
             _playerState.update { it.copy(isPlaying = false, sleepTimer = null) }
             return
@@ -195,6 +258,14 @@ class PlaybackController(
         progressJob = scope.launch {
             while (isActive) {
                 readProgress()
+                if (reachedOutro()) {
+                    // Its own coroutine: ending cancels this loop.
+                    scope.launch {
+                        pause()
+                        onEnded()
+                    }
+                    break
+                }
                 if (movedPastLastSave()) save()
                 delay(PROGRESS_TICK_MS)
             }
@@ -216,7 +287,7 @@ class PlaybackController(
         val episode = state.currentEpisode ?: return
         lastSavedPosition = state.position
         withContext(dispatchers.io) {
-            playerRepository.savePlaybackState(episode.id, state.position, state.speed, state.queue)
+            playerRepository.savePlaybackState(episode.id, state.position, generalSpeed, state.queue)
             val duration = state.duration
             if (duration != null && duration > 0 && state.position > duration * AppConfig.PLAYBACK_FINISHED_THRESHOLD) {
                 podcastRepository.markEpisodeAsPlayed(episode.id)
@@ -235,9 +306,14 @@ class PlaybackController(
         val adopted = engine.loadedEpisodeId
         val episodeId = adopted ?: saved?.episodeId
         val episode = episodeId?.let { withContext(dispatchers.io) { podcastRepository.getEpisodeById(it) } }
+        playback = episode?.let { podcastPlayback(it) } ?: PodcastPlayback()
         if (saved != null) {
-            _playerState.update { it.copy(speed = saved.speed, queue = saved.queue) }
-            if (adopted == null) engine.setSpeed(saved.speed)
+            // Before 18.6 the queue also held the current episode and those before it: only what follows it is next.
+            val next = saved.queue.indexOfFirst { it.id == saved.episodeId }.let { saved.queue.drop(it + 1) }
+            generalSpeed = saved.speed
+            val speed = playback.speed ?: saved.speed
+            _playerState.update { it.copy(speed = speed, queue = next) }
+            if (adopted == null) engine.setSpeed(speed)
         }
         if (episode == null || _playerState.value.currentEpisode != null) return
         val playable = withLocalFile(episode)
@@ -254,16 +330,39 @@ class PlaybackController(
         engine.load(playable, position, playWhenReady = false)
     }
 
+    /**
+     * Where a started episode stopped; a heard one starts over. Read from the database: the queue and the screens may
+     * hold the episode as it was before it was last heard.
+     */
+    private suspend fun startPosition(episode: Episode): Long {
+        val stored = runCatching { podcastRepository.getEpisodeById(episode.id) }.getOrNull() ?: episode
+        return if (stored.isPlayed) 0 else stored.playbackPosition
+    }
+
+    private suspend fun podcastPlayback(episode: Episode): PodcastPlayback =
+        runCatching { podcastRepository.getPodcastById(episode.podcastId)?.playback }.getOrNull() ?: PodcastPlayback()
+
+    /** Where the podcast's jingle ends, unless that is the whole episode. */
+    private fun introEnd(episode: Episode): Long {
+        val intro = playback.skipIntroSeconds.toLong()
+        return if (intro > 0 && (episode.duration <= 0 || intro < episode.duration)) {
+            intro * AppConfig.MILLIS_PER_SECOND
+        } else {
+            0
+        }
+    }
+
+    /** Into the podcast's closing credits (18.14), which count as the end of the episode. */
+    private fun reachedOutro(): Boolean {
+        val outroMs = playback.skipOutroSeconds * AppConfig.MILLIS_PER_SECOND
+        val state = _playerState.value
+        val duration = state.duration ?: 0
+        return outroMs > 0 && duration > outroMs && state.position >= duration - outroMs
+    }
+
     /** Queue items and saved sessions do not carry the downloaded file; look it up every time. */
     private suspend fun withLocalFile(episode: Episode) =
         episode.copy(localPath = episodeDownloader.getLocalPath(episode.id) ?: episode.localPath)
-
-    private fun neighbour(offset: Int): Episode? {
-        val state = _playerState.value
-        val index = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
-        if (index == -1) return null
-        return state.queue.getOrNull(index + offset)
-    }
 
     private fun onMain(block: () -> Unit) {
         scope.launch { block() }
@@ -272,5 +371,9 @@ class PlaybackController(
     private companion object {
         /** How often the position shown on screen is refreshed while playing. */
         const val PROGRESS_TICK_MS = 500L
+
+        /** The sleep timer's last minute, over which the volume goes down to nothing. */
+        const val SLEEP_FADE_MS = 60_000L
+        const val FULL_VOLUME = 1f
     }
 }

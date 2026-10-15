@@ -11,6 +11,7 @@ class FakeEpisodeDownloader : EpisodeDownloader {
     var usedBytes = 0L
 
     var downloadCalledWith: Episode? = null
+    val downloaded = mutableListOf<Episode>()
     var deleteCalledWith: String? = null
     var cancelCalledWith: String? = null
 
@@ -19,14 +20,18 @@ class FakeEpisodeDownloader : EpisodeDownloader {
 
     override suspend fun download(episode: Episode) {
         downloadCalledWith = episode
+        downloaded += episode
     }
 
     override suspend fun cancel(episodeId: String) {
         cancelCalledWith = episodeId
     }
 
+    val deletedIds = mutableListOf<String>()
+
     override suspend fun delete(episodeId: String) {
         deleteCalledWith = episodeId
+        deletedIds += episodeId
     }
 
     override fun getDownloadStatus(episodeId: String): StateFlow<DownloadStatus> {

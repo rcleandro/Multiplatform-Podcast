@@ -8,25 +8,40 @@ import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
 import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.preferences.SettingsPreferencesRepository
+import br.com.carvalho.podcast.data.remote.ITunesPodcastDirectory
 import br.com.carvalho.podcast.data.remote.RssFeedDataSource
 import br.com.carvalho.podcast.data.remote.RssFeedDataSourceImpl
 import br.com.carvalho.podcast.data.remote.RssFeedSource
+import br.com.carvalho.podcast.data.remote.XmlOpmlFormat
 import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
 import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.FeedSource
+import br.com.carvalho.podcast.domain.repository.OpmlFormat
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
+import br.com.carvalho.podcast.domain.repository.PodcastDirectory
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.AutoDownloadUseCase
+import br.com.carvalho.podcast.domain.usecase.DeleteFinishedDownloadUseCase
+import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloadsUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.DownloadNextEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.RefreshInBackgroundUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
+import br.com.carvalho.podcast.feature.discover.discoverFeatureModule
 import br.com.carvalho.podcast.feature.episode.episodeFeatureModule
 import br.com.carvalho.podcast.feature.library.libraryFeatureModule
 import br.com.carvalho.podcast.feature.player.playerFeatureModule
 import br.com.carvalho.podcast.feature.podcast.podcastFeatureModule
 import br.com.carvalho.podcast.feature.search.searchFeatureModule
+import br.com.carvalho.podcast.feature.settings.settingsFeatureModule
 import io.ktor.utils.io.ioDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.module.dsl.singleOf
@@ -48,6 +63,8 @@ val networkModule = module {
     single { createImageLoader(get()) }
     single<RssFeedDataSource> { RssFeedDataSourceImpl(get(), get()) }
     single<FeedSource> { RssFeedSource(get()) }
+    single<OpmlFormat> { XmlOpmlFormat }
+    single<PodcastDirectory> { ITunesPodcastDirectory(get(), get()) }
 }
 
 val databaseModule = module {
@@ -57,7 +74,23 @@ val databaseModule = module {
 }
 
 val playerModule = module {
-    single<AudioPlayer> { PlaybackController(get(), get(), get(), get(), get()) }
+    single<AudioPlayer> {
+        val deleteFinished = DeleteFinishedDownloadUseCase(get(), get(), get())
+        val downloadNext = DownloadNextEpisodeUseCase(get(), get(), get())
+        // Delete first: the freed space counts toward the download limit.
+        PlaybackController(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            onFinished = { finished, queue ->
+                deleteFinished(finished)
+                downloadNext(finished, queue)
+            },
+            skipIntervals = get<PreferencesRepository>().skipIntervals,
+        )
+    }
 }
 
 val repositoryModule = module {
@@ -66,14 +99,24 @@ val repositoryModule = module {
     // Settings comes from each platform module (ADR 0006).
     single<PreferencesRepository> { SettingsPreferencesRepository(get()) }
     // Each platform binds EpisodeDownloader: Android and iOS wrap this one to download in the background.
-    single { KtorEpisodeDownloader(get(), get(), get()) }
+    single {
+        val preferences = get<PreferencesRepository>()
+        KtorEpisodeDownloader(get(), get(), get(), storageLimitBytes = { preferences.downloadLimitBytes.value })
+    }
 }
 
 val useCaseModule = module {
     singleOf(::AddPodcastFromUrlUseCase)
+    singleOf(::ImportOpmlUseCase)
+    singleOf(::RefreshInBackgroundUseCase)
+    singleOf(::AutoDownloadUseCase)
+    single { DeleteOldDownloadsUseCase(get(), get(), get(), get()) }
+    singleOf(::ExportOpmlUseCase)
     singleOf(::RefreshPodcastUseCase)
     singleOf(::DeletePodcastUseCase)
     singleOf(::PlayEpisodeUseCase)
+    singleOf(::EnqueueEpisodeUseCase)
+    singleOf(::ActOnEpisodesUseCase)
 }
 
 val commonModules = listOf(
@@ -87,5 +130,7 @@ val commonModules = listOf(
     podcastFeatureModule,
     episodeFeatureModule,
     searchFeatureModule,
-    playerFeatureModule
+    playerFeatureModule,
+    discoverFeatureModule,
+    settingsFeatureModule
 )

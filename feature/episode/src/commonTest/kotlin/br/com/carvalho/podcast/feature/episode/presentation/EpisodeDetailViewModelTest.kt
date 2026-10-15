@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -47,7 +48,7 @@ class EpisodeDetailViewModelTest {
     )
 
     private fun createViewModel() = EpisodeDetailViewModel(
-        episodeId, repository, PlayEpisodeUseCase(audioPlayer, repository), audioPlayer, downloader, dispatchers,
+        episodeId, repository, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer), audioPlayer, downloader, dispatchers,
         FakeAnalytics()
     )
 
@@ -74,6 +75,17 @@ class EpisodeDetailViewModelTest {
 
         viewModel.onIntent(EpisodeDetailIntent.MarkUnplayed)
         assertEquals(false, viewModel.uiState.value.episode?.isPlayed)
+    }
+
+    @Test
+    fun `the save button saves the episode and shows it saved`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(EpisodeDetailIntent.SetSaved(saved = true))
+
+        assertEquals(true, viewModel.uiState.value.episode?.isSaved)
+        assertEquals(true, repository.episodes.value.single().isSaved)
     }
 
     @Test

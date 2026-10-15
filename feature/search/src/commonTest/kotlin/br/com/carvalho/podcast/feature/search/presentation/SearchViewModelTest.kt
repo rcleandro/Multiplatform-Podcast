@@ -1,21 +1,27 @@
 package br.com.carvalho.podcast.feature.search.presentation
 
-import br.com.carvalho.podcast.presentation.component.OlderMark
-import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import app.cash.turbine.test
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.error_storage_full
+import br.com.carvalho.podcast.core.ui.generated.resources.bulk_queued
 import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
-import br.com.carvalho.podcast.domain.model.EpisodeListFilter
-import br.com.carvalho.podcast.domain.download.DownloadStatus
-import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
-import br.com.carvalho.podcast.presentation.UiMessage
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
-import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.core.ui.generated.resources.error_storage_full
+import br.com.carvalho.podcast.core.ui.generated.resources.queued_last
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.util.FakeNetworkMonitor
+import br.com.carvalho.podcast.domain.download.DownloadStatus
+import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
+import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
+import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
+import br.com.carvalho.podcast.presentation.UiMessage
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -24,9 +30,10 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
-import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
@@ -49,7 +56,8 @@ class SearchViewModelTest {
     private val networkMonitor = FakeNetworkMonitor()
 
     private fun createViewModel() = SearchViewModel(
-        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer, repository),
+        repository, episodeDownloader, audioPlayer, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer),
+        ActOnEpisodesUseCase(repository, episodeDownloader, EnqueueEpisodeUseCase(audioPlayer)),
         networkMonitor, dispatchers, FakeAnalytics()
     )
 
@@ -63,10 +71,10 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `with network the episodes start on all of them`() = runTest(testDispatcher) {
+    fun `with network the episodes start on the new ones`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
-        assertEquals(EpisodeListFilter.ALL, viewModel.uiState.value.filter)
+        assertEquals(EpisodeListFilter.NEW, viewModel.uiState.value.filter)
     }
 
     @Test
@@ -127,6 +135,53 @@ class SearchViewModelTest {
                 repository.episodes.value.associate { it.id to it.isPlayed },
             )
         }
+
+    @Test
+    fun `the selected episodes go to the queue together and the selection closes`() = runTest(testDispatcher) {
+        audioPlayer.play(episode("playing", 0))
+        val viewModel = createViewModel()
+        val one = episode("one", 1)
+        val two = episode("two", 2)
+
+        viewModel.onIntent(SearchIntent.ToggleSelection(two))
+        viewModel.onIntent(SearchIntent.ToggleSelection(one))
+        viewModel.messages.test {
+            viewModel.onIntent(SearchIntent.ActOnSelection(EpisodeAction.ADD_TO_QUEUE))
+            assertEquals(UiMessage(Res.string.bulk_queued, listOf(2)), awaitItem())
+        }
+
+        // In the order chosen.
+        assertEquals(listOf("two", "one"), audioPlayer.playerState.value.queue.map { it.id })
+        assertEquals(emptyList(), viewModel.uiState.value.selection)
+    }
+
+    @Test
+    fun `saving an episode reaches the repository and so does taking it out`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(episode("e1", 1))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(SearchIntent.SetSaved(episode("e1", 1), saved = true))
+        assertEquals(true, repository.episodes.value.single().isSaved)
+
+        viewModel.onIntent(SearchIntent.SetSaved(episode("e1", 1), saved = false))
+        assertEquals(false, repository.episodes.value.single().isSaved)
+    }
+
+    @Test
+    fun `clearing the history asks first and only clears on confirm`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(episode("e1", 1).copy(lastPlayedAt = 10L))
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(SearchIntent.RequestClearHistory)
+        assertTrue(viewModel.uiState.value.clearHistoryConfirmation)
+        viewModel.onIntent(SearchIntent.DismissClearHistory)
+        assertEquals(10L, repository.episodes.value.single().lastPlayedAt)
+
+        viewModel.onIntent(SearchIntent.RequestClearHistory)
+        viewModel.onIntent(SearchIntent.ConfirmClearHistory)
+        assertEquals(null, repository.episodes.value.single().lastPlayedAt)
+        assertFalse(viewModel.uiState.value.clearHistoryConfirmation)
+    }
 
     private fun episode(id: String, publishDate: Long, podcastId: String = "p1") = Episode(
         id = id, podcastId = podcastId, title = id, description = null, audioUrl = "a", imageUrl = null,
@@ -254,5 +309,33 @@ class SearchViewModelTest {
 
     private companion object {
         const val USED_BYTES = 52_428_800L
+    }
+
+    @Test
+    fun `add to queue puts the episode last and says so`() = runTest(testDispatcher) {
+        audioPlayer.play(episode("playing", publishDate = 0))
+        audioPlayer.setQueue(listOf(episode("queued", publishDate = 0)))
+        val viewModel = createViewModel()
+
+        viewModel.messages.test {
+            viewModel.onIntent(SearchIntent.Enqueue(episode("chosen", publishDate = 0), next = false))
+            assertEquals(UiMessage(Res.string.queued_last), awaitItem())
+        }
+        assertEquals(listOf("queued", "chosen"), audioPlayer.playerState.value.queue.map { it.id })
+    }
+
+    @Test
+    fun `new episodes are dismissed one by one or all at once`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(
+            episode("one", publishDate = 0).copy(isNew = true),
+            episode("two", publishDate = 0).copy(isNew = true),
+        )
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(SearchIntent.DismissNew(repository.episodes.value.first()))
+        assertEquals(listOf(false, true), repository.episodes.value.map { it.isNew })
+
+        viewModel.onIntent(SearchIntent.DismissNew(null))
+        assertEquals(listOf(false, false), repository.episodes.value.map { it.isNew })
     }
 }

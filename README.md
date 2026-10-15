@@ -60,5 +60,5 @@ With an Android phone connected (not run in CI):
 
 ```bash
 ./gradlew :benchmark:connectedBenchmarkAndroidTest                              # cold startup, see docs/metricas.md
-./gradlew :androidApp:installDebug && maestro test .maestro/add-play-resume.yaml  # end to end, device in Portuguese
+./gradlew :androidApp:installDebug && maestro test .maestro/                       # end-to-end flows, device in Portuguese
 ```

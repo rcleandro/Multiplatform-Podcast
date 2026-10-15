@@ -1,0 +1,26 @@
+# 18.5: Settings open from the library's gear; the chosen theme is kept after the app restarts.
+# Needs the debug app installed and a device in Portuguese:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/settings-theme.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Configurações"
+- waitForAnimationToEnd
+- tapOn: "Tema"
+- tapOn: "Claro"
+- back
+- stopApp
+- launchApp
+- tapOn: "Configurações"
+# The screen slides up over the tabs: check once it has settled.
+- waitForAnimationToEnd
+# The row shows the chosen theme; its dialog marks it.
+- assertVisible: "Claro"
+- tapOn: "Tema"
+# The radio state lives on the row, not on its text.
+- assertVisible:
+    containsChild: "Claro"
+    checked: true

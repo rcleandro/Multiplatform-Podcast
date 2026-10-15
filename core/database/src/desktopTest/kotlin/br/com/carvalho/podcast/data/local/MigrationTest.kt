@@ -158,6 +158,109 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version10StartsEveryEpisodeWithoutAPageLink() = runTest {
+        helper.createDatabase(LINK_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(LINK_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE link IS NULL"))
+        }
+    }
+
+    @Test
+    fun version11StartsEveryPodcastAndEpisodeAsNotExplicit() = runTest {
+        helper.createDatabase(EXPLICIT_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(EXPLICIT_VERSION, migrations).use { connection ->
+            assertEquals("0", connection.text("SELECT explicit FROM podcasts WHERE id = 'p1'"))
+            assertEquals("0", connection.text("SELECT explicit FROM episodes WHERE id = '$E1'"))
+        }
+    }
+
+    @Test
+    fun version12StartsWithNothingInNew() = runTest {
+        helper.createDatabase(NEW_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(NEW_VERSION, migrations).use { connection ->
+            assertEquals("0", connection.text("SELECT isNew FROM episodes WHERE id = '$E1'"))
+        }
+    }
+
+    @Test
+    fun version13ListsEveryPodcastAsTheFeedSays() = runTest {
+        helper.createDatabase(ORDER_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(ORDER_VERSION, migrations).use { connection ->
+            assertEquals("0|1", connection.text("SELECT serial || '|' || (oldestFirst IS NULL) FROM podcasts"))
+        }
+    }
+
+    @Test
+    fun version14StartsEveryEpisodeAsARegularOneWithoutSeason() = runTest {
+        helper.createDatabase(SEASON_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(SEASON_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE season IS NULL AND episodeType IS NULL"))
+        }
+    }
+
+    @Test
+    fun version15StartsWithNothingSaved() = runTest {
+        helper.createDatabase(SAVED_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(SAVED_VERSION, migrations).use { connection ->
+            assertEquals("0", connection.text("SELECT isSaved FROM episodes WHERE id = '$E1'"))
+        }
+    }
+
+    @Test
+    fun version16StartsWithAnEmptyHistory() = runTest {
+        helper.createDatabase(HISTORY_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(HISTORY_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE lastPlayedAt IS NULL"))
+        }
+    }
+
+    @Test
+    fun version17PlaysEveryPodcastTheGeneralWay() = runTest {
+        helper.createDatabase(PODCAST_PLAYBACK_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(PODCAST_PLAYBACK_VERSION, migrations).use { connection ->
+            assertEquals(
+                "1|0|0",
+                connection.text("SELECT (playbackSpeed IS NULL) || '|' || skipIntroSeconds || '|' || skipOutroSeconds FROM podcasts"),
+            )
+        }
+    }
+
+    @Test
+    fun version18LetsEveryPodcastNotify() = runTest {
+        helper.createDatabase(NOTIFY_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(NOTIFY_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT notifyNewEpisodes FROM podcasts WHERE id = 'p1'"))
+        }
+    }
+
+    @Test
+    fun version19DownloadsNothingByItself() = runTest {
+        helper.createDatabase(AUTO_DOWNLOAD_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(AUTO_DOWNLOAD_VERSION, migrations).use { connection ->
+            assertEquals("0", connection.text("SELECT autoDownloadCount FROM podcasts WHERE id = 'p1'"))
+        }
+    }
+
+    @Test
+    fun version20KeepsDownloadsFromBeforeWithoutADate() = runTest {
+        helper.createDatabase(DOWNLOADED_AT_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(DOWNLOADED_AT_VERSION, migrations).use { connection ->
+            assertEquals("1|1", connection.text("SELECT isDownloaded || '|' || (downloadedAt IS NULL) FROM episodes"))
+        }
+    }
+
     private fun SQLiteConnection.insertLibrary(queueJson: String? = "[]", episodeId: String = "e1") {
         execSQL(
             "INSERT INTO podcasts (id, title, description, imageUrl, author, language, categories, feedUrl, siteUrl, " +
@@ -187,7 +290,18 @@ class MigrationTest {
         const val FEED_VERSION_VERSION = 7
         const val SUBSCRIBED_AT_VERSION = 8
         const val POSITION_VERSION = 9
-        const val CURRENT_VERSION = 9
+        const val LINK_VERSION = 10
+        const val EXPLICIT_VERSION = 11
+        const val NEW_VERSION = 12
+        const val ORDER_VERSION = 13
+        const val SEASON_VERSION = 14
+        const val SAVED_VERSION = 15
+        const val HISTORY_VERSION = 16
+        const val PODCAST_PLAYBACK_VERSION = 17
+        const val NOTIFY_VERSION = 18
+        const val AUTO_DOWNLOAD_VERSION = 19
+        const val DOWNLOADED_AT_VERSION = 20
+        const val CURRENT_VERSION = 20
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

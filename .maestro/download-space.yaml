@@ -1,0 +1,40 @@
+# 18.5: the space in Settings follows the downloads while the app runs, and "delete all downloads" frees it.
+# Needs the debug app installed, a device in Portuguese and internet:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/download-space.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Adicionar Podcast"
+- tapOn: "Mais opções"
+- tapOn: "Adicionar pelo endereço do feed"
+- inputText: "https://feeds.npr.org/510289/podcast.xml"
+- tapOn:
+    text: "Adicionar"
+    index: 0
+- extendedWaitUntil:
+    visible: "Planet Money"
+    timeout: 30000
+- tapOn: "Configurações"
+- assertVisible: "Downloads 0 MB"
+- back
+- tapOn: "Planet Money"
+- tapOn:
+    text: "Opções do episódio"
+    index: 0
+- tapOn: "Baixar"
+- extendedWaitUntil:
+    visible: ".*Baixado.*"
+    timeout: 120000
+- back
+- tapOn: "Configurações"
+- assertVisible: "Downloads [1-9].* MB"
+- scrollUntilVisible:
+    element: "Apagar todos os downloads"
+- tapOn: "Apagar todos os downloads"
+- tapOn: "Excluir"
+- scrollUntilVisible:
+    element: "Downloads 0 MB"
+    direction: UP

@@ -1,53 +1,57 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
-import br.com.carvalho.podcast.core.ui.generated.resources.minimize
-import br.com.carvalho.podcast.core.designsystem.Spacing
-import kotlin.math.abs
-import br.com.carvalho.podcast.core.designsystem.TabletopFold
-import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
-import kotlin.test.assertTrue
-import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.performScrollTo
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
+import br.com.carvalho.podcast.core.designsystem.Motion
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
+import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.core.designsystem.TabletopFold
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.minimize
 import br.com.carvalho.podcast.core.ui.generated.resources.next
+import br.com.carvalho.podcast.core.ui.generated.resources.pause
+import br.com.carvalho.podcast.core.ui.generated.resources.play
 import br.com.carvalho.podcast.core.ui.generated.resources.previous
+import br.com.carvalho.podcast.core.ui.generated.resources.share
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_extend
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
-import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.model.Podcast
-import androidx.compose.ui.test.captureToImage
-import androidx.compose.ui.graphics.toPixelMap
-import br.com.carvalho.podcast.core.designsystem.Motion
-import kotlin.test.assertNotEquals
-import br.com.carvalho.podcast.core.ui.generated.resources.pause
-import br.com.carvalho.podcast.core.ui.generated.resources.play
-import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.test.getBoundsInRoot
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.onNodeWithTag
-import kotlin.test.Test
+import br.com.carvalho.podcast.domain.player.SleepTimer
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import kotlin.math.abs
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class PlayerContentTest {
@@ -77,6 +81,42 @@ class PlayerContentTest {
         audioUrl = "", imageUrl = null, duration = 60, publishDate = 0, isPlayed = false,
         playbackPosition = 0, isDownloaded = false, fileSize = null,
     )
+
+    @Test
+    fun theEpisodeBeingHeardIsSharedFromTheBar() = runComposeUiTest {
+        var shared = 0
+        setContent {
+            PodcastTheme {
+                PlayerContent(state = PlayerState(currentEpisode = episode("e1")), actions = PlayerActions(onShare = { shared++ }))
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.share)).performClick()
+
+        assertEquals(1, shared)
+    }
+
+    @Test
+    fun aRunningTimerShowsWhatIsLeftAndAddsFiveMinutes() = runComposeUiTest {
+        var extended = 0
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(
+                        currentEpisode = episode("e1"),
+                        sleepTimer = SleepTimer.Minutes(15),
+                        sleepTimerMillis = 90_000L,
+                    ),
+                    actions = PlayerActions(onExtendSleepTimer = { extended++ }),
+                )
+            }
+        }
+
+        onNodeWithText("1:30", substring = true).assertExists()
+        onNodeWithContentDescription(text(Res.string.sleep_timer_extend), substring = true).performClick()
+
+        assertEquals(1, extended)
+    }
 
     @Test
     fun thePlayerHandsItsCoverModifierToTheCover() = runComposeUiTest {
@@ -302,11 +342,10 @@ class PlayerContentTest {
     }
 
     @Test
-    fun playerDisablesNextOnTheLastEpisodeOfTheQueue() = runComposeUiTest {
-        val queue = listOf(episode("1"), episode("2"))
+    fun playerDisablesNextWithNothingInTheQueue() = runComposeUiTest {
         setContent {
             PodcastTheme {
-                PlayerContent(state = PlayerState(currentEpisode = queue.last(), queue = queue), actions = PlayerActions())
+                PlayerContent(state = PlayerState(currentEpisode = episode("2"), queue = emptyList()), actions = PlayerActions())
             }
         }
         onNodeWithContentDescription(text(Res.string.next)).assertIsNotEnabled()

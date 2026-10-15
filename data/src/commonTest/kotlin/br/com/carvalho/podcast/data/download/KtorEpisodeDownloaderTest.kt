@@ -67,6 +67,7 @@ class KtorEpisodeDownloaderTest {
         }
 
         val downloader = createDownloader(mockEngine)
+        episodeDao.insertAll(listOf(sampleEpisode.toEntity()))
 
         downloader.activeDownloads.test {
             assertEquals(emptyMap(), awaitItem())
@@ -85,6 +86,8 @@ class KtorEpisodeDownloaderTest {
 
             assertTrue(fileSystem.exists(baseDir / "downloads" / "e1.mp3"))
         }
+        // When it finished is kept, for deleting old downloads (18.19).
+        assertTrue(episodeDao.episodes.value.single { it.id == sampleEpisode.id }.downloadedAt != null)
     }
 
     @Test
@@ -207,6 +210,33 @@ class KtorEpisodeDownloaderTest {
         assertEquals(0, bytesOnDisk(), "The partial file should be gone with the worker")
         assertEquals(DownloadStatus.Idle, downloader.activeDownloads.value[sampleEpisode.id])
         body.close()
+    }
+
+    @Test
+    fun `a download over the limit set in Settings does not start and says why`() = runTest(testDispatcher) {
+        var requests = 0
+        val downloader = KtorEpisodeDownloader(
+            HttpClient(MockEngine { requests++; respondOk() }), episodeDao, AppDirectories(fileSystem, baseDir),
+            testDispatcher, storageLimitBytes = { CHUNK.toLong() },
+        )
+        fileSystem.createDirectories(baseDir / "downloads")
+        fileSystem.write(baseDir / "downloads" / "e0.mp3") { write(ByteArray(CHUNK)) }
+
+        downloader.download(sampleEpisode)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(DownloadStatus.Failed(AppError.StorageLimit), downloader.activeDownloads.value[sampleEpisode.id])
+        assertEquals(0, requests)
+    }
+
+    @Test
+    fun `under the limit a download goes ahead`() = runTest(testDispatcher) {
+        val downloader = KtorEpisodeDownloader(
+            HttpClient(MockEngine { respondOk() }), episodeDao, AppDirectories(fileSystem, baseDir),
+            testDispatcher, storageLimitBytes = { CHUNK * 2L },
+        )
+
+        assertTrue(downloader.admits(sampleEpisode.id))
     }
 
     @Test

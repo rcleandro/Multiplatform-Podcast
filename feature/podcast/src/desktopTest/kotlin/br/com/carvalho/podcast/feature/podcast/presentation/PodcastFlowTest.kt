@@ -2,11 +2,11 @@ package br.com.carvalho.podcast.feature.podcast.presentation
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.test.waitUntilExactlyOneExists
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -23,8 +23,13 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -33,9 +38,6 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 /** The podcast screen wired to its real view model, over fakes: play an episode, download it and remove the file. */
 @OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
@@ -62,7 +64,8 @@ class PodcastFlowTest {
     fun resetMain() = Dispatchers.resetMain()
 
     private fun viewModel() = PodcastDetailViewModel(
-        PODCAST_ID, audioPlayer, PlayEpisodeUseCase(audioPlayer, repository),
+        PODCAST_ID, audioPlayer, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer),
+        ActOnEpisodesUseCase(repository, downloader, EnqueueEpisodeUseCase(audioPlayer)),
         RefreshPodcastUseCase(FakeFeedSource(), repository), downloader, repository,
         CoroutineDispatchers(main = dispatcher, io = dispatcher, default = dispatcher), FakeAnalytics(),
     )

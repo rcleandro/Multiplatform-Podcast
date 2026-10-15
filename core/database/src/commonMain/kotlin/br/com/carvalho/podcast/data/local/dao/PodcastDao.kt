@@ -9,6 +9,7 @@ import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
+@Suppress("TooManyFunctions") // one function per query
 interface PodcastDao {
     @Query("SELECT * FROM podcasts ORDER BY title ASC")
     fun getAll(): Flow<List<PodcastEntity>>
@@ -36,6 +37,21 @@ interface PodcastDao {
 
     @Query("DELETE FROM podcasts WHERE id = :id")
     suspend fun deleteById(id: String)
+
+    @Query(
+        "UPDATE podcasts SET playbackSpeed = :speed, skipIntroSeconds = :introSeconds, " +
+            "skipOutroSeconds = :outroSeconds WHERE id = :id"
+    )
+    suspend fun setPlayback(id: String, speed: Float?, introSeconds: Int, outroSeconds: Int)
+
+    @Query("UPDATE podcasts SET autoDownloadCount = :count WHERE id = :id")
+    suspend fun setAutoDownload(id: String, count: Int)
+
+    @Query("UPDATE podcasts SET notifyNewEpisodes = :enabled WHERE id = :id")
+    suspend fun setNotifications(id: String, enabled: Boolean)
+
+    @Query("UPDATE podcasts SET oldestFirst = :oldestFirst WHERE id = :id")
+    suspend fun setOldestFirst(id: String, oldestFirst: Boolean)
 
     @Query("UPDATE podcasts SET position = :position WHERE id = :id")
     suspend fun setPosition(id: String, position: Int)

@@ -1,0 +1,36 @@
+# 18.5: the jumps chosen in Settings reach the player's buttons.
+# Needs the debug app installed, a device in Portuguese and internet:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/settings-skips.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Configurações"
+# Skip back's choices come first: the second "5 s" is skip forward's.
+- tapOn:
+    text: "5 s"
+    index: 1
+- back
+- tapOn: "Adicionar Podcast"
+- tapOn: "Mais opções"
+- tapOn: "Adicionar pelo endereço do feed"
+- inputText: "https://feeds.npr.org/510289/podcast.xml"
+- tapOn:
+    text: "Adicionar"
+    index: 0
+- extendedWaitUntil:
+    visible: "Planet Money"
+    timeout: 30000
+- tapOn: "Planet Money"
+- tapOn: "Mais recente"
+- extendedWaitUntil:
+    visible: "Pausar"
+    timeout: 30000
+# The mini player, whose subtitle is the podcast; the first "Planet Money" is the podcast's header.
+- tapOn:
+    text: "Planet Money"
+    index: 1
+- assertVisible: "Avançar 5 s"
+- assertVisible: "Retroceder 10 s"

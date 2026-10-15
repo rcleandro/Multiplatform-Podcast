@@ -1,8 +1,13 @@
 package br.com.carvalho.podcast.data.preferences
 
+import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.RefreshInterval
+import br.com.carvalho.podcast.domain.model.SkipIntervals
+import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloads
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,11 +16,26 @@ import kotlinx.coroutines.flow.asStateFlow
 private const val LIBRARY_LAYOUT = "library_layout"
 private const val LIBRARY_SORT = "library_sort"
 private const val TELEMETRY_ENABLED = "telemetry_enabled"
+private const val THEME_MODE = "theme_mode"
+private const val WIFI_ONLY_DOWNLOADS = "wifi_only_downloads"
+private const val DOWNLOAD_LIMIT_BYTES = "download_limit_bytes"
+private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
+private const val DELETE_FINISHED_DOWNLOADS = "delete_finished_downloads"
+private const val DELETE_DOWNLOADS_AFTER_DAYS = "delete_downloads_after_days"
+private const val SKIP_SILENCE = "skip_silence"
+private const val REFRESH_INTERVAL_HOURS = "refresh_interval_hours"
+private const val NOTIFY_NEW_EPISODES = "notify_new_episodes"
+private const val BOOST_VOICE = "boost_voice"
+private const val SHOW_EXPLICIT = "show_explicit"
+private const val SKIP_BACKWARD_SECONDS = "skip_backward_seconds"
+private const val APP_LANGUAGE = "app_language"
+private const val SKIP_FORWARD_SECONDS = "skip_forward_seconds"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
  * flows live here and this class is the only writer (a Koin singleton).
  */
+@Suppress("TooManyFunctions") // implements PreferencesRepository
 class SettingsPreferencesRepository(private val settings: Settings) : PreferencesRepository {
     private val layout = MutableStateFlow(settings.enumOrDefault(LIBRARY_LAYOUT, LibraryLayout.GRID))
     override val libraryLayout: StateFlow<LibraryLayout> = layout.asStateFlow()
@@ -31,6 +51,126 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setLibrarySort(sort: LibrarySort) {
         settings.putString(LIBRARY_SORT, sort.name)
         this.sort.value = sort
+    }
+
+    private val wifiOnly = MutableStateFlow(settings.getBoolean(WIFI_ONLY_DOWNLOADS, defaultValue = false))
+    override val wifiOnlyDownloads: StateFlow<Boolean> = wifiOnly.asStateFlow()
+
+    override fun setWifiOnlyDownloads(enabled: Boolean) {
+        settings.putBoolean(WIFI_ONLY_DOWNLOADS, enabled)
+        wifiOnly.value = enabled
+    }
+
+    private val downloadLimit = MutableStateFlow(settings.getLongOrNull(DOWNLOAD_LIMIT_BYTES))
+    override val downloadLimitBytes: StateFlow<Long?> = downloadLimit.asStateFlow()
+
+    override fun setDownloadLimitBytes(bytes: Long?) {
+        if (bytes == null) settings.remove(DOWNLOAD_LIMIT_BYTES) else settings.putLong(DOWNLOAD_LIMIT_BYTES, bytes)
+        downloadLimit.value = bytes
+    }
+
+    private val downloadNext = MutableStateFlow(settings.getBoolean(DOWNLOAD_NEXT_ON_FINISH, defaultValue = false))
+    override val downloadNextOnFinish: StateFlow<Boolean> = downloadNext.asStateFlow()
+
+    override fun setDownloadNextOnFinish(enabled: Boolean) {
+        settings.putBoolean(DOWNLOAD_NEXT_ON_FINISH, enabled)
+        downloadNext.value = enabled
+    }
+
+    private val notify = MutableStateFlow(settings.getBoolean(NOTIFY_NEW_EPISODES, defaultValue = true))
+    override val notifyNewEpisodes: StateFlow<Boolean> = notify.asStateFlow()
+
+    override fun setNotifyNewEpisodes(enabled: Boolean) {
+        settings.putBoolean(NOTIFY_NEW_EPISODES, enabled)
+        notify.value = enabled
+    }
+
+    private val refreshHours = MutableStateFlow(
+        settings.getInt(REFRESH_INTERVAL_HOURS, RefreshInterval.DEFAULT_HOURS)
+            .takeIf { it in RefreshInterval.CHOICES } ?: RefreshInterval.DEFAULT_HOURS
+    )
+    override val refreshIntervalHours: StateFlow<Int> = refreshHours.asStateFlow()
+
+    override fun setRefreshIntervalHours(hours: Int) {
+        settings.putInt(REFRESH_INTERVAL_HOURS, hours)
+        refreshHours.value = hours
+    }
+
+    private val silence = MutableStateFlow(settings.getBoolean(SKIP_SILENCE, defaultValue = false))
+    override val skipSilence: StateFlow<Boolean> = silence.asStateFlow()
+
+    override fun setSkipSilence(enabled: Boolean) {
+        settings.putBoolean(SKIP_SILENCE, enabled)
+        silence.value = enabled
+    }
+
+    private val voice = MutableStateFlow(settings.getBoolean(BOOST_VOICE, defaultValue = false))
+    override val boostVoice: StateFlow<Boolean> = voice.asStateFlow()
+
+    override fun setBoostVoice(enabled: Boolean) {
+        settings.putBoolean(BOOST_VOICE, enabled)
+        voice.value = enabled
+    }
+
+    private val deleteAfter = MutableStateFlow(
+        settings.getInt(DELETE_DOWNLOADS_AFTER_DAYS, 0).takeIf { it in DeleteOldDownloads.CHOICES } ?: 0
+    )
+    override val deleteDownloadsAfterDays: StateFlow<Int> = deleteAfter.asStateFlow()
+
+    override fun setDeleteDownloadsAfterDays(days: Int) {
+        settings.putInt(DELETE_DOWNLOADS_AFTER_DAYS, days)
+        deleteAfter.value = days
+    }
+
+    private val deleteFinished = MutableStateFlow(settings.getBoolean(DELETE_FINISHED_DOWNLOADS, defaultValue = false))
+    override val deleteFinishedDownloads: StateFlow<Boolean> = deleteFinished.asStateFlow()
+
+    override fun setDeleteFinishedDownloads(enabled: Boolean) {
+        settings.putBoolean(DELETE_FINISHED_DOWNLOADS, enabled)
+        deleteFinished.value = enabled
+    }
+
+    private val explicit = MutableStateFlow(settings.getBoolean(SHOW_EXPLICIT, defaultValue = true))
+    override val showExplicit: StateFlow<Boolean> = explicit.asStateFlow()
+
+    override fun setShowExplicit(enabled: Boolean) {
+        settings.putBoolean(SHOW_EXPLICIT, enabled)
+        explicit.value = enabled
+    }
+
+    private val skips = MutableStateFlow(
+        SkipIntervals().let { default ->
+            // A jump no longer offered (an older version had 15 s) goes back to the default.
+            fun offered(key: String, fallback: Int) =
+                settings.getInt(key, fallback).takeIf { it in SkipIntervals.CHOICES } ?: fallback
+            SkipIntervals(
+                backwardSeconds = offered(SKIP_BACKWARD_SECONDS, default.backwardSeconds),
+                forwardSeconds = offered(SKIP_FORWARD_SECONDS, default.forwardSeconds),
+            )
+        }
+    )
+    override val skipIntervals: StateFlow<SkipIntervals> = skips.asStateFlow()
+
+    override fun setSkipIntervals(intervals: SkipIntervals) {
+        settings.putInt(SKIP_BACKWARD_SECONDS, intervals.backwardSeconds)
+        settings.putInt(SKIP_FORWARD_SECONDS, intervals.forwardSeconds)
+        skips.value = intervals
+    }
+
+    private val language = MutableStateFlow(settings.enumOrDefault(APP_LANGUAGE, AppLanguage.SYSTEM))
+    override val appLanguage: StateFlow<AppLanguage> = language.asStateFlow()
+
+    override fun setAppLanguage(language: AppLanguage) {
+        settings.putString(APP_LANGUAGE, language.name)
+        this.language.value = language
+    }
+
+    private val theme = MutableStateFlow(settings.enumOrDefault(THEME_MODE, ThemeMode.SYSTEM))
+    override val themeMode: StateFlow<ThemeMode> = theme.asStateFlow()
+
+    override fun setThemeMode(mode: ThemeMode) {
+        settings.putString(THEME_MODE, mode.name)
+        theme.value = mode
     }
 
     private val telemetry = MutableStateFlow(settings.getBoolean(TELEMETRY_ENABLED, defaultValue = true))

@@ -20,7 +20,11 @@ private const val MAX_CONCURRENT_REFRESHES = 4
 
 class RefreshPodcastUseCase(
     private val feedSource: FeedSource,
-    private val podcastRepository: PodcastRepository
+    private val podcastRepository: PodcastRepository,
+    /** After each feed read, unchanged or not, its podcast's newest episodes are kept downloaded (18.19). */
+    private val autoDownload: AutoDownloadUseCase? = null,
+    /** After every feed is read, downloads older than Settings allow go (18.19). */
+    private val deleteOldDownloads: DeleteOldDownloadsUseCase? = null,
 ) {
     suspend operator fun invoke(podcastId: String): Result<Unit> {
         val podcast = podcastRepository.getPodcastById(podcastId)
@@ -45,6 +49,7 @@ class RefreshPodcastUseCase(
                 AppLogger.e(TAG, "Failed to refresh podcast: ${podcast.title}", e)
             }.also {
                 Metrics.record(Metrics.FEED_REFRESH, start.elapsedNow(), "outcome" to outcome)
+                if (it.isSuccess) autoDownload?.invoke(podcast.id)
             }
     }
 
@@ -57,6 +62,7 @@ class RefreshPodcastUseCase(
         val results = coroutineScope {
             podcasts.map { async { permits.withPermit { invoke(it.id) } } }.awaitAll()
         }
+        deleteOldDownloads?.invoke()
         return RefreshSummary(total = results.size, failures = results.mapNotNull { it.exceptionOrNull() }).also {
             Metrics.record(
                 Metrics.REFRESH_ALL,

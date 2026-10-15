@@ -15,13 +15,20 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
+import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.component.message
+import br.com.carvalho.podcast.presentation.component.toggled
 import br.com.carvalho.podcast.presentation.failureMessages
+import br.com.carvalho.podcast.presentation.message
 import br.com.carvalho.podcast.presentation.toMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -42,11 +49,14 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "PodcastDetailViewModel"
 
-@Suppress("LongParameterList") // constructor injection; the screen genuinely needs all of them
+// Constructor injection (the screen needs all of them), and one function per screen intent.
+@Suppress("LongParameterList", "TooManyFunctions")
 class PodcastDetailViewModel(
     private val podcastId: String,
     audioPlayer: AudioPlayer,
     private val playEpisode: PlayEpisodeUseCase,
+    private val enqueueEpisode: EnqueueEpisodeUseCase,
+    private val actOnEpisodes: ActOnEpisodesUseCase,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
     private val episodeDownloader: EpisodeDownloader,
     private val repository: PodcastRepository,
@@ -65,9 +75,9 @@ class PodcastDetailViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagedEpisodes: Flow<PagingData<Episode>> = _uiState
-        .map { it.filter }
+        .map { it.filter to it.oldestFirst }
         .distinctUntilChanged()
-        .flatMapLatest { filter -> repository.getEpisodesPaged(podcastId, filter) }
+        .flatMapLatest { (filter, oldestFirst) -> repository.getEpisodesPaged(podcastId, filter, oldestFirst) }
         .cachedIn(viewModelScope)
 
     init {
@@ -79,11 +89,31 @@ class PodcastDetailViewModel(
             .launchIn(viewModelScope)
     }
 
+    @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: PodcastDetailIntent) {
         when (intent) {
+            is PodcastDetailIntent.ToggleSelection ->
+                _uiState.update { it.copy(selection = it.selection.toggled(intent.episode)) }
+            PodcastDetailIntent.ClearSelection -> _uiState.update { it.copy(selection = emptyList()) }
+            is PodcastDetailIntent.ActOnSelection -> actOnSelection(intent.action)
+            is PodcastDetailIntent.SetSaved -> setSaved(intent.episode, intent.saved)
             PodcastDetailIntent.Refresh -> refresh()
             is PodcastDetailIntent.SetFilter -> setFilter(intent.filter)
+            is PodcastDetailIntent.SetOldestFirst -> setOldestFirst(intent.oldestFirst)
+            is PodcastDetailIntent.SetAutoDownload -> viewModelScope.launch(dispatchers.io) {
+                repository.setPodcastAutoDownload(podcastId, intent.count)
+                // The refresh downloads what the new choice asks for, after reading the feed once more.
+                refreshPodcastUseCase(podcastId)
+            }
+            is PodcastDetailIntent.SetNotifications -> viewModelScope.launch(dispatchers.io) {
+                repository.setPodcastNotifications(podcastId, intent.enabled)
+            }
+            is PodcastDetailIntent.SetPlayback -> {
+                analytics.logEvent(AnalyticsEvent.SetPodcastPlayback)
+                viewModelScope.launch(dispatchers.io) { repository.setPodcastPlayback(podcastId, intent.playback) }
+            }
             is PodcastDetailIntent.Play -> play(intent.episode)
+            is PodcastDetailIntent.Enqueue -> enqueue(intent.episode, intent.next)
             is PodcastDetailIntent.Download -> downloadEpisode(intent.episode)
             is PodcastDetailIntent.CancelDownload -> cancelDownload(intent.episode.id)
             is PodcastDetailIntent.RequestDeleteDownload ->
@@ -114,6 +144,30 @@ class PodcastDetailViewModel(
     private fun setFilter(filter: EpisodeFilter) {
         analytics.logEvent(AnalyticsEvent.SetEpisodeFilter(filter.name))
         _uiState.update { it.copy(filter = filter) }
+    }
+
+    private fun setOldestFirst(oldestFirst: Boolean) {
+        analytics.logEvent(AnalyticsEvent.SetEpisodeOrder(oldestFirst))
+        viewModelScope.launch(dispatchers.io) { repository.setEpisodeOrder(podcastId, oldestFirst) }
+    }
+
+    private fun setSaved(episode: Episode, saved: Boolean) {
+        analytics.logEvent(AnalyticsEvent.SaveEpisode(saved))
+        viewModelScope.launch(dispatchers.io) { repository.setEpisodeSaved(episode.id, saved) }
+    }
+
+    private fun actOnSelection(action: EpisodeAction) {
+        val episodes = _uiState.value.selection
+        _uiState.update { it.copy(selection = emptyList()) }
+        analytics.logEvent(AnalyticsEvent.ActOnEpisodes(action.name, episodes.size))
+        viewModelScope.launch(dispatchers.io) {
+            actOnEpisodes(episodes, action)
+            _messages.send(action.message(episodes.size))
+        }
+    }
+
+    private fun enqueue(episode: Episode, next: Boolean) = viewModelScope.launch(dispatchers.io) {
+        enqueueEpisode(episode, next).message()?.let { _messages.send(it) }
     }
 
     private fun play(episode: Episode) {
@@ -184,12 +238,35 @@ data class PodcastDetailUiState(
     val deleteEpisodeConfirmation: Episode? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-)
+    /** The episodes chosen to act on together, in the order chosen; empty when not selecting (18.11). */
+    val selection: List<Episode> = emptyList(),
+) {
+    /** Before the podcast loads, newest first, as most shows want. */
+    val oldestFirst: Boolean get() = podcast?.episodesOldestFirst ?: false
+}
 
 sealed interface PodcastDetailIntent {
+    /** Several episodes chosen at once (18.11): a long press starts, each tap adds or drops one. */
+    data class ToggleSelection(val episode: Episode) : PodcastDetailIntent
+    data object ClearSelection : PodcastDetailIntent
+    data class ActOnSelection(val action: EpisodeAction) : PodcastDetailIntent
+    data class SetSaved(val episode: Episode, val saved: Boolean) : PodcastDetailIntent
     data object Refresh : PodcastDetailIntent
     data class SetFilter(val filter: EpisodeFilter) : PodcastDetailIntent
+    data class SetOldestFirst(val oldestFirst: Boolean) : PodcastDetailIntent
+
+    /** How many of the newest unheard episodes stay downloaded (18.19). */
+    data class SetAutoDownload(val count: Int) : PodcastDetailIntent
+
+    /** Whether this podcast's new episodes notify (18.18). */
+    data class SetNotifications(val enabled: Boolean) : PodcastDetailIntent
+
+    /** The podcast's own speed and skipped start and end (18.14). */
+    data class SetPlayback(val playback: PodcastPlayback) : PodcastDetailIntent
     data class Play(val episode: Episode) : PodcastDetailIntent
+
+    /** "Play next" when [next], else "Add to queue" (18.6). */
+    data class Enqueue(val episode: Episode, val next: Boolean) : PodcastDetailIntent
     data class Download(val episode: Episode) : PodcastDetailIntent
     data class CancelDownload(val episode: Episode) : PodcastDetailIntent
     data class RequestDeleteDownload(val episode: Episode) : PodcastDetailIntent

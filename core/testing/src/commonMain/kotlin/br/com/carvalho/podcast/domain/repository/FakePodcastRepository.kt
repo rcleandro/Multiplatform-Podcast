@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -42,8 +43,12 @@ class FakePodcastRepository : PodcastRepository {
         it.filter { e -> e.podcastId == podcastId }
     }
 
-    /** One page with every match, newest first, like the database query. */
-    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> =
+    /** One page with every match, in the asked order, like the database query. */
+    override fun getEpisodesPaged(
+        podcastId: String,
+        filter: EpisodeFilter,
+        oldestFirst: Boolean,
+    ): Flow<PagingData<Episode>> =
         episodes.map { list ->
             val matching = list.filter { it.podcastId == podcastId }.filter {
                 when (filter) {
@@ -52,11 +57,44 @@ class FakePodcastRepository : PodcastRepository {
                     EpisodeFilter.DOWNLOADED -> it.isDownloaded
                 }
             }
-            PagingData.from(matching.sortedByDescending { it.publishDate })
+            val newestFirst = matching.sortedByDescending { it.publishDate }
+            PagingData.from(if (oldestFirst) newestFirst.reversed() else newestFirst)
         }
 
-    override suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode> =
-        episodes.value.filter { it.podcastId == podcastId && it.publishDate >= publishDate }.sortedBy { it.publishDate }
+    override suspend fun setPodcastAutoDownload(podcastId: String, count: Int) {
+        podcasts.value = podcasts.value.map { if (it.id == podcastId) it.copy(autoDownloadCount = count) else it }
+    }
+
+    override suspend fun setPodcastNotifications(podcastId: String, enabled: Boolean) {
+        podcasts.value = podcasts.value.map { if (it.id == podcastId) it.copy(notifyNewEpisodes = enabled) else it }
+    }
+
+    override suspend fun getNewEpisodes(): List<Episode> =
+        episodes.value.filter { it.isNew && !it.isPlayed }.sortedByDescending { it.publishDate }
+
+    override suspend fun setPodcastPlayback(podcastId: String, playback: PodcastPlayback) {
+        podcasts.value = podcasts.value.map { if (it.id == podcastId) it.copy(playback = playback) else it }
+    }
+
+    override suspend fun setEpisodeOrder(podcastId: String, oldestFirst: Boolean) {
+        podcasts.value = podcasts.value.map { if (it.id == podcastId) it.copy(oldestFirst = oldestFirst) else it }
+    }
+
+    override suspend fun dismissNewEpisode(id: String) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false) else it }
+    }
+
+    override suspend fun markEpisodeStarted(id: String, at: Long) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false, lastPlayedAt = at) else it }
+    }
+
+    override suspend fun clearHistory() {
+        episodes.value = episodes.value.map { it.copy(lastPlayedAt = null) }
+    }
+
+    override suspend fun dismissAllNewEpisodes() {
+        episodes.value = episodes.value.map { it.copy(isNew = false) }
+    }
 
     override fun getDownloadedEpisodes(): Flow<List<Episode>> = episodes.map { list -> list.filter { it.isDownloaded } }
 
@@ -100,6 +138,10 @@ class FakePodcastRepository : PodcastRepository {
         episodes.value = episodes.value.map {
             if (it.id == id) it.copy(isPlayed = true) else it
         }
+    }
+
+    override suspend fun setEpisodeSaved(id: String, saved: Boolean) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isSaved = saved) else it }
     }
 
     override suspend fun markEpisodeAsUnplayed(id: String) {

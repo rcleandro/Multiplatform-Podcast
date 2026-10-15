@@ -7,7 +7,6 @@ import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.observability.urlHost
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
-import br.com.carvalho.podcast.core.ui.generated.resources.error_add_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_podcasts
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -17,14 +16,14 @@ import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.model.sortedFor
+import br.com.carvalho.podcast.domain.model.topCategories
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
-import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
-import br.com.carvalho.podcast.domain.usecase.validFeedUrl
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.toMessage
 import kotlinx.coroutines.channels.Channel
@@ -41,10 +40,9 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "LibraryViewModel"
 
-@Suppress("LongParameterList") // one dependency per thing the screen does (list, add, refresh, delete, layout, play)
+@Suppress("LongParameterList") // one dependency per thing the screen does (list, refresh, delete, layout, play)
 class LibraryViewModel(
     private val repository: PodcastRepository,
-    private val addPodcastUseCase: AddPodcastFromUrlUseCase,
     private val refreshPodcastUseCase: RefreshPodcastUseCase,
     private val deletePodcastUseCase: DeletePodcastUseCase,
     private val preferences: PreferencesRepository,
@@ -56,16 +54,42 @@ class LibraryViewModel(
     private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true, layout = preferences.libraryLayout.value))
     val uiState: StateFlow<LibraryUiState> = _uiState
 
+    /** The category chip picked above the podcasts (18.2); null shows them all. */
+    private val chosenCategory = MutableStateFlow<PodcastCategory?>(null)
+
     private val _messages = Channel<UiMessage>(Channel.BUFFERED)
     val messages: Flow<UiMessage> = _messages.receiveAsFlow()
 
     init {
         viewModelScope.launch(dispatchers.io) {
             val library = repository.getLibrary().onEach { Metrics.recordAppStart("podcasts" to it.size) }
-            combine(library.onStart { emit(emptyList()) }, preferences.librarySort) { podcasts, sort ->
-                podcasts.sortedFor(sort) to sort
-            }.collect { (podcasts, sort) ->
-                _uiState.update { it.copy(podcasts = podcasts, sort = sort, isLoading = false) }
+            combine(
+                library.onStart { emit(emptyList()) },
+                preferences.librarySort,
+                chosenCategory
+            ) { all, sort, chosen ->
+                val categories = all.flatMap { it.podcast.topCategories }
+                    .groupingBy { it }.eachCount()
+                    .entries.sortedByDescending { it.value }.map { it.key }
+                // A category whose last podcast left the library goes back to all of them.
+                val category = chosen?.takeIf { it in categories }
+                val shown = if (category == null) all else all.filter { category in it.podcast.topCategories }
+                LibraryUiState(
+                    podcasts = shown.sortedFor(sort),
+                    sort = sort,
+                    categories = categories,
+                    category = category
+                )
+            }.collect { listed ->
+                _uiState.update {
+                    it.copy(
+                        podcasts = listed.podcasts,
+                        sort = listed.sort,
+                        categories = listed.categories,
+                        category = listed.category,
+                        isLoading = false,
+                    )
+                }
             }
         }
         repository.getInProgressEpisodes()
@@ -79,12 +103,9 @@ class LibraryViewModel(
             LibraryIntent.DismissDelete -> _uiState.update { it.copy(podcastToDelete = null) }
             LibraryIntent.ConfirmDelete -> confirmDelete()
             LibraryIntent.RefreshAll -> refreshAll()
-            LibraryIntent.OpenAddDialog -> _uiState.update { it.copy(isAddDialogOpen = true) }
-            LibraryIntent.DismissAddDialog -> _uiState.update { it.copy(isAddDialogOpen = false, addUrl = "") }
-            is LibraryIntent.ChangeUrl -> _uiState.update { it.copy(addUrl = intent.url) }
-            LibraryIntent.ConfirmAdd -> addPodcast()
             LibraryIntent.ToggleLayout -> toggleLayout()
             is LibraryIntent.ChangeSort -> preferences.setLibrarySort(intent.sort)
+            is LibraryIntent.SelectCategory -> chosenCategory.value = intent.category
             is LibraryIntent.Play -> viewModelScope.launch(dispatchers.io) {
                 analytics.logEvent(AnalyticsEvent.PlayEpisode(intent.episode.id, AnalyticsEvent.PlaySource.LIBRARY))
                 playEpisode(intent.episode)
@@ -126,27 +147,6 @@ class LibraryViewModel(
             _uiState.update { it.copy(isRefreshing = false) }
         }
     }
-
-    private fun addPodcast() {
-        val url = _uiState.value.addUrl.trim()
-        if (url.isBlank()) return
-
-        viewModelScope.launch(dispatchers.io) {
-            // Only the host: the typed text may lack the scheme, which the logger needs to spot (and cut) a URL.
-            val host = urlHost(validFeedUrl(url) ?: url)
-            analytics.logEvent(AnalyticsEvent.AddPodcastAttempt(host))
-            _uiState.update { it.copy(isRefreshing = true, isAddDialogOpen = false) }
-            AppLogger.i(TAG, "Adding podcast from host: $host")
-            addPodcastUseCase(url).onSuccess {
-                analytics.logEvent(AnalyticsEvent.AddPodcastSuccess(host))
-            }.onFailure { e ->
-                AppLogger.e(TAG, "Failed to add podcast from host: $host", e)
-                analytics.logEvent(AnalyticsEvent.AddPodcastFailure(host, e))
-                _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_add_podcast)))
-            }
-            _uiState.update { it.copy(isRefreshing = false, addUrl = "") }
-        }
-    }
 }
 
 data class LibraryUiState(
@@ -155,22 +155,20 @@ data class LibraryUiState(
     val inProgress: List<Episode> = emptyList(),
     val layout: LibraryLayout = LibraryLayout.GRID,
     val sort: LibrarySort = LibrarySort.TITLE,
+    /** The categories of the podcasts in the library, the most common first. */
+    val categories: List<PodcastCategory> = emptyList(),
+    val category: PodcastCategory? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-    val isAddDialogOpen: Boolean = false,
     val podcastToDelete: Podcast? = null,
-    val addUrl: String = "",
 )
 
 sealed interface LibraryIntent {
     data object RefreshAll : LibraryIntent
-    data object OpenAddDialog : LibraryIntent
-    data class ChangeUrl(val url: String) : LibraryIntent
-    data object ConfirmAdd : LibraryIntent
     data object ToggleLayout : LibraryIntent
     data class ChangeSort(val sort: LibrarySort) : LibraryIntent
+    data class SelectCategory(val category: PodcastCategory?) : LibraryIntent
     data class Play(val episode: Episode) : LibraryIntent
-    data object DismissAddDialog : LibraryIntent
     data class RequestDelete(val podcast: Podcast) : LibraryIntent
     data object ConfirmDelete : LibraryIntent
     data object DismissDelete : LibraryIntent

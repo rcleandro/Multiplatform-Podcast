@@ -2,6 +2,6 @@
 <!-- Media notification and Android Auto; the screens read the same texts from Compose resources. -->
 <resources>
     <string name="skip_forward">Avançar %1$d s</string>
-    <string name="skip_backward">Voltar %1$d s</string>
+    <string name="skip_backward">Retroceder %1$d s</string>
     <string name="library_title">Biblioteca</string>
 </resources>

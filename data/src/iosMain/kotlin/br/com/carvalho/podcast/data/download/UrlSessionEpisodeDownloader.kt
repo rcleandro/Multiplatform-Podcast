@@ -15,6 +15,7 @@ import okio.IOException
 import okio.Path.Companion.toPath
 import platform.Foundation.NSError
 import platform.Foundation.NSHTTPURLResponse
+import platform.Foundation.NSMutableURLRequest
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLErrorCancelled
 import platform.Foundation.NSURLErrorCannotWriteToFile
@@ -41,6 +42,8 @@ private const val SESSION_ID = "br.com.carvalho.podcast.downloads"
 class UrlSessionEpisodeDownloader(
     private val downloader: KtorEpisodeDownloader,
     private val directories: AppDirectories,
+    /** "Download only on Wi-Fi" in Settings (18.5): the request may not use mobile data, so it waits for Wi-Fi. */
+    private val wifiOnly: () -> Boolean = { false },
 ) : EpisodeDownloader by downloader {
     private val session = NSURLSession.sessionWithConfiguration(
         NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(SESSION_ID),
@@ -54,14 +57,16 @@ class UrlSessionEpisodeDownloader(
 
     override suspend fun download(episode: Episode) {
         val status = downloader.activeDownloads.value[episode.id]
-        if (status is DownloadStatus.Queued || status is DownloadStatus.Downloading) return
+        val busy = status is DownloadStatus.Queued || status is DownloadStatus.Downloading
+        if (busy || !downloader.admits(episode.id)) return
         val url = NSURL.URLWithString(episode.audioUrl)
         if (url == null) {
             downloader.updateStatus(episode.id, DownloadStatus.Failed(AppError.Unknown(null)))
             return
         }
         downloader.markQueued(episode.id)
-        session.downloadTaskWithURL(url).apply {
+        val request = NSMutableURLRequest.requestWithURL(url).apply { setAllowsCellularAccess(!wifiOnly()) }
+        session.downloadTaskWithRequest(request).apply {
             taskDescription = episode.id
             resume()
         }

@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -40,7 +41,7 @@ class PlayerViewModelTest {
     private val analytics = FakeAnalytics()
 
     private fun createViewModel() = PlayerViewModel(
-        audioPlayer, PlayEpisodeUseCase(audioPlayer, FakePodcastRepository()), dispatchers, analytics
+        audioPlayer, PlayEpisodeUseCase(audioPlayer), dispatchers, analytics
     )
 
     @Test
@@ -95,6 +96,16 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun `the buttons jump by the seconds in the player's state`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        audioPlayer.setSkipIntervals(SkipIntervals(backwardSeconds = 5, forwardSeconds = 15))
+
+        viewModel.onIntent(PlayerIntent.SkipForward)
+
+        assertEquals(15_000L, position())
+    }
+
+    @Test
     fun `next and previous go to the player`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
@@ -123,6 +134,16 @@ class PlayerViewModelTest {
 
         viewModel.onIntent(PlayerIntent.SetSleepTimer(null))
         assertNull(audioPlayer.playerState.value.sleepTimer)
+    }
+
+    @Test
+    fun `extending the sleep timer adds its minutes and is reported`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(PlayerIntent.ExtendSleepTimer)
+
+        assertEquals(SLEEP_TIMER_EXTENSION_MINUTES, audioPlayer.extendedBy)
+        assertEquals(listOf("extend_sleep_timer"), analytics.events)
     }
 
     @Test

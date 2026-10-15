@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import kotlinx.coroutines.flow.Flow
 
 @Suppress("TooManyFunctions") // one function per library query or change
@@ -23,10 +24,27 @@ interface PodcastRepository {
 
     /** The newest episode not played yet, for the podcast's "Latest" button. */
     fun getLatestUnplayedEpisode(podcastId: String): Flow<Episode?>
-    fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>>
+    fun getEpisodesPaged(
+        podcastId: String,
+        filter: EpisodeFilter,
+        oldestFirst: Boolean = false,
+    ): Flow<PagingData<Episode>>
 
-    /** The podcast's episodes published at or after [publishDate], oldest first: what plays after one of them. */
-    suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode>
+    /** How many of a podcast's newest unheard episodes stay downloaded (18.19). */
+    suspend fun setPodcastAutoDownload(podcastId: String, count: Int)
+
+    /** Whether a podcast's new episodes notify (18.18). */
+    suspend fun setPodcastNotifications(podcastId: String, enabled: Boolean)
+
+    /** What waits in "New" (18.7), newest first. */
+    suspend fun getNewEpisodes(): List<Episode>
+
+    /** How a podcast plays (18.14). */
+    suspend fun setPodcastPlayback(podcastId: String, playback: PodcastPlayback)
+
+    /** The order the user chose for a podcast's episodes (18.10). */
+    suspend fun setEpisodeOrder(podcastId: String, oldestFirst: Boolean)
+
     fun getDownloadedEpisodes(): Flow<List<Episode>>
     fun getUnplayedEpisodes(): Flow<List<Episode>>
 
@@ -41,8 +59,22 @@ interface PodcastRepository {
     suspend fun updateEpisodeProgress(id: String, progress: Long)
     suspend fun markEpisodeAsPlayed(id: String)
 
+    /** Takes an episode out of "New" (18.7): dismissed, or started. */
+    suspend fun dismissNewEpisode(id: String)
+
+    /** Started playing at [at]: out of "New" (18.7) and to the top of "History" (18.12). */
+    suspend fun markEpisodeStarted(id: String, at: Long)
+
+    /** Empties "History"; nothing else about the episodes changes. */
+    suspend fun clearHistory()
+
+    suspend fun dismissAllNewEpisodes()
+
     /** Back to not played, from the start. */
     suspend fun markEpisodeAsUnplayed(id: String)
+
+    /** Into "Saved", or out of it (18.12). */
+    suspend fun setEpisodeSaved(id: String, saved: Boolean)
 
     /** Saves a podcast and its episodes all at once: if any of it fails, nothing is saved. */
     suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>)

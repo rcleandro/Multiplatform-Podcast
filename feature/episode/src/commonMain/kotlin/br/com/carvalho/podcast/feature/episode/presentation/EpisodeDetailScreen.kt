@@ -17,6 +17,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Delete
@@ -24,9 +27,11 @@ import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.QueuePlayNext
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.SearchOff
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -60,11 +66,13 @@ import br.com.carvalho.podcast.core.designsystem.component.ErrorState
 import br.com.carvalho.podcast.core.designsystem.component.HtmlText
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastArtwork
+import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
 import br.com.carvalho.podcast.core.designsystem.component.morphingShape
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.description
 import br.com.carvalho.podcast.core.ui.generated.resources.episode
@@ -75,16 +83,23 @@ import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.no_description
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.resume_remaining
+import br.com.carvalho.podcast.core.ui.generated.resources.save_episode
+import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
+import br.com.carvalho.podcast.core.ui.generated.resources.unsave_episode
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.downloadAction
 import br.com.carvalho.podcast.presentation.component.remainingDuration
 import br.com.carvalho.podcast.presentation.component.toDownloadState
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
+import br.com.carvalho.podcast.presentation.share.episodeShareText
+import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -96,13 +111,20 @@ fun EpisodeDetailScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val share = rememberShare(snackbarHostState)
+    MessageEffect(viewModel.messages, snackbarHostState)
 
     EpisodeDetailContent(
         state = uiState,
+        snackbarHostState = snackbarHostState,
         actions = EpisodeDetailActions(
             onBack = onBackClick,
+            onShare = { uiState.episode?.let { share(episodeShareText(it)) } },
             onPlayPause = { viewModel.onIntent(EpisodeDetailIntent.PlayPause) },
             onRetry = { viewModel.onIntent(EpisodeDetailIntent.Retry) },
+            onEnqueue = { viewModel.onIntent(EpisodeDetailIntent.Enqueue(next = it)) },
+            onSetSaved = { viewModel.onIntent(EpisodeDetailIntent.SetSaved(it)) },
             onDownload = { viewModel.onIntent(EpisodeDetailIntent.Download) },
             onCancelDownload = { viewModel.onIntent(EpisodeDetailIntent.CancelDownload) },
             onDeleteDownload = { viewModel.onIntent(EpisodeDetailIntent.DeleteDownload) },
@@ -114,8 +136,12 @@ fun EpisodeDetailScreen(
 
 data class EpisodeDetailActions(
     val onBack: () -> Unit = {},
+    val onShare: () -> Unit = {},
     val onPlayPause: () -> Unit = {},
     val onRetry: () -> Unit = {},
+    /** "Play next" when true, else "Add to queue" (18.6). */
+    val onEnqueue: (Boolean) -> Unit = {},
+    val onSetSaved: (Boolean) -> Unit = {},
     val onDownload: () -> Unit = {},
     val onCancelDownload: () -> Unit = {},
     val onDeleteDownload: () -> Unit = {},
@@ -129,6 +155,7 @@ fun EpisodeDetailContent(
     state: EpisodeDetailUiState,
     actions: EpisodeDetailActions,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
@@ -143,6 +170,14 @@ fun EpisodeDetailContent(
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
+                actions = {
+                    state.episode?.let { episode -> SaveButton(episode.isSaved, actions.onSetSaved) }
+                    if (state.episode != null) {
+                        IconButton(onClick = actions.onShare) {
+                            Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0f),
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -150,6 +185,7 @@ fun EpisodeDetailContent(
                 scrollBehavior = scrollBehavior
             )
         },
+        snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
     ) { padding ->
@@ -266,7 +302,18 @@ private fun PlayPauseButton(episode: Episode, state: EpisodeDetailUiState, onCli
     }
 }
 
-/** The download action of its state and mark as played or unplayed: what the rows keep in their "⋮" menu. */
+/** Puts the episode into "Saved" or takes it out (18.12); filled while saved. */
+@Composable
+private fun SaveButton(saved: Boolean, onSetSaved: (Boolean) -> Unit) {
+    IconButton(onClick = { onSetSaved(!saved) }) {
+        Icon(
+            if (saved) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
+            contentDescription = stringResource(if (saved) Res.string.unsave_episode else Res.string.save_episode),
+        )
+    }
+}
+
+/** The queue, the download action of its state and mark as played or unplayed: what the rows keep in their "⋮" menu. */
 @Composable
 private fun EpisodeActionButtons(episode: Episode, state: EpisodeDetailUiState, actions: EpisodeDetailActions) {
     // Each button as wide as its label; they wrap instead of squeezing a label onto two lines.
@@ -274,6 +321,10 @@ private fun EpisodeActionButtons(episode: Episode, state: EpisodeDetailUiState, 
         horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
         modifier = Modifier.fillMaxWidth(),
     ) {
+        IconLabelButton(Icons.Rounded.QueuePlayNext, stringResource(Res.string.play_next)) { actions.onEnqueue(true) }
+        IconLabelButton(Icons.AutoMirrored.Rounded.PlaylistAdd, stringResource(Res.string.add_to_queue)) {
+            actions.onEnqueue(false)
+        }
         if (supportsDownloads) {
             val downloadState = state.downloadStatus.toDownloadState(episode.isDownloaded)
             val download = downloadAction(

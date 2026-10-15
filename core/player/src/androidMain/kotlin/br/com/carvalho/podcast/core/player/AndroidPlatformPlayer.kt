@@ -62,6 +62,8 @@ class AndroidPlatformPlayer(context: Context) : PlatformPlayer {
         val item = MediaItem.Builder()
             .setMediaId(episode.id)
             .setUri(episode.playableUri())
+            // A downloaded episode plays from its file; a Chromecast needs the address it came from (18.17).
+            .setRequestMetadata(MediaItem.RequestMetadata.Builder().setMediaUri(episode.audioUrl.toUri()).build())
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(episode.title)
@@ -82,6 +84,8 @@ class AndroidPlatformPlayer(context: Context) : PlatformPlayer {
     override fun seekTo(positionMs: Long) = command { it.seekTo(positionMs) }
 
     override fun setSpeed(speed: Float) = command { it.playbackParameters = PlaybackParameters(speed) }
+
+    override fun setVolume(volume: Float) = command { it.volume = volume }
 
     private fun command(block: (MediaController) -> Unit) {
         controller?.let(block) ?: scope.launch { connected()?.let(block) }

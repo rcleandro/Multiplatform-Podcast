@@ -16,5 +16,8 @@ sealed class AppError(cause: Throwable? = null) : Exception(cause) {
     data object AlreadyExists : AppError()
     data object NotFound : AppError()
     data object StorageFull : AppError()
+
+    /** The downloads already take the space the user allowed them in Settings (18.5). */
+    data object StorageLimit : AppError()
     class Unknown(cause: Throwable?) : AppError(cause)
 }

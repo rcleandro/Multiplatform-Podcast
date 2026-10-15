@@ -56,14 +56,18 @@ import br.com.carvalho.podcast.core.ui.generated.resources.library_title
 import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.feature.discover.presentation.DiscoverScreen
+import br.com.carvalho.podcast.feature.discover.presentation.PodcastSuggestions
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
+import br.com.carvalho.podcast.feature.player.presentation.QueueScreen
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
+import br.com.carvalho.podcast.feature.settings.presentation.SettingsScreen
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -85,7 +89,7 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
     // height, like a flip phone's cover screen (21.5).
     val hasRail = currentPaneLayout() != PaneLayout.COMPACT || currentWindowIsShort()
 
-    // The player and "Organize library" cover the tabs too (ADR 0005): the bar is for moving between tabs only.
+    // The player, "Organize library" and "Add podcast" cover the tabs (ADR 0005): the bar only moves between tabs.
     // Opening the player grows the mini player's cover into the player's, and minimizing shrinks it back (24.2).
     val shortcuts = if (keyboardShortcuts) appShortcuts(component, playerViewModel) else Modifier
     SharedTransitionLayout(modifier = Modifier.fillMaxSize().then(shortcuts)) {
@@ -117,23 +121,36 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
             )
         }
 
-        AnimatedVisibility(
-            visible = state.isOrganizingLibrary,
-            enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
-            exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
-        ) {
-            LibraryOrderScreen(onBack = component::onBackClicked)
+        Overlay(visible = state.isOrganizingLibrary) { LibraryOrderScreen(onBack = component::onBackClicked) }
+        Overlay(visible = state.isAddingPodcast) {
+            DiscoverScreen(
+                onBack = component::onBackClicked,
+                session = state.addPodcastSession,
+                link = state.podcastLink,
+                onLinkHandled = component::onPodcastLinkHandled,
+                onOpenPodcast = component::onPodcastSelected,
+            )
         }
-
-        AnimatedVisibility(
-            visible = state.isPlayerOpen,
-            enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
-            exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it }
-        ) {
-            PlayerScreen(onBackClick = component::onBackClicked, artworkModifier = sharedCover(this))
+        Overlay(visible = state.isShowingSettings) { SettingsScreen(onBack = component::onBackClicked) }
+        Overlay(visible = state.isPlayerOpen) {
+            PlayerScreen(
+                onBackClick = component::onBackClicked,
+                artworkModifier = sharedCover(this),
+                onQueueClick = component::onQueueClicked,
+            )
         }
+        Overlay(visible = state.isQueueOpen) { QueueScreen(onBack = component::onBackClicked) }
     }
 }
+
+/** A screen that slides up over the tabs: the player, the queue, "Organize library", "Add podcast" and Settings. */
+@Composable
+private fun Overlay(visible: Boolean, content: @Composable AnimatedVisibilityScope.() -> Unit) = AnimatedVisibility(
+    visible = visible,
+    enter = slideInVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
+    exit = slideOutVertically(tween(Motion.LONG, easing = Motion.Emphasized)) { it },
+    content = content,
+)
 
 /** Space plays or pauses, the arrows skip and Escape goes back, wherever the app is (21.7). */
 @Composable
@@ -210,6 +227,7 @@ private fun TabContent(
                     playerState,
                     onPlayPause = onPlayPause,
                     onClick = component::onPlayerClicked,
+                    onQueueClick = component::onQueueClicked,
                     artworkModifier = sharedCover(this),
                 )
             }
@@ -222,6 +240,10 @@ private fun ListPane(component: RootComponent, tab: Tab) {
     when (tab) {
         Tab.Library -> LibraryScreen(
             onOrganize = component::onOrganizeLibrary,
+            onAddPodcast = component::onAddPodcast,
+            onOpenSettings = component::onOpenSettings,
+            // Features do not depend on each other (ADR 0003): the app puts discovery's suggestions in the library.
+            emptyLibrary = { PodcastSuggestions(onAddPodcast = component::onAddPodcast) },
             onPodcastClick = component::onPodcastSelected,
         )
         Tab.Episodes -> SearchScreen(
@@ -251,6 +273,7 @@ private fun MiniPlayerBar(
     playerState: PlayerState,
     onPlayPause: () -> Unit,
     onClick: () -> Unit,
+    onQueueClick: () -> Unit,
     artworkModifier: Modifier,
 ) {
     val episode = playerState.currentEpisode ?: return
@@ -264,6 +287,7 @@ private fun MiniPlayerBar(
         progress = if (duration != null && duration > 0) playerState.position.toFloat() / duration else 0f,
         onPlayPause = onPlayPause,
         onClick = onClick,
+        onQueueClick = onQueueClick,
         artworkModifier = artworkModifier,
     )
 }

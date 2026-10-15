@@ -1,16 +1,12 @@
 package br.com.carvalho.podcast.feature.library.presentation
 
 import br.com.carvalho.podcast.core.AppError
-import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
-import br.com.carvalho.podcast.core.util.AppLogger
-import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_feed
-import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_url
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
-import br.com.carvalho.podcast.core.ui.generated.resources.error_podcast_exists
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.error_no_connection
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -18,9 +14,9 @@ import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
-import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
@@ -37,7 +33,6 @@ import kotlin.test.BeforeTest
 import br.com.carvalho.podcast.presentation.UiMessage
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -45,7 +40,6 @@ class LibraryViewModelTest {
     private val repository = FakePodcastRepository()
     private val audioPlayer = FakeAudioPlayer()
     private val feedSource = FakeFeedSource()
-    private val addPodcastUseCase = AddPodcastFromUrlUseCase(feedSource, repository)
     private val refreshPodcastUseCase = RefreshPodcastUseCase(feedSource, repository)
     private val deletePodcastUseCase = DeletePodcastUseCase(repository, FakeEpisodeDownloader())
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -67,8 +61,8 @@ class LibraryViewModelTest {
 
     private fun createViewModel(): LibraryViewModel {
         return LibraryViewModel(
-            repository, addPodcastUseCase, refreshPodcastUseCase, deletePodcastUseCase, preferences,
-            PlayEpisodeUseCase(audioPlayer, repository), dispatchers, analytics
+            repository, refreshPodcastUseCase, deletePodcastUseCase, preferences,
+            PlayEpisodeUseCase(audioPlayer), dispatchers, analytics
         )
     }
 
@@ -146,57 +140,6 @@ class LibraryViewModelTest {
         viewModel.uiState.test {
             val state = awaitItem()
             assertTrue(state.podcasts.isEmpty())
-            assertFalse(state.isAddDialogOpen)
-        }
-    }
-
-    @Test
-    fun `onAddClicked opens dialog`() = runTest(testDispatcher) {
-        val viewModel = createViewModel()
-        viewModel.uiState.test {
-            awaitItem()
-            viewModel.onIntent(LibraryIntent.OpenAddDialog)
-            assertTrue(awaitItem().isAddDialogOpen)
-        }
-    }
-
-    @Test
-    fun `addPodcast calls use case and closes dialog`() = runTest(testDispatcher) {
-        val viewModel = createViewModel()
-        val podcast = Podcast(
-            id = "https://feeds.example.com/rss", title = "New", description = "", imageUrl = null, author = null, language = null,
-            categories = emptyList(), feedUrl = "https://feeds.example.com/rss", siteUrl = null, lastUpdated = 0, isSubscribed = true
-        )
-        feedSource.result = Result.success(FetchedFeed(podcast, emptyList()))
-        feedSource.delayMs = 10
-
-        viewModel.uiState.test {
-            awaitItem()
-
-            viewModel.onIntent(LibraryIntent.OpenAddDialog)
-            awaitItem()
-
-            viewModel.onIntent(LibraryIntent.ChangeUrl("feeds.example.com/rss"))
-            awaitItem()
-
-            viewModel.onIntent(LibraryIntent.ConfirmAdd)
-            
-            var state = awaitItem()
-            while (!state.isRefreshing) {
-                state = awaitItem()
-            }
-            assertTrue(state.isRefreshing)
-            assertFalse(state.isAddDialogOpen)
-
-            state = awaitItem()
-            while (state.isRefreshing) {
-                state = awaitItem()
-            }
-            assertFalse(state.isRefreshing)
-            assertEquals("", state.addUrl)
-            
-            assertEquals("https://feeds.example.com/rss", feedSource.fetchCalledWith)
-            cancelAndIgnoreRemainingEvents()
         }
     }
 
@@ -228,80 +171,15 @@ class LibraryViewModelTest {
             id = feedUrl, title = "Paid show", description = "", imageUrl = null, author = null, language = null,
             categories = emptyList(), feedUrl = feedUrl, siteUrl = null, lastUpdated = 0, isSubscribed = true
         )
-        feedSource.result = Result.success(FetchedFeed(podcast, emptyList()))
+        repository.podcasts.value = listOf(podcast)
         val viewModel = createViewModel()
 
-        viewModel.onIntent(LibraryIntent.ChangeUrl(feedUrl))
-        viewModel.onIntent(LibraryIntent.ConfirmAdd)
         viewModel.onIntent(LibraryIntent.RequestDelete(podcast))
         viewModel.onIntent(LibraryIntent.ConfirmDelete)
 
-        assertEquals(listOf("add_podcast_attempt", "add_podcast_success", "delete_podcast"), analytics.events)
+        assertEquals(listOf("delete_podcast"), analytics.events)
         analytics.params.forEach { params ->
             assertEquals(mapOf<String, Any?>("host" to "feeds.example.com"), params)
-        }
-    }
-
-    @Test
-    fun `adding a podcast already in the library shows a specific message`() = runTest(testDispatcher) {
-        repository.podcasts.value = listOf(
-            Podcast(
-                id = "https://feed.example/rss", title = "Existing", description = "", imageUrl = null, author = null,
-                language = null, categories = emptyList(), feedUrl = "https://feed.example/rss", siteUrl = null,
-                lastUpdated = 0, isSubscribed = true
-            )
-        )
-        val viewModel = createViewModel()
-
-        viewModel.onIntent(LibraryIntent.ChangeUrl("https://feed.example/rss"))
-        viewModel.onIntent(LibraryIntent.ConfirmAdd)
-
-        viewModel.messages.test {
-            assertEquals(UiMessage(Res.string.error_podcast_exists), awaitItem())
-        }
-    }
-
-    @Test
-    fun `a feed address typed without the scheme is not logged`() = runTest(testDispatcher) {
-        val logs = mutableListOf<String>()
-        AppLogger.crashReporter = object : CrashReporter {
-            override fun log(message: String) { logs += message }
-            override fun recordException(throwable: Throwable) { logs += throwable.stackTraceToString() }
-        }
-        feedSource.result = Result.failure(AppError.InvalidFeed)
-        val viewModel = createViewModel()
-
-        viewModel.onIntent(LibraryIntent.ChangeUrl("feeds.example.com/private/rss?token=s3cr3t"))
-        viewModel.onIntent(LibraryIntent.ConfirmAdd)
-        AppLogger.crashReporter = null
-
-        assertTrue(logs.isNotEmpty())
-        assertTrue(logs.none { "s3cr3t" in it }, logs.joinToString("\n"))
-    }
-
-    @Test
-    fun `an address that is not a URL says so without fetching`() = runTest(testDispatcher) {
-        val viewModel = createViewModel()
-
-        viewModel.onIntent(LibraryIntent.ChangeUrl("https://jovemnerd.com.br/feed-nerdcast|"))
-        viewModel.onIntent(LibraryIntent.ConfirmAdd)
-
-        viewModel.messages.test {
-            assertEquals(UiMessage(Res.string.error_invalid_url), awaitItem())
-        }
-        assertEquals(null, feedSource.fetchCalledWith)
-    }
-
-    @Test
-    fun `adding a URL that is not a feed says so`() = runTest(testDispatcher) {
-        feedSource.result = Result.failure(AppError.InvalidFeed)
-        val viewModel = createViewModel()
-
-        viewModel.onIntent(LibraryIntent.ChangeUrl("https://example.com"))
-        viewModel.onIntent(LibraryIntent.ConfirmAdd)
-
-        viewModel.messages.test {
-            assertEquals(UiMessage(Res.string.error_invalid_feed), awaitItem())
         }
     }
 
@@ -324,4 +202,58 @@ class LibraryViewModelTest {
             assertEquals(UiMessage(Res.string.error_refresh_some_podcasts, listOf(1, 3)), awaitItem())
         }
     }
+
+    @Test
+    fun `refreshing all when every feed fails says why instead of how many`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf("a", "b").map {
+            Podcast(
+                id = it, title = it, description = "", imageUrl = null, author = null, language = null,
+                categories = emptyList(), feedUrl = it, siteUrl = null, lastUpdated = 0, isSubscribed = true
+            )
+        }
+        feedSource.result = Result.failure(AppError.NoConnection)
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(LibraryIntent.RefreshAll)
+
+        viewModel.messages.test {
+            assertEquals(UiMessage(Res.string.error_no_connection), awaitItem())
+        }
+    }
+
+    @Test
+    fun `categories come from the library, the most common first, and filter the podcasts`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(
+            categorized("a", "Technology"), categorized("b", "Technology", "News"), categorized("c", "Comedy"),
+        )
+        val viewModel = createViewModel()
+        // Technology has two podcasts; the others tie and keep the order they appear in.
+        assertEquals(
+            listOf(PodcastCategory.TECHNOLOGY, PodcastCategory.NEWS, PodcastCategory.COMEDY),
+            viewModel.uiState.value.categories,
+        )
+
+        viewModel.onIntent(LibraryIntent.SelectCategory(PodcastCategory.TECHNOLOGY))
+        assertEquals(listOf("a", "b"), viewModel.uiState.value.podcasts.map { it.podcast.id })
+
+        viewModel.onIntent(LibraryIntent.SelectCategory(null))
+        assertEquals(3, viewModel.uiState.value.podcasts.size)
+    }
+
+    @Test
+    fun `a category whose last podcast leaves shows the whole library again`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(categorized("a", "Technology"), categorized("c", "Comedy"))
+        val viewModel = createViewModel()
+        viewModel.onIntent(LibraryIntent.SelectCategory(PodcastCategory.COMEDY))
+
+        repository.podcasts.value = listOf(categorized("a", "Technology"))
+
+        assertEquals(null, viewModel.uiState.value.category)
+        assertEquals(listOf("a"), viewModel.uiState.value.podcasts.map { it.podcast.id })
+    }
+
+    private fun categorized(id: String, vararg categories: String) = Podcast(
+        id = id, title = id, description = "", imageUrl = null, author = null, language = null,
+        categories = categories.toList(), feedUrl = id, siteUrl = null, lastUpdated = 0, isSubscribed = true
+    )
 }

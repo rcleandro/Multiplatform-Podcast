@@ -29,13 +29,14 @@ interface EpisodeDao {
         WHERE podcastId = :podcastId
         AND (:onlyUnplayed = 0 OR isPlayed = 0)
         AND (:onlyDownloaded = 0 OR isDownloaded = 1)
-        ORDER BY publishDate DESC
+        ORDER BY CASE WHEN :oldestFirst THEN publishDate END ASC, publishDate DESC
     """
     )
     fun pagingSourceByPodcast(
         podcastId: String,
         onlyUnplayed: Boolean,
         onlyDownloaded: Boolean,
+        oldestFirst: Boolean = false,
     ): PagingSource<Int, EpisodeEntity>
 
     @Query(
@@ -44,17 +45,21 @@ interface EpisodeDao {
         WHERE (:query = '' OR title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%')
         AND (:onlyInProgress = 0 OR (playbackPosition > 0 AND isPlayed = 0))
         AND (:onlyDownloaded = 0 OR isDownloaded = 1)
-        ORDER BY publishDate DESC
+        AND (:onlyNew = 0 OR (isNew = 1 AND isPlayed = 0))
+        AND (:onlySaved = 0 OR isSaved = 1)
+        AND (:history = 0 OR lastPlayedAt IS NOT NULL)
+        ORDER BY CASE WHEN :history THEN lastPlayedAt END DESC, publishDate DESC
     """
     )
+    @Suppress("LongParameterList") // one flag per filter of the Episodes tab
     fun searchPagingSource(
         query: String,
         onlyInProgress: Boolean = false,
         onlyDownloaded: Boolean = false,
+        onlyNew: Boolean = false,
+        onlySaved: Boolean = false,
+        history: Boolean = false,
     ): PagingSource<Int, EpisodeEntity>
-
-    @Query("SELECT * FROM episodes WHERE podcastId = :podcastId AND publishDate >= :publishDate ORDER BY publishDate")
-    suspend fun getSince(podcastId: String, publishDate: Long): List<EpisodeEntity>
 
     @Query("SELECT * FROM episodes WHERE id = :id")
     suspend fun getById(id: String): EpisodeEntity?
@@ -62,12 +67,11 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE isPlayed = 0 ORDER BY publishDate DESC")
     fun getUnplayed(): Flow<List<EpisodeEntity>>
 
-    // ponytail: newest first, since nothing records when an episode was last played; add that column if the
-    // library should show the most recently heard first.
+    // The one heard last first; episodes started before version 16 have no date and follow, newest first.
     @Query(
         """
         SELECT * FROM episodes WHERE playbackPosition > 0 AND isPlayed = 0
-        ORDER BY publishDate DESC LIMIT :limit
+        ORDER BY lastPlayedAt DESC, publishDate DESC LIMIT :limit
     """
     )
     fun getInProgress(limit: Int): Flow<List<EpisodeEntity>>
@@ -90,7 +94,8 @@ interface EpisodeDao {
         """
         UPDATE episodes
         SET podcastTitle = :podcastTitle, title = :title, description = :description, audioUrl = :audioUrl,
-            imageUrl = :imageUrl, duration = :duration, publishDate = :publishDate
+            imageUrl = :imageUrl, duration = :duration, publishDate = :publishDate, link = :link,
+            explicit = :explicit, season = :season, episodeType = :episodeType
         WHERE id = :id
     """
     )
@@ -104,6 +109,10 @@ interface EpisodeDao {
         imageUrl: String?,
         duration: Long,
         publishDate: Long,
+        link: String?,
+        explicit: Boolean,
+        season: Int?,
+        episodeType: String?,
     )
 
     // The podcast row is written here so [saveFeed] can save it with its episodes in one transaction.
@@ -117,16 +126,48 @@ interface EpisodeDao {
     @Update(entity = PodcastEntity::class)
     suspend fun updatePodcast(fields: PodcastFeedFields)
 
-    /** A feed read from the network: the podcast and its episodes, all or nothing. */
+    /**
+     * A feed read from the network: the podcast and its episodes, all or nothing. What a refresh brings goes to "New"
+     * (18.7); a podcast just subscribed to brings only its latest episode there, not its whole archive.
+     */
     @Transaction
     suspend fun saveFeed(podcast: PodcastEntity, episodes: List<EpisodeEntity>) {
         // A new podcast goes to the end of the custom order; a known one keeps its place.
-        if (insertPodcastIfNew(podcast.copy(position = nextPodcastPosition())) == NOT_INSERTED) {
-            updatePodcast(podcast.feedFields())
-        }
+        val subscribed = insertPodcastIfNew(podcast.copy(position = nextPodcastPosition())) != NOT_INSERTED
+        if (!subscribed) updatePodcast(podcast.feedFields())
         deleteWithoutAudio(podcast.id)
+        val known = idsOf(podcast.id).toSet()
         saveFromFeed(episodes)
+        val arrived = episodes.filter { it.id !in known }
+        val fresh = if (subscribed) listOfNotNull(arrived.maxByOrNull { it.publishDate }) else arrived
+        // In chunks: SQLite caps the variables of one statement.
+        fresh.map { it.id }.chunked(MAX_QUERY_ARGS).forEach { markNew(it) }
     }
+
+    @Query("SELECT id FROM episodes WHERE podcastId = :podcastId")
+    suspend fun idsOf(podcastId: String): List<String>
+
+    @Query("UPDATE episodes SET isNew = 1 WHERE id IN (:ids)")
+    suspend fun markNew(ids: List<String>)
+
+    @Query("UPDATE episodes SET isNew = 0, lastPlayedAt = :at WHERE id = :id")
+    suspend fun markStarted(id: String, at: Long)
+
+    @Query("UPDATE episodes SET lastPlayedAt = NULL WHERE lastPlayedAt IS NOT NULL")
+    suspend fun clearHistory()
+
+    @Query("SELECT * FROM episodes WHERE isNew = 1 AND isPlayed = 0 ORDER BY publishDate DESC")
+    suspend fun getNew(): List<EpisodeEntity>
+
+    @Query("UPDATE episodes SET isSaved = :saved WHERE id = :id")
+    suspend fun setSaved(id: String, saved: Boolean)
+
+    /** Out of "New" (18.7): dismissed, or started. */
+    @Query("UPDATE episodes SET isNew = 0 WHERE id = :id")
+    suspend fun dismissNew(id: String)
+
+    @Query("UPDATE episodes SET isNew = 0 WHERE isNew = 1")
+    suspend fun dismissAllNew()
 
     // Before 15.4 the parser saved items without audio (blog posts) as episodes.
     @Query("DELETE FROM episodes WHERE podcastId = :podcastId AND audioUrl = ''")
@@ -148,7 +189,11 @@ interface EpisodeDao {
                 it.audioUrl,
                 it.imageUrl,
                 it.duration,
-                it.publishDate
+                it.publishDate,
+                it.link,
+                it.explicit,
+                it.season,
+                it.episodeType,
             )
         }
     }
@@ -159,7 +204,8 @@ interface EpisodeDao {
     @Query(
         """
         UPDATE episodes
-        SET isPlayed = :played, playbackPosition = :position
+        SET isPlayed = :played, playbackPosition = :position,
+            isNew = CASE WHEN :played THEN 0 ELSE isNew END
         WHERE id = :id
     """
     )
@@ -177,15 +223,18 @@ interface EpisodeDao {
     @Query("SELECT COUNT(*) FROM episodes WHERE podcastId = :podcastId AND isPlayed = 0")
     fun getUnplayedCount(podcastId: String): Flow<Int>
 
-    /** Records the downloaded file of an episode, or that it has none ([fileName] null). */
-    @Query("UPDATE episodes SET downloadFile = :fileName, isDownloaded = (:fileName IS NOT NULL) WHERE id = :id")
-    suspend fun updateDownloadFile(id: String, fileName: String?)
+    /** Records the downloaded file of an episode and when it finished, or that it has none ([fileName] null). */
+    @Query(
+        "UPDATE episodes SET downloadFile = :fileName, isDownloaded = (:fileName IS NOT NULL), " +
+            "downloadedAt = :downloadedAt WHERE id = :id"
+    )
+    suspend fun updateDownloadFile(id: String, fileName: String?, downloadedAt: Long? = null)
 
     @Transaction
     @Query(
         """
         UPDATE episodes
-        SET isPlayed = 1, playbackPosition = 0
+        SET isPlayed = 1, playbackPosition = 0, isNew = 0
         WHERE podcastId = :podcastId AND publishDate <= :publishDate
     """
     )
@@ -203,5 +252,6 @@ interface EpisodeDao {
     private companion object {
         /** Row id an IGNOREd insert returns. */
         const val NOT_INSERTED = -1L
+        const val MAX_QUERY_ARGS = 500
     }
 }

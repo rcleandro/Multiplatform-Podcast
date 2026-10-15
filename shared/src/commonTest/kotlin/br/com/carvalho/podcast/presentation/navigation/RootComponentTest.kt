@@ -33,6 +33,74 @@ class RootComponentTest {
     }
 
     @Test
+    fun theQueueOpensOverThePlayerAndBackShowsThePlayerAgain() {
+        val root = createRoot()
+        root.onPlayerClicked()
+
+        root.onQueueClicked()
+        assertTrue(root.current.isQueueOpen)
+        assertTrue(backDispatcher.isEnabled)
+
+        root.onBackClicked()
+        assertFalse(root.current.isQueueOpen)
+        assertTrue(root.current.isPlayerOpen)
+    }
+
+    @Test
+    fun eachOpeningOfAddPodcastIsANewSession() {
+        val root = createRoot()
+
+        root.onAddPodcast()
+        val first = root.current.addPodcastSession
+        root.onBackClicked()
+        root.onAddPodcast()
+        assertEquals(first + 1, root.current.addPodcastSession)
+
+        root.onPodcastLink("pcast://example.com/rss")
+        assertEquals(first + 2, root.current.addPodcastSession)
+    }
+
+    @Test
+    fun theSessionOfAddPodcastSurvivesARecreatedScreen() {
+        val stateKeeper = StateKeeperDispatcher()
+        val root = createRoot(stateKeeper)
+        root.onAddPodcast()
+
+        val restored = createRoot(StateKeeperDispatcher(stateKeeper.save()))
+
+        assertEquals(root.current.addPodcastSession, restored.current.addPodcastSession)
+        assertTrue(restored.current.isAddingPodcast)
+    }
+
+    @Test
+    fun aPodcastLinkOpensAddPodcastOverThePlayerUntilTheScreenTakesIt() {
+        val root = createRoot()
+        root.onPlayerClicked()
+
+        root.onPodcastLink("pcast://example.com/rss")
+
+        assertTrue(root.current.isAddingPodcast)
+        assertFalse(root.current.isPlayerOpen)
+        assertEquals("pcast://example.com/rss", root.current.podcastLink)
+
+        root.onPodcastLinkHandled()
+
+        assertNull(root.current.podcastLink)
+        assertTrue(root.current.isAddingPodcast)
+    }
+
+    @Test
+    fun aLinkedPodcastInTheLibraryOpensOverTheTabs() {
+        val root = createRoot()
+        root.onPodcastLink("pcast://example.com/rss")
+
+        root.onPodcastSelected("p1")
+
+        assertFalse(root.current.isAddingPodcast)
+        assertEquals(Detail.Podcast("p1"), root.current.podcast)
+    }
+
+    @Test
     fun organizingTheLibraryOpensItsScreenAndBackClosesIt() {
         val root = createRoot()
 
@@ -42,6 +110,34 @@ class RootComponentTest {
         assertTrue(backDispatcher.isEnabled)
         backDispatcher.back()
         assertFalse(root.current.isOrganizingLibrary)
+        assertEquals(Tab.Library, root.current.selectedTab)
+    }
+
+    @Test
+    fun addingAPodcastOpensItsScreenThatBackOrATabCloses() {
+        val root = createRoot()
+
+        root.onAddPodcast()
+        assertTrue(root.current.isAddingPodcast)
+        assertTrue(backDispatcher.isEnabled)
+        backDispatcher.back()
+        assertFalse(root.current.isAddingPodcast)
+        assertEquals(Tab.Library, root.current.selectedTab)
+
+        root.onAddPodcast()
+        root.onTabClicked(Tab.Episodes)
+        assertFalse(root.current.isAddingPodcast)
+    }
+
+    @Test
+    fun settingsOpenOverTheTabsAndBackClosesThem() {
+        val root = createRoot()
+
+        root.onOpenSettings()
+        assertTrue(root.current.isShowingSettings)
+        backDispatcher.back()
+
+        assertFalse(root.current.isShowingSettings)
         assertEquals(Tab.Library, root.current.selectedTab)
     }
 

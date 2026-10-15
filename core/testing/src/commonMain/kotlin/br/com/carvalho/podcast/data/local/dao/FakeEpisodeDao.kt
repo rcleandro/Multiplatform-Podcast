@@ -19,17 +19,46 @@ class FakeEpisodeDao : EpisodeDao {
         podcastId: String,
         onlyUnplayed: Boolean,
         onlyDownloaded: Boolean,
+        oldestFirst: Boolean,
     ): PagingSource<Int, EpisodeEntity> = throw NotImplementedError("Paging is tested against the real database")
 
     override fun searchPagingSource(
         query: String,
         onlyInProgress: Boolean,
         onlyDownloaded: Boolean,
+        onlyNew: Boolean,
+        onlySaved: Boolean,
+        history: Boolean,
     ): PagingSource<Int, EpisodeEntity> =
         throw NotImplementedError("Paging is tested against the real database")
 
-    override suspend fun getSince(podcastId: String, publishDate: Long): List<EpisodeEntity> =
-        episodes.value.filter { it.podcastId == podcastId && it.publishDate >= publishDate }.sortedBy { it.publishDate }
+    override suspend fun markStarted(id: String, at: Long) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false, lastPlayedAt = at) else it }
+    }
+
+    override suspend fun clearHistory() {
+        episodes.value = episodes.value.map { it.copy(lastPlayedAt = null) }
+    }
+
+    override suspend fun getNew(): List<EpisodeEntity> =
+        episodes.value.filter { it.isNew && !it.isPlayed }.sortedByDescending { it.publishDate }
+
+    override suspend fun setSaved(id: String, saved: Boolean) {
+        episodes.value = episodes.value.map { if (it.id == id) it.copy(isSaved = saved) else it }
+    }
+
+    override suspend fun idsOf(podcastId: String): List<String> =
+        episodes.value.filter { it.podcastId == podcastId }.map { it.id }
+
+    override suspend fun markNew(ids: List<String>) = setNew(ids.toSet(), true)
+
+    override suspend fun dismissNew(id: String) = setNew(setOf(id), false)
+
+    override suspend fun dismissAllNew() = setNew(episodes.value.map { it.id }.toSet(), false)
+
+    private fun setNew(ids: Set<String>, new: Boolean) {
+        episodes.value = episodes.value.map { if (it.id in ids) it.copy(isNew = new) else it }
+    }
 
     override suspend fun getById(id: String): EpisodeEntity? = episodes.value.find { it.id == id }
 
@@ -55,6 +84,10 @@ class FakeEpisodeDao : EpisodeDao {
         imageUrl: String?,
         duration: Long,
         publishDate: Long,
+        link: String?,
+        explicit: Boolean,
+        season: Int?,
+        episodeType: String?,
     ) {
         episodes.value = episodes.value.map {
             if (it.id != id) {
@@ -62,7 +95,8 @@ class FakeEpisodeDao : EpisodeDao {
             } else {
                 it.copy(
                     podcastTitle = podcastTitle, title = title, description = description, audioUrl = audioUrl,
-                    imageUrl = imageUrl, duration = duration, publishDate = publishDate,
+                    imageUrl = imageUrl, duration = duration, publishDate = publishDate, link = link,
+                    explicit = explicit, season = season, episodeType = episodeType,
                 )
             }
         }
@@ -76,7 +110,11 @@ class FakeEpisodeDao : EpisodeDao {
 
     override suspend fun updatePlayback(id: String, played: Boolean, position: Long) {
         episodes.value = episodes.value.map {
-            if (it.id == id) it.copy(isPlayed = played, playbackPosition = position) else it
+            if (it.id == id) {
+                it.copy(isPlayed = played, playbackPosition = position, isNew = it.isNew && !played)
+            } else {
+                it
+            }
         }
     }
 
@@ -111,21 +149,21 @@ class FakeEpisodeDao : EpisodeDao {
                     title = fields.title, description = fields.description, imageUrl = fields.imageUrl,
                     author = fields.author, language = fields.language, categories = fields.categories,
                     feedUrl = fields.feedUrl, siteUrl = fields.siteUrl, lastUpdated = fields.lastUpdated,
-                    etag = fields.etag, lastModified = fields.lastModified,
+                    etag = fields.etag, lastModified = fields.lastModified, serial = fields.serial,
                 )
             }
         }
     }
 
-    override suspend fun updateDownloadFile(id: String, fileName: String?) {
+    override suspend fun updateDownloadFile(id: String, fileName: String?, downloadedAt: Long?) {
         episodes.value = episodes.value.map {
-            if (it.id == id) it.copy(downloadFile = fileName, isDownloaded = fileName != null) else it
+            if (it.id == id) it.copy(downloadFile = fileName, isDownloaded = fileName != null, downloadedAt = downloadedAt) else it
         }
     }
 
     override suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long) {
         episodes.value = episodes.value.map {
-            if (it.podcastId == podcastId && it.publishDate <= publishDate) it.copy(isPlayed = true) else it
+            if (it.podcastId == podcastId && it.publishDate <= publishDate) it.copy(isPlayed = true, isNew = false) else it
         }
     }
 

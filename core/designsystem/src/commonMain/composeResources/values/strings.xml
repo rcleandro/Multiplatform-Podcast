@@ -23,4 +23,5 @@
         <item quantity="other">%1$d unplayed episodes</item>
     </plurals>
     <string name="ds_open_player">Open player</string>
+    <string name="ds_open_queue">Open queue</string>
 </resources>

@@ -2,6 +2,37 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>pt</string>
+		<string>es</string>
+		<string>fr</string>
+		<string>de</string>
+		<string>it</string>
+		<string>ja</string>
+		<string>ko</string>
+		<string>zh</string>
+		<string>hi</string>
+		<string>ar</string>
+		<string>id</string>
+		<string>ru</string>
+		<string>tr</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>br.com.carvalho.podcast.feed</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>podcast</string>
+				<string>pcast</string>
+				<string>itpc</string>
+				<string>feed</string>
+			</array>
+		</dict>
+	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

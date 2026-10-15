@@ -58,35 +58,6 @@ class PlayerDialogsTest {
         assertEquals(SleepTimer.EndOfEpisode, chosen)
     }
 
-    @Test
-    fun theQueueDialogListsTheQueueAndPlaysThePickedEpisode() = runComposeUiTest {
-        var picked: Episode? = null
-        var dismissed = false
-        val queue = listOf(episode("e1"), episode("e2"))
-        setContent {
-            PodcastTheme {
-                QueueDialog(
-                    queue = queue,
-                    currentEpisodeId = "e1",
-                    onEpisodeSelected = { picked = it },
-                    onDismiss = { dismissed = true },
-                )
-            }
-        }
-
-        onNodeWithText("Episode e1").assertIsDisplayed()
-        onNodeWithText("Episode e2").performClick()
-        onNodeWithText(text(Res.string.close)).performClick()
-
-        assertEquals("e2", picked?.id)
-        assertTrue(dismissed)
-    }
-
-    private fun episode(id: String) = Episode(
-        id = id, podcastId = "p", title = "Episode $id", description = null, audioUrl = "", imageUrl = null,
-        duration = 60, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null,
-    )
-
     private companion object {
         const val FAST = 1.5f
         const val QUARTER_HOUR = 15

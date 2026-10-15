@@ -1,0 +1,22 @@
+<resources>
+    <string name="ds_play">Oynat</string>
+    <string name="ds_pause">Duraklat</string>
+    <string name="ds_loading">Yükleniyor</string>
+    <string name="ds_resume_progress">Devam et, %%%1$d dinlendi</string>
+    <string name="ds_download">İndir</string>
+    <string name="ds_download_queued">Sırada, indirmeyi iptal et</string>
+    <string name="ds_downloading">%%%1$d indiriliyor, iptal et</string>
+    <string name="ds_downloaded">İndirildi, indirmeyi kaldır</string>
+    <string name="ds_download_failed">İndirme başarısız, tekrar dene</string>
+    <string name="ds_new">Yeni</string>
+    <string name="ds_played">Dinlendi</string>
+    <string name="ds_downloaded_label">İndirildi</string>
+    <string name="ds_playing">Çalıyor</string>
+    <string name="ds_downloading_label">İndiriliyor</string>
+    <string name="ds_queued_label">Sırada</string>
+    <string name="ds_download_failed_label">İndirme başarısız</string>
+    <string name="ds_position_of_duration">%1$s / %2$s</string>
+    <plurals name="ds_unplayed_count"><item quantity="one">%1$d dinlenmemiş bölüm</item><item quantity="other">%1$d dinlenmemiş bölüm</item></plurals>
+    <string name="ds_open_player">Oynatıcıyı aç</string>
+    <string name="ds_open_queue">Sırayı aç</string>
+</resources>

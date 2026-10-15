@@ -1,0 +1,16 @@
+# 18.2: open a category's chart in "Add podcast" and find podcasts to subscribe to.
+# Needs the debug app installed, a device in Portuguese and internet:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/browse-category.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Adicionar Podcast"
+- hideKeyboard
+# The first chips in Portuguese order; Maestro's sideways scroll swipes the screen, not the row.
+- tapOn: "Comédia"
+- extendedWaitUntil:
+    visible: "Assinar.*"
+    timeout: 20000

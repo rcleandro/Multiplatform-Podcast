@@ -1,14 +1,18 @@
 package br.com.carvalho.podcast.feature.podcast.presentation
 
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_unplayed_confirmation
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
-import br.com.carvalho.podcast.presentation.component.OlderMark
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.hasScrollToIndexAction
-import androidx.compose.ui.test.hasAnyDescendant
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelectable
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
@@ -18,27 +22,37 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
+import br.com.carvalho.podcast.core.ui.generated.resources.cancel
+import br.com.carvalho.podcast.core.ui.generated.resources.close_selection
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_trailer
+import br.com.carvalho.podcast.core.ui.generated.resources.episodes_oldest_first
+import br.com.carvalho.podcast.core.ui.generated.resources.explicit
+import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_unplayed_confirmation
+import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
+import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast
+import br.com.carvalho.podcast.core.ui.generated.resources.podcast_playback
+import br.com.carvalho.podcast.core.ui.generated.resources.season_number
+import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
+import br.com.carvalho.podcast.core.ui.generated.resources.selected_count
+import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
 import br.com.carvalho.podcast.core.ui.generated.resources.show_more
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import androidx.compose.ui.test.onNodeWithContentDescription
-import br.com.carvalho.podcast.core.ui.generated.resources.cancel
-import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_played
-import br.com.carvalho.podcast.core.ui.generated.resources.play
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
-import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
+import br.com.carvalho.podcast.presentation.component.OlderMark
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -48,6 +62,10 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class PodcastDetailContentTest {
@@ -72,6 +90,129 @@ class PodcastDetailContentTest {
             imageUrl = null, duration = 60, publishDate = 0, isPlayed = false, playbackPosition = 0,
             isDownloaded = false, fileSize = null,
         )
+    }
+
+    @Test
+    fun thePodcastIsSharedFromTheBarOnceItIsLoaded() = runComposeUiTest {
+        var shared = 0
+        var state by mutableStateOf(PodcastDetailUiState(isLoading = true))
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = state,
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onShare = { shared++ }),
+                )
+            }
+        }
+        onAllNodesWithContentDescription(text(Res.string.share)).assertCountEquals(0)
+
+        state = PodcastDetailUiState(podcast = podcast(), isLoading = false)
+        onNodeWithContentDescription(text(Res.string.share)).performClick()
+
+        assertEquals(1, shared)
+    }
+
+    @Test
+    fun theBarMenuListsTheEpisodesOldestFirst() = runComposeUiTest {
+        var oldestFirst: Boolean? = null
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast().copy(serial = true), isLoading = false),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onOldestFirstChange = { oldestFirst = it }),
+                )
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.library_sort)).performClick()
+        // A serial show starts oldest first.
+        onNodeWithText(text(Res.string.episodes_oldest_first)).assertIsSelected().performClick()
+
+        assertEquals(true, oldestFirst)
+    }
+
+    @Test
+    fun seasonsGetAHeaderAndTrailersSaySo() = runComposeUiTest {
+        val seasons = listOf(
+            episodes[0].copy(season = 2, type = EpisodeType.TRAILER),
+            episodes[1].copy(season = 2),
+            episodes[2].copy(season = 1),
+        )
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false),
+                    episodes = flowOf(PagingData.from(seasons)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(),
+                )
+            }
+        }
+
+        waitUntilExactlyOneExists(hasText(text(Res.string.season_number, 2)))
+        onAllNodesWithText(text(Res.string.season_number, 1)).assertCountEquals(1)
+        onNodeWithText(text(Res.string.episode_trailer), substring = true).assertExists()
+    }
+
+    @Test
+    fun whileSelectingTheBarCountsTheEpisodesAndActsOnThem() = runComposeUiTest {
+        var acted: EpisodeAction? = null
+        var closed = 0
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(
+                        podcast = podcast(),
+                        isLoading = false,
+                        selection = episodes.take(2),
+                    ),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onActOnSelection = { acted = it }, onClearSelection = { closed++ }),
+                )
+            }
+        }
+
+        onNodeWithText(text(Res.string.selected_count, 2)).assertExists()
+        onNodeWithContentDescription(text(Res.string.mark_as_played)).performClick()
+        onNodeWithContentDescription(text(Res.string.close_selection)).performClick()
+
+        assertEquals(EpisodeAction.MARK_PLAYED, acted)
+        assertEquals(1, closed)
+    }
+
+    @Test
+    fun theBarOpensThePodcastsPlaybackSettings() = runComposeUiTest {
+        var changed: PodcastPlayback? = null
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(
+                        podcast = podcast().copy(playback = PodcastPlayback(speed = 1.5f)),
+                        isLoading = false,
+                    ),
+                    episodes = flowOf(PagingData.from(episodes)).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(onPlaybackChange = { changed = it }),
+                )
+            }
+        }
+
+        onNodeWithContentDescription(text(Res.string.podcast_playback)).performClick()
+        onNode(isSelectable() and hasText("1.5×")).assertIsSelected()
+        onAllNodesWithText(text(Res.string.seconds_short, 30))[0].performClick()
+
+        // The first row of seconds is the start's; the podcast's speed stays.
+        assertEquals(PodcastPlayback(speed = 1.5f, skipIntroSeconds = 30), changed)
     }
 
     @Test
@@ -163,8 +304,28 @@ class PodcastDetailContentTest {
     }
 
     @Test
+    fun anExplicitEpisodeSaysSo() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                PodcastDetailContent(
+                    state = PodcastDetailUiState(podcast = podcast(), isLoading = false),
+                    episodes = flowOf(PagingData.from(listOf(episodes.first().copy(explicit = true))))
+                        .collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = PodcastDetailActions(),
+                )
+            }
+        }
+        waitUntilExactlyOneExists(hasText("Episode 1"))
+
+        onNodeWithText(text(Res.string.explicit), substring = true).assertExists()
+    }
+
+    @Test
     fun eachEpisodeHasItsActionsInAMenu() = runComposeUiTest {
         var older: OlderMark? = null
+        val enqueued = mutableListOf<Pair<String, Boolean>>()
         setContent {
             PodcastTheme {
                 PodcastDetailContent(
@@ -172,7 +333,10 @@ class PodcastDetailContentTest {
                     episodes = flowOf(PagingData.from(episodes.take(1))).collectAsLazyPagingItems(),
                     playerState = PlayerState(),
                     activeDownloads = emptyMap(),
-                    actions = PodcastDetailActions(onRequestMarkOlder = { older = it }),
+                    actions = PodcastDetailActions(
+                        onRequestMarkOlder = { older = it },
+                        onEnqueue = { episode, next -> enqueued += episode.id to next },
+                    ),
                 )
             }
         }
@@ -180,6 +344,12 @@ class PodcastDetailContentTest {
 
         onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
         onNodeWithText(text(Res.string.play)).assertExists()
+        onNodeWithText(text(Res.string.play_next)).performClick()
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
+        onNodeWithText(text(Res.string.add_to_queue)).performClick()
+        assertEquals(listOf(episodes.first().id to true, episodes.first().id to false), enqueued)
+
+        onNodeWithContentDescription(text(Res.string.episode_options)).performClick()
         onNodeWithText(text(Res.string.mark_older_as_played)).performClick()
 
         assertEquals(OlderMark(episodes.first(), played = true), older)

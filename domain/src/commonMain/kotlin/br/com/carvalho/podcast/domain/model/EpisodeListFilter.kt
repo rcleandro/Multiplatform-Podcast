@@ -1,4 +1,4 @@
 package br.com.carvalho.podcast.domain.model
 
-/** Filters of the Episodes tab (ADR 0005); "new" arrives with 18.7. Applied by the database query. */
-enum class EpisodeListFilter { ALL, IN_PROGRESS, DOWNLOADED }
+/** Filters of the Episodes tab, in the order the tab shows them (ADR 0005). Applied by the database query. */
+enum class EpisodeListFilter { NEW, ALL, IN_PROGRESS, SAVED, DOWNLOADED, HISTORY }

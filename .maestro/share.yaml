@@ -1,0 +1,43 @@
+# 18.4: share a podcast, and from the player an episode at the minute being heard, through Android's share sheet.
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/share.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Planet Money"
+- tapOn: "Compartilhar"
+# Android's sheet previews the shared text: the podcast's name and its site.
+- extendedWaitUntil:
+    visible: ".*npr.org.*"
+    timeout: 10000
+- back
+- tapOn: "Mais recente"
+- extendedWaitUntil:
+    visible: "Pausar"
+    timeout: 30000
+- tapOn: "Pausar"
+# The mini player, by the podcast's name under the episode (the first one is the podcast's header).
+- tapOn:
+    text: "Planet Money"
+    index: 1
+- extendedWaitUntil:
+    visible: "OUVINDO AGORA"
+    timeout: 5000
+- tapOn: "Compartilhar"
+# From the player the minute being heard goes along.
+- extendedWaitUntil:
+    visible: ".*A partir de 0:0.*"
+    timeout: 10000
+- back

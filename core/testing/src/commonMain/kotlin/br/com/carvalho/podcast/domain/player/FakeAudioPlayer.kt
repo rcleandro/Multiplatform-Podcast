@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.domain.player
 
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +24,11 @@ class FakeAudioPlayer : AudioPlayer {
 
     override suspend fun play(episode: Episode) {
         playCalledWith = episode
-        _playerState.value = _playerState.value.copy(currentEpisode = episode, isPlaying = true)
+        _playerState.value = _playerState.value.copy(
+            currentEpisode = episode,
+            isPlaying = true,
+            queue = _playerState.value.queue.filter { it.id != episode.id },
+        )
     }
 
     override fun pause() {
@@ -45,6 +50,11 @@ class FakeAudioPlayer : AudioPlayer {
         _playerState.value = _playerState.value.copy(speed = speed)
     }
 
+    /** What the real player takes from Settings. */
+    fun setSkipIntervals(intervals: SkipIntervals) {
+        _playerState.value = _playerState.value.copy(skipIntervals = intervals)
+    }
+
     override fun skipForward(seconds: Int) {
         val current = _playerState.value.position
         _playerState.value = _playerState.value.copy(position = current + seconds * 1000)
@@ -57,6 +67,12 @@ class FakeAudioPlayer : AudioPlayer {
 
     override fun setSleepTimer(timer: SleepTimer?) {
         _playerState.value = _playerState.value.copy(sleepTimer = timer)
+    }
+
+    var extendedBy = 0
+
+    override fun extendSleepTimer(minutes: Int) {
+        extendedBy += minutes
     }
 
     override fun setQueue(episodes: List<Episode>) {

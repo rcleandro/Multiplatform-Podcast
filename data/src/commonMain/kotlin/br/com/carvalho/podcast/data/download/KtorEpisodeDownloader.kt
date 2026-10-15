@@ -5,6 +5,7 @@ import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.data.remote.toAppError
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -60,7 +61,9 @@ class KtorEpisodeDownloader(
     private val httpClient: HttpClient,
     private val episodeDao: EpisodeDao,
     private val directories: AppDirectories,
-    ioDispatcher: CoroutineDispatcher = Dispatchers.Default
+    ioDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    /** The space the downloads may take (Settings, 18.5); null for no limit. */
+    private val storageLimitBytes: () -> Long? = { null },
 ) : EpisodeDownloader {
     private val fileSystem = directories.fileSystem
 
@@ -73,6 +76,7 @@ class KtorEpisodeDownloader(
     private val downloadJobs = MutableStateFlow<Map<String, Job>>(emptyMap())
 
     override suspend fun download(episode: Episode) {
+        if (!admits(episode.id)) return
         // Undispatched: the job is registered before download() returns, so an immediate cancel() finds it.
         scope.launch(start = CoroutineStart.UNDISPATCHED) { transfer(episode.id, episode.audioUrl) }
     }
@@ -131,6 +135,8 @@ class KtorEpisodeDownloader(
             throw e
         } catch (e: Exception) {
             AppLogger.e(TAG, "Download failed for $episodeId", e)
+            // Gone before the failure shows: whoever reacts to it must not find a partial file still on disk.
+            fileSystem.delete(partPath, mustExist = false)
             updateStatus(episodeId, DownloadStatus.Failed(e.toAppError()))
         } finally {
             fileSystem.delete(partPath, mustExist = false)
@@ -138,12 +144,23 @@ class KtorEpisodeDownloader(
         }
     }
 
+    /**
+     * Whether a new download fits under the limit set in Settings; when not, the episode shows the failure and why.
+     * Every platform's downloader asks before starting one.
+     */
+    suspend fun admits(episodeId: String): Boolean {
+        val limit = storageLimitBytes()
+        val fits = limit == null || usedBytes() < limit
+        if (!fits) updateStatus(episodeId, DownloadStatus.Failed(AppError.StorageLimit))
+        return fits
+    }
+
     /** Shows the episode as waiting while a platform scheduler holds it (no network yet, for instance). */
     fun markQueued(episodeId: String) = updateStatus(episodeId, DownloadStatus.Queued())
 
     /** Records a file already in the downloads folder as the episode's download. */
     internal suspend fun markDownloaded(episodeId: String, fileName: String) {
-        episodeDao.updateDownloadFile(episodeId, fileName)
+        episodeDao.updateDownloadFile(episodeId, fileName, downloadedAt = getCurrentTimestamp())
         val destPath = directories.downloadPath(fileName)
         updateStatus(episodeId, DownloadStatus.Completed(destPath.toString()))
         AppLogger.d(TAG, "Download completed for $episodeId: $destPath")

@@ -22,9 +22,11 @@ import androidx.compose.material.icons.rounded.Forward10
 import androidx.compose.material.icons.rounded.Forward30
 import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.MoreTime
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.Replay30
 import androidx.compose.material.icons.rounded.Replay5
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Speed
@@ -42,7 +44,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
-import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.PaneLayout
 import br.com.carvalho.podcast.core.designsystem.Sizes
@@ -64,18 +65,24 @@ import br.com.carvalho.podcast.core.ui.generated.resources.playback_speed
 import br.com.carvalho.podcast.core.ui.generated.resources.previous
 import br.com.carvalho.podcast.core.ui.generated.resources.queue
 import br.com.carvalho.podcast.core.ui.generated.resources.queue_short
+import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.skip_backward
 import br.com.carvalho.podcast.core.ui.generated.resources.skip_forward
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_extend
+import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_extend_short
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_short
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.player.SleepTimer
+import br.com.carvalho.podcast.presentation.format.formatSpeed
 import org.jetbrains.compose.resources.stringResource
 
 /** Everything the player can ask for; the screen wires these to the view model and its dialogs. */
 data class PlayerActions(
     val onMinimize: () -> Unit = {},
+    val onShare: () -> Unit = {},
     val onPlayPause: () -> Unit = {},
     val onSeek: (Long) -> Unit = {},
     val onSkipBackward: () -> Unit = {},
@@ -85,6 +92,7 @@ data class PlayerActions(
     val onSpeedClick: () -> Unit = {},
     val onQueueClick: () -> Unit = {},
     val onSleepTimerClick: () -> Unit = {},
+    val onExtendSleepTimer: () -> Unit = {},
 )
 
 /** Stateless full-screen player. */
@@ -102,6 +110,14 @@ fun PlayerContent(
                 navigationContentDescription = stringResource(Res.string.minimize),
                 onNavigate = actions.onMinimize,
                 title = stringResource(Res.string.now_playing),
+                actions = {
+                    if (state.currentEpisode != null) {
+                        CastButton()
+                        IconButton(onClick = actions.onShare) {
+                            Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
+                        }
+                    }
+                },
             )
             val isShort = currentWindowIsShort()
             val paneLayout = currentPaneLayout()
@@ -170,18 +186,17 @@ internal fun PlayerArtwork(episode: Episode?, artworkModifier: Modifier) {
 
 @Composable
 private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
-    val currentIndex = state.queue.indexOfFirst { it.id == state.currentEpisode?.id }
     val playButtonSize = 80.dp
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
         ControlButton(
             icon = Icons.Rounded.SkipPrevious,
             label = stringResource(Res.string.previous),
             onClick = actions.onPrevious,
-            enabled = currentIndex > 0,
+            enabled = state.currentEpisode != null,
         )
         ControlButton(
-            icon = skipBackwardIcon(AppConfig.SKIP_BACKWARD_SECONDS),
-            label = stringResource(Res.string.skip_backward, AppConfig.SKIP_BACKWARD_SECONDS),
+            icon = skipBackwardIcon(state.skipIntervals.backwardSeconds),
+            label = stringResource(Res.string.skip_backward, state.skipIntervals.backwardSeconds),
             onClick = actions.onSkipBackward,
         )
         // A square with large corners while playing, a circle when paused (24.2).
@@ -193,15 +208,15 @@ private fun PlayerControls(state: PlayerState, actions: PlayerActions) {
             shape = morphingShape(round = !state.isPlaying),
         )
         ControlButton(
-            icon = skipForwardIcon(AppConfig.SKIP_FORWARD_SECONDS),
-            label = stringResource(Res.string.skip_forward, AppConfig.SKIP_FORWARD_SECONDS),
+            icon = skipForwardIcon(state.skipIntervals.forwardSeconds),
+            label = stringResource(Res.string.skip_forward, state.skipIntervals.forwardSeconds),
             onClick = actions.onSkipForward,
         )
         ControlButton(
             icon = Icons.Rounded.SkipNext,
             label = stringResource(Res.string.next),
             onClick = actions.onNext,
-            enabled = currentIndex != -1 && currentIndex < state.queue.lastIndex,
+            enabled = state.queue.isNotEmpty(),
         )
     }
 }
@@ -226,13 +241,24 @@ private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
             active = false,
             onClick = actions.onQueueClick,
         )
+        // While minutes run down, the button shows what is left and "+5 min" sits beside it (18.15).
+        val remaining = state.sleepTimerMillis?.takeIf { state.sleepTimer is SleepTimer.Minutes }
         AuxButton(
             icon = Icons.Rounded.Timer,
-            label = stringResource(Res.string.sleep_timer_short),
+            label = remaining?.let(::formatRemainingTime) ?: stringResource(Res.string.sleep_timer_short),
             description = stringResource(Res.string.sleep_timer),
             active = state.sleepTimer != null,
             onClick = actions.onSleepTimerClick,
         )
+        if (remaining != null) {
+            AuxButton(
+                icon = Icons.Rounded.MoreTime,
+                label = stringResource(Res.string.sleep_timer_extend_short),
+                description = stringResource(Res.string.sleep_timer_extend),
+                active = false,
+                onClick = actions.onExtendSleepTimer,
+            )
+        }
     }
 }
 

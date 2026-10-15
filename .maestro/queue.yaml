@@ -1,0 +1,61 @@
+# 18.6: episodes join the queue from their menu ("Play next", "Add to queue"); the queue opens from the mini player
+# and from the player, over whatever is on screen; an episode removed from it comes back with "Undo".
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/queue.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Planet Money"
+- tapOn: "Mais recente"
+- extendedWaitUntil:
+    visible: "Pausar"
+    timeout: 30000
+- tapOn: "Pausar"
+# From the mini player: the episode playing, and nothing next yet.
+- tapOn: "Abrir fila"
+- assertVisible: "OUVINDO AGORA"
+- assertNotVisible: "A SEGUIR.*"
+- back
+- assertNotVisible: "OUVINDO AGORA"
+# The second episode plays next; the third goes to the end.
+- tapOn:
+    text: "Opções do episódio"
+    index: 1
+- tapOn: "Tocar a seguir"
+- assertVisible: "Vai tocar a seguir"
+- tapOn:
+    text: "Opções do episódio"
+    index: 2
+- tapOn: "Adicionar à fila"
+- assertVisible: "Adicionado à fila"
+- tapOn: "Abrir fila"
+- assertVisible: "A SEGUIR · 2 EPISÓDIOS.*"
+# Removed from its menu, then put back with "Undo".
+- tapOn:
+    text: "Opções do episódio"
+    index: 1
+- tapOn: "Remover da fila"
+- assertVisible: "A SEGUIR · 1 EPISÓDIO.*"
+- tapOn: "Desfazer"
+- assertVisible: "A SEGUIR · 2 EPISÓDIOS.*"
+- back
+# From the player: back closes the queue and shows the player again.
+- tapOn:
+    text: "Planet Money"
+    index: 1
+- tapOn: "Fila"
+- assertVisible: "Fila de Reprodução"
+- back
+- assertVisible: "OUVINDO AGORA"

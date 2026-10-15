@@ -2,7 +2,6 @@ package br.com.carvalho.podcast.feature.player.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -36,13 +35,17 @@ class PlayerViewModel(
             PlayerIntent.Previous -> playPrevious()
             is PlayerIntent.SetSpeed -> setSpeed(intent.speed)
             is PlayerIntent.SetSleepTimer -> setSleepTimer(intent.timer)
+            PlayerIntent.ExtendSleepTimer -> {
+                analytics.logEvent(AnalyticsEvent.ExtendSleepTimer(SLEEP_TIMER_EXTENSION_MINUTES))
+                audioPlayer.extendSleepTimer(SLEEP_TIMER_EXTENSION_MINUTES)
+            }
         }
     }
 
     private fun play(episode: Episode) = viewModelScope.launch(dispatchers.io) {
         analytics.logEvent(AnalyticsEvent.PlayInPlayer(episode.id))
         // Picked from the queue: keep the queue as it is.
-        playEpisode(episode, queue = playerState.value.queue)
+        playEpisode(episode)
     }
 
     private fun pause() {
@@ -62,12 +65,12 @@ class PlayerViewModel(
 
     private fun skipForward() {
         analytics.logEvent(AnalyticsEvent.SkipForward)
-        audioPlayer.skipForward(seconds = AppConfig.SKIP_FORWARD_SECONDS)
+        audioPlayer.skipForward(seconds = playerState.value.skipIntervals.forwardSeconds)
     }
 
     private fun skipBackward() {
         analytics.logEvent(AnalyticsEvent.SkipBackward)
-        audioPlayer.skipBackward(seconds = AppConfig.SKIP_BACKWARD_SECONDS)
+        audioPlayer.skipBackward(seconds = playerState.value.skipIntervals.backwardSeconds)
     }
 
     private fun setSpeed(speed: Float) {
@@ -107,4 +110,10 @@ sealed interface PlayerIntent {
 
     /** `null` cancels the timer. */
     data class SetSleepTimer(val timer: SleepTimer?) : PlayerIntent
+
+    /** [SLEEP_TIMER_EXTENSION_MINUTES] more on a running timer (18.15). */
+    data object ExtendSleepTimer : PlayerIntent
 }
+
+/** What one tap on "+5 min" adds to the sleep timer. */
+const val SLEEP_TIMER_EXTENSION_MINUTES = 5

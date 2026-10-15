@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.domain.model.Podcast
 import io.ktor.http.Url
 import kotlinx.datetime.UtcOffset
@@ -33,6 +34,8 @@ fun RssFeed.toPodcast(feedUrl: String): Podcast = Podcast(
     feedVersion = version,
     // Only kept for a new podcast: refreshing an existing one does not rewrite this column.
     subscribedAt = getCurrentTimestamp(),
+    explicit = explicit,
+    serial = serial,
 )
 
 fun RssEpisode.toEpisode(podcastId: String, podcastTitle: String? = null): Episode = Episode(
@@ -42,6 +45,10 @@ fun RssEpisode.toEpisode(podcastId: String, podcastTitle: String? = null): Episo
     title = title,
     description = description,
     audioUrl = enclosureUrl,
+    link = link,
+    explicit = explicit,
+    season = season,
+    type = EpisodeType.of(episodeType),
     imageUrl = imageUrl,
     duration = parseDuration(duration),
     publishDate = parsePubDate(publishDate),

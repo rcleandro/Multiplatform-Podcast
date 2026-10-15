@@ -38,6 +38,8 @@ object RssXmlParser {
             selfUrl = channel.children("atom:link").firstOrNull { it.attributes["rel"] == "self" }
                 ?.attributes?.get("href"),
             newFeedUrl = channel.text("itunes:new-feed-url"),
+            explicit = channel.text("itunes:explicit")?.lowercase() in EXPLICIT_VALUES,
+            serial = channel.text("itunes:type")?.lowercase() == "serial",
         )
     }
 
@@ -55,6 +57,7 @@ object RssXmlParser {
             title = title,
             description = description,
             enclosureUrl = enclosureUrl,
+            link = text("link"),
             enclosureType = enclosure?.get("type"),
             duration = text("itunes:duration"),
             publishDate = text("pubDate").orEmpty(),
@@ -62,6 +65,7 @@ object RssXmlParser {
             explicit = text("itunes:explicit")?.lowercase() in EXPLICIT_VALUES,
             season = text("itunes:season")?.toIntOrNull(),
             episode = text("itunes:episode")?.toIntOrNull(),
+            episodeType = text("itunes:episodeType"),
         )
     }
 

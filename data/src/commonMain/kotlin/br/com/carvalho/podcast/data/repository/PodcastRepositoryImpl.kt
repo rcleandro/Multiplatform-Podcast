@@ -16,6 +16,7 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -61,17 +62,33 @@ class PodcastRepositoryImpl(
         }
     }
 
-    override fun getEpisodesPaged(podcastId: String, filter: EpisodeFilter): Flow<PagingData<Episode>> =
+    override fun getEpisodesPaged(
+        podcastId: String,
+        filter: EpisodeFilter,
+        oldestFirst: Boolean,
+    ): Flow<PagingData<Episode>> =
         pagedEpisodes {
             episodeDao.pagingSourceByPodcast(
                 podcastId,
                 onlyUnplayed = filter == EpisodeFilter.UNPLAYED,
                 onlyDownloaded = filter == EpisodeFilter.DOWNLOADED,
+                oldestFirst = oldestFirst,
             )
         }
 
-    override suspend fun getEpisodesSince(podcastId: String, publishDate: Long): List<Episode> =
-        episodeDao.getSince(podcastId, publishDate).map { it.toDomain() }
+    override suspend fun setPodcastAutoDownload(podcastId: String, count: Int) =
+        podcastDao.setAutoDownload(podcastId, count)
+
+    override suspend fun setPodcastNotifications(podcastId: String, enabled: Boolean) =
+        podcastDao.setNotifications(podcastId, enabled)
+
+    override suspend fun getNewEpisodes(): List<Episode> = episodeDao.getNew().map { it.toDomain() }
+
+    override suspend fun setPodcastPlayback(podcastId: String, playback: PodcastPlayback) =
+        podcastDao.setPlayback(podcastId, playback.speed, playback.skipIntroSeconds, playback.skipOutroSeconds)
+
+    override suspend fun setEpisodeOrder(podcastId: String, oldestFirst: Boolean) =
+        podcastDao.setOldestFirst(podcastId, oldestFirst)
 
     override fun searchEpisodes(query: String): Flow<List<Episode>> {
         return episodeDao.search(query).map { entities ->
@@ -85,6 +102,9 @@ class PodcastRepositoryImpl(
                 query.orEmpty(),
                 onlyInProgress = filter == EpisodeListFilter.IN_PROGRESS,
                 onlyDownloaded = filter == EpisodeListFilter.DOWNLOADED,
+                onlyNew = filter == EpisodeListFilter.NEW,
+                onlySaved = filter == EpisodeListFilter.SAVED,
+                history = filter == EpisodeListFilter.HISTORY,
             )
         }
 
@@ -92,6 +112,8 @@ class PodcastRepositoryImpl(
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = source)
             .flow
             .map { page -> page.map { it.toDomain() } }
+
+    override suspend fun setEpisodeSaved(id: String, saved: Boolean) = episodeDao.setSaved(id, saved)
 
     override fun getDownloadedEpisodes(): Flow<List<Episode>> {
         return episodeDao.getDownloaded().map { entities ->
@@ -120,6 +142,14 @@ class PodcastRepositoryImpl(
     override suspend fun markEpisodeAsPlayed(id: String) {
         episodeDao.updatePlayback(id, true, 0L)
     }
+
+    override suspend fun dismissNewEpisode(id: String) = episodeDao.dismissNew(id)
+
+    override suspend fun markEpisodeStarted(id: String, at: Long) = episodeDao.markStarted(id, at)
+
+    override suspend fun clearHistory() = episodeDao.clearHistory()
+
+    override suspend fun dismissAllNewEpisodes() = episodeDao.dismissAllNew()
 
     override suspend fun markEpisodeAsUnplayed(id: String) {
         episodeDao.updatePlayback(id, false, 0L)

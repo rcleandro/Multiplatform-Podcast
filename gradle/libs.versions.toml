@@ -34,6 +34,7 @@ kotlinx-coroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
 okio = "3.17.0"
 xmlutil = "1.0.2.1"
+filekit = "0.16.0"
 multiplatform-settings = "1.3.0"
 reorderable = "3.1.0"
 
@@ -95,6 +96,7 @@ material3-adaptive-navigation = { module = "org.jetbrains.compose.material3.adap
 material3-adaptive-navigation-suite = { module = "org.jetbrains.compose.material3:material3-adaptive-navigation-suite", version.ref = "material3-adaptive-navigation-suite" }
 composeIconsExtended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "material-icons-extended" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
+compose-ui-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-multiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "compose-multiplatform" }
 
 # Room 3 — novo grupo maven
@@ -147,6 +149,7 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil" }
+filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatform-settings" }
 multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatform-settings" }
 multiplatform-settings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "multiplatform-settings" }
@@ -173,6 +176,7 @@ firebase-crashlytics = { module = "dev.gitlive:firebase-crashlytics", version.re
 # Lifecycle
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidx-work" }
+androidx-work-testing = { module = "androidx.work:work-testing", version.ref = "androidx-work" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-window = { module = "androidx.window:window", version.ref = "androidx-window" }
@@ -184,6 +188,7 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "a
 # Media
 media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
+media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 javafx-media = { module = "org.openjfx:javafx-media", version.ref = "javafx" }
 javafx-graphics = { module = "org.openjfx:javafx-graphics", version.ref = "javafx" }
 javafx-base = { module = "org.openjfx:javafx-base", version.ref = "javafx" }

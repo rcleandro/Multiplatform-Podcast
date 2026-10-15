@@ -1,26 +1,27 @@
 package br.com.carvalho.podcast.data.repository
 
+import androidx.paging.PagingSource
+import androidx.paging.testing.asSnapshot
 import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.local.createInMemoryDatabase
-import br.com.carvalho.podcast.data.local.isDatabaseSupported
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.data.local.isDatabaseSupported
 import br.com.carvalho.podcast.data.mapper.toDomain
+import br.com.carvalho.podcast.domain.model.EpisodeFilter
+import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
-import androidx.paging.testing.asSnapshot
-import br.com.carvalho.podcast.domain.model.EpisodeFilter
-import br.com.carvalho.podcast.domain.model.EpisodeListFilter
-import androidx.paging.PagingSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -242,13 +243,23 @@ class PodcastRepositoryImplTest {
         database.episodeDao().insertAll(
             listOf(episodeEntity.copy(isPlayed = true, playbackPosition = 500L, isDownloaded = true))
         )
-        val fromFeed = episodeEntity.toDomain().copy(title = "Ep 1 (fixed)", audioUrl = "audio-v2")
+        val fromFeed = episodeEntity.toDomain()
+            .copy(
+                title = "Ep 1 (fixed)", audioUrl = "audio-v2", link = "page", explicit = true, season = 2,
+                type = EpisodeType.BONUS,
+            )
 
         repository.saveFeed(podcastEntity.toDomain(), listOf(fromFeed))
 
         val saved = database.episodeDao().getById("e1")!!
         assertEquals("Ep 1 (fixed)", saved.title)
         assertEquals("audio-v2", saved.audioUrl)
+        // Episodes saved before version 10 get their page link on the next refresh (18.4).
+        assertEquals("page", saved.link)
+        assertTrue(saved.explicit)
+        // And their season and type (18.10).
+        assertEquals(2, saved.toDomain().season)
+        assertEquals(EpisodeType.BONUS, saved.toDomain().type)
         assertTrue(saved.isPlayed)
         assertEquals(500L, saved.playbackPosition)
         assertTrue(saved.isDownloaded)
@@ -345,6 +356,61 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `the chosen order lists the episodes oldest first and survives a refresh`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = podcastEntity.toDomain()
+        val episodes = (1..3).map { episodeEntity.copy(id = "e$it", publishDate = it.toLong()).toDomain() }
+        repository.saveFeed(podcast, episodes)
+
+        repository.setEpisodeOrder(podcastId, oldestFirst = true)
+        repository.saveFeed(podcast, episodes)
+
+        assertEquals(true, repository.getPodcastById(podcastId)?.oldestFirst)
+        val shown = repository.getEpisodesPaged(podcastId, EpisodeFilter.ALL, oldestFirst = true).asSnapshot()
+        assertEquals(listOf("e1", "e2", "e3"), shown.map { it.id })
+    }
+
+    @Test
+    fun `a saved episode shows under Saved and stays saved through a refresh`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = podcastEntity.toDomain()
+        val episodes = (1..3).map { episodeEntity.copy(id = "e$it", publishDate = it.toLong()).toDomain() }
+        repository.saveFeed(podcast, episodes)
+
+        repository.setEpisodeSaved("e2", saved = true)
+        repository.saveFeed(podcast, episodes)
+
+        val saved = repository.searchEpisodesPaged(null, EpisodeListFilter.SAVED).asSnapshot()
+        assertEquals(listOf("e2"), saved.map { it.id })
+        repository.setEpisodeSaved("e2", saved = false)
+        assertEquals(emptyList(), repository.searchEpisodesPaged(null, EpisodeListFilter.SAVED).asSnapshot())
+    }
+
+    @Test
+    fun `history lists what played, the latest first, and clearing it changes nothing else`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = podcastEntity.toDomain()
+        val episodes = (1..3).map { episodeEntity.copy(id = "e$it", publishDate = it.toLong()).toDomain() }
+        repository.saveFeed(podcast, episodes)
+        repository.updateEpisodeProgress("e1", 5_000L)
+        repository.updateEpisodeProgress("e3", 5_000L)
+
+        // The oldest episode played last.
+        repository.markEpisodeStarted("e3", at = 100L)
+        repository.markEpisodeStarted("e1", at = 200L)
+        repository.saveFeed(podcast, episodes)
+
+        val history = repository.searchEpisodesPaged(null, EpisodeListFilter.HISTORY).asSnapshot()
+        assertEquals(listOf("e1", "e3"), history.map { it.id })
+        // "Continue listening" puts the one heard last first too.
+        assertEquals(listOf("e1", "e3"), repository.getInProgressEpisodes().first().map { it.id })
+
+        repository.clearHistory()
+        assertEquals(emptyList(), repository.searchEpisodesPaged(null, EpisodeListFilter.HISTORY).asSnapshot())
+        assertEquals(5_000L, repository.getEpisodeById("e1")?.playbackPosition)
+    }
+
+    @Test
     fun `the downloaded filter finds an episode beyond the first page`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)
@@ -356,6 +422,45 @@ class PodcastRepositoryImplTest {
 
         assertEquals(listOf("downloaded"), shown.map { it.id })
     }
+
+    @Test
+    fun `subscribing puts only the latest episode in New and a refresh adds what arrived`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = podcastEntity.toDomain()
+        val old = episodeEntity.copy(id = "old", publishDate = 1L).toDomain()
+        val latest = episodeEntity.copy(id = "latest", publishDate = 2L).toDomain()
+
+        repository.saveFeed(podcast, listOf(old, latest))
+        assertEquals(listOf("latest"), newIds())
+
+        val arrived = episodeEntity.copy(id = "arrived", publishDate = 3L).toDomain()
+        repository.saveFeed(podcast, listOf(old, latest, arrived))
+        assertEquals(listOf("arrived", "latest"), newIds())
+
+        // Played, it leaves New; dismissed too; "Dismiss all" empties it.
+        repository.markEpisodeAsPlayed("latest")
+        assertEquals(listOf("arrived"), newIds())
+        repository.dismissAllNewEpisodes()
+        assertEquals(emptyList(), newIds())
+        // A refresh that brings nothing new changes nothing.
+        repository.saveFeed(podcast, listOf(old, latest, arrived))
+        assertEquals(emptyList(), newIds())
+    }
+
+    @Test
+    fun `marking older episodes as played takes them out of New`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity)
+        database.episodeDao().insertAll(listOf(episodeEntity.copy(id = "e1", publishDate = 1L, isNew = true)))
+
+        repository.markOlderEpisodesAsPlayed(podcastId, publishDate = 1L)
+        repository.markOlderEpisodesAsUnplayed(podcastId, publishDate = 1L)
+
+        assertEquals(emptyList(), newIds())
+    }
+
+    private suspend fun newIds() =
+        repository.searchEpisodesPaged(null, EpisodeListFilter.NEW).asSnapshot().map { it.id }
 
     @Test
     fun `the episodes tab filters started and downloaded episodes`() = runTest {

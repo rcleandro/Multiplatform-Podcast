@@ -12,6 +12,14 @@
 </head>
 <body>
 <div id="compose-receiver" style="height: 100%"></div>
+<script>
+    // The language chosen in the app's Settings (18.5) answers for the browser's, which Compose reads.
+    const browserLanguages = Object.getOwnPropertyDescriptor(Navigator.prototype, "languages");
+    Object.defineProperty(Navigator.prototype, "languages", {
+        ...browserLanguages,
+        get: function () { return window.__customLocale ? [window.__customLocale] : browserLanguages.get.apply(this); },
+    });
+</script>
 <script type="application/javascript" src="webApp.js"></script>
 </body>
 </html>

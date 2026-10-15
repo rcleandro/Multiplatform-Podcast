@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.glance.appwidget)
     implementation(libs.glance.material3)
     implementation(libs.media3.session)
+    implementation(libs.media3.cast)
     implementation(libs.coil.compose)
     implementation(project(":core:common"))
     implementation(project(":core:ui"))

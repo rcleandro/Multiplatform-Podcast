@@ -11,25 +11,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.DownloadDone
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarState
 import androidx.compose.runtime.Composable
@@ -48,7 +47,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -65,20 +63,31 @@ import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.clear
+import br.com.carvalho.podcast.core.ui.generated.resources.clear_history
+import br.com.carvalho.podcast.core.ui.generated.resources.clear_history_confirmation
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download
 import br.com.carvalho.podcast.core.ui.generated.resources.delete_download_confirmation
+import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_all_new
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
 import br.com.carvalho.podcast.core.ui.generated.resources.error_loading_results
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_history
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_new
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_saved
+import br.com.carvalho.podcast.core.ui.generated.resources.history_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.history_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.in_progress_empty_title
+import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.no_downloads
-import br.com.carvalho.podcast.core.ui.generated.resources.search
+import br.com.carvalho.podcast.core.ui.generated.resources.saved_empty_message
+import br.com.carvalho.podcast.core.ui.generated.resources.saved_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
@@ -89,10 +98,13 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
+import br.com.carvalho.podcast.presentation.component.EpisodeSelectionBar
 import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.component.SearchField
 import br.com.carvalho.podcast.presentation.format.DateGroup
 import br.com.carvalho.podcast.presentation.format.dateGroup
 import br.com.carvalho.podcast.presentation.format.storageSize
@@ -130,17 +142,26 @@ fun SearchScreen(
             onFilterChange = { viewModel.onIntent(SearchIntent.ChangeFilter(it)) },
             onEpisodeClick = { onEpisodeClick(it.id, it.podcastId) },
             onPlay = { viewModel.onIntent(SearchIntent.Play(it)) },
+            onEnqueue = { episode, next -> viewModel.onIntent(SearchIntent.Enqueue(episode, next)) },
             onDownload = { viewModel.onIntent(SearchIntent.Download(it)) },
             onCancelDownload = { viewModel.onIntent(SearchIntent.CancelDownload(it)) },
             onRemoveDownload = { viewModel.onIntent(SearchIntent.RequestDeleteDownload(it)) },
             onConfirmRemoveDownload = { viewModel.onIntent(SearchIntent.ConfirmDeleteDownload(it)) },
             onDismissRemoveDownload = { viewModel.onIntent(SearchIntent.DismissDeleteDownload) },
             onMarkPlayed = { viewModel.onIntent(SearchIntent.SetPlayed(it, played = true)) },
+            onDismissNew = { viewModel.onIntent(SearchIntent.DismissNew(it)) },
             onMarkUnplayed = { viewModel.onIntent(SearchIntent.SetPlayed(it, played = false)) },
             onRequestMarkOlder = { viewModel.onIntent(SearchIntent.RequestMarkOlder(it)) },
             onConfirmMarkOlder = { viewModel.onIntent(SearchIntent.ConfirmMarkOlder(it)) },
             onDismissMarkOlder = { viewModel.onIntent(SearchIntent.DismissMarkOlder) },
             onPodcastClick = { onPodcastClick(it.podcastId) },
+            onToggleSelection = { viewModel.onIntent(SearchIntent.ToggleSelection(it)) },
+            onClearSelection = { viewModel.onIntent(SearchIntent.ClearSelection) },
+            onActOnSelection = { viewModel.onIntent(SearchIntent.ActOnSelection(it)) },
+            onSetSaved = { episode, saved -> viewModel.onIntent(SearchIntent.SetSaved(episode, saved)) },
+            onRequestClearHistory = { viewModel.onIntent(SearchIntent.RequestClearHistory) },
+            onConfirmClearHistory = { viewModel.onIntent(SearchIntent.ConfirmClearHistory) },
+            onDismissClearHistory = { viewModel.onIntent(SearchIntent.DismissClearHistory) },
         ),
         snackbarHostState = snackbarHostState,
     )
@@ -151,17 +172,30 @@ data class SearchActions(
     val onFilterChange: (EpisodeListFilter) -> Unit = {},
     val onEpisodeClick: (Episode) -> Unit = {},
     val onPlay: (Episode) -> Unit = {},
+    /** "Play next" when the flag is set, else "Add to queue" (18.6). */
+    val onEnqueue: (Episode, Boolean) -> Unit = { _, _ -> },
     val onDownload: (Episode) -> Unit = {},
     val onCancelDownload: (Episode) -> Unit = {},
     val onRemoveDownload: (Episode) -> Unit = {},
     val onConfirmRemoveDownload: (Episode) -> Unit = {},
     val onDismissRemoveDownload: () -> Unit = {},
     val onMarkPlayed: (Episode) -> Unit = {},
+    /** Takes an episode out of "New", or all of them with null (18.7). */
+    val onDismissNew: (Episode?) -> Unit = {},
     val onMarkUnplayed: (Episode) -> Unit = {},
     val onRequestMarkOlder: (OlderMark) -> Unit = {},
     val onConfirmMarkOlder: (OlderMark) -> Unit = {},
     val onDismissMarkOlder: () -> Unit = {},
     val onPodcastClick: (Episode) -> Unit = {},
+    /** Several episodes at once (18.11). */
+    val onToggleSelection: (Episode) -> Unit = {},
+    val onClearSelection: () -> Unit = {},
+    val onActOnSelection: (EpisodeAction) -> Unit = {},
+    val onSetSaved: (Episode, Boolean) -> Unit = { _, _ -> },
+    /** "Clear history": asked, confirmed or given up (18.12). */
+    val onRequestClearHistory: () -> Unit = {},
+    val onConfirmClearHistory: () -> Unit = {},
+    val onDismissClearHistory: () -> Unit = {},
 )
 
 /** The fixed "Episodes" title over the search field and filters, which collapse with [scrollState]. */
@@ -182,12 +216,17 @@ private fun SearchTopBar(
                 .semantics { heading() },
         )
         Column(modifier = Modifier.collapsingWith(scrollState)) {
-            SearchField(query = state.searchQuery, onQueryChange = onQueryChange)
+            SearchField(
+                query = state.searchQuery,
+                onQueryChange = onQueryChange,
+                placeholder = stringResource(Res.string.search_placeholder),
+            )
             FilterChipRow(
                 options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
                 selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
                 onSelected = { onFilterChange(filters[it].first) },
-                modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
+                modifier = Modifier.padding(bottom = Spacing.s),
+                contentPadding = PaddingValues(horizontal = Spacing.l),
             )
         }
     }
@@ -210,7 +249,13 @@ fun SearchContent(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { SearchTopBar(state, scrollBehavior.state, actions.onQueryChange, onFilterChange) },
+        topBar = {
+            if (state.selection.isNotEmpty()) {
+                EpisodeSelectionBar(state.selection.size, actions.onActOnSelection, actions.onClearSelection)
+            } else {
+                SearchTopBar(state, scrollBehavior.state, actions.onQueryChange, onFilterChange)
+            }
+        },
         snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets()
@@ -238,17 +283,55 @@ fun SearchContent(
             )
         }
 
-        state.deleteEpisodeConfirmation?.let { episode ->
-            ConfirmDialog(
-                title = stringResource(Res.string.delete_download),
-                message = stringResource(Res.string.delete_download_confirmation, episode.title),
-                confirmLabel = stringResource(Res.string.delete),
-                dismissLabel = stringResource(Res.string.cancel),
-                onConfirm = { actions.onConfirmRemoveDownload(episode) },
-                onDismiss = actions.onDismissRemoveDownload,
-            )
+        SearchDialogs(state, actions)
+    }
+}
+
+/** "Dismiss all" above New and "Clear history" above History, when there is something to act on. */
+private fun LazyListScope.listAction(state: SearchUiState, count: Int, actions: SearchActions) {
+    if (count == 0) return
+    val label = when (state.filter) {
+        EpisodeListFilter.NEW -> Res.string.dismiss_all_new
+        EpisodeListFilter.HISTORY -> Res.string.clear_history
+        else -> return
+    }
+    item(key = "list-action-${state.filter}") {
+        Box(Modifier.readableWidth().padding(horizontal = Spacing.s), contentAlignment = Alignment.CenterEnd) {
+            TextButton(
+                onClick = {
+                    if (state.filter == EpisodeListFilter.NEW) {
+                        actions.onDismissNew(null)
+                    } else {
+                        actions.onRequestClearHistory()
+                    }
+                },
+            ) { Text(stringResource(label)) }
         }
-        state.olderMark?.let { MarkOlderDialog(it, actions.onConfirmMarkOlder, actions.onDismissMarkOlder) }
+    }
+}
+
+@Composable
+private fun SearchDialogs(state: SearchUiState, actions: SearchActions) {
+    state.deleteEpisodeConfirmation?.let { episode ->
+        ConfirmDialog(
+            title = stringResource(Res.string.delete_download),
+            message = stringResource(Res.string.delete_download_confirmation, episode.title),
+            confirmLabel = stringResource(Res.string.delete),
+            dismissLabel = stringResource(Res.string.cancel),
+            onConfirm = { actions.onConfirmRemoveDownload(episode) },
+            onDismiss = actions.onDismissRemoveDownload,
+        )
+    }
+    state.olderMark?.let { MarkOlderDialog(it, actions.onConfirmMarkOlder, actions.onDismissMarkOlder) }
+    if (state.clearHistoryConfirmation) {
+        ConfirmDialog(
+            title = stringResource(Res.string.clear_history),
+            message = stringResource(Res.string.clear_history_confirmation),
+            confirmLabel = stringResource(Res.string.clear),
+            dismissLabel = stringResource(Res.string.cancel),
+            onConfirm = actions.onConfirmClearHistory,
+            onDismiss = actions.onDismissClearHistory,
+        )
     }
 }
 
@@ -268,9 +351,12 @@ private fun Modifier.collapsingWith(state: TopAppBarState): Modifier =
 
 // "Downloaded" only where downloads survive (not on the Web).
 private val filters = listOfNotNull(
+    EpisodeListFilter.NEW to Res.string.filter_new,
     EpisodeListFilter.ALL to Res.string.filter_all,
     EpisodeListFilter.IN_PROGRESS to Res.string.filter_in_progress,
+    EpisodeListFilter.SAVED to Res.string.filter_saved,
     (EpisodeListFilter.DOWNLOADED to Res.string.filter_downloaded).takeIf { supportsDownloads },
+    EpisodeListFilter.HISTORY to Res.string.filter_history,
 )
 
 /** Each filter says why it is empty; a search that finds nothing says so whatever the filter. */
@@ -281,6 +367,24 @@ private fun EmptyFilter(state: SearchUiState, modifier: Modifier) {
             icon = Icons.Rounded.Search,
             title = stringResource(Res.string.search_empty_title),
             message = stringResource(Res.string.search_empty_message),
+            modifier = modifier,
+        )
+        state.filter == EpisodeListFilter.NEW -> EmptyState(
+            icon = Icons.Rounded.Inbox,
+            title = stringResource(Res.string.new_empty_title),
+            message = stringResource(Res.string.new_empty_message),
+            modifier = modifier,
+        )
+        state.filter == EpisodeListFilter.HISTORY -> EmptyState(
+            icon = Icons.Rounded.History,
+            title = stringResource(Res.string.history_empty_title),
+            message = stringResource(Res.string.history_empty_message),
+            modifier = modifier,
+        )
+        state.filter == EpisodeListFilter.SAVED -> EmptyState(
+            icon = Icons.Rounded.BookmarkBorder,
+            title = stringResource(Res.string.saved_empty_title),
+            message = stringResource(Res.string.saved_empty_message),
             modifier = modifier,
         )
         state.filter == EpisodeListFilter.IN_PROGRESS -> EmptyState(
@@ -313,6 +417,7 @@ private fun SearchResults(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
     ) {
+        listAction(state, results.itemCount, actions)
         if (state.filter == EpisodeListFilter.DOWNLOADED) {
             item {
                 Text(
@@ -328,7 +433,12 @@ private fun SearchResults(
         var group: DateGroup? = null
         val now = getCurrentTimestamp()
         for (index in 0 until results.itemCount) {
-            val episodeGroup = results.peek(index)?.let { dateGroup(it.publishDate, now) }
+            // History groups by when each episode last played; the others by when it came out.
+            val episodeGroup = results.peek(index)?.let {
+                val played = it.lastPlayedAt.takeIf { state.filter == EpisodeListFilter.HISTORY }
+                val date = played ?: it.publishDate
+                dateGroup(date, now)
+            }
             if (episodeGroup != null && episodeGroup != group) {
                 group = episodeGroup
                 stickyHeader(key = "group-$episodeGroup", contentType = "group") {
@@ -343,7 +453,7 @@ private fun SearchResults(
                 }
             }
             item(key = results.peek(index)?.id ?: "placeholder-$index", contentType = "episode") {
-                EpisodeRowAt(index, results, playerState, activeDownloads, actions)
+                EpisodeRowAt(index, results, playerState, activeDownloads, actions, state.selection)
             }
         }
         if (results.loadState.append is LoadState.Loading) {
@@ -386,43 +496,13 @@ private fun rememberScrollToTopOnFilterChange(
 
 /** Pill-shaped search field; the indicator line takes the container color so it does not show. */
 @Composable
-private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
-    val container = MaterialTheme.colorScheme.surfaceContainer
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        placeholder = {
-            Text(stringResource(Res.string.search_placeholder), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        },
-        leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = stringResource(Res.string.search)) },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Rounded.Clear, contentDescription = stringResource(Res.string.clear))
-                }
-            }
-        },
-        singleLine = true,
-        shape = CircleShape,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = container,
-            unfocusedContainerColor = container,
-            focusedIndicatorColor = container,
-            unfocusedIndicatorColor = container,
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Spacing.l, vertical = Spacing.m),
-    )
-}
-
-@Composable
 private fun EpisodeRowAt(
     index: Int,
     results: LazyPagingItems<Episode>,
     playerState: PlayerState,
     activeDownloads: Map<String, DownloadStatus>,
     actions: SearchActions,
+    selection: List<Episode>,
 ) {
     results[index]?.let { episode ->
         val isCurrent = playerState.currentEpisode?.id == episode.id
@@ -435,14 +515,21 @@ private fun EpisodeRowAt(
             downloadStatus = activeDownloads[episode.id] ?: DownloadStatus.Idle,
             onClick = { actions.onEpisodeClick(episode) },
             onPlayClick = { actions.onPlay(episode) },
+            onPlayNext = { actions.onEnqueue(episode, true) },
+            onAddToQueue = { actions.onEnqueue(episode, false) },
             onDownloadClick = { actions.onDownload(episode) },
             onCancelDownloadClick = { actions.onCancelDownload(episode) },
             onDeleteClick = { actions.onRemoveDownload(episode) },
             onMarkPlayed = { actions.onMarkPlayed(episode) },
+            onDismissNew = { actions.onDismissNew(episode) }.takeIf { episode.isNew },
             onMarkUnplayed = { actions.onMarkUnplayed(episode) },
             onMarkOlderPlayed = { actions.onRequestMarkOlder(OlderMark(episode, played = true)) },
             onMarkOlderUnplayed = { actions.onRequestMarkOlder(OlderMark(episode, played = false)) },
             onGoToPodcast = { actions.onPodcastClick(episode) },
+            onSelect = { actions.onToggleSelection(episode) },
+            onToggleSaved = { actions.onSetSaved(episode, !episode.isSaved) },
+            selecting = selection.isNotEmpty(),
+            selected = selection.any { it.id == episode.id },
         )
     }
 }
