@@ -5,8 +5,10 @@ import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import androidx.room3.Transaction
+import br.com.carvalho.podcast.data.local.entity.BookmarkEntity
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PlaybackStateEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PlaybackStateDao {
@@ -32,4 +34,14 @@ interface PlaybackStateDao {
         clearQueue()
         episodeIds.forEachIndexed { position, id -> insertQueueItem(position, id) }
     }
+
+    /** An episode's bookmarks (19.3), in the order they come in the episode. */
+    @Query("SELECT * FROM bookmarks WHERE episodeId = :episodeId ORDER BY positionMs, id")
+    fun bookmarks(episodeId: String): Flow<List<BookmarkEntity>>
+
+    @Insert
+    suspend fun insertBookmark(bookmark: BookmarkEntity)
+
+    @Query("DELETE FROM bookmarks WHERE id = :id")
+    suspend fun deleteBookmark(id: Long)
 }

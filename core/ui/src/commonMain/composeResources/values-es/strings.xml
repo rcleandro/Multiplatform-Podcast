@@ -45,6 +45,10 @@
     <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->
     <string name="queue_short">Cola</string>
     <string name="chapters">Capítulos</string>
+    <string name="bookmarks">Marcadores</string>
+    <string name="bookmark_note">Nota (opcional)</string>
+    <string name="bookmark_add">Marcar %1$s</string>
+    <string name="bookmark_delete">Borrar marcador</string>
     <string name="sleep_timer_short">Temporizador</string>
     <string name="finished">Finalizado</string>
     <string name="remaining_time">Quedan %1$s</string>

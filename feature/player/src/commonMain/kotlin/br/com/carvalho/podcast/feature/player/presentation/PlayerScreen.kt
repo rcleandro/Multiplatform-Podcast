@@ -21,7 +21,7 @@ import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-private enum class PlayerDialog { Speed, SleepTimer, Chapters }
+private enum class PlayerDialog { Speed, SleepTimer, Chapters, Bookmarks }
 
 @Composable
 fun PlayerScreen(
@@ -53,6 +53,7 @@ fun PlayerScreen(
                 onSleepTimerClick = { dialog = PlayerDialog.SleepTimer },
                 onExtendSleepTimer = { viewModel.onIntent(PlayerIntent.ExtendSleepTimer) },
                 onChaptersClick = { dialog = PlayerDialog.Chapters },
+                onBookmarksClick = { dialog = PlayerDialog.Bookmarks },
             ),
         )
         PodcastSnackbarHost(
@@ -98,6 +99,20 @@ private fun PlayerDialogs(
             },
             onDismiss = onDismiss,
         )
+        PlayerDialog.Bookmarks -> {
+            val bookmarks by viewModel.bookmarks.collectAsState()
+            BookmarksDialog(
+                positionMs = playerState.position,
+                bookmarks = bookmarks,
+                onAdd = { viewModel.onIntent(PlayerIntent.AddBookmark(it)) },
+                onSelect = {
+                    viewModel.onIntent(PlayerIntent.SeekTo(it.positionMs))
+                    onDismiss()
+                },
+                onDelete = { viewModel.onIntent(PlayerIntent.DeleteBookmark(it.id)) },
+                onDismiss = onDismiss,
+            )
+        }
     }
 }
 

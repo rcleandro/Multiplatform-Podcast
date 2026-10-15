@@ -40,6 +40,10 @@
     <string name="queue">कतार</string>
     <string name="queue_short">कतार</string>
     <string name="chapters">अध्याय</string>
+    <string name="bookmarks">बुकमार्क</string>
+    <string name="bookmark_note">नोट (वैकल्पिक)</string>
+    <string name="bookmark_add">%1$s चिह्नित करें</string>
+    <string name="bookmark_delete">बुकमार्क हटाएं</string>
     <string name="sleep_timer_short">टाइमर</string>
     <string name="finished">पूरा सुना</string>
     <string name="remaining_time">%1$s बाकी</string>

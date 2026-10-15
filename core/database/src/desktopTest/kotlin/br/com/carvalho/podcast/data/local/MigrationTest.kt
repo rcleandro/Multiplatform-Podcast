@@ -286,6 +286,15 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version22StartsWithoutBookmarks() = runTest {
+        helper.createDatabase(BOOKMARKS_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(BOOKMARKS_VERSION, migrations).use { connection ->
+            assertEquals("0", connection.text("SELECT COUNT(*) FROM bookmarks"))
+        }
+    }
+
     private fun SQLiteConnection.text(sql: String): String = prepare(sql).use { statement ->
         statement.step()
         statement.getText(0)
@@ -311,7 +320,8 @@ class MigrationTest {
         const val AUTO_DOWNLOAD_VERSION = 19
         const val DOWNLOADED_AT_VERSION = 20
         const val CHAPTERS_VERSION = 21
-        const val CURRENT_VERSION = 21
+        const val BOOKMARKS_VERSION = 22
+        const val CURRENT_VERSION = 22
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

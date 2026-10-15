@@ -40,6 +40,10 @@
     <string name="queue">Coda</string>
     <string name="queue_short">Coda</string>
     <string name="chapters">Capitoli</string>
+    <string name="bookmarks">Segnalibri</string>
+    <string name="bookmark_note">Nota (facoltativa)</string>
+    <string name="bookmark_add">Segna %1$s</string>
+    <string name="bookmark_delete">Elimina segnalibro</string>
     <string name="sleep_timer_short">Timer</string>
     <string name="finished">Finito</string>
     <string name="remaining_time">Mancano %1$s</string>

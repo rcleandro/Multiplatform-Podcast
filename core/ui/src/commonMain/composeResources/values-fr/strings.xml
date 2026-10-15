@@ -40,6 +40,10 @@
     <string name="queue">File d'attente</string>
     <string name="queue_short">File</string>
     <string name="chapters">Chapitres</string>
+    <string name="bookmarks">Signets</string>
+    <string name="bookmark_note">Note (facultative)</string>
+    <string name="bookmark_add">Marquer %1$s</string>
+    <string name="bookmark_delete">Supprimer le signet</string>
     <string name="sleep_timer_short">Minuterie</string>
     <string name="finished">Terminé</string>
     <string name="remaining_time">Il reste %1$s</string>

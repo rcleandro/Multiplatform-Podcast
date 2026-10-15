@@ -40,6 +40,10 @@
     <string name="queue">Antrean</string>
     <string name="queue_short">Antrean</string>
     <string name="chapters">Bab</string>
+    <string name="bookmarks">Penanda</string>
+    <string name="bookmark_note">Catatan (opsional)</string>
+    <string name="bookmark_add">Tandai %1$s</string>
+    <string name="bookmark_delete">Hapus penanda</string>
     <string name="sleep_timer_short">Timer</string>
     <string name="finished">Selesai</string>
     <string name="remaining_time">Sisa %1$s</string>

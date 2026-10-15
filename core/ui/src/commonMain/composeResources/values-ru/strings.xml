@@ -40,6 +40,10 @@
     <string name="queue">Очередь</string>
     <string name="queue_short">Очередь</string>
     <string name="chapters">Главы</string>
+    <string name="bookmarks">Закладки</string>
+    <string name="bookmark_note">Заметка (необязательно)</string>
+    <string name="bookmark_add">Отметить %1$s</string>
+    <string name="bookmark_delete">Удалить закладку</string>
     <string name="sleep_timer_short">Таймер</string>
     <string name="finished">Прослушано</string>
     <string name="remaining_time">Осталось %1$s</string>

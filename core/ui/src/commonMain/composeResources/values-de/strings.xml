@@ -40,6 +40,10 @@
     <string name="queue">Warteschlange</string>
     <string name="queue_short">Warteschlange</string>
     <string name="chapters">Kapitel</string>
+    <string name="bookmarks">Lesezeichen</string>
+    <string name="bookmark_note">Notiz (optional)</string>
+    <string name="bookmark_add">%1$s markieren</string>
+    <string name="bookmark_delete">Lesezeichen löschen</string>
     <string name="sleep_timer_short">Timer</string>
     <string name="finished">Beendet</string>
     <string name="remaining_time">Noch %1$s</string>

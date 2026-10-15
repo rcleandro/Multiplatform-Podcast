@@ -40,6 +40,10 @@
     <string name="queue">قائمة الانتظار</string>
     <string name="queue_short">الانتظار</string>
     <string name="chapters">الفصول</string>
+    <string name="bookmarks">العلامات</string>
+    <string name="bookmark_note">ملاحظة (اختيارية)</string>
+    <string name="bookmark_add">وضع علامة عند %1$s</string>
+    <string name="bookmark_delete">حذف العلامة</string>
     <string name="sleep_timer_short">المؤقّت</string>
     <string name="finished">انتهى</string>
     <string name="remaining_time">متبقٍ %1$s</string>

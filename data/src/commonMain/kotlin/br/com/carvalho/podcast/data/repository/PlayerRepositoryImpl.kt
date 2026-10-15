@@ -1,11 +1,16 @@
 package br.com.carvalho.podcast.data.repository
 
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.data.local.dao.PlaybackStateDao
+import br.com.carvalho.podcast.data.local.entity.BookmarkEntity
 import br.com.carvalho.podcast.data.local.entity.PlaybackStateEntity
 import br.com.carvalho.podcast.data.mapper.toDomain
+import br.com.carvalho.podcast.domain.model.Bookmark
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.repository.PlaybackState
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class PlayerRepositoryImpl(private val playbackStateDao: PlaybackStateDao) : PlayerRepository {
 
@@ -30,4 +35,21 @@ class PlayerRepositoryImpl(private val playbackStateDao: PlaybackStateDao) : Pla
             queue = playbackStateDao.getQueue().map { it.toDomain() },
         )
     }
+
+    override fun bookmarks(episodeId: String): Flow<List<Bookmark>> =
+        playbackStateDao.bookmarks(episodeId).map { rows ->
+            rows.map { Bookmark(it.id, it.episodeId, it.positionMs, it.note, it.createdAt) }
+        }
+
+    override suspend fun addBookmark(episodeId: String, positionMs: Long, note: String) {
+        val bookmark = BookmarkEntity(
+            episodeId = episodeId,
+            positionMs = positionMs,
+            note = note.trim(),
+            createdAt = getCurrentTimestamp(),
+        )
+        playbackStateDao.insertBookmark(bookmark)
+    }
+
+    override suspend fun deleteBookmark(id: Long) = playbackStateDao.deleteBookmark(id)
 }

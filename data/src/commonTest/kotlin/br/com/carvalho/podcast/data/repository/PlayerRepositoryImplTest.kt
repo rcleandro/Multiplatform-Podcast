@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.data.local.isDatabaseSupported
 import br.com.carvalho.podcast.data.mapper.toDomain
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -65,5 +66,24 @@ class PlayerRepositoryImplTest {
         database.podcastDao().deleteById("p1")
 
         assertEquals(emptyList(), repository.getSavedPlaybackState()!!.queue)
+    }
+
+    @Test
+    fun `bookmarks come in episode order, lose their surrounding spaces and go with the episode`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcast)
+        database.episodeDao().insertAll(episodes)
+
+        repository.addBookmark("e1", positionMs = 90_000, note = "  the quote ")
+        repository.addBookmark("e1", positionMs = 30_000, note = "")
+        repository.addBookmark("e2", positionMs = 10_000, note = "other episode")
+        val marked = repository.bookmarks("e1").first()
+        assertEquals(listOf(30_000L to "", 90_000L to "the quote"), marked.map { it.positionMs to it.note })
+
+        repository.deleteBookmark(marked.first().id)
+        assertEquals(listOf("the quote"), repository.bookmarks("e1").first().map { it.note })
+
+        database.podcastDao().deleteById("p1")
+        assertEquals(emptyList(), repository.bookmarks("e1").first())
     }
 }

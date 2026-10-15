@@ -9,14 +9,21 @@ import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.data.local.dao.PlaybackStateDao
 import br.com.carvalho.podcast.data.local.dao.PodcastDao
+import br.com.carvalho.podcast.data.local.entity.BookmarkEntity
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.PlaybackStateEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.data.local.entity.QueueItemEntity
 
 @Database(
-    entities = [PodcastEntity::class, EpisodeEntity::class, PlaybackStateEntity::class, QueueItemEntity::class],
-    version = 21,
+    entities = [
+        PodcastEntity::class,
+        EpisodeEntity::class,
+        PlaybackStateEntity::class,
+        QueueItemEntity::class,
+        BookmarkEntity::class,
+    ],
+    version = 22,
     // Every schema change ships a migration and a MigrationTest case; there is no destructive fallback.
     // 3 → 4, 4 → 5, 5 → 6, 7 → 8 and 8 → 9 are manual (EpisodeIdMigration, QueueItemsMigration,
     // DownloadFileMigration, SubscribedAtMigration, PositionMigration), added by addAppMigrations.
@@ -36,6 +43,7 @@ import br.com.carvalho.podcast.data.local.entity.QueueItemEntity
         AutoMigration(from = 18, to = 19),
         AutoMigration(from = 19, to = 20),
         AutoMigration(from = 20, to = 21),
+        AutoMigration(from = 21, to = 22),
     ],
 )
 @ConstructedBy(AppDatabaseConstructor::class)

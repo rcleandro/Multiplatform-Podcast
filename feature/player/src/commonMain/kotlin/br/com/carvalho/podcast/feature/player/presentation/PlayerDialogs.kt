@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,17 +10,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.bookmark_add
+import br.com.carvalho.podcast.core.ui.generated.resources.bookmark_note
+import br.com.carvalho.podcast.core.ui.generated.resources.bookmarks
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.chapters
 import br.com.carvalho.podcast.core.ui.generated.resources.close
@@ -32,9 +42,11 @@ import br.com.carvalho.podcast.core.ui.generated.resources.timer_5_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_60_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_disabled
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_end_of_episode
+import br.com.carvalho.podcast.domain.model.Bookmark
 import br.com.carvalho.podcast.domain.model.Chapter
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.SleepTimer
+import br.com.carvalho.podcast.presentation.component.BookmarkRow
 import br.com.carvalho.podcast.presentation.format.formatSpeed
 import org.jetbrains.compose.resources.stringResource
 
@@ -174,6 +186,52 @@ internal fun ChaptersDialog(
                         Text(text = chapter.title, style = MaterialTheme.typography.bodyLarge)
                     }
                 }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.close)) }
+        },
+    )
+}
+
+/**
+ * Marks the minute the episode is at, with an optional note, and lists the episode's bookmarks (19.3): picking one
+ * jumps to it. Stays open after marking, so the new bookmark shows in the list.
+ */
+@Composable
+internal fun BookmarksDialog(
+    positionMs: Long,
+    bookmarks: List<Bookmark>,
+    onAdd: (note: String) -> Unit,
+    onSelect: (Bookmark) -> Unit,
+    onDelete: (Bookmark) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var note by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.bookmarks)) },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+            ) {
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    label = { Text(stringResource(Res.string.bookmark_note)) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                FilledTonalButton(
+                    onClick = {
+                        onAdd(note)
+                        note = ""
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(Res.string.bookmark_add, positionMs.toTime()))
+                }
+                bookmarks.forEach { bookmark -> BookmarkRow(bookmark, onSelect, onDelete) }
             }
         },
         confirmButton = {

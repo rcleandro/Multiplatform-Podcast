@@ -47,6 +47,10 @@
     <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->
     <string name="queue_short">Queue</string>
     <string name="chapters">Chapters</string>
+    <string name="bookmarks">Bookmarks</string>
+    <string name="bookmark_note">Note (optional)</string>
+    <string name="bookmark_add">Mark %1$s</string>
+    <string name="bookmark_delete">Delete bookmark</string>
     <string name="sleep_timer_short">Timer</string>
     <string name="finished">Finished</string>
     <string name="remaining_time">%1$s left</string>

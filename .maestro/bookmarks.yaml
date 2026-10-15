@@ -1,0 +1,42 @@
+# 19.3: mark the minute an episode is at with a note, find it in the list and jump back to it.
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/bookmarks.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Planet Money"
+- tapOn: "Mais recente"
+# The mini player's subtitle, below the podcast's own name in the header.
+- tapOn:
+    text: "Planet Money"
+    index: 1
+- extendedWaitUntil:
+    visible: "Pausar"
+    timeout: 30000
+- tapOn: "Marcadores"
+- tapOn: "Nota (opcional)"
+- inputText: "Boa frase"
+- tapOn: "Marcar .*"
+- assertVisible: "Boa frase"
+# A second one without a note, then the first is the jump.
+- tapOn: "Marcar .*"
+- tapOn: "Boa frase"
+- assertNotVisible: "Fechar"
+- tapOn: "Marcadores"
+- tapOn:
+    text: "Apagar marcador"
+    index: 0
+- tapOn: "Fechar"
+- tapOn: "Pausar"

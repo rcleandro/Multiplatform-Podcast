@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.EditNote
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.Forward10
@@ -61,6 +62,7 @@ import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
 import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.bookmarks
 import br.com.carvalho.podcast.core.ui.generated.resources.chapters
 import br.com.carvalho.podcast.core.ui.generated.resources.minimize
 import br.com.carvalho.podcast.core.ui.generated.resources.next
@@ -98,6 +100,7 @@ data class PlayerActions(
     val onSleepTimerClick: () -> Unit = {},
     val onExtendSleepTimer: () -> Unit = {},
     val onChaptersClick: () -> Unit = {},
+    val onBookmarksClick: () -> Unit = {},
 )
 
 /** Stateless full-screen player. */
@@ -256,6 +259,15 @@ private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
             active = false,
             onClick = actions.onQueueClick,
         )
+        if (state.currentEpisode != null) {
+            AuxButton(
+                icon = Icons.Rounded.EditNote,
+                label = stringResource(Res.string.bookmarks),
+                description = null,
+                active = false,
+                onClick = actions.onBookmarksClick,
+            )
+        }
         if (state.chapters.isNotEmpty()) {
             AuxButton(
                 icon = Icons.AutoMirrored.Rounded.FormatListBulleted,

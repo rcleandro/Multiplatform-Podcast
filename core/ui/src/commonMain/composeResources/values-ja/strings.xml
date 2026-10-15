@@ -40,6 +40,10 @@
     <string name="queue">キュー</string>
     <string name="queue_short">キュー</string>
     <string name="chapters">チャプター</string>
+    <string name="bookmarks">ブックマーク</string>
+    <string name="bookmark_note">メモ（任意）</string>
+    <string name="bookmark_add">%1$s をマーク</string>
+    <string name="bookmark_delete">ブックマークを削除</string>
     <string name="sleep_timer_short">タイマー</string>
     <string name="finished">再生済み</string>
     <string name="remaining_time">残り %1$s</string>

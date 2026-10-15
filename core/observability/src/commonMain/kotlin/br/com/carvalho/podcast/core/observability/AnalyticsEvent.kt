@@ -106,6 +106,14 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
 
     data object CancelSleepTimer : AnalyticsEvent("cancel_sleep_timer")
 
+    /** A moment marked (19.3); whether it has a note, never the note. */
+    class AddBookmark(hasNote: Boolean) : AnalyticsEvent("add_bookmark", mapOf("has_note" to hasNote))
+
+    data object DeleteBookmark : AnalyticsEvent("delete_bookmark")
+
+    /** Played from a bookmark on the episode's page. */
+    data object PlayBookmark : AnalyticsEvent("play_bookmark")
+
     private companion object {
         const val EPISODE_ID = "episode_id"
         const val HOST = "host"

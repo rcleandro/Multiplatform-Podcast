@@ -7,10 +7,12 @@ import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.player.SleepTimer
+import br.com.carvalho.podcast.domain.repository.FakePlayerRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -39,9 +41,10 @@ class PlayerViewModelTest {
     }
 
     private val analytics = FakeAnalytics()
+    private val playerRepository = FakePlayerRepository()
 
     private fun createViewModel() = PlayerViewModel(
-        audioPlayer, PlayEpisodeUseCase(audioPlayer), dispatchers, analytics
+        audioPlayer, PlayEpisodeUseCase(audioPlayer), dispatchers, analytics, playerRepository
     )
 
     @Test
@@ -160,6 +163,26 @@ class PlayerViewModelTest {
             listOf("pause_episode", "resume_episode", "skip_forward", "play_next", "set_speed", "set_sleep_timer"),
             analytics.events,
         )
+    }
+
+    @Test
+    fun `a bookmark marks where the episode is and only says whether it has a note`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        backgroundScope.launch { viewModel.bookmarks.collect {} }
+        audioPlayer.play(episode("e1"))
+        audioPlayer.advanceTo(POSITION_MS)
+
+        viewModel.onIntent(PlayerIntent.AddBookmark("the quote"))
+        assertEquals(listOf(POSITION_MS to "the quote"), viewModel.bookmarks.value.map { it.positionMs to it.note })
+        assertEquals(listOf(mapOf<String, Any?>("has_note" to true)), analytics.params)
+
+        // Another episode shows its own; deleting takes the bookmark away.
+        audioPlayer.play(episode("e2"))
+        assertEquals(emptyList(), viewModel.bookmarks.value)
+        audioPlayer.play(episode("e1"))
+        viewModel.onIntent(PlayerIntent.DeleteBookmark(viewModel.bookmarks.value.single().id))
+        assertEquals(emptyList(), viewModel.bookmarks.value)
+        assertEquals(listOf("add_bookmark", "delete_bookmark"), analytics.events)
     }
 
     private fun position() = audioPlayer.playerState.value.position
