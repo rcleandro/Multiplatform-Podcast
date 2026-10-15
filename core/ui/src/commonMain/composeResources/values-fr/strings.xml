@@ -40,6 +40,11 @@
     <string name="queue">File d'attente</string>
     <string name="queue_short">File</string>
     <string name="chapters">Chapitres</string>
+    <string name="transcript">Transcription</string>
+    <string name="transcript_search">Rechercher dans la transcription</string>
+    <string name="transcript_follow">Revenir au passage en cours</string>
+    <string name="transcript_failed">Impossible de charger la transcription</string>
+    <string name="transcript_no_match">Aucun passage avec « %1$s »</string>
     <string name="bookmarks">Signets</string>
     <string name="bookmark_note">Note (facultative)</string>
     <string name="bookmark_add">Marquer %1$s</string>

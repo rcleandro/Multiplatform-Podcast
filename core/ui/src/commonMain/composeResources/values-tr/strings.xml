@@ -40,6 +40,11 @@
     <string name="queue">Sıra</string>
     <string name="queue_short">Sıra</string>
     <string name="chapters">Kısımlar</string>
+    <string name="transcript">Döküm</string>
+    <string name="transcript_search">Dökümde ara</string>
+    <string name="transcript_follow">Çalan bölüme dön</string>
+    <string name="transcript_failed">Döküm yüklenemedi</string>
+    <string name="transcript_no_match">“%1$s” içeren bölüm yok</string>
     <string name="bookmarks">Yer imleri</string>
     <string name="bookmark_note">Not (isteğe bağlı)</string>
     <string name="bookmark_add">%1$s anını işaretle</string>

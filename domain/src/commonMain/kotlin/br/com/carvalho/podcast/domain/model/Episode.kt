@@ -32,4 +32,7 @@ data class Episode(
     val downloadedAt: Long? = null,
     /** `podcast:chapters`: where the feed keeps the episode's chapters as JSON (19.1). */
     val chaptersUrl: String? = null,
+    /** `podcast:transcript` (19.2): where the feed keeps a timed transcript, and its type (VTT, SRT or JSON). */
+    val transcriptUrl: String? = null,
+    val transcriptType: String? = null,
 )

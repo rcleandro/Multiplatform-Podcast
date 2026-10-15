@@ -40,6 +40,11 @@
     <string name="queue">Coda</string>
     <string name="queue_short">Coda</string>
     <string name="chapters">Capitoli</string>
+    <string name="transcript">Trascrizione</string>
+    <string name="transcript_search">Cerca nella trascrizione</string>
+    <string name="transcript_follow">Torna al punto in ascolto</string>
+    <string name="transcript_failed">Impossibile caricare la trascrizione</string>
+    <string name="transcript_no_match">Nessun passaggio con “%1$s”</string>
     <string name="bookmarks">Segnalibri</string>
     <string name="bookmark_note">Nota (facoltativa)</string>
     <string name="bookmark_add">Segna %1$s</string>

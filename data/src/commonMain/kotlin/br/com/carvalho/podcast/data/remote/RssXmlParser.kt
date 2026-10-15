@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.data.remote
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
+import br.com.carvalho.podcast.data.remote.model.RssTranscript
 import nl.adaptivity.xmlutil.EventType
 import nl.adaptivity.xmlutil.core.KtXmlReader
 
@@ -19,6 +20,9 @@ private val PODCAST_NS = setOf(
 )
 private const val TITLE_FALLBACK_LENGTH = 80
 private val EXPLICIT_VALUES = setOf("yes", "true", "explicit")
+
+/** The timed transcript types, best first, as parts of their MIME types. */
+private val TRANSCRIPT_TYPES = listOf("vtt", "srt", "subrip", "json")
 
 /**
  * Reads RSS 2.0 with the iTunes tags (ADR 0004). The XML becomes a small tree first: feeds are read whole anyway,
@@ -74,6 +78,7 @@ object RssXmlParser {
             episode = text("itunes:episode")?.toIntOrNull(),
             episodeType = text("itunes:episodeType"),
             chaptersUrl = chaptersUrl(),
+            transcript = transcript(),
         )
     }
 
@@ -81,6 +86,18 @@ object RssXmlParser {
     private fun Node.chaptersUrl(): String? = children("podcast:chapters")
         .firstOrNull { it.attributes["type"]?.contains("json") ?: true }
         ?.attributes?.get("url")?.trim()?.ifEmpty { null }
+
+    /**
+     * A transcript the player can follow (19.2): WebVTT first, then SRT, then the Podcasting 2.0 JSON. HTML and plain
+     * text have no timing, so they are left out.
+     */
+    private fun Node.transcript(): RssTranscript? = children("podcast:transcript")
+        .mapNotNull { node ->
+            val url = node.attributes["url"]?.trim()?.ifEmpty { null } ?: return@mapNotNull null
+            val type = node.attributes["type"]?.trim()?.lowercase().orEmpty()
+            TRANSCRIPT_TYPES.indexOfFirst { it in type }.takeIf { it >= 0 }?.let { it to RssTranscript(url, type) }
+        }
+        .minByOrNull { it.first }?.second
 
     // Apple nests subcategories (`Technology > Software How-To`); both levels count.
     private fun Node.categories(): List<String> = children("itunes:category").flatMap { category ->

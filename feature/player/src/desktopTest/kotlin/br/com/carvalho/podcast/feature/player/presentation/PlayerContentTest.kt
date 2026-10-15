@@ -32,6 +32,7 @@ import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.TabletopFold
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.chapters
+import br.com.carvalho.podcast.core.ui.generated.resources.transcript
 import br.com.carvalho.podcast.core.ui.generated.resources.minimize
 import br.com.carvalho.podcast.core.ui.generated.resources.next
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
@@ -135,6 +136,21 @@ class PlayerContentTest {
         // A chapter without a title goes by when it starts.
         state = state.copy(position = 130_000)
         onNodeWithText("2:00").assertIsDisplayed()
+
+        assertEquals(1, opened)
+    }
+
+    @Test
+    fun theTranscriptButtonShowsOnlyWhenTheFeedGivesOne() = runComposeUiTest {
+        var opened = 0
+        var state by mutableStateOf(PlayerState(currentEpisode = episode("e1")))
+        setContent {
+            PodcastTheme { PlayerContent(state = state, actions = PlayerActions(onTranscriptClick = { opened++ })) }
+        }
+        onNodeWithText(text(Res.string.transcript)).assertDoesNotExist()
+
+        state = state.copy(currentEpisode = episode("e1").copy(transcriptUrl = "https://example.com/1.vtt"))
+        onNodeWithText(text(Res.string.transcript)).performScrollTo().performClick()
 
         assertEquals(1, opened)
     }

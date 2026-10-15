@@ -40,6 +40,11 @@
     <string name="queue">قائمة الانتظار</string>
     <string name="queue_short">الانتظار</string>
     <string name="chapters">الفصول</string>
+    <string name="transcript">النص المكتوب</string>
+    <string name="transcript_search">البحث في النص</string>
+    <string name="transcript_follow">العودة إلى المقطع الحالي</string>
+    <string name="transcript_failed">تعذّر تحميل النص</string>
+    <string name="transcript_no_match">لا يوجد مقطع يحتوي على «%1$s»</string>
     <string name="bookmarks">العلامات</string>
     <string name="bookmark_note">ملاحظة (اختيارية)</string>
     <string name="bookmark_add">وضع علامة عند %1$s</string>

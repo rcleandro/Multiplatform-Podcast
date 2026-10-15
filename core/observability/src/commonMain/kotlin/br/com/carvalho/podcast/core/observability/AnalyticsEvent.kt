@@ -121,6 +121,10 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     /** "Similar to this" opened from a podcast's page (19.6), with how many it found. */
     class ShowSimilar(found: Int) : AnalyticsEvent("show_similar", mapOf("found" to found))
 
+    /** Played from a line of the transcript (19.2); whether it was found by a search, never the words. */
+    class PlayFromTranscript(searching: Boolean) :
+        AnalyticsEvent("play_from_transcript", mapOf("searching" to searching))
+
     /** Played from a bookmark on the episode's page. */
     data object PlayBookmark : AnalyticsEvent("play_bookmark")
 

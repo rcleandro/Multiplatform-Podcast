@@ -45,6 +45,11 @@
     <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->
     <string name="queue_short">Cola</string>
     <string name="chapters">Capítulos</string>
+    <string name="transcript">Transcripción</string>
+    <string name="transcript_search">Buscar en la transcripción</string>
+    <string name="transcript_follow">Volver a lo que suena</string>
+    <string name="transcript_failed">No se pudo cargar la transcripción</string>
+    <string name="transcript_no_match">Ningún fragmento con “%1$s”</string>
     <string name="bookmarks">Marcadores</string>
     <string name="bookmark_note">Nota (opcional)</string>
     <string name="bookmark_add">Marcar %1$s</string>

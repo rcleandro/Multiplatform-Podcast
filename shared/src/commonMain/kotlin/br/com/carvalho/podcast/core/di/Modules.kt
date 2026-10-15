@@ -10,6 +10,7 @@ import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
 import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.preferences.SettingsPreferencesRepository
 import br.com.carvalho.podcast.data.remote.EpisodeChapterSource
+import br.com.carvalho.podcast.data.remote.EpisodeTranscriptSource
 import br.com.carvalho.podcast.data.remote.ITunesPodcastDirectory
 import br.com.carvalho.podcast.data.remote.RssFeedDataSource
 import br.com.carvalho.podcast.data.remote.RssFeedDataSourceImpl
@@ -19,6 +20,7 @@ import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
 import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.player.ChapterSource
+import br.com.carvalho.podcast.domain.player.TranscriptSource
 import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.domain.repository.OpmlFormat
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
@@ -71,6 +73,7 @@ val networkModule = module {
     single<OpmlFormat> { XmlOpmlFormat }
     single<PodcastDirectory> { ITunesPodcastDirectory(get(), get()) }
     single<ChapterSource> { EpisodeChapterSource(get(), get(), get<AppDirectories>().fileSystem, get()) }
+    single<TranscriptSource> { EpisodeTranscriptSource(get(), get(), get()) }
 }
 
 val databaseModule = module {

@@ -45,4 +45,8 @@ data class RssEpisode(
     val episodeType: String? = null,
     /** `podcast:chapters` with a JSON type (19.1). */
     val chaptersUrl: String? = null,
+    /** The timed `podcast:transcript` (19.2), the best of those the item lists. */
+    val transcript: RssTranscript? = null,
 )
+
+data class RssTranscript(val url: String, val type: String)

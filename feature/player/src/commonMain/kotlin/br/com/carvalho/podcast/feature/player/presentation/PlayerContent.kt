@@ -18,20 +18,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.EditNote
-import androidx.compose.material.icons.rounded.FastForward
-import androidx.compose.material.icons.rounded.FastRewind
-import androidx.compose.material.icons.rounded.Forward10
-import androidx.compose.material.icons.rounded.Forward30
-import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.MoreTime
-import androidx.compose.material.icons.rounded.Replay10
-import androidx.compose.material.icons.rounded.Replay30
-import androidx.compose.material.icons.rounded.Replay5
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -79,6 +72,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_extend
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_extend_short
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_short
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
+import br.com.carvalho.podcast.core.ui.generated.resources.transcript
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.SleepTimer
@@ -101,6 +95,7 @@ data class PlayerActions(
     val onExtendSleepTimer: () -> Unit = {},
     val onChaptersClick: () -> Unit = {},
     val onBookmarksClick: () -> Unit = {},
+    val onTranscriptClick: () -> Unit = {},
 )
 
 /** Stateless full-screen player. */
@@ -259,24 +254,7 @@ private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
             active = false,
             onClick = actions.onQueueClick,
         )
-        if (state.currentEpisode != null) {
-            AuxButton(
-                icon = Icons.Rounded.EditNote,
-                label = stringResource(Res.string.bookmarks),
-                description = null,
-                active = false,
-                onClick = actions.onBookmarksClick,
-            )
-        }
-        if (state.chapters.isNotEmpty()) {
-            AuxButton(
-                icon = Icons.AutoMirrored.Rounded.FormatListBulleted,
-                label = stringResource(Res.string.chapters),
-                description = null,
-                active = false,
-                onClick = actions.onChaptersClick,
-            )
-        }
+        EpisodeAuxButtons(state, actions)
         // While minutes run down, the button shows what is left and "+5 min" sits beside it (18.15).
         val remaining = state.sleepTimerMillis?.takeIf { state.sleepTimer is SleepTimer.Minutes }
         AuxButton(
@@ -295,6 +273,31 @@ private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
                 onClick = actions.onExtendSleepTimer,
             )
         }
+    }
+}
+
+/** What the episode playing has: bookmarks (19.3), a transcript (19.2) and chapters (19.1). */
+@Composable
+private fun EpisodeAuxButtons(state: PlayerState, actions: PlayerActions) {
+    val episode = state.currentEpisode ?: return
+    AuxButton(Icons.Rounded.EditNote, stringResource(Res.string.bookmarks), null, false, actions.onBookmarksClick)
+    if (episode.transcriptUrl != null) {
+        AuxButton(
+            Icons.Rounded.Subtitles,
+            stringResource(Res.string.transcript),
+            null,
+            false,
+            actions.onTranscriptClick,
+        )
+    }
+    if (state.chapters.isNotEmpty()) {
+        AuxButton(
+            Icons.AutoMirrored.Rounded.FormatListBulleted,
+            stringResource(Res.string.chapters),
+            null,
+            false,
+            actions.onChaptersClick,
+        )
     }
 }
 
@@ -327,22 +330,3 @@ private fun AuxButton(icon: ImageVector, label: String, description: String?, ac
         Text(label, style = MaterialTheme.typography.labelLarge)
     }
 }
-
-/** The icon with the jump's number when Material has one (5, 10, 30 s); a plain arrow otherwise. */
-internal fun skipForwardIcon(seconds: Int): ImageVector = when (seconds) {
-    SHORT_JUMP -> Icons.Rounded.Forward5
-    MEDIUM_JUMP -> Icons.Rounded.Forward10
-    LONG_JUMP -> Icons.Rounded.Forward30
-    else -> Icons.Rounded.FastForward
-}
-
-internal fun skipBackwardIcon(seconds: Int): ImageVector = when (seconds) {
-    SHORT_JUMP -> Icons.Rounded.Replay5
-    MEDIUM_JUMP -> Icons.Rounded.Replay10
-    LONG_JUMP -> Icons.Rounded.Replay30
-    else -> Icons.Rounded.FastRewind
-}
-
-private const val SHORT_JUMP = 5
-private const val MEDIUM_JUMP = 10
-private const val LONG_JUMP = 30

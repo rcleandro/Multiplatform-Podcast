@@ -109,6 +109,8 @@ class FakeEpisodeDao : EpisodeDao {
         season: Int?,
         episodeType: String?,
         chaptersUrl: String?,
+        transcriptUrl: String?,
+        transcriptType: String?,
     ) {
         episodes.value = episodes.value.map {
             if (it.id != id) {
@@ -118,7 +120,7 @@ class FakeEpisodeDao : EpisodeDao {
                     podcastTitle = podcastTitle, title = title, description = description, audioUrl = audioUrl,
                     imageUrl = imageUrl, duration = duration, publishDate = publishDate, link = link,
                     explicit = explicit, season = season, episodeType = episodeType,
-                    chaptersUrl = chaptersUrl,
+                    chaptersUrl = chaptersUrl, transcriptUrl = transcriptUrl, transcriptType = transcriptType,
                 )
             }
         }

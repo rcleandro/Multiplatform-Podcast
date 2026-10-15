@@ -27,6 +27,8 @@ fun EpisodeEntity.toDomain(): Episode = Episode(
     lastPlayedAt = lastPlayedAt,
     downloadedAt = downloadedAt,
     chaptersUrl = chaptersUrl,
+    transcriptUrl = transcriptUrl,
+    transcriptType = transcriptType,
 )
 
 fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
@@ -52,4 +54,6 @@ fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
     lastPlayedAt = lastPlayedAt,
     downloadedAt = downloadedAt,
     chaptersUrl = chaptersUrl,
+    transcriptUrl = transcriptUrl,
+    transcriptType = transcriptType,
 )

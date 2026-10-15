@@ -40,6 +40,11 @@
     <string name="queue">キュー</string>
     <string name="queue_short">キュー</string>
     <string name="chapters">チャプター</string>
+    <string name="transcript">文字起こし</string>
+    <string name="transcript_search">文字起こしを検索</string>
+    <string name="transcript_follow">再生中の箇所に戻る</string>
+    <string name="transcript_failed">文字起こしを読み込めませんでした</string>
+    <string name="transcript_no_match">「%1$s」を含む箇所はありません</string>
     <string name="bookmarks">ブックマーク</string>
     <string name="bookmark_note">メモ（任意）</string>
     <string name="bookmark_add">%1$s をマーク</string>

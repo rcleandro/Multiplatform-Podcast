@@ -40,6 +40,11 @@
     <string name="queue">播放队列</string>
     <string name="queue_short">队列</string>
     <string name="chapters">章节</string>
+    <string name="transcript">文字稿</string>
+    <string name="transcript_search">在文字稿中搜索</string>
+    <string name="transcript_follow">回到正在播放的位置</string>
+    <string name="transcript_failed">无法加载文字稿</string>
+    <string name="transcript_no_match">没有包含“%1$s”的段落</string>
     <string name="bookmarks">书签</string>
     <string name="bookmark_note">备注（可选）</string>
     <string name="bookmark_add">标记 %1$s</string>

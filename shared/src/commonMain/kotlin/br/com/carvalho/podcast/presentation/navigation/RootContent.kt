@@ -65,6 +65,7 @@ import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.player.presentation.QueueScreen
+import br.com.carvalho.podcast.feature.player.presentation.TranscriptScreen
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
 import br.com.carvalho.podcast.feature.settings.presentation.ListeningStatsScreen
@@ -130,9 +131,11 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
                 onBackClick = component::onBackClicked,
                 artworkModifier = sharedCover(this),
                 onQueueClick = component::onQueueClicked,
+                onTranscriptClick = component::onTranscriptClicked,
             )
         }
         Overlay(visible = state.isQueueOpen) { QueueScreen(onBack = component::onBackClicked) }
+        Overlay(visible = state.isTranscriptOpen) { TranscriptScreen(onBack = component::onBackClicked) }
     }
 }
 

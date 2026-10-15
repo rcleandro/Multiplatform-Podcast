@@ -69,6 +69,7 @@ class AnalyticsEventTest {
             AnalyticsEvent.DeleteSmartPlaylist,
             AnalyticsEvent.PlaySmartPlaylist(episodes = 3),
             AnalyticsEvent.ShowSimilar(found = 4),
+            AnalyticsEvent.PlayFromTranscript(searching = true),
         )
         samples.forEach { covered(it) }
         return samples
@@ -89,7 +90,7 @@ class AnalyticsEventTest {
         is AnalyticsEvent.SetSleepTimer, AnalyticsEvent.CancelSleepTimer, is AnalyticsEvent.ExtendSleepTimer,
         is AnalyticsEvent.AddBookmark, AnalyticsEvent.DeleteBookmark, AnalyticsEvent.PlayBookmark,
         is AnalyticsEvent.SaveSmartPlaylist, AnalyticsEvent.DeleteSmartPlaylist, is AnalyticsEvent.PlaySmartPlaylist,
-        is AnalyticsEvent.ShowSimilar -> Unit
+        is AnalyticsEvent.ShowSimilar, is AnalyticsEvent.PlayFromTranscript -> Unit
     }
 
     /** Firebase: up to 40 characters, a letter first, then letters, digits and `_`; reserved prefixes rejected. */

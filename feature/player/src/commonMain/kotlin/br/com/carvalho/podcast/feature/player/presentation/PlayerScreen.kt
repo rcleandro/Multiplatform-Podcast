@@ -29,6 +29,7 @@ fun PlayerScreen(
     onBackClick: () -> Unit,
     artworkModifier: Modifier = Modifier,
     onQueueClick: () -> Unit = {},
+    onTranscriptClick: () -> Unit = {},
 ) {
     val playerState by viewModel.playerState.collectAsState()
     var dialog by remember { mutableStateOf<PlayerDialog?>(null) }
@@ -54,6 +55,7 @@ fun PlayerScreen(
                 onExtendSleepTimer = { viewModel.onIntent(PlayerIntent.ExtendSleepTimer) },
                 onChaptersClick = { dialog = PlayerDialog.Chapters },
                 onBookmarksClick = { dialog = PlayerDialog.Bookmarks },
+                onTranscriptClick = onTranscriptClick,
             ),
         )
         PodcastSnackbarHost(

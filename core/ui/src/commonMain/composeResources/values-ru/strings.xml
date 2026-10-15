@@ -40,6 +40,11 @@
     <string name="queue">Очередь</string>
     <string name="queue_short">Очередь</string>
     <string name="chapters">Главы</string>
+    <string name="transcript">Расшифровка</string>
+    <string name="transcript_search">Поиск по расшифровке</string>
+    <string name="transcript_follow">Вернуться к текущему месту</string>
+    <string name="transcript_failed">Не удалось загрузить расшифровку</string>
+    <string name="transcript_no_match">Нет фрагментов с «%1$s»</string>
     <string name="bookmarks">Закладки</string>
     <string name="bookmark_note">Заметка (необязательно)</string>
     <string name="bookmark_add">Отметить %1$s</string>

@@ -40,6 +40,11 @@
     <string name="queue">재생 대기열</string>
     <string name="queue_short">대기열</string>
     <string name="chapters">챕터</string>
+    <string name="transcript">스크립트</string>
+    <string name="transcript_search">스크립트에서 검색</string>
+    <string name="transcript_follow">지금 재생 중인 부분으로</string>
+    <string name="transcript_failed">스크립트를 불러올 수 없습니다</string>
+    <string name="transcript_no_match">“%1$s”이(가) 포함된 부분이 없습니다</string>
     <string name="bookmarks">북마크</string>
     <string name="bookmark_note">메모(선택)</string>
     <string name="bookmark_add">%1$s 표시</string>

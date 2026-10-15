@@ -40,6 +40,11 @@
     <string name="queue">Warteschlange</string>
     <string name="queue_short">Warteschlange</string>
     <string name="chapters">Kapitel</string>
+    <string name="transcript">Transkript</string>
+    <string name="transcript_search">Im Transkript suchen</string>
+    <string name="transcript_follow">Zurück zur aktuellen Stelle</string>
+    <string name="transcript_failed">Das Transkript konnte nicht geladen werden</string>
+    <string name="transcript_no_match">Keine Stelle mit „%1$s“</string>
     <string name="bookmarks">Lesezeichen</string>
     <string name="bookmark_note">Notiz (optional)</string>
     <string name="bookmark_add">%1$s markieren</string>

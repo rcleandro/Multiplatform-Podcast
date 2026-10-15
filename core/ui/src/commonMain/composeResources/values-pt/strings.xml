@@ -45,6 +45,11 @@
     <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->
     <string name="queue_short">Fila</string>
     <string name="chapters">Capítulos</string>
+    <string name="transcript">Transcrição</string>
+    <string name="transcript_search">Buscar na transcrição</string>
+    <string name="transcript_follow">Voltar ao trecho atual</string>
+    <string name="transcript_failed">Não foi possível carregar a transcrição</string>
+    <string name="transcript_no_match">Nenhum trecho com “%1$s”</string>
     <string name="bookmarks">Marcadores</string>
     <string name="bookmark_note">Nota (opcional)</string>
     <string name="bookmark_add">Marcar %1$s</string>

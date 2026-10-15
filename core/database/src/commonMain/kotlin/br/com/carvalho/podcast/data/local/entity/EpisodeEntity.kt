@@ -54,4 +54,7 @@ data class EpisodeEntity(
     val downloadedAt: Long? = null,
     /** `podcast:chapters` (19.1), added in version 21. */
     val chaptersUrl: String? = null,
+    /** `podcast:transcript` with timing (19.2), added in version 25. */
+    val transcriptUrl: String? = null,
+    val transcriptType: String? = null,
 )

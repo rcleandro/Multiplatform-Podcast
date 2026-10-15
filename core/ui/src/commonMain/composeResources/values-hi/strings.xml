@@ -40,6 +40,11 @@
     <string name="queue">कतार</string>
     <string name="queue_short">कतार</string>
     <string name="chapters">अध्याय</string>
+    <string name="transcript">ट्रांसक्रिप्ट</string>
+    <string name="transcript_search">ट्रांसक्रिप्ट में खोजें</string>
+    <string name="transcript_follow">चल रहे हिस्से पर लौटें</string>
+    <string name="transcript_failed">ट्रांसक्रिप्ट लोड नहीं हो सका</string>
+    <string name="transcript_no_match">“%1$s” वाला कोई हिस्सा नहीं</string>
     <string name="bookmarks">बुकमार्क</string>
     <string name="bookmark_note">नोट (वैकल्पिक)</string>
     <string name="bookmark_add">%1$s चिह्नित करें</string>

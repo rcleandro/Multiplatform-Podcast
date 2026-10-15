@@ -154,6 +154,19 @@ class RootComponentTest {
     }
 
     @Test
+    fun theTranscriptOpensOverThePlayerAndBackReturnsToThePlayer() {
+        val root = createRoot()
+        root.onPlayerClicked()
+
+        root.onTranscriptClicked()
+        assertTrue(root.current.isTranscriptOpen)
+        backDispatcher.back()
+
+        assertFalse(root.current.isTranscriptOpen)
+        assertTrue(root.current.isPlayerOpen)
+    }
+
+    @Test
     fun theListeningStatsOpenOverSettingsAndBackReturnsToSettings() {
         val root = createRoot()
         root.onOpenSettings()
