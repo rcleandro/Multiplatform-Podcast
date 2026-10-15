@@ -333,7 +333,7 @@ class DiscoverViewModelTest {
     }
 
     @Test
-    fun `opening the screen again starts with nothing typed, no category and no link`() = runTest(dispatcher) {
+    fun `opening the screen again starts with nothing typed no category and no link`() = runTest(dispatcher) {
         directory.lookupResult = Result.success(found(HIPSTERS))
         val viewModel = viewModel()
         viewModel.onIntent(DiscoverIntent.Open(session = 1))

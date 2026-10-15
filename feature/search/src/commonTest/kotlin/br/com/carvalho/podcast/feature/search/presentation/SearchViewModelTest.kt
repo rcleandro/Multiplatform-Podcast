@@ -186,7 +186,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `a smart playlist is made, listed instead of the filter, followed through edits and deleted`() =
+    fun `a smart playlist is made listed instead of the filter followed through edits and deleted`() =
         runTest(testDispatcher) {
             val viewModel = createViewModel()
 
@@ -283,7 +283,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `a download that fails tells why, once, and not for failures from before`() = runTest(testDispatcher) {
+    fun `a download that fails tells why once and not for failures from before`() = runTest(testDispatcher) {
         val old = DownloadStatus.Failed(AppError.NoConnection)
         episodeDownloader.activeDownloads.value = mapOf("old" to old)
         val viewModel = createViewModel()

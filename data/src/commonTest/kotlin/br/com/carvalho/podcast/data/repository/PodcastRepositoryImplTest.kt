@@ -389,7 +389,7 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
-    fun `history lists what played, the latest first, and clearing it changes nothing else`() = runTest {
+    fun `history lists what played the latest first and clearing it changes nothing else`() = runTest {
         if (!isDatabaseSupported) return@runTest
         val podcast = podcastEntity.toDomain()
         val episodes = (1..3).map { episodeEntity.copy(id = "e$it", publishDate = it.toLong()).toDomain() }
@@ -413,7 +413,7 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
-    fun `a smart playlist lists what matches its category, state and length, newest first`() = runTest {
+    fun `a smart playlist lists what matches its category state and length newest first`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity.copy(id = "tech", feedUrl = "tech", categories = "[\"Technology\"]"))
         database.podcastDao().insert(podcastEntity.copy(id = "news", feedUrl = "news", categories = "[\"News\"]"))
@@ -440,7 +440,7 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
-    fun `smart playlists are saved, changed and deleted`() = runTest {
+    fun `smart playlists are saved changed and deleted`() = runTest {
         if (!isDatabaseSupported) return@runTest
         repository.saveSmartPlaylist(SmartPlaylist(name = " News ", category = PodcastCategory.NEWS, downloadedOnly = true))
         val saved = repository.getSmartPlaylists().first().single()

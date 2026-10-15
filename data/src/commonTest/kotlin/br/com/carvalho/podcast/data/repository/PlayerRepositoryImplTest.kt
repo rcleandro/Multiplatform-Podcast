@@ -72,7 +72,7 @@ class PlayerRepositoryImplTest {
     }
 
     @Test
-    fun `bookmarks come in episode order, lose their surrounding spaces and go with the episode`() = runTest {
+    fun `bookmarks come in episode order lose their surrounding spaces and go with the episode`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcast)
         database.episodeDao().insertAll(episodes)

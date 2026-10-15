@@ -222,7 +222,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `categories come from the library, the most common first, and filter the podcasts`() = runTest(testDispatcher) {
+    fun `categories come from the library the most common first and filter the podcasts`() = runTest(testDispatcher) {
         repository.podcasts.value = listOf(
             categorized("a", "Technology"), categorized("b", "Technology", "News"), categorized("c", "Comedy"),
         )

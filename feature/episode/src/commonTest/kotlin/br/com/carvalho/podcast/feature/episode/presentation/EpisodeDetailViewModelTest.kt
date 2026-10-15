@@ -104,7 +104,7 @@ class EpisodeDetailViewModelTest {
     }
 
     @Test
-    fun `a paused episode resumes where it stopped, and its download can be cancelled or deleted`() =
+    fun `a paused episode resumes where it stopped and its download can be cancelled or deleted`() =
         runTest(testDispatcher) {
             repository.episodes.value = listOf(sampleEpisode)
             val viewModel = createViewModel()

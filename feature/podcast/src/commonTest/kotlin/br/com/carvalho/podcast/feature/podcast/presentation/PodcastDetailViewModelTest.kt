@@ -119,7 +119,7 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
-    fun `confirming marks the episode and the older ones unplayed, leaving the newer`() = runTest(testDispatcher) {
+    fun `confirming marks the episode and the older ones unplayed leaving the newer`() = runTest(testDispatcher) {
         val older = sampleEpisode.copy(id = "old", publishDate = 1, isPlayed = true)
         val chosen = sampleEpisode.copy(id = "chosen", publishDate = 2, isPlayed = true)
         val newer = sampleEpisode.copy(id = "new", publishDate = 3, isPlayed = true)
@@ -213,7 +213,7 @@ class PodcastDetailViewModelTest {
     }
 
     @Test
-    fun `confirming marks the episode and the older ones played, leaving the newer`() = runTest(testDispatcher) {
+    fun `confirming marks the episode and the older ones played leaving the newer`() = runTest(testDispatcher) {
         val older = sampleEpisode.copy(id = "old", publishDate = 1)
         val chosen = sampleEpisode.copy(id = "chosen", publishDate = 2)
         val newer = sampleEpisode.copy(id = "new", publishDate = 3)
