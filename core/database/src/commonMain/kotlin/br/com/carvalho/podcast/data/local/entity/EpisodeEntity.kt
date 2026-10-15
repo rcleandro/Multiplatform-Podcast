@@ -52,4 +52,6 @@ data class EpisodeEntity(
     val lastPlayedAt: Long? = null,
     /** When its download finished (18.19), added in version 20; downloads from before have none. */
     val downloadedAt: Long? = null,
+    /** `podcast:chapters` (19.1), added in version 21. */
+    val chaptersUrl: String? = null,
 )

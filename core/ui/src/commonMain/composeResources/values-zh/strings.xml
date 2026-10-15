@@ -39,6 +39,7 @@
     <string name="sleep_timer">睡眠定时</string>
     <string name="queue">播放队列</string>
     <string name="queue_short">队列</string>
+    <string name="chapters">章节</string>
     <string name="sleep_timer_short">定时</string>
     <string name="finished">已听完</string>
     <string name="remaining_time">剩余 %1$s</string>

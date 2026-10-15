@@ -16,4 +16,8 @@ data class PlayerState(
     val sleepTimerMillis: Long? = null,
     /** The jumps chosen in Settings, for every button that skips. */
     val skipIntervals: SkipIntervals = SkipIntervals(),
-)
+    /** The current episode's chapters (19.1), in start order; empty until found, or when it has none. */
+    val chapters: List<Chapter> = emptyList(),
+) {
+    val currentChapter: Chapter? get() = chapters.at(position)
+}

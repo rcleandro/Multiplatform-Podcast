@@ -1,0 +1,36 @@
+# 19.1: an episode's chapters in the player, here from the ID3 tag of the MP3 (ATP has no JSON chapters): the one
+# playing under the title, the list, and a jump to another. Needs the debug app installed, a device in Portuguese
+# and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/chapters.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://atp.fm/rss"
+- extendedWaitUntil:
+    visible: "Assinar Accidental Tech Podcast"
+    timeout: 30000
+- tapOn: "Assinar Accidental Tech Podcast"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Accidental Tech Podcast"
+- tapOn: "Mais recente"
+# The mini player's subtitle, below the podcast's own name in the header.
+- tapOn:
+    text: "Accidental Tech Podcast"
+    index: 1
+- extendedWaitUntil:
+    visible: "Capítulos"
+    timeout: 30000
+- tapOn: "Capítulos"
+# The second chapter: the first time below the first chapter's (the status bar's clock is a time too).
+- tapOn:
+    text: "[0-9]+:[0-9]{2}"
+    below: "0:00"
+    index: 0
+- assertNotVisible: "Fechar"
+- tapOn: "Pausar"

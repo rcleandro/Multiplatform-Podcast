@@ -39,6 +39,7 @@
     <string name="sleep_timer">Timer di spegnimento</string>
     <string name="queue">Coda</string>
     <string name="queue_short">Coda</string>
+    <string name="chapters">Capitoli</string>
     <string name="sleep_timer_short">Timer</string>
     <string name="finished">Finito</string>
     <string name="remaining_time">Mancano %1$s</string>

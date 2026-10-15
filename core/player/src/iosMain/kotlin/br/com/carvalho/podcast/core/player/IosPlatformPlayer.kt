@@ -38,6 +38,7 @@ private const val MILLIS = 1000
 class IosPlatformPlayer : PlatformPlayer {
     private val player = AVPlayer()
     private var episode: Episode? = null
+    private var chapter: String? = null
     private var speed = 1f
     private var isPlaying = false
     private var listener: (PlatformEvent) -> Unit = {}
@@ -67,6 +68,7 @@ class IosPlatformPlayer : PlatformPlayer {
             return
         }
         this.episode = episode
+        chapter = null
         player.replaceCurrentItemWithPlayerItem(AVPlayerItem.playerItemWithURL(url))
         if (positionMs > 0) player.seekToTime(CMTimeMake(positionMs, MILLIS))
         if (playWhenReady) play() else updateNowPlaying()
@@ -97,6 +99,12 @@ class IosPlatformPlayer : PlatformPlayer {
         updateNowPlaying()
     }
 
+    /** The chapter as the lock screen's title, over the episode's (19.1). */
+    override fun showChapter(title: String?) {
+        chapter = title
+        updateNowPlaying()
+    }
+
     private fun setPlaying(playing: Boolean) {
         isPlaying = playing
         listener(PlatformEvent.PlayingChanged(playing))
@@ -106,8 +114,8 @@ class IosPlatformPlayer : PlatformPlayer {
     private fun updateNowPlaying() {
         val current = episode ?: return
         MPNowPlayingInfoCenter.defaultCenter().nowPlayingInfo = mapOf<Any?, Any?>(
-            MPMediaItemPropertyTitle to current.title,
-            MPMediaItemPropertyArtist to current.podcastTitle,
+            MPMediaItemPropertyTitle to (chapter ?: current.title),
+            MPMediaItemPropertyArtist to if (chapter == null) current.podcastTitle else current.title,
             MPNowPlayingInfoPropertyElapsedPlaybackTime to positionMs / MILLIS.toDouble(),
             MPMediaItemPropertyPlaybackDuration to (durationMs ?: 0) / MILLIS.toDouble(),
             MPNowPlayingInfoPropertyPlaybackRate to if (isPlaying) speed.toDouble() else 0.0,

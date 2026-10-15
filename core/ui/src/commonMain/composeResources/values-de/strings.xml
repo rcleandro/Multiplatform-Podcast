@@ -39,6 +39,7 @@
     <string name="sleep_timer">Schlaftimer</string>
     <string name="queue">Warteschlange</string>
     <string name="queue_short">Warteschlange</string>
+    <string name="chapters">Kapitel</string>
     <string name="sleep_timer_short">Timer</string>
     <string name="finished">Beendet</string>
     <string name="remaining_time">Noch %1$s</string>

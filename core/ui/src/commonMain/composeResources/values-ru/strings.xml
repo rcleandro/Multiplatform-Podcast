@@ -39,6 +39,7 @@
     <string name="sleep_timer">Таймер сна</string>
     <string name="queue">Очередь</string>
     <string name="queue_short">Очередь</string>
+    <string name="chapters">Главы</string>
     <string name="sleep_timer_short">Таймер</string>
     <string name="finished">Прослушано</string>
     <string name="remaining_time">Осталось %1$s</string>

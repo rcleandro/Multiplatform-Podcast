@@ -277,6 +277,15 @@ class MigrationTest {
         execSQL("INSERT INTO playback_state VALUES (0, '$episodeId', 42000, 1.0$queueValue)")
     }
 
+    @Test
+    fun version21KnowsNoChaptersUntilTheFeedIsReadAgain() = runTest {
+        helper.createDatabase(CHAPTERS_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(CHAPTERS_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE chaptersUrl IS NULL"))
+        }
+    }
+
     private fun SQLiteConnection.text(sql: String): String = prepare(sql).use { statement ->
         statement.step()
         statement.getText(0)
@@ -301,7 +310,8 @@ class MigrationTest {
         const val NOTIFY_VERSION = 18
         const val AUTO_DOWNLOAD_VERSION = 19
         const val DOWNLOADED_AT_VERSION = 20
-        const val CURRENT_VERSION = 20
+        const val CHAPTERS_VERSION = 21
+        const val CURRENT_VERSION = 21
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

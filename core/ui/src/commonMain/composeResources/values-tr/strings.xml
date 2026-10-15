@@ -39,6 +39,7 @@
     <string name="sleep_timer">Uyku zamanlayıcısı</string>
     <string name="queue">Sıra</string>
     <string name="queue_short">Sıra</string>
+    <string name="chapters">Kısımlar</string>
     <string name="sleep_timer_short">Zamanlayıcı</string>
     <string name="finished">Bitti</string>
     <string name="remaining_time">%1$s kaldı</string>

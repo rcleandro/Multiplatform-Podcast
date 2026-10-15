@@ -18,8 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
+import br.com.carvalho.podcast.core.ui.generated.resources.chapters
 import br.com.carvalho.podcast.core.ui.generated.resources.close
 import br.com.carvalho.podcast.core.ui.generated.resources.playback_speed
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
@@ -30,6 +32,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.timer_5_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_60_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_disabled
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_end_of_episode
+import br.com.carvalho.podcast.domain.model.Chapter
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.presentation.format.formatSpeed
@@ -139,6 +142,48 @@ internal fun SleepTimerDialog(
         }
     )
 }
+
+/** The episode's chapters (19.1), the one playing marked; picking one jumps to its start. */
+@Composable
+internal fun ChaptersDialog(
+    chapters: List<Chapter>,
+    current: Chapter?,
+    onChapterSelected: (Chapter) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.chapters)) },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                chapters.forEach { chapter ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(selected = chapter == current, onClick = { onChapterSelected(chapter) }),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = chapter == current, onClick = { onChapterSelected(chapter) })
+                        Spacer(modifier = Modifier.width(Spacing.l))
+                        Text(
+                            text = chapter.startMs.toTime(),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.m))
+                        Text(text = chapter.title, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.close)) }
+        },
+    )
+}
+
+/** A chapter's title, or when it starts if it has none. */
+internal fun chapterLabel(chapter: Chapter): String = chapter.title.ifBlank { chapter.startMs.toTime() }
 
 internal fun formatRemainingTime(millis: Long?): String {
     if (millis == null) return ""

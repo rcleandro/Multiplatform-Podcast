@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.domain.player.ChapterSource
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -49,6 +50,8 @@ class PlaybackController(
     private val onFinished: suspend (finished: Episode, queue: List<Episode>) -> Unit = { _, _ -> },
     /** The jumps chosen in Settings (18.5), for the remote buttons and everything that reads the player's state. */
     private val skipIntervals: StateFlow<SkipIntervals> = MutableStateFlow(SkipIntervals()),
+    /** Where the chapters of the episode loaded come from (19.1). */
+    private val chapterSource: ChapterSource = ChapterSource { emptyList() },
     /** Where the progress loop and the sleep timer run; tests pass one they can end. */
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + dispatchers.main),
 ) : AudioPlayer {
@@ -57,6 +60,10 @@ class PlaybackController(
 
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
+    private var chaptersJob: Job? = null
+
+    /** What the platform was last told about chapters, so it hears again only when the chapter changes. */
+    private var shownChapter: String? = null
 
     /** What is left of a timer of minutes; extending it adds here, while it runs. */
     private var sleepRemainingMs = 0L
@@ -102,6 +109,7 @@ class PlaybackController(
                 isBuffering = true,
                 speed = speed,
                 queue = state.queue.filter { it.id != episode.id },
+                chapters = emptyList(),
             )
         }
         lastSavedPosition = null
@@ -111,6 +119,7 @@ class PlaybackController(
             engine.load(playable, positionMs = start, playWhenReady = true)
             engine.setSpeed(speed)
         }
+        loadChapters(playable)
     }
 
     override fun pause() {
@@ -132,6 +141,7 @@ class PlaybackController(
         val target = if (duration != null) positionMs.coerceIn(0, duration) else positionMs.coerceAtLeast(0)
         _playerState.update { it.copy(position = target) }
         onMain { engine.seekTo(target) }
+        showChapter()
     }
 
     override fun skipForward(seconds: Int) = seekBy(seconds * AppConfig.MILLIS_PER_SECOND)
@@ -274,6 +284,26 @@ class PlaybackController(
 
     private fun readProgress() {
         _playerState.update { it.copy(position = engine.positionMs, duration = engine.durationMs ?: it.duration) }
+        showChapter()
+    }
+
+    /** Looked up after the episode starts loading, so the sound never waits for them. */
+    private fun loadChapters(episode: Episode) {
+        chaptersJob?.cancel()
+        shownChapter = null
+        chaptersJob = scope.launch {
+            val chapters = withContext(dispatchers.io) { chapterSource.chapters(episode) }
+            if (_playerState.value.currentEpisode?.id != episode.id) return@launch
+            _playerState.update { it.copy(chapters = chapters) }
+            showChapter()
+        }
+    }
+
+    private fun showChapter() {
+        val title = _playerState.value.currentChapter?.title?.ifBlank { null }
+        if (title == shownChapter) return
+        shownChapter = title
+        onMain { engine.showChapter(title) }
     }
 
     private fun movedPastLastSave(): Boolean {
@@ -321,6 +351,7 @@ class PlaybackController(
             AppLogger.i(TAG, "Adopting ${episode.id}, already loaded by the platform")
             _playerState.update { it.copy(currentEpisode = playable) }
             readProgress()
+            loadChapters(playable)
             return
         }
         val position = saved?.position ?: 0
@@ -328,6 +359,7 @@ class PlaybackController(
         _playerState.update { it.copy(currentEpisode = playable, position = position) }
         lastSavedPosition = position
         engine.load(playable, position, playWhenReady = false)
+        loadChapters(playable)
     }
 
     /**

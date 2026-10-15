@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.close
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_15_min
 import br.com.carvalho.podcast.core.ui.generated.resources.timer_end_of_episode
+import br.com.carvalho.podcast.domain.model.Chapter
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.SleepTimer
@@ -56,6 +57,22 @@ class PlayerDialogsTest {
         onNodeWithText(text(Res.string.timer_end_of_episode)).performClick()
 
         assertEquals(SleepTimer.EndOfEpisode, chosen)
+    }
+
+    @Test
+    fun theChaptersDialogListsEachWithItsStartAndReturnsThePick() = runComposeUiTest {
+        var chosen: Chapter? = null
+        val chapters = listOf(Chapter(0, "Intro"), Chapter(3_725_000, "Questions"))
+        setContent {
+            PodcastTheme {
+                ChaptersDialog(chapters = chapters, current = chapters[0], onChapterSelected = { chosen = it }, onDismiss = {})
+            }
+        }
+
+        onNodeWithText("1:02:05").assertIsDisplayed()
+        onNodeWithText("Questions").performClick()
+
+        assertEquals(chapters[1], chosen)
     }
 
     private companion object {

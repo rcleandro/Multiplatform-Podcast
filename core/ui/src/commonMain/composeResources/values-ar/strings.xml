@@ -39,6 +39,7 @@
     <string name="sleep_timer">مؤقّت النوم</string>
     <string name="queue">قائمة الانتظار</string>
     <string name="queue_short">الانتظار</string>
+    <string name="chapters">الفصول</string>
     <string name="sleep_timer_short">المؤقّت</string>
     <string name="finished">انتهى</string>
     <string name="remaining_time">متبقٍ %1$s</string>

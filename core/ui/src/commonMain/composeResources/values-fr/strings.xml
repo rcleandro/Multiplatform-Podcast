@@ -39,6 +39,7 @@
     <string name="sleep_timer">Minuterie de sommeil</string>
     <string name="queue">File d'attente</string>
     <string name="queue_short">File</string>
+    <string name="chapters">Chapitres</string>
     <string name="sleep_timer_short">Minuterie</string>
     <string name="finished">Terminé</string>
     <string name="remaining_time">Il reste %1$s</string>

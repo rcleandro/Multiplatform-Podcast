@@ -12,6 +12,7 @@ private const val MILLIS = 1000
 @OptIn(ExperimentalWasmJsInterop::class)
 class WebPlatformPlayer : PlatformPlayer {
     private var listener: (PlatformEvent) -> Unit = {}
+    private var episode: Episode? = null
 
     private val audio = (window.document.createElement("audio") as HTMLAudioElement).apply {
         onplaying = {
@@ -47,6 +48,7 @@ class WebPlatformPlayer : PlatformPlayer {
     }
 
     override fun load(episode: Episode, positionMs: Long, playWhenReady: Boolean) {
+        this.episode = episode
         updateMediaSessionMetadata(episode.title, episode.podcastTitle.orEmpty(), episode.imageUrl.orEmpty())
         audio.src = episode.localPath ?: episode.audioUrl
         audio.currentTime = positionMs / MILLIS.toDouble()
@@ -78,5 +80,15 @@ class WebPlatformPlayer : PlatformPlayer {
     override fun setSpeed(speed: Float) {
         audio.playbackRate = speed.toDouble()
         audio.defaultPlaybackRate = speed.toDouble()
+    }
+
+    /** The chapter as the browser's title, over the episode's (19.1). */
+    override fun showChapter(title: String?) {
+        val current = episode ?: return
+        updateMediaSessionMetadata(
+            title ?: current.title,
+            if (title == null) current.podcastTitle.orEmpty() else current.title,
+            current.imageUrl.orEmpty(),
+        )
     }
 }

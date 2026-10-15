@@ -39,6 +39,7 @@
     <string name="sleep_timer">수면 타이머</string>
     <string name="queue">재생 대기열</string>
     <string name="queue_short">대기열</string>
+    <string name="chapters">챕터</string>
     <string name="sleep_timer_short">타이머</string>
     <string name="finished">다 들음</string>
     <string name="remaining_time">%1$s 남음</string>

@@ -49,6 +49,7 @@ fun RssEpisode.toEpisode(podcastId: String, podcastTitle: String? = null): Episo
     explicit = explicit,
     season = season,
     type = EpisodeType.of(episodeType),
+    chaptersUrl = chaptersUrl,
     imageUrl = imageUrl,
     duration = parseDuration(duration),
     publishDate = parsePubDate(publishDate),

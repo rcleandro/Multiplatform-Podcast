@@ -44,6 +44,7 @@
     <string name="queue">Cola de reproducción</string>
     <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->
     <string name="queue_short">Cola</string>
+    <string name="chapters">Capítulos</string>
     <string name="sleep_timer_short">Temporizador</string>
     <string name="finished">Finalizado</string>
     <string name="remaining_time">Quedan %1$s</string>

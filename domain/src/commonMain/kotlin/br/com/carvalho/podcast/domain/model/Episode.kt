@@ -30,4 +30,6 @@ data class Episode(
     val lastPlayedAt: Long? = null,
     /** When its download finished (epoch ms), for deleting old downloads (18.19); null if not downloaded since. */
     val downloadedAt: Long? = null,
+    /** `podcast:chapters`: where the feed keeps the episode's chapters as JSON (19.1). */
+    val chaptersUrl: String? = null,
 )

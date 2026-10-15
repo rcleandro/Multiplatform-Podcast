@@ -39,6 +39,7 @@
     <string name="sleep_timer">Timer tidur</string>
     <string name="queue">Antrean</string>
     <string name="queue_short">Antrean</string>
+    <string name="chapters">Bab</string>
     <string name="sleep_timer_short">Timer</string>
     <string name="finished">Selesai</string>
     <string name="remaining_time">Sisa %1$s</string>

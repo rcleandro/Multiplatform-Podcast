@@ -95,7 +95,7 @@ interface EpisodeDao {
         UPDATE episodes
         SET podcastTitle = :podcastTitle, title = :title, description = :description, audioUrl = :audioUrl,
             imageUrl = :imageUrl, duration = :duration, publishDate = :publishDate, link = :link,
-            explicit = :explicit, season = :season, episodeType = :episodeType
+            explicit = :explicit, season = :season, episodeType = :episodeType, chaptersUrl = :chaptersUrl
         WHERE id = :id
     """
     )
@@ -113,6 +113,7 @@ interface EpisodeDao {
         explicit: Boolean,
         season: Int?,
         episodeType: String?,
+        chaptersUrl: String?,
     )
 
     // The podcast row is written here so [saveFeed] can save it with its episodes in one transaction.
@@ -194,6 +195,7 @@ interface EpisodeDao {
                 it.explicit,
                 it.season,
                 it.episodeType,
+                it.chaptersUrl,
             )
         }
     }

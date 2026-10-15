@@ -31,6 +31,7 @@ import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.TabletopFold
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.chapters
 import br.com.carvalho.podcast.core.ui.generated.resources.minimize
 import br.com.carvalho.podcast.core.ui.generated.resources.next
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
@@ -40,6 +41,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_extend
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
+import br.com.carvalho.podcast.domain.model.Chapter
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
@@ -68,6 +70,8 @@ class PlayerContentTest {
         /** The window an app gets on the Razr 60's cover screen, in dp. */
         const val COVER_WIDTH = 469
         const val COVER_HEIGHT = 318
+
+        val CHAPTERS = listOf(Chapter(0, "Intro"), Chapter(60_000, "News"), Chapter(120_000, ""))
         const val FOLD_THICKNESS = 20
 
         /** The aux row under the controls moves them up a bit from the exact center. */
@@ -116,6 +120,23 @@ class PlayerContentTest {
         onNodeWithContentDescription(text(Res.string.sleep_timer_extend), substring = true).performClick()
 
         assertEquals(1, extended)
+    }
+
+    @Test
+    fun theChapterPlayingShowsUnderTheTitleAndTheButtonOpensTheList() = runComposeUiTest {
+        var opened = 0
+        var state by mutableStateOf(PlayerState(currentEpisode = episode("e1")))
+        setContent { PodcastTheme { PlayerContent(state = state, actions = PlayerActions(onChaptersClick = { opened++ })) } }
+        onNodeWithText(text(Res.string.chapters)).assertDoesNotExist()
+
+        state = state.copy(chapters = CHAPTERS, position = 70_000)
+        onNodeWithText("News").assertIsDisplayed()
+        onNodeWithText(text(Res.string.chapters)).performScrollTo().performClick()
+        // A chapter without a title goes by when it starts.
+        state = state.copy(position = 130_000)
+        onNodeWithText("2:00").assertIsDisplayed()
+
+        assertEquals(1, opened)
     }
 
     @Test
@@ -210,8 +231,9 @@ class PlayerContentTest {
         runDesktopComposeUiTest(width = SIDEWAYS_WIDTH, height = SIDEWAYS_HEIGHT) {
             setContent {
                 PodcastTheme {
+                    // With chapters, the most the player shows: their line and button too.
                     PlayerContent(
-                        state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                        state = PlayerState(currentEpisode = episode("e1"), isPlaying = true, chapters = CHAPTERS),
                         actions = PlayerActions(),
                         artworkModifier = Modifier.testTag("cover"),
                     )
@@ -231,7 +253,7 @@ class PlayerContentTest {
         setContent {
             PodcastTheme {
                 PlayerContent(
-                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true, chapters = CHAPTERS),
                     actions = PlayerActions(),
                     artworkModifier = Modifier.testTag("cover"),
                 )

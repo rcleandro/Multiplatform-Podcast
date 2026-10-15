@@ -21,7 +21,7 @@ import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-private enum class PlayerDialog { Speed, SleepTimer }
+private enum class PlayerDialog { Speed, SleepTimer, Chapters }
 
 @Composable
 fun PlayerScreen(
@@ -52,6 +52,7 @@ fun PlayerScreen(
                 onQueueClick = onQueueClick,
                 onSleepTimerClick = { dialog = PlayerDialog.SleepTimer },
                 onExtendSleepTimer = { viewModel.onIntent(PlayerIntent.ExtendSleepTimer) },
+                onChaptersClick = { dialog = PlayerDialog.Chapters },
             ),
         )
         PodcastSnackbarHost(
@@ -61,24 +62,42 @@ fun PlayerScreen(
         )
     }
 
+    dialog?.let { PlayerDialogs(it, playerState, viewModel, onDismiss = { dialog = null }) }
+}
+
+@Composable
+private fun PlayerDialogs(
+    dialog: PlayerDialog,
+    playerState: PlayerState,
+    viewModel: PlayerViewModel,
+    onDismiss: () -> Unit,
+) {
     when (dialog) {
         PlayerDialog.Speed -> SpeedSelectorDialog(
             currentSpeed = playerState.speed,
             onSpeedSelected = {
                 viewModel.onIntent(PlayerIntent.SetSpeed(it))
-                dialog = null
+                onDismiss()
             },
-            onDismiss = { dialog = null }
+            onDismiss = onDismiss
         )
         PlayerDialog.SleepTimer -> SleepTimerDialog(
             playerState = playerState,
             onTimerSelected = {
                 viewModel.onIntent(PlayerIntent.SetSleepTimer(it))
-                dialog = null
+                onDismiss()
             },
-            onDismiss = { dialog = null }
+            onDismiss = onDismiss
         )
-        null -> Unit
+        PlayerDialog.Chapters -> ChaptersDialog(
+            chapters = playerState.chapters,
+            current = playerState.currentChapter,
+            onChapterSelected = {
+                viewModel.onIntent(PlayerIntent.SeekTo(it.startMs))
+                onDismiss()
+            },
+            onDismiss = onDismiss,
+        )
     }
 }
 

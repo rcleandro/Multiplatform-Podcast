@@ -4,6 +4,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
+import androidx.core.os.bundleOf
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackParameters
@@ -20,11 +22,14 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 private const val TAG = "AndroidPlatformPlayer"
+private const val EXTRA_EPISODE_TITLE = "episodeTitle"
+private const val EXTRA_PODCAST_TITLE = "podcastTitle"
 
 /**
  * Media3 through a [MediaController] connected to [PodcastMediaService], which owns the ExoPlayer, the notification
  * and Android Auto. Commands sent before the connection is ready wait for it.
  */
+@Suppress("TooManyFunctions") // the PlatformPlayer interface plus the controller's connection
 class AndroidPlatformPlayer(context: Context) : PlatformPlayer {
     private val controllerFuture = MediaController.Builder(
         context,
@@ -86,6 +91,25 @@ class AndroidPlatformPlayer(context: Context) : PlatformPlayer {
     override fun setSpeed(speed: Float) = command { it.playbackParameters = PlaybackParameters(speed) }
 
     override fun setVolume(volume: Float) = command { it.volume = volume }
+
+    /**
+     * The chapter as the title, over the episode's (19.1); without one, the episode over its podcast. The same item
+     * with new metadata: Media3 swaps it without loading the audio again.
+     */
+    override fun showChapter(title: String?) = command {
+        val item = it.currentMediaItem ?: return@command
+        // A Chromecast would load the episode again; the chapter shows only while the phone plays.
+        if (it.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) return@command
+        val metadata = item.mediaMetadata
+        val episodeTitle = metadata.extras?.getString(EXTRA_EPISODE_TITLE) ?: metadata.title?.toString()
+        val podcastTitle = metadata.extras?.getString(EXTRA_PODCAST_TITLE) ?: metadata.artist?.toString()
+        val shown = metadata.buildUpon()
+            .setTitle(title ?: episodeTitle)
+            .setArtist(if (title == null) podcastTitle else episodeTitle)
+            .setExtras(bundleOf(EXTRA_EPISODE_TITLE to episodeTitle, EXTRA_PODCAST_TITLE to podcastTitle))
+            .build()
+        it.replaceMediaItem(it.currentMediaItemIndex, item.buildUpon().setMediaMetadata(shown).build())
+    }
 
     private fun command(block: (MediaController) -> Unit) {
         controller?.let(block) ?: scope.launch { connected()?.let(block) }

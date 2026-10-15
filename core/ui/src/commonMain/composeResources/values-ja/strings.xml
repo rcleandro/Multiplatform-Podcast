@@ -39,6 +39,7 @@
     <string name="sleep_timer">スリープタイマー</string>
     <string name="queue">キュー</string>
     <string name="queue_short">キュー</string>
+    <string name="chapters">チャプター</string>
     <string name="sleep_timer_short">タイマー</string>
     <string name="finished">再生済み</string>
     <string name="remaining_time">残り %1$s</string>

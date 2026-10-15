@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FastRewind
@@ -43,6 +44,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.PaneLayout
@@ -58,6 +61,7 @@ import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
 import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.chapters
 import br.com.carvalho.podcast.core.ui.generated.resources.minimize
 import br.com.carvalho.podcast.core.ui.generated.resources.next
 import br.com.carvalho.podcast.core.ui.generated.resources.now_playing
@@ -93,6 +97,7 @@ data class PlayerActions(
     val onQueueClick: () -> Unit = {},
     val onSleepTimerClick: () -> Unit = {},
     val onExtendSleepTimer: () -> Unit = {},
+    val onChaptersClick: () -> Unit = {},
 )
 
 /** Stateless full-screen player. */
@@ -151,6 +156,16 @@ fun PlayerContent(
 @Composable
 internal fun PlayerInfoAndControls(state: PlayerState, actions: PlayerActions, showTitle: Boolean = true) {
     if (showTitle) PlayerTitle(state.currentEpisode)
+    state.currentChapter?.let { chapter ->
+        Text(
+            text = chapterLabel(chapter),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
     PlayerSlider(
         positionMs = state.position,
         durationMs = state.knownDurationMs(),
@@ -241,6 +256,15 @@ private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
             active = false,
             onClick = actions.onQueueClick,
         )
+        if (state.chapters.isNotEmpty()) {
+            AuxButton(
+                icon = Icons.AutoMirrored.Rounded.FormatListBulleted,
+                label = stringResource(Res.string.chapters),
+                description = null,
+                active = false,
+                onClick = actions.onChaptersClick,
+            )
+        }
         // While minutes run down, the button shows what is left and "+5 min" sits beside it (18.15).
         val remaining = state.sleepTimerMillis?.takeIf { state.sleepTimer is SleepTimer.Minutes }
         AuxButton(

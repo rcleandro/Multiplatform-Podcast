@@ -43,4 +43,6 @@ data class RssEpisode(
     val episode: Int?,
     /** `itunes:episodeType`: full, trailer or bonus (18.10). */
     val episodeType: String? = null,
+    /** `podcast:chapters` with a JSON type (19.1). */
+    val chaptersUrl: String? = null,
 )

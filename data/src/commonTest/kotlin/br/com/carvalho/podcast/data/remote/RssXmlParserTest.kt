@@ -130,6 +130,26 @@ class RssXmlParserFieldsTest {
     }
 
     @Test
+    fun `reads the JSON chapters under whatever prefix the feed binds the Podcasting 2_0 namespace to`() {
+        val feed = RssXmlParser.parse(
+            """
+            <rss xmlns:p2="https://podcastindex.org/namespace/1.0">
+              <channel>
+                <item>
+                  <enclosure url="https://cdn.example.com/1.mp3"/>
+                  <p2:chapters url="https://example.com/1.psc" type="application/psc+xml"/>
+                  <p2:chapters url=" https://example.com/1.json " type="application/json+chapters"/>
+                </item>
+                <item><enclosure url="https://cdn.example.com/2.mp3"/></item>
+              </channel>
+            </rss>
+            """.trimIndent()
+        )
+
+        assertEquals(listOf("https://example.com/1.json", null), feed.episodes.map { it.chaptersUrl })
+    }
+
+    @Test
     fun `reads the addresses the feed declares for itself`() {
         val feed = RssXmlParser.parse(
             """
