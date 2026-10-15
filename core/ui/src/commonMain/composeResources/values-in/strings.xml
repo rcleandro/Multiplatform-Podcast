@@ -106,6 +106,16 @@
     <string name="saved_empty_title">Belum ada yang disimpan</string>
     <string name="saved_empty_message">Simpan episode dari menu ⋮-nya untuk didengar nanti.</string>
     <string name="filter_history">Riwayat</string>
+    <string name="smart_playlist_new">Playlist baru</string>
+    <string name="smart_playlist_edit">Edit playlist</string>
+    <string name="smart_playlist_name">Nama</string>
+    <string name="smart_playlist_any_category">Semua kategori</string>
+    <string name="smart_playlist_any_length">Durasi apa pun</string>
+    <string name="smart_playlist_length">Hingga %1$d mnt</string>
+    <string name="smart_playlist_play_all">Putar semua</string>
+    <string name="smart_playlist_save">Simpan</string>
+    <string name="smart_playlist_empty_title">Tidak ada yang cocok dengan playlist ini</string>
+    <string name="smart_playlist_empty_message">Episode yang cocok akan muncul di sini saat tiba</string>
     <string name="clear_history">Hapus riwayat</string>
     <string name="clear_history_confirmation">Episode keluar dari riwayat; status sudah didengar dan posisi berhentinya tetap.</string>
     <string name="history_empty_title">Belum ada yang diputar</string>

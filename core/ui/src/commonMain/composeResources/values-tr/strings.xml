@@ -106,6 +106,16 @@
     <string name="saved_empty_title">Henüz kaydedilen bir şey yok</string>
     <string name="saved_empty_message">Sonra dinlemek için bir bölümü ⋮ menüsünden kaydedin.</string>
     <string name="filter_history">Geçmiş</string>
+    <string name="smart_playlist_new">Yeni çalma listesi</string>
+    <string name="smart_playlist_edit">Çalma listesini düzenle</string>
+    <string name="smart_playlist_name">Ad</string>
+    <string name="smart_playlist_any_category">Tüm kategoriler</string>
+    <string name="smart_playlist_any_length">Herhangi bir süre</string>
+    <string name="smart_playlist_length">En fazla %1$d dk</string>
+    <string name="smart_playlist_play_all">Tümünü çal</string>
+    <string name="smart_playlist_save">Kaydet</string>
+    <string name="smart_playlist_empty_title">Bu çalma listesine uyan bir şey yok</string>
+    <string name="smart_playlist_empty_message">Uyan bölümler geldikçe burada görünür</string>
     <string name="clear_history">Geçmişi temizle</string>
     <string name="clear_history_confirmation">Bölümler geçmişten çıkar; dinlenip dinlenmedikleri ve kaldıkları yer aynı kalır.</string>
     <string name="history_empty_title">Henüz bir şey çalınmadı</string>

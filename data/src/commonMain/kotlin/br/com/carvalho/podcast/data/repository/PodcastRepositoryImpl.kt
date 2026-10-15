@@ -9,6 +9,7 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.data.local.dao.PodcastDao
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
+import br.com.carvalho.podcast.data.local.entity.SmartPlaylistEntity
 import br.com.carvalho.podcast.data.mapper.toDomain
 import br.com.carvalho.podcast.data.mapper.toEntity
 import br.com.carvalho.podcast.domain.model.Episode
@@ -16,12 +17,20 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
+import br.com.carvalho.podcast.domain.model.topCategories
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 private const val PAGE_SIZE = 20
+private const val SECONDS_PER_MINUTE = 60L
 private const val IN_PROGRESS_LIMIT = 10
 
 private const val TAG = "PodcastRepository"
@@ -55,6 +64,63 @@ class PodcastRepositoryImpl(
     override suspend fun getEpisodeById(id: String): Episode? {
         return episodeDao.getById(id)?.toDomain()
     }
+
+    override fun getSmartPlaylists(): Flow<List<SmartPlaylist>> = podcastDao.smartPlaylists().map { rows ->
+        rows.map {
+            SmartPlaylist(
+                id = it.id,
+                name = it.name,
+                category = PodcastCategory.entries.firstOrNull { category -> category.name == it.category },
+                unplayedOnly = it.unplayedOnly,
+                downloadedOnly = it.downloadedOnly,
+                maxMinutes = it.maxMinutes,
+            )
+        }
+    }
+
+    override suspend fun saveSmartPlaylist(playlist: SmartPlaylist) = podcastDao.saveSmartPlaylist(
+        SmartPlaylistEntity(
+            id = playlist.id,
+            name = playlist.name.trim(),
+            category = playlist.category?.name,
+            unplayedOnly = playlist.unplayedOnly,
+            downloadedOnly = playlist.downloadedOnly,
+            maxMinutes = playlist.maxMinutes,
+        )
+    )
+
+    override suspend fun deleteSmartPlaylist(id: Long) = podcastDao.deleteSmartPlaylist(id)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getSmartPlaylistEpisodesPaged(playlist: SmartPlaylist): Flow<PagingData<Episode>> =
+        flow { emit(podcastsOf(playlist.category)) }.flatMapLatest { ids ->
+            pagedEpisodes {
+                episodeDao.smartPlaylistPagingSource(
+                    anyPodcast = playlist.category == null,
+                    podcastIds = ids,
+                    onlyUnplayed = playlist.unplayedOnly,
+                    onlyDownloaded = playlist.downloadedOnly,
+                    maxSeconds = playlist.maxSeconds,
+                )
+            }
+        }
+
+    override suspend fun getSmartPlaylistEpisodes(playlist: SmartPlaylist): List<Episode> =
+        episodeDao.smartPlaylist(
+            anyPodcast = playlist.category == null,
+            podcastIds = podcastsOf(playlist.category),
+            onlyUnplayed = playlist.unplayedOnly,
+            onlyDownloaded = playlist.downloadedOnly,
+            maxSeconds = playlist.maxSeconds,
+        ).map { it.toDomain() }
+
+    /** The podcasts of [category], read from their feeds' categories the way the library's chips read them. */
+    private suspend fun podcastsOf(category: PodcastCategory?): List<String> {
+        if (category == null) return emptyList()
+        return podcastDao.getAll().first().map { it.toDomain() }.filter { category in it.topCategories }.map { it.id }
+    }
+
+    private val SmartPlaylist.maxSeconds: Long get() = (maxMinutes ?: 0) * SECONDS_PER_MINUTE
 
     override suspend fun getEpisodesWithHistory(): List<Episode> = episodeDao.getWithHistory().map { it.toDomain() }
     override fun getEpisodes(podcastId: String): Flow<List<Episode>> {

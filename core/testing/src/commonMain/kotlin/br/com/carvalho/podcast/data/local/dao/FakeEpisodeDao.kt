@@ -32,6 +32,22 @@ class FakeEpisodeDao : EpisodeDao {
     ): PagingSource<Int, EpisodeEntity> =
         throw NotImplementedError("Paging is tested against the real database")
 
+    override fun smartPlaylistPagingSource(
+        anyPodcast: Boolean,
+        podcastIds: List<String>,
+        onlyUnplayed: Boolean,
+        onlyDownloaded: Boolean,
+        maxSeconds: Long,
+    ): PagingSource<Int, EpisodeEntity> = throw NotImplementedError("Paging is tested against the real database")
+
+    override suspend fun smartPlaylist(
+        anyPodcast: Boolean,
+        podcastIds: List<String>,
+        onlyUnplayed: Boolean,
+        onlyDownloaded: Boolean,
+        maxSeconds: Long,
+    ): List<EpisodeEntity> = throw NotImplementedError("Smart playlists are tested against the real database")
+
     override suspend fun markStarted(id: String, at: Long) {
         episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false, lastPlayedAt = at) else it }
     }

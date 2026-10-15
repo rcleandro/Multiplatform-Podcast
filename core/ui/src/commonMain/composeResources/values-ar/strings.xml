@@ -106,6 +106,16 @@
     <string name="saved_empty_title">لا شيء محفوظ بعد</string>
     <string name="saved_empty_message">احفظ حلقة من قائمة ⋮ الخاصة بها لتستمع إليها لاحقًا.</string>
     <string name="filter_history">السجل</string>
+    <string name="smart_playlist_new">قائمة تشغيل جديدة</string>
+    <string name="smart_playlist_edit">تعديل قائمة التشغيل</string>
+    <string name="smart_playlist_name">الاسم</string>
+    <string name="smart_playlist_any_category">كل الفئات</string>
+    <string name="smart_playlist_any_length">أي مدة</string>
+    <string name="smart_playlist_length">حتى %1$d دقيقة</string>
+    <string name="smart_playlist_play_all">تشغيل الكل</string>
+    <string name="smart_playlist_save">حفظ</string>
+    <string name="smart_playlist_empty_title">لا شيء يطابق قائمة التشغيل هذه</string>
+    <string name="smart_playlist_empty_message">ستظهر هنا الحلقات المطابقة عند وصولها</string>
     <string name="clear_history">مسح السجل</string>
     <string name="clear_history_confirmation">تخرج الحلقات من السجل؛ ويبقى كونها مسموعة وموضع توقفها كما هو.</string>
     <string name="history_empty_title">لم تشغّل شيئًا بعد</string>

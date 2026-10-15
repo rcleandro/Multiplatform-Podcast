@@ -4,9 +4,9 @@ import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import kotlinx.serialization.Serializable
 
 /**
- * Everything the user built in the app, in one file (19.11): the podcasts in library order with their own settings,
- * what was heard, the queue, the bookmarks and the preferences. Feeds and downloads are not in it: the feeds are read
- * again on restore, and downloads can be made again.
+ * Everything the user built in the app, in one file (19.11): the podcasts in library order with their own
+ * settings, what was heard, the queue, the bookmarks, the smart playlists and the preferences. Feeds and downloads
+ * are not in it: the feeds are read again on restore, and downloads can be made again.
  */
 @Serializable
 data class LibraryBackup(
@@ -17,6 +17,8 @@ data class LibraryBackup(
     val episodes: List<EpisodeBackup> = emptyList(),
     val queue: List<EpisodeRef> = emptyList(),
     val bookmarks: List<BookmarkBackup> = emptyList(),
+    /** The smart playlists (19.4); restored ones keep their filters and get new ids. */
+    val playlists: List<SmartPlaylist> = emptyList(),
     val preferences: PreferencesBackup = PreferencesBackup(),
 ) {
     companion object {

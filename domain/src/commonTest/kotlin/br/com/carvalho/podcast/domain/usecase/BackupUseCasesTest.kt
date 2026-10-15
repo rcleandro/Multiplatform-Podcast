@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.model.SkipIntervals
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
@@ -52,6 +53,7 @@ class BackupUseCasesTest {
         )
         old.playerRepository.addBookmark("a2", BOOKMARK, "the quote")
         old.player.setQueue(listOf(episode("a3", FEED_A), episode("b1", FEED_B)))
+        old.repository.saveSmartPlaylist(SmartPlaylist(name = "Short", unplayedOnly = true, maxMinutes = 30))
         old.preferences.setThemeMode(ThemeMode.DARK)
         old.preferences.setSkipIntervals(SkipIntervals(backwardSeconds = 5, forwardSeconds = 30))
 
@@ -77,6 +79,7 @@ class BackupUseCasesTest {
         assertEquals(POSITION to true, episodes.getValue("a2").let { it.playbackPosition to it.isSaved })
         assertEquals(listOf(BOOKMARK to "the quote"), new.playerRepository.savedBookmarks.value.map { it.positionMs to it.note })
         assertEquals(listOf("a3", "b1"), new.player.queueSet?.map { it.id })
+        assertEquals(listOf("Short" to 30), new.repository.smartPlaylists.value.map { it.name to it.maxMinutes })
         assertEquals(ThemeMode.DARK, new.preferences.themeMode.value)
         assertEquals(SkipIntervals(5, 30), new.preferences.skipIntervals.value)
     }
@@ -91,6 +94,7 @@ class BackupUseCasesTest {
             episode("a3", FEED_A).copy(playbackPosition = POSITION),
         )
         old.playerRepository.addBookmark("a2", BOOKMARK, "")
+        old.repository.saveSmartPlaylist(SmartPlaylist(name = "Short"))
         old.player.setQueue(listOf(episode("a1", FEED_A)))
         val text = old.export().text
 
@@ -114,6 +118,7 @@ class BackupUseCasesTest {
         assertEquals(POSITION * 2, episodes.getValue("a2").playbackPosition)
         assertEquals(POSITION, episodes.getValue("other-id").playbackPosition)
         assertEquals(1, here.playerRepository.bookmarks("a2").first().size)
+        assertEquals(1, here.repository.smartPlaylists.value.size)
         assertEquals(listOf("a2"), here.player.playerState.value.queue.map { it.id })
     }
 

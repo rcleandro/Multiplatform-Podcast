@@ -106,6 +106,16 @@
     <string name="saved_empty_title">Ancora niente di salvato</string>
     <string name="saved_empty_message">Salva un episodio dal suo menu ⋮ per ascoltarlo più tardi.</string>
     <string name="filter_history">Cronologia</string>
+    <string name="smart_playlist_new">Nuova playlist</string>
+    <string name="smart_playlist_edit">Modifica playlist</string>
+    <string name="smart_playlist_name">Nome</string>
+    <string name="smart_playlist_any_category">Tutte le categorie</string>
+    <string name="smart_playlist_any_length">Qualsiasi durata</string>
+    <string name="smart_playlist_length">Fino a %1$d min</string>
+    <string name="smart_playlist_play_all">Riproduci tutto</string>
+    <string name="smart_playlist_save">Salva</string>
+    <string name="smart_playlist_empty_title">Niente corrisponde a questa playlist</string>
+    <string name="smart_playlist_empty_message">Gli episodi che corrispondono appariranno qui quando arrivano</string>
     <string name="clear_history">Cancella la cronologia</string>
     <string name="clear_history_confirmation">Gli episodi escono dalla cronologia; se sono stati ascoltati e dove si sono fermati resta uguale.</string>
     <string name="history_empty_title">Ancora niente riprodotto</string>

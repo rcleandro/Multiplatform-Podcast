@@ -106,6 +106,16 @@
     <string name="saved_empty_title">Rien d’enregistré pour l’instant</string>
     <string name="saved_empty_message">Enregistrez un épisode depuis son menu ⋮ pour l’écouter plus tard.</string>
     <string name="filter_history">Historique</string>
+    <string name="smart_playlist_new">Nouvelle liste</string>
+    <string name="smart_playlist_edit">Modifier la liste</string>
+    <string name="smart_playlist_name">Nom</string>
+    <string name="smart_playlist_any_category">Toutes les catégories</string>
+    <string name="smart_playlist_any_length">Toute durée</string>
+    <string name="smart_playlist_length">Jusqu’à %1$d min</string>
+    <string name="smart_playlist_play_all">Tout lire</string>
+    <string name="smart_playlist_save">Enregistrer</string>
+    <string name="smart_playlist_empty_title">Rien ne correspond à cette liste</string>
+    <string name="smart_playlist_empty_message">Les épisodes qui correspondent apparaîtront ici à leur arrivée</string>
     <string name="clear_history">Effacer l'historique</string>
     <string name="clear_history_confirmation">Les épisodes quittent l'historique ; leur état d'écoute et leur position restent.</string>
     <string name="history_empty_title">Rien écouté pour l’instant</string>

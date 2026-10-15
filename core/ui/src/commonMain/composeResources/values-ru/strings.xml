@@ -106,6 +106,16 @@
     <string name="saved_empty_title">Пока ничего не сохранено</string>
     <string name="saved_empty_message">Сохраните выпуск через его меню ⋮, чтобы послушать позже.</string>
     <string name="filter_history">История</string>
+    <string name="smart_playlist_new">Новый плейлист</string>
+    <string name="smart_playlist_edit">Изменить плейлист</string>
+    <string name="smart_playlist_name">Название</string>
+    <string name="smart_playlist_any_category">Все категории</string>
+    <string name="smart_playlist_any_length">Любая длительность</string>
+    <string name="smart_playlist_length">До %1$d мин</string>
+    <string name="smart_playlist_play_all">Воспроизвести все</string>
+    <string name="smart_playlist_save">Сохранить</string>
+    <string name="smart_playlist_empty_title">Ничего не подходит под этот плейлист</string>
+    <string name="smart_playlist_empty_message">Подходящие выпуски появятся здесь, когда выйдут</string>
     <string name="clear_history">Очистить историю</string>
     <string name="clear_history_confirmation">Выпуски уйдут из истории; отметка о прослушивании и позиция останутся.</string>
     <string name="history_empty_title">Пока ничего не играло</string>

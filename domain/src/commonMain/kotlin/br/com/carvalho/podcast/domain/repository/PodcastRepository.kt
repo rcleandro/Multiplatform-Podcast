@@ -7,6 +7,7 @@ import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import kotlinx.coroutines.flow.Flow
 
 @Suppress("TooManyFunctions") // one function per library query or change
@@ -51,6 +52,17 @@ interface PodcastRepository {
     /** Started and not finished, for "Continue listening". */
     fun getInProgressEpisodes(): Flow<List<Episode>>
     suspend fun getEpisodeById(id: String): Episode?
+
+    /** The saved filters of the Episodes tab (19.4), in the order they were made. */
+    fun getSmartPlaylists(): Flow<List<SmartPlaylist>>
+
+    /** Adds [playlist], or changes the one with its id. */
+    suspend fun saveSmartPlaylist(playlist: SmartPlaylist)
+    suspend fun deleteSmartPlaylist(id: Long)
+
+    /** What matches [playlist] now, newest first. */
+    fun getSmartPlaylistEpisodesPaged(playlist: SmartPlaylist): Flow<PagingData<Episode>>
+    suspend fun getSmartPlaylistEpisodes(playlist: SmartPlaylist): List<Episode>
 
     /** Every episode the user did something with: played, started, saved or in "History" (for the backup, 19.11). */
     suspend fun getEpisodesWithHistory(): List<Episode>

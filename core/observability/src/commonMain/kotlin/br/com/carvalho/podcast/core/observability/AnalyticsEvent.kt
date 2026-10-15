@@ -111,6 +111,13 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
 
     data object DeleteBookmark : AnalyticsEvent("delete_bookmark")
 
+    /** A smart playlist made or changed (19.4); its name and filters stay on the device. */
+    class SaveSmartPlaylist(isNew: Boolean) : AnalyticsEvent("save_smart_playlist", mapOf("is_new" to isNew))
+
+    data object DeleteSmartPlaylist : AnalyticsEvent("delete_smart_playlist")
+
+    class PlaySmartPlaylist(episodes: Int) : AnalyticsEvent("play_smart_playlist", mapOf("episodes" to episodes))
+
     /** Played from a bookmark on the episode's page. */
     data object PlayBookmark : AnalyticsEvent("play_bookmark")
 

@@ -56,6 +56,7 @@ class ExportBackupUseCase(
                     BookmarkBackup(it, bookmark.positionMs, bookmark.note, bookmark.createdAt)
                 }
             },
+            playlists = repository.getSmartPlaylists().first(),
             preferences = PreferencesBackup.of(preferences),
         )
         return BackupExport(backupJson.encodeToString(LibraryBackup.serializer(), backup), podcasts.size)
@@ -90,6 +91,9 @@ class RestoreBackupUseCase(
         if (audioPlayer.playerState.value.queue.isEmpty()) {
             audioPlayer.setQueue(backup.queue.mapNotNull { episodes.find(it) })
         }
+        // A playlist with the same name is the same one: restoring twice adds nothing.
+        val names = repository.getSmartPlaylists().first().map { it.name }.toSet()
+        backup.playlists.filter { it.name !in names }.forEach { repository.saveSmartPlaylist(it.copy(id = 0)) }
         backup.preferences.applyTo(preferences)
         return OpmlImport.of(results)
     }

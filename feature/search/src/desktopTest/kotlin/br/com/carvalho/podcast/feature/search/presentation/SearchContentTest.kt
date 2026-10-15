@@ -10,6 +10,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasScrollToIndexAction
@@ -21,7 +22,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
@@ -43,6 +46,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.clear_history
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_24_hours
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_last_30_days
 import br.com.carvalho.podcast.core.ui.generated.resources.date_group_older
+import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_all_new
 import br.com.carvalho.podcast.core.ui.generated.resources.dismiss_new
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
@@ -51,6 +55,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.filter_all
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_in_progress
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_new
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.go_to_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_older_as_unplayed
@@ -58,11 +63,19 @@ import br.com.carvalho.podcast.core.ui.generated.resources.new_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.save_episode
 import br.com.carvalho.podcast.core.ui.generated.resources.saved_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
+import br.com.carvalho.podcast.core.ui.generated.resources.smart_playlist_length
+import br.com.carvalho.podcast.core.ui.generated.resources.smart_playlist_name
+import br.com.carvalho.podcast.core.ui.generated.resources.smart_playlist_new
+import br.com.carvalho.podcast.core.ui.generated.resources.smart_playlist_play_all
+import br.com.carvalho.podcast.core.ui.generated.resources.smart_playlist_save
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.model.PodcastCategory
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.format.label
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -463,6 +476,68 @@ class SearchContentTest {
     private companion object {
         val MINI_PLAYER = 64.dp
     }
+
+    @Test
+    fun aSmartPlaylistIsAChipThatPlaysAllAndAnotherChipMakesANewOne() = runComposeUiTest {
+        val playlist = SmartPlaylist(id = 1, name = "Short ones", maxMinutes = 30)
+        val episode = Episode(
+            id = "e1", podcastId = "p", title = "Short episode", description = null, audioUrl = "a", imageUrl = null,
+            duration = 600, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null
+        )
+        var state by mutableStateOf(SearchUiState(playlists = listOf(playlist)))
+        val chosen = mutableListOf<SmartPlaylist?>()
+        var played = 0
+        setContent {
+            PodcastTheme {
+                SearchContent(
+                    state = state,
+                    results = flowOf(PagingData.from(listOf(episode))).collectAsLazyPagingItems(),
+                    playerState = PlayerState(),
+                    activeDownloads = emptyMap(),
+                    actions = SearchActions(
+                        onSelectPlaylist = { chosen += it },
+                        onEditPlaylist = { chosen += it },
+                        onPlayPlaylist = { played++ },
+                    ),
+                )
+            }
+        }
+        val newPlaylist = "+ " + text(Res.string.smart_playlist_new)
+
+        onNodeWithText("Short ones").performScrollTo().performClick()
+        onNodeWithText(newPlaylist).performScrollTo().performClick()
+        state = state.copy(playlist = playlist)
+        waitUntilExactlyOneExists(hasText("Short episode"))
+        onNodeWithText(text(Res.string.smart_playlist_play_all)).performClick()
+
+        assertEquals(listOf(playlist, null), chosen)
+        assertEquals(1, played)
+    }
+
+    @Test
+    fun theEditorSavesTheNameAndFiltersAndOnlyASavedPlaylistCanBeDeleted() = runComposeUiTest {
+        var saved: SmartPlaylist? = null
+        var editing by mutableStateOf(SmartPlaylist(name = ""))
+        setContent {
+            PodcastTheme { SmartPlaylistEditor(editing, onSave = { saved = it }, onDelete = {}, onDismiss = {}) }
+        }
+        onNodeWithText(text(Res.string.delete)).assertDoesNotExist()
+        onNodeWithText(text(Res.string.smart_playlist_save)).assertIsNotEnabled()
+
+        onNodeWithText(text(Res.string.smart_playlist_name)).performTextInput("Tech")
+        onNodeWithText(text(PodcastCategory.TECHNOLOGY.label)).performScrollTo().performClick()
+        onNodeWithText(runBlocking { getString(Res.string.smart_playlist_length, 30) }).performScrollTo().performClick()
+        onNodeWithText(text(Res.string.filter_unplayed)).performClick()
+        onNodeWithText(text(Res.string.smart_playlist_save)).performClick()
+
+        assertEquals(
+            SmartPlaylist(name = "Tech", category = PodcastCategory.TECHNOLOGY, unplayedOnly = true, maxMinutes = 30),
+            saved,
+        )
+        editing = SmartPlaylist(id = 1, name = "Tech")
+        onNodeWithText(text(Res.string.delete)).assertExists()
+    }
+
 }
 
 /** All of [items] in one page: enough for the list to go through a real refresh. */

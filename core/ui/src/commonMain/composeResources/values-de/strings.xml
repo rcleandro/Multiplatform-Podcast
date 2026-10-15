@@ -106,6 +106,16 @@
     <string name="saved_empty_title">Noch nichts gespeichert</string>
     <string name="saved_empty_message">Speichere eine Folge über ihr ⋮-Menü, um sie später zu hören.</string>
     <string name="filter_history">Verlauf</string>
+    <string name="smart_playlist_new">Neue Playlist</string>
+    <string name="smart_playlist_edit">Playlist bearbeiten</string>
+    <string name="smart_playlist_name">Name</string>
+    <string name="smart_playlist_any_category">Alle Kategorien</string>
+    <string name="smart_playlist_any_length">Beliebige Länge</string>
+    <string name="smart_playlist_length">Bis %1$d Min.</string>
+    <string name="smart_playlist_play_all">Alle abspielen</string>
+    <string name="smart_playlist_save">Speichern</string>
+    <string name="smart_playlist_empty_title">Nichts passt zu dieser Playlist</string>
+    <string name="smart_playlist_empty_message">Passende Folgen erscheinen hier, sobald sie da sind</string>
     <string name="clear_history">Verlauf löschen</string>
     <string name="clear_history_confirmation">Die Folgen verlassen den Verlauf; ob sie gehört wurden und wo sie stehen, bleibt erhalten.</string>
     <string name="history_empty_title">Noch nichts abgespielt</string>

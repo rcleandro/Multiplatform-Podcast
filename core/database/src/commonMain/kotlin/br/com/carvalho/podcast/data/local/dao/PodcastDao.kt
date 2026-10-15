@@ -6,6 +6,7 @@ import androidx.room3.Transaction
 import androidx.room3.Upsert
 import br.com.carvalho.podcast.data.local.entity.LibraryRow
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.data.local.entity.SmartPlaylistEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -61,4 +62,14 @@ interface PodcastDao {
     suspend fun reorder(ids: List<String>) {
         ids.forEachIndexed { position, id -> setPosition(id, position) }
     }
+
+    /** The saved filters of the Episodes tab (19.4), in the order they were made. */
+    @Query("SELECT * FROM smart_playlists ORDER BY id")
+    fun smartPlaylists(): Flow<List<SmartPlaylistEntity>>
+
+    @Upsert
+    suspend fun saveSmartPlaylist(playlist: SmartPlaylistEntity)
+
+    @Query("DELETE FROM smart_playlists WHERE id = :id")
+    suspend fun deleteSmartPlaylist(id: Long)
 }

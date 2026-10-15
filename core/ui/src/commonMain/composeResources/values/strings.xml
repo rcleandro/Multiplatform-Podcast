@@ -113,6 +113,16 @@
     <string name="saved_empty_title">Nothing saved yet</string>
     <string name="saved_empty_message">Save an episode from its ⋮ menu to hear it later.</string>
     <string name="filter_history">History</string>
+    <string name="smart_playlist_new">New playlist</string>
+    <string name="smart_playlist_edit">Edit playlist</string>
+    <string name="smart_playlist_name">Name</string>
+    <string name="smart_playlist_any_category">Every category</string>
+    <string name="smart_playlist_any_length">Any length</string>
+    <string name="smart_playlist_length">Up to %1$d min</string>
+    <string name="smart_playlist_play_all">Play all</string>
+    <string name="smart_playlist_save">Save</string>
+    <string name="smart_playlist_empty_title">Nothing matches this playlist</string>
+    <string name="smart_playlist_empty_message">Episodes that match it show up here as they arrive</string>
     <string name="clear_history">Clear history</string>
     <string name="clear_history_confirmation">Episodes leave History; whether they were heard and where they stopped stays.</string>
     <string name="history_empty_title">Nothing played yet</string>

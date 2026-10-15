@@ -111,6 +111,16 @@
     <string name="saved_empty_title">Nada guardado todavía</string>
     <string name="saved_empty_message">Guarda un episodio desde su menú ⋮ para escucharlo después.</string>
     <string name="filter_history">Historial</string>
+    <string name="smart_playlist_new">Nueva lista</string>
+    <string name="smart_playlist_edit">Editar lista</string>
+    <string name="smart_playlist_name">Nombre</string>
+    <string name="smart_playlist_any_category">Todas las categorías</string>
+    <string name="smart_playlist_any_length">Cualquier duración</string>
+    <string name="smart_playlist_length">Hasta %1$d min</string>
+    <string name="smart_playlist_play_all">Reproducir todo</string>
+    <string name="smart_playlist_save">Guardar</string>
+    <string name="smart_playlist_empty_title">Nada coincide con esta lista</string>
+    <string name="smart_playlist_empty_message">Los episodios que coincidan aparecerán aquí cuando lleguen</string>
     <string name="clear_history">Borrar historial</string>
     <string name="clear_history_confirmation">Los episodios salen del Historial; si se escucharon y dónde se pararon sigue igual.</string>
     <string name="history_empty_title">Nada reproducido todavía</string>

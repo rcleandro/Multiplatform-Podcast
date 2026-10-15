@@ -106,6 +106,16 @@
     <string name="saved_empty_title">まだ何も保存されていません</string>
     <string name="saved_empty_message">あとで聴くエピソードは ⋮ メニューから保存できます。</string>
     <string name="filter_history">履歴</string>
+    <string name="smart_playlist_new">新しいプレイリスト</string>
+    <string name="smart_playlist_edit">プレイリストを編集</string>
+    <string name="smart_playlist_name">名前</string>
+    <string name="smart_playlist_any_category">すべてのカテゴリ</string>
+    <string name="smart_playlist_any_length">長さ指定なし</string>
+    <string name="smart_playlist_length">%1$d分以内</string>
+    <string name="smart_playlist_play_all">すべて再生</string>
+    <string name="smart_playlist_save">保存</string>
+    <string name="smart_playlist_empty_title">このプレイリストに合うものはありません</string>
+    <string name="smart_playlist_empty_message">条件に合うエピソードが届くとここに表示されます</string>
     <string name="clear_history">履歴を消去</string>
     <string name="clear_history_confirmation">エピソードは履歴から消えますが、再生済みかどうかと再生位置はそのままです。</string>
     <string name="history_empty_title">まだ何も再生していません</string>
