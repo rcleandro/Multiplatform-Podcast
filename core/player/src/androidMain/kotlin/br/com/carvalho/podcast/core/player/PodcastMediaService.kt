@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.core.player
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.audiofx.LoudnessEnhancer
 import android.os.Bundle
 import androidx.annotation.OptIn
@@ -96,13 +97,18 @@ class PodcastMediaService : MediaLibraryService() {
                 )
             }
 
-        // Plays on the phone, or on a Chromecast while a Cast session is on, carrying the position across (18.17).
-        val castPlayer = CastPlayer.Builder(this)
-            .setLocalPlayer(player)
-            .setRemotePlayer(RemoteCastPlayer.Builder(this).setMediaItemConverter(EpisodeCastConverter()).build())
-            .build()
+        // Plays on the phone, or on a Chromecast while a Cast session is on, carrying the position across (18.17). A
+        // watch has no Cast (19.9a): there it is the local player alone.
+        val sessionPlayer: Player = if (packageManager.hasSystemFeature(PackageManager.FEATURE_WATCH)) {
+            player
+        } else {
+            CastPlayer.Builder(this)
+                .setLocalPlayer(player)
+                .setRemotePlayer(RemoteCastPlayer.Builder(this).setMediaItemConverter(EpisodeCastConverter()).build())
+                .build()
+        }
 
-        mediaLibrarySession = MediaLibrarySession.Builder(this, castPlayer, LibraryCallback())
+        mediaLibrarySession = MediaLibrarySession.Builder(this, sessionPlayer, LibraryCallback())
             .apply {
                 sessionActivityPendingIntent?.let { setSessionActivity(it) }
             }

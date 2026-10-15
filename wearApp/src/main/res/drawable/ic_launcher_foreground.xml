@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "On air" glyph from docs/brand/icon.svg, scaled to 75% so the outer waves stay inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.75"
+        android:scaleY="0.75">
+        <path
+            android:fillColor="#1C1B19"
+            android:pathData="M54,32a8,8 0,0 1,8 8v14a8,8 0,0 1,-16 0v-14a8,8 0,0 1,8 -8z" />
+        <path
+            android:pathData="M38,54a16,16 0,0 0,32 0"
+            android:strokeWidth="5"
+            android:strokeColor="#1C1B19"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M54,70v8"
+            android:strokeWidth="5"
+            android:strokeColor="#1C1B19"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M30,34a30,30 0,0 0,0 36M78,34a30,30 0,0 1,0 36"
+            android:strokeWidth="5"
+            android:strokeColor="#1C1B19"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M22,26a42,42 0,0 0,0 52M86,26a42,42 0,0 1,0 52"
+            android:strokeAlpha="0.55"
+            android:strokeWidth="5"
+            android:strokeColor="#1C1B19"
+            android:strokeLineCap="round" />
+    </group>
+</vector>

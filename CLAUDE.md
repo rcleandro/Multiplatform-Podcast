@@ -19,7 +19,7 @@ The pre-commit hook in `config/hooks` runs these; enable it once per clone with
 
 `./gradlew detekt checkModuleDependencies desktopTest` must pass (rule inherited from `GEMINI.md`). Do not commit with Detekt
 violations unless the user explicitly allows it. After touching platform code, also build the affected app
-(`:androidApp:assembleDebug`, `:desktopApp:compileKotlinJvm`, `:webApp:wasmJsBrowserDistribution`,
+(`:androidApp:assembleDebug`, `:wearApp:assembleDebug`, `:desktopApp:compileKotlinJvm`, `:webApp:wasmJsBrowserDistribution`,
 `:shared:iosSimulatorArm64Test`).
 
 ## Code rules
