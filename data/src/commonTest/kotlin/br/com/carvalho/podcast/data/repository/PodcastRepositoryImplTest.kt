@@ -411,6 +411,19 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
+    fun `the backup gets every episode the user touched and none of the others`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val episodes = (1..5).map { episodeEntity.copy(id = "e$it").toDomain() }
+        repository.saveFeed(podcastEntity.toDomain(), episodes)
+        repository.markEpisodeAsPlayed("e1")
+        repository.updateEpisodeProgress("e2", 5_000L)
+        repository.setEpisodeSaved("e3", saved = true)
+        repository.markEpisodeStarted("e4", at = 100L)
+
+        assertEquals(listOf("e1", "e2", "e3", "e4"), repository.getEpisodesWithHistory().map { it.id }.sorted())
+    }
+
+    @Test
     fun `the downloaded filter finds an episode beyond the first page`() = runTest {
         if (!isDatabaseSupported) return@runTest
         database.podcastDao().insert(podcastEntity)

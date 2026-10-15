@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,11 +51,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.language_portuguese
 import br.com.carvalho.podcast.core.ui.generated.resources.language_russian
 import br.com.carvalho.podcast.core.ui.generated.resources.language_spanish
 import br.com.carvalho.podcast.core.ui.generated.resources.language_turkish
-import br.com.carvalho.podcast.core.ui.generated.resources.opml_export_failed
-import br.com.carvalho.podcast.core.ui.generated.resources.opml_exported
-import br.com.carvalho.podcast.core.ui.generated.resources.opml_imported
-import br.com.carvalho.podcast.core.ui.generated.resources.opml_importing
-import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_appearance
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
@@ -70,10 +64,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finis
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_download_next
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_download_next_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_downloads
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml_description
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_import_opml
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_import_opml_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language_ios
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_playback
@@ -85,7 +75,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_backwar
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_forward
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_silence
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_silence_description
-import br.com.carvalho.podcast.core.ui.generated.resources.settings_subscriptions
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme
@@ -102,9 +91,6 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloads
-import br.com.carvalho.podcast.domain.usecase.OpmlImport
-import br.com.carvalho.podcast.presentation.file.rememberTextFilePicker
-import br.com.carvalho.podcast.presentation.file.rememberTextFileSaver
 import br.com.carvalho.podcast.presentation.format.storageSize
 import br.com.carvalho.podcast.presentation.format.text
 import org.jetbrains.compose.resources.StringResource
@@ -151,7 +137,7 @@ fun SettingsContent(
     modifier: Modifier = Modifier,
 ) {
     var picking by rememberSaveable { mutableStateOf<Picker?>(null) }
-    val pickOpml = rememberOpmlFiles(state.opmlToSave, onIntent)
+    val (pickOpml, pickBackup) = rememberSubscriptionFiles(state, onIntent)
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -181,7 +167,7 @@ fun SettingsContent(
                 )
             }
             item { LanguageRow(state.language) { picking = Picker.LANGUAGE } }
-            subscriptionSettings(state.opml, onImport = pickOpml, onExport = { onIntent(SettingsIntent.ExportOpml) })
+            subscriptionSettings(state, pickOpml, pickBackup, onIntent)
             if (canRefreshInBackground) updateSettings(state, onPick = { picking = Picker.REFRESH }, onIntent)
             playbackSettings(state, onIntent)
             state.usedBytes?.let { downloadSettings(it, state, onIntent) { picking = Picker.DELETE_AFTER } }
@@ -296,53 +282,6 @@ private fun LazyListScope.contentAndPrivacySettings(state: SettingsUiState, onIn
     }
 }
 
-/** The file picker for an import, and the save dialog an export opens once its file is ready; returns the picker. */
-@Composable
-private fun rememberOpmlFiles(toSave: String?, onIntent: (SettingsIntent) -> Unit): () -> Unit {
-    val pick = rememberTextFilePicker { onIntent(SettingsIntent.ImportOpml(it)) }
-    val save = rememberTextFileSaver { onIntent(SettingsIntent.OpmlSaved(it)) }
-    LaunchedEffect(toSave) {
-        toSave?.let {
-            onIntent(SettingsIntent.OpmlHandedOver)
-            save(OPML_FILE_NAME, OPML_EXTENSION, it)
-        }
-    }
-    return pick
-}
-
-/** Bringing the library from another app and taking it to one, as OPML (18.13). */
-private fun LazyListScope.subscriptionSettings(status: OpmlStatus, onImport: () -> Unit, onExport: () -> Unit) {
-    item { Section(stringResource(Res.string.settings_subscriptions)) }
-    item {
-        PickerRow(
-            title = stringResource(Res.string.settings_import_opml),
-            value = when (status) {
-                is OpmlStatus.Importing -> stringResource(Res.string.opml_importing, status.done, status.total)
-                is OpmlStatus.Imported -> status.result.let {
-                    if (it == OpmlImport(0, 0, 0)) {
-                        stringResource(Res.string.opml_nothing_to_import)
-                    } else {
-                        stringResource(Res.string.opml_imported, it.added, it.known, it.failed)
-                    }
-                }
-                else -> stringResource(Res.string.settings_import_opml_description)
-            },
-            onClick = { if (status !is OpmlStatus.Importing) onImport() },
-        )
-    }
-    item {
-        PickerRow(
-            title = stringResource(Res.string.settings_export_opml),
-            value = when (status) {
-                is OpmlStatus.Exported -> stringResource(Res.string.opml_exported, status.podcasts)
-                OpmlStatus.ExportFailed -> stringResource(Res.string.opml_export_failed)
-                else -> stringResource(Res.string.settings_export_opml_description)
-            },
-            onClick = onExport,
-        )
-    }
-}
-
 private fun LazyListScope.playbackSettings(state: SettingsUiState, onIntent: (SettingsIntent) -> Unit) {
     val skips = state.skipIntervals
     item { Section(stringResource(Res.string.settings_playback)) }
@@ -436,6 +375,3 @@ private fun LazyListScope.downloadSettings(
         }
     }
 }
-
-private const val OPML_FILE_NAME = "podcasts"
-private const val OPML_EXTENSION = "opml"

@@ -28,6 +28,7 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
+import br.com.carvalho.podcast.core.ui.generated.resources.backup_not_valid
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_importing
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
@@ -36,6 +37,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
@@ -54,11 +57,11 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class SettingsContentTest {
@@ -153,6 +156,8 @@ class SettingsContentTest {
             }
         }
 
+        // Last in the list: scrolled to, below the subscription rows.
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_telemetry)))
         onNodeWithText(text(Res.string.settings_telemetry)).assertIsOff()
         onNodeWithText(text(Res.string.settings_telemetry)).performClick()
 
@@ -253,5 +258,21 @@ class SettingsContentTest {
     private companion object {
         const val GB = 1024L * 1024 * 1024
         const val FIVE_GB_STOP = 5f
+    }
+
+    @Test
+    fun theBackupRowsSayWhatTheyKeepAndRefuseAnotherFile() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        var state by mutableStateOf(SettingsUiState())
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        val list = onNode(hasScrollToNodeAction())
+
+        list.performScrollToNode(hasText(text(Res.string.settings_export_backup)))
+        onNodeWithText(text(Res.string.settings_export_backup_description)).assertExists()
+        onNodeWithText(text(Res.string.settings_export_backup)).performClick()
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.ExportBackup), intents)
+
+        state = state.copy(backup = OpmlStatus.NotABackup)
+        list.performScrollToNode(hasText(text(Res.string.backup_not_valid)))
     }
 }

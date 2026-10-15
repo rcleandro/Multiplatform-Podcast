@@ -1,8 +1,10 @@
 package br.com.carvalho.podcast.domain.model
 
 import br.com.carvalho.podcast.core.AppConfig
+import kotlinx.serialization.Serializable
 
 /** How far the back and forward buttons jump, in seconds (18.5). */
+@Serializable
 data class SkipIntervals(
     val backwardSeconds: Int = AppConfig.SKIP_BACKWARD_SECONDS,
     val forwardSeconds: Int = AppConfig.SKIP_FORWARD_SECONDS,

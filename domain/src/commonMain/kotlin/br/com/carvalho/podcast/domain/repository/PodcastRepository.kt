@@ -51,6 +51,9 @@ interface PodcastRepository {
     /** Started and not finished, for "Continue listening". */
     fun getInProgressEpisodes(): Flow<List<Episode>>
     suspend fun getEpisodeById(id: String): Episode?
+
+    /** Every episode the user did something with: played, started, saved or in "History" (for the backup, 19.11). */
+    suspend fun getEpisodesWithHistory(): List<Episode>
     fun searchEpisodes(query: String): Flow<List<Episode>>
     fun searchEpisodesPaged(
         query: String?,

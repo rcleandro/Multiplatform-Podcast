@@ -14,9 +14,11 @@ import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
+import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,11 +41,14 @@ class SettingsViewModel(
     private val dispatchers: CoroutineDispatchers,
     private val importOpml: ImportOpmlUseCase,
     private val exportOpml: ExportOpmlUseCase,
+    private val exportBackup: ExportBackupUseCase,
+    private val restoreBackup: RestoreBackupUseCase,
 ) : ViewModel() {
     private val usedBytes = MutableStateFlow<Long?>(null)
     private val disk = MutableStateFlow<DiskSpace?>(null)
     private val confirmingDeleteAll = MutableStateFlow(false)
     private val opml = MutableStateFlow(OpmlState())
+    private val backup = MutableStateFlow(OpmlState())
 
     val uiState: StateFlow<SettingsUiState> = combine(
         combine(preferences.themeMode, preferences.skipIntervals, preferences.appLanguage, ::Triple),
@@ -65,7 +70,7 @@ class SettingsViewModel(
             combine(preferences.deleteFinishedDownloads, preferences.deleteDownloadsAfterDays, ::Pair),
             ::Triple
         ),
-        combine(usedBytes, disk, confirmingDeleteAll, opml, ::Measured),
+        combine(usedBytes, disk, confirmingDeleteAll, opml, backup, ::Measured),
     ) { (theme, skips, language), (telemetry, explicit, speech), updates, downloads, measured ->
         val (wifiOnly, refreshHours, notify) = updates
         val (limit, downloadNext, deleting) = downloads
@@ -90,6 +95,8 @@ class SettingsViewModel(
             skipIntervals = skips,
             opml = measured.opml.status,
             opmlToSave = measured.opml.toSave,
+            backup = measured.backup.status,
+            backupToSave = measured.backup.toSave,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
@@ -133,6 +140,24 @@ class SettingsViewModel(
         opml.update { it.copy(toSave = export.opml, exportedCount = export.podcasts) }
     }
 
+    /** Like an OPML import, with the backup's progress and settings after the podcasts (19.11). */
+    private fun restore(text: String?) {
+        if (backup.value.status is OpmlStatus.Importing) return
+        viewModelScope.launch(dispatchers.io) {
+            val result = text?.let {
+                restoreBackup(it) { done, total ->
+                    backup.update { state -> state.copy(status = OpmlStatus.Importing(done, total)) }
+                }
+            }
+            backup.update { it.copy(status = result?.let(OpmlStatus::Imported) ?: OpmlStatus.NotABackup) }
+        }
+    }
+
+    private fun exportAll() = viewModelScope.launch(dispatchers.io) {
+        val export = exportBackup()
+        backup.update { it.copy(toSave = export.text, exportedCount = export.podcasts) }
+    }
+
     @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: SettingsIntent) {
         when (intent) {
@@ -156,9 +181,11 @@ class SettingsViewModel(
             is SettingsIntent.ImportOpml -> import(intent.text)
             SettingsIntent.ExportOpml -> export()
             SettingsIntent.OpmlHandedOver -> opml.update { it.copy(toSave = null) }
-            is SettingsIntent.OpmlSaved -> opml.update {
-                it.copy(status = if (intent.saved) OpmlStatus.Exported(it.exportedCount) else OpmlStatus.ExportFailed)
-            }
+            is SettingsIntent.OpmlSaved -> opml.update { it.saved(intent.saved) }
+            is SettingsIntent.RestoreBackup -> restore(intent.text)
+            SettingsIntent.ExportBackup -> exportAll()
+            SettingsIntent.BackupHandedOver -> backup.update { it.copy(toSave = null) }
+            is SettingsIntent.BackupSaved -> backup.update { it.saved(intent.saved) }
         }
     }
 }
@@ -191,6 +218,10 @@ data class SettingsUiState(
     val opml: OpmlStatus = OpmlStatus.Idle,
     /** An exported OPML waiting for the screen to ask where to save it. */
     val opmlToSave: String? = null,
+    /** What the last backup restore or export did (19.11). */
+    val backup: OpmlStatus = OpmlStatus.Idle,
+    /** An exported backup waiting for the screen to ask where to save it. */
+    val backupToSave: String? = null,
 ) {
     /** The limits the slider stops at, ending with no limit (null). */
     val limitStops: List<Long?> get() = limitStops(disk?.let { it.freeBytes + (usedBytes ?: 0) }, downloadLimitBytes)
@@ -251,6 +282,12 @@ sealed interface SettingsIntent {
     /** The screen took [SettingsUiState.opmlToSave] to the save dialog. */
     data object OpmlHandedOver : SettingsIntent
     data class OpmlSaved(val saved: Boolean) : SettingsIntent
+
+    /** The same steps for the backup (19.11). */
+    data class RestoreBackup(val text: String?) : SettingsIntent
+    data object ExportBackup : SettingsIntent
+    data object BackupHandedOver : SettingsIntent
+    data class BackupSaved(val saved: Boolean) : SettingsIntent
 }
 
 /** OPML import and export (18.13), shown under their rows. */
@@ -262,12 +299,25 @@ sealed interface OpmlStatus {
     data class Imported(val result: OpmlImport) : OpmlStatus
     data class Exported(val podcasts: Int) : OpmlStatus
     data object ExportFailed : OpmlStatus
+
+    /** The file picked to restore is not one of this app's backups. */
+    data object NotABackup : OpmlStatus
 }
 
+/** An import or export of a file, and the exported text waiting to be saved. */
 private data class OpmlState(
     val status: OpmlStatus = OpmlStatus.Idle,
     val toSave: String? = null,
     val exportedCount: Int = 0,
-)
+) {
+    fun saved(saved: Boolean) =
+        copy(status = if (saved) OpmlStatus.Exported(exportedCount) else OpmlStatus.ExportFailed)
+}
 
-private data class Measured(val bytes: Long?, val disk: DiskSpace?, val confirming: Boolean, val opml: OpmlState)
+private data class Measured(
+    val bytes: Long?,
+    val disk: DiskSpace?,
+    val confirming: Boolean,
+    val opml: OpmlState,
+    val backup: OpmlState,
+)

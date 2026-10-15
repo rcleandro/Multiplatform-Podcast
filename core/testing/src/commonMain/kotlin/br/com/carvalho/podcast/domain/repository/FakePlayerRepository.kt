@@ -30,6 +30,8 @@ class FakePlayerRepository : PlayerRepository {
         savedBookmarks.value += Bookmark(id, episodeId, positionMs, note.trim(), createdAt = 0)
     }
 
+    override suspend fun allBookmarks(): List<Bookmark> = savedBookmarks.value
+
     override suspend fun deleteBookmark(id: Long) {
         savedBookmarks.value = savedBookmarks.value.filterNot { it.id == id }
     }

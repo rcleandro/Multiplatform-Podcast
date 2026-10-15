@@ -62,6 +62,10 @@ class FakeEpisodeDao : EpisodeDao {
 
     override suspend fun getById(id: String): EpisodeEntity? = episodes.value.find { it.id == id }
 
+    override suspend fun getWithHistory(): List<EpisodeEntity> = episodes.value.filter {
+        it.isPlayed || it.playbackPosition > 0 || it.isSaved || it.lastPlayedAt != null
+    }
+
     override fun getUnplayed(): Flow<List<EpisodeEntity>> = episodes.map { it.filter { !it.isPlayed } }
 
     override fun getInProgress(limit: Int): Flow<List<EpisodeEntity>> = episodes.map { list ->

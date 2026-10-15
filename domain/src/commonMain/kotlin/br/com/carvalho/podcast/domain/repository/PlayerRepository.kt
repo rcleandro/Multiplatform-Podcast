@@ -14,6 +14,9 @@ interface PlayerRepository {
     /** [note] may be blank: a moment worth coming back to needs no words. */
     suspend fun addBookmark(episodeId: String, positionMs: Long, note: String)
     suspend fun deleteBookmark(id: Long)
+
+    /** Every episode's bookmarks, for the backup (19.11). */
+    suspend fun allBookmarks(): List<Bookmark>
 }
 
 data class PlaybackState(

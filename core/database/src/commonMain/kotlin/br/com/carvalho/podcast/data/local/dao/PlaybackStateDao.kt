@@ -39,6 +39,9 @@ interface PlaybackStateDao {
     @Query("SELECT * FROM bookmarks WHERE episodeId = :episodeId ORDER BY positionMs, id")
     fun bookmarks(episodeId: String): Flow<List<BookmarkEntity>>
 
+    @Query("SELECT * FROM bookmarks ORDER BY episodeId, positionMs, id")
+    suspend fun allBookmarks(): List<BookmarkEntity>
+
     @Insert
     suspend fun insertBookmark(bookmark: BookmarkEntity)
 

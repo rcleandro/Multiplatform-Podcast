@@ -120,6 +120,11 @@
     <string name="opml_nothing_to_import">该文件中没有可导入的播客</string>
     <string name="opml_exported">已保存，包含 %1$d 个播客</string>
     <string name="opml_export_failed">无法保存文件</string>
+    <string name="settings_restore_backup">恢复备份</string>
+    <string name="settings_restore_backup_description">从本应用的备份中恢复节目库、进度、队列、书签和设置</string>
+    <string name="settings_export_backup">导出备份</string>
+    <string name="settings_export_backup_description">将节目库、进度、队列、书签和设置保存到一个文件</string>
+    <string name="backup_not_valid">此文件不是本应用的备份</string>
     <string name="podcast_playback">播放设置</string>
     <string name="speed_general">与播放器相同</string>
     <string name="skip_intro">跳过开头</string>

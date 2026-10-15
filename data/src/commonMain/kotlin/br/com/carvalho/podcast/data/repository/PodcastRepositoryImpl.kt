@@ -56,6 +56,7 @@ class PodcastRepositoryImpl(
         return episodeDao.getById(id)?.toDomain()
     }
 
+    override suspend fun getEpisodesWithHistory(): List<Episode> = episodeDao.getWithHistory().map { it.toDomain() }
     override fun getEpisodes(podcastId: String): Flow<List<Episode>> {
         return episodeDao.getByPodcast(podcastId).map { entities ->
             entities.map { it.toDomain() }

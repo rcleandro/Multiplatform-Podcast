@@ -120,6 +120,11 @@
     <string name="opml_nothing_to_import">Dosyada içe aktarılacak podcast yok</string>
     <string name="opml_exported">%1$d podcast ile kaydedildi</string>
     <string name="opml_export_failed">Dosya kaydedilemedi</string>
+    <string name="settings_restore_backup">Yedeği geri yükle</string>
+    <string name="settings_restore_backup_description">Bu uygulamanın yedeğinden kitaplığı, ilerlemeyi, sırayı, yer imlerini ve ayarları geri getirin</string>
+    <string name="settings_export_backup">Yedeği dışa aktar</string>
+    <string name="settings_export_backup_description">Kitaplığı, ilerlemeyi, sırayı, yer imlerini ve ayarları tek bir dosyaya kaydedin</string>
+    <string name="backup_not_valid">Bu dosya bu uygulamanın yedeği değil</string>
     <string name="podcast_playback">Oynatma ayarları</string>
     <string name="speed_general">Oynatıcıdaki gibi</string>
     <string name="skip_intro">Başlangıcı atla</string>

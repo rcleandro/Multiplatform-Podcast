@@ -125,6 +125,11 @@
     <string name="opml_nothing_to_import">El archivo no tiene podcasts para importar</string>
     <string name="opml_exported">Guardado con %1$d podcasts</string>
     <string name="opml_export_failed">No se pudo guardar el archivo</string>
+    <string name="settings_restore_backup">Restaurar copia de seguridad</string>
+    <string name="settings_restore_backup_description">Recupera biblioteca, progreso, cola, marcadores y ajustes de una copia de esta app</string>
+    <string name="settings_export_backup">Exportar copia de seguridad</string>
+    <string name="settings_export_backup_description">Guarda biblioteca, progreso, cola, marcadores y ajustes en un archivo</string>
+    <string name="backup_not_valid">El archivo no es una copia de seguridad de esta app</string>
     <string name="podcast_playback">Ajustes de reproducción</string>
     <string name="speed_general">La misma del reproductor</string>
     <string name="skip_intro">Saltar el inicio</string>

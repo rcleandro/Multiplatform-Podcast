@@ -80,6 +80,8 @@ class PlayerRepositoryImplTest {
         val marked = repository.bookmarks("e1").first()
         assertEquals(listOf(30_000L to "", 90_000L to "the quote"), marked.map { it.positionMs to it.note })
 
+        assertEquals(listOf("e1", "e1", "e2"), repository.allBookmarks().map { it.episodeId })
+
         repository.deleteBookmark(marked.first().id)
         assertEquals(listOf("the quote"), repository.bookmarks("e1").first().map { it.note })
 

@@ -127,6 +127,11 @@
     <string name="opml_nothing_to_import">The file has no podcasts to import</string>
     <string name="opml_exported">Saved with %1$d podcasts</string>
     <string name="opml_export_failed">The file could not be saved</string>
+    <string name="settings_restore_backup">Restore backup</string>
+    <string name="settings_restore_backup_description">Bring back library, progress, queue, bookmarks and settings from this app's backup</string>
+    <string name="settings_export_backup">Export backup</string>
+    <string name="settings_export_backup_description">Save library, progress, queue, bookmarks and settings in one file</string>
+    <string name="backup_not_valid">This file is not a backup of this app</string>
     <string name="podcast_playback">Playback settings</string>
     <string name="speed_general">As set in the player</string>
     <string name="skip_intro">Skip the start</string>

@@ -115,6 +115,9 @@ class FakePodcastRepository : PodcastRepository {
         return episodes.value.find { it.id == id }
     }
 
+    override suspend fun getEpisodesWithHistory(): List<Episode> = episodes.value.filter {
+        it.isPlayed || it.playbackPosition > 0 || it.isSaved || it.lastPlayedAt != null
+    }
     override fun searchEpisodes(query: String): Flow<List<Episode>> = episodes.map {
         it.filter { e ->
             e.title.contains(

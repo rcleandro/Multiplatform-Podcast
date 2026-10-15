@@ -120,6 +120,11 @@
     <string name="opml_nothing_to_import">File tidak berisi podcast untuk diimpor</string>
     <string name="opml_exported">Disimpan dengan %1$d podcast</string>
     <string name="opml_export_failed">File tidak dapat disimpan</string>
+    <string name="settings_restore_backup">Pulihkan cadangan</string>
+    <string name="settings_restore_backup_description">Kembalikan pustaka, kemajuan, antrean, penanda, dan setelan dari cadangan aplikasi ini</string>
+    <string name="settings_export_backup">Ekspor cadangan</string>
+    <string name="settings_export_backup_description">Simpan pustaka, kemajuan, antrean, penanda, dan setelan dalam satu file</string>
+    <string name="backup_not_valid">File ini bukan cadangan aplikasi ini</string>
     <string name="podcast_playback">Setelan pemutaran</string>
     <string name="speed_general">Sama seperti di pemutar</string>
     <string name="skip_intro">Lewati awal</string>

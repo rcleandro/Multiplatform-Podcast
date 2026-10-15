@@ -37,9 +37,11 @@ class PlayerRepositoryImpl(private val playbackStateDao: PlaybackStateDao) : Pla
     }
 
     override fun bookmarks(episodeId: String): Flow<List<Bookmark>> =
-        playbackStateDao.bookmarks(episodeId).map { rows ->
-            rows.map { Bookmark(it.id, it.episodeId, it.positionMs, it.note, it.createdAt) }
-        }
+        playbackStateDao.bookmarks(episodeId).map { rows -> rows.map { it.toDomain() } }
+
+    override suspend fun allBookmarks(): List<Bookmark> = playbackStateDao.allBookmarks().map { it.toDomain() }
+
+    private fun BookmarkEntity.toDomain() = Bookmark(id, episodeId, positionMs, note, createdAt)
 
     override suspend fun addBookmark(episodeId: String, positionMs: Long, note: String) {
         val bookmark = BookmarkEntity(

@@ -120,6 +120,11 @@
     <string name="opml_nothing_to_import">لا يحتوي الملف على بودكاست لاستيراده</string>
     <string name="opml_exported">حُفظ مع %1$d بودكاست</string>
     <string name="opml_export_failed">تعذّر حفظ الملف</string>
+    <string name="settings_restore_backup">استعادة نسخة احتياطية</string>
+    <string name="settings_restore_backup_description">استرجع المكتبة والتقدم وقائمة الانتظار والعلامات والإعدادات من نسخة احتياطية لهذا التطبيق</string>
+    <string name="settings_export_backup">تصدير نسخة احتياطية</string>
+    <string name="settings_export_backup_description">احفظ المكتبة والتقدم وقائمة الانتظار والعلامات والإعدادات في ملف واحد</string>
+    <string name="backup_not_valid">هذا الملف ليس نسخة احتياطية لهذا التطبيق</string>
     <string name="podcast_playback">إعدادات التشغيل</string>
     <string name="speed_general">كما في المشغّل</string>
     <string name="skip_intro">تخطي البداية</string>

@@ -120,6 +120,11 @@
     <string name="opml_nothing_to_import">Die Datei enthält keine Podcasts zum Importieren</string>
     <string name="opml_exported">Mit %1$d Podcasts gespeichert</string>
     <string name="opml_export_failed">Die Datei konnte nicht gespeichert werden</string>
+    <string name="settings_restore_backup">Sicherung wiederherstellen</string>
+    <string name="settings_restore_backup_description">Mediathek, Fortschritt, Warteschlange, Lesezeichen und Einstellungen aus einer Sicherung dieser App zurückholen</string>
+    <string name="settings_export_backup">Sicherung exportieren</string>
+    <string name="settings_export_backup_description">Mediathek, Fortschritt, Warteschlange, Lesezeichen und Einstellungen in einer Datei speichern</string>
+    <string name="backup_not_valid">Diese Datei ist keine Sicherung dieser App</string>
     <string name="podcast_playback">Wiedergabe-Einstellungen</string>
     <string name="speed_general">Wie im Player</string>
     <string name="skip_intro">Anfang überspringen</string>

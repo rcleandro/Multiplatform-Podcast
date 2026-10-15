@@ -120,6 +120,11 @@
     <string name="opml_nothing_to_import">В файле нет подкастов для импорта</string>
     <string name="opml_exported">Сохранено подкастов: %1$d</string>
     <string name="opml_export_failed">Не удалось сохранить файл</string>
+    <string name="settings_restore_backup">Восстановить из копии</string>
+    <string name="settings_restore_backup_description">Верните медиатеку, прогресс, очередь, закладки и настройки из резервной копии этого приложения</string>
+    <string name="settings_export_backup">Экспорт резервной копии</string>
+    <string name="settings_export_backup_description">Сохраните медиатеку, прогресс, очередь, закладки и настройки в одном файле</string>
+    <string name="backup_not_valid">Этот файл не является резервной копией этого приложения</string>
     <string name="podcast_playback">Настройки воспроизведения</string>
     <string name="speed_general">Как в плеере</string>
     <string name="skip_intro">Пропускать начало</string>
