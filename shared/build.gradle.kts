@@ -130,6 +130,8 @@ kotlin {
             implementation(libs.play.services.wearable)
             implementation(libs.kotlinx.coroutines.play.services)
             implementation(project.dependencies.platform(libs.firebase.bom))
+            // The player's video (19.10).
+            implementation(libs.media3.ui.compose)
         }
 
         // Firebase implementations shared by Android and iOS; Desktop and Web only log.

@@ -14,6 +14,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.core.app.PictureInPictureModeChangedInfo
+import androidx.core.util.Consumer
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -22,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
+import br.com.carvalho.podcast.core.designsystem.LocalPictureInPicture
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.TabletopFold
 import br.com.carvalho.podcast.core.designsystem.tabletopFold
@@ -88,7 +92,13 @@ class MainActivity : AppCompatActivity() {
                 onDispose { }
             }
             val fold by tabletopFolds.collectAsState(initial = null)
-            CompositionLocalProvider(LocalTabletopFold provides fold) {
+            // A video playing when the user leaves the app shrinks to picture-in-picture (19.10).
+            val pictureInPicture by produceState(isInPictureInPictureMode) {
+                val listener = Consumer<PictureInPictureModeChangedInfo> { value = it.isInPictureInPictureMode }
+                addOnPictureInPictureModeChangedListener(listener)
+                awaitDispose { removeOnPictureInPictureModeChangedListener(listener) }
+            }
+            CompositionLocalProvider(LocalTabletopFold provides fold, LocalPictureInPicture provides pictureInPicture) {
                 App(root)
             }
         }

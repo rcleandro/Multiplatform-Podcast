@@ -14,6 +14,7 @@ one to "substituída por ADR NNNN" instead of deleting it.
 | [0007](0007-reordenar-listas.md) | Reordenar listas arrastando: Reorderable, com alça e ações de acessibilidade |
 | [0008](0008-liquid-glass-no-ios.md) | Liquid Glass no iOS: `UITabBar` nativo por cima do Compose, só no iOS 26+ (a ser substituída pela fase 25, iOS em SwiftUI) |
 | [0009](0009-feeds-e-audio-em-http.md) | Feeds e áudio em `http://`: tentar `https` primeiro e cair para `http`; texto claro liberado no Android e no iOS |
+| [0010](0010-video-dos-episodios.md) | Vídeo dos episódios: slot no player preenchido por plataforma (Media3 + PiP no Android, `<video>` na Web, JavaFX no Desktop) |
 
 ## Modelo
 

@@ -52,6 +52,7 @@ internal fun TabletopPlayer(
     actions: PlayerActions,
     fold: TabletopFold,
     artworkModifier: Modifier,
+    video: VideoSurface? = null,
 ) {
     // The fold comes in window pixels; where the player starts in the window says how much of it is above.
     var top by remember { mutableIntStateOf(0) }
@@ -69,7 +70,7 @@ internal fun TabletopPlayer(
                 .padding(start = Spacing.xl, end = Spacing.xl, top = Spacing.s, bottom = Spacing.l),
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)) {
-                PlayerArtwork(state.currentEpisode, artworkModifier)
+                PlayerArtwork(state.currentEpisode, artworkModifier, video)
             }
             PlayerTitle(state.currentEpisode)
         }
@@ -113,7 +114,13 @@ internal fun CoverScreenPlayer(state: PlayerState, actions: PlayerActions) {
  * none is cut off; on a window too narrow for two equal halves the cover is the one that shrinks.
  */
 @Composable
-internal fun SideBySidePlayer(state: PlayerState, actions: PlayerActions, artworkModifier: Modifier, isShort: Boolean) {
+internal fun SideBySidePlayer(
+    state: PlayerState,
+    actions: PlayerActions,
+    artworkModifier: Modifier,
+    isShort: Boolean,
+    video: VideoSurface? = null,
+) {
     // Five controls with the large play button between them, plus some air.
     val controlsWidth = 320.dp
     val spacing = Spacing.xxl
@@ -126,7 +133,7 @@ internal fun SideBySidePlayer(state: PlayerState, actions: PlayerActions, artwor
         val height = maxHeight
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(spacing)) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f).fillMaxHeight()) {
-                PlayerArtwork(state.currentEpisode, artworkModifier)
+                PlayerArtwork(state.currentEpisode, artworkModifier, video)
             }
             // Centered while it fits, scrolling when it does not.
             Column(

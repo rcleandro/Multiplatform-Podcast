@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.LocalPictureInPicture
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.PaneLayout
 import br.com.carvalho.podcast.core.designsystem.Sizes
@@ -98,6 +99,11 @@ data class PlayerActions(
     val onTranscriptClick: () -> Unit = {},
 )
 
+/** Shows the platform's video at the size the modifier gives it (19.10); `null` where the platform shows none. */
+typealias VideoSurface = @Composable (Modifier) -> Unit
+
+private const val VIDEO_ASPECT_RATIO = 16f / 9f
+
 /** Stateless full-screen player. */
 @Composable
 fun PlayerContent(
@@ -105,7 +111,14 @@ fun PlayerContent(
     actions: PlayerActions,
     modifier: Modifier = Modifier,
     artworkModifier: Modifier = Modifier,
+    videoSurface: VideoSurface? = null,
 ) {
+    // Shrunk to picture-in-picture, the window has room for the video alone.
+    val video = videoSurface?.takeIf { state.currentEpisode?.isVideo == true }
+    if (video != null && LocalPictureInPicture.current) {
+        video(modifier.fillMaxSize())
+        return
+    }
     ArtworkBackdrop(imageUrl = state.currentEpisode?.imageUrl, modifier = modifier.fillMaxSize()) {
         Column {
             PodcastTopBar(
@@ -126,13 +139,13 @@ fun PlayerContent(
             val paneLayout = currentPaneLayout()
             val fold = LocalTabletopFold.current
             if (fold != null) {
-                TabletopPlayer(state, actions, fold, artworkModifier)
+                TabletopPlayer(state, actions, fold, artworkModifier, video)
             } else if (isShort && paneLayout == PaneLayout.COMPACT) {
                 CoverScreenPlayer(state, actions)
             } else if (paneLayout != PaneLayout.COMPACT || isShort) {
                 // Wider than a phone held upright, or low: the cover beside the rest instead of above it (21.1,
                 // 21.2), so the play button is in view without scrolling.
-                SideBySidePlayer(state, actions, artworkModifier, isShort)
+                SideBySidePlayer(state, actions, artworkModifier, isShort, video)
             } else {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -142,7 +155,7 @@ fun PlayerContent(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = Spacing.xl, vertical = Spacing.l),
                 ) {
-                    PlayerArtwork(state.currentEpisode, artworkModifier)
+                    PlayerArtwork(state.currentEpisode, artworkModifier, video)
                     PlayerInfoAndControls(state, actions)
                 }
             }
@@ -181,8 +194,20 @@ private const val MS_PER_SECOND = 1000L
 private fun PlayerState.knownDurationMs(): Long =
     duration?.takeIf { it > 0 } ?: ((currentEpisode?.duration ?: 0L) * MS_PER_SECOND)
 
+/** The cover, or the video in its place when the episode has one and the platform shows it (19.10). */
 @Composable
-internal fun PlayerArtwork(episode: Episode?, artworkModifier: Modifier) {
+internal fun PlayerArtwork(episode: Episode?, artworkModifier: Modifier, video: VideoSurface? = null) {
+    if (video != null) {
+        // Wider than the cover, as videos are; the height bounds it the same way.
+        val videoMax = 640.dp
+        video(
+            artworkModifier
+                .widthIn(max = videoMax)
+                .fillMaxWidth()
+                .aspectRatio(VIDEO_ASPECT_RATIO, matchHeightConstraintsFirst = true),
+        )
+        return
+    }
     // The cover takes the phone's width (24.2), up to a size that still leaves the controls in view on a tablet.
     val artworkMax = 360.dp
     PodcastArtwork(

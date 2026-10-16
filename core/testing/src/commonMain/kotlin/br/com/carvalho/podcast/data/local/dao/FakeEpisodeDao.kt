@@ -115,6 +115,7 @@ class FakeEpisodeDao : EpisodeDao {
         chaptersUrl: String?,
         transcriptUrl: String?,
         transcriptType: String?,
+        mediaType: String?,
     ) {
         episodes.value = episodes.value.map {
             if (it.id != id) {
@@ -125,6 +126,7 @@ class FakeEpisodeDao : EpisodeDao {
                     imageUrl = imageUrl, duration = duration, publishDate = publishDate, link = link,
                     explicit = explicit, season = season, episodeType = episodeType,
                     chaptersUrl = chaptersUrl, transcriptUrl = transcriptUrl, transcriptType = transcriptType,
+                    mediaType = mediaType,
                 )
             }
         }

@@ -106,7 +106,7 @@ interface EpisodeDao {
         SET podcastTitle = :podcastTitle, title = :title, description = :description, audioUrl = :audioUrl,
             imageUrl = :imageUrl, duration = :duration, publishDate = :publishDate, link = :link,
             explicit = :explicit, season = :season, episodeType = :episodeType, chaptersUrl = :chaptersUrl,
-            transcriptUrl = :transcriptUrl, transcriptType = :transcriptType
+            transcriptUrl = :transcriptUrl, transcriptType = :transcriptType, mediaType = :mediaType
         WHERE id = :id
     """
     )
@@ -127,6 +127,7 @@ interface EpisodeDao {
         chaptersUrl: String?,
         transcriptUrl: String?,
         transcriptType: String?,
+        mediaType: String?,
     )
 
     // The podcast row is written here so [saveFeed] can save it with its episodes in one transaction.
@@ -237,6 +238,7 @@ interface EpisodeDao {
                 it.chaptersUrl,
                 it.transcriptUrl,
                 it.transcriptType,
+                it.mediaType,
             )
         }
     }

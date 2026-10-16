@@ -63,10 +63,15 @@ class AndroidPlatformPlayer(context: Context) : PlatformPlayer {
         connected()
     }
 
+    /** The service's player, for showing a video episode's picture (19.10); `null` if the service is unreachable. */
+    suspend fun videoPlayer(): Player? = connected()
+
     override fun load(episode: Episode, positionMs: Long, playWhenReady: Boolean) = command {
         val item = MediaItem.Builder()
             .setMediaId(episode.id)
             .setUri(episode.playableUri())
+            // A Chromecast shows a video episode as video (19.10), and the rest as audio.
+            .setMimeType(episode.mediaType?.takeIf { episode.isVideo })
             // A downloaded episode plays from its file; a Chromecast needs the address it came from (18.17).
             .setRequestMetadata(MediaItem.RequestMetadata.Builder().setMediaUri(episode.audioUrl.toUri()).build())
             .setMediaMetadata(

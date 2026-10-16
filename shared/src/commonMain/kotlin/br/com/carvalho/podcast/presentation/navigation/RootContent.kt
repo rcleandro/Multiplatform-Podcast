@@ -70,6 +70,7 @@ import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
 import br.com.carvalho.podcast.feature.settings.presentation.ListeningStatsScreen
 import br.com.carvalho.podcast.feature.settings.presentation.SettingsScreen
+import br.com.carvalho.podcast.presentation.platformVideoSurface
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -132,6 +133,7 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
                 artworkModifier = sharedCover(this),
                 onQueueClick = component::onQueueClicked,
                 onTranscriptClick = component::onTranscriptClicked,
+                videoSurface = platformVideoSurface,
             )
         }
         Overlay(visible = state.isQueueOpen) { QueueScreen(onBack = component::onBackClicked) }

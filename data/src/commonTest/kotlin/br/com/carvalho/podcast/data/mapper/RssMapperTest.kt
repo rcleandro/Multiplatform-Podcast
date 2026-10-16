@@ -79,6 +79,15 @@ class RssMapperTest {
         assertEquals("Podcast Title", episode.podcastTitle)
         assertEquals(5400L, episode.duration)
         assertEquals(1778839200000L, episode.publishDate)
+        assertEquals(false, episode.isVideo)
+    }
+
+    @Test
+    fun `an enclosure of video makes a video episode`() {
+        val episode = createRssEpisode(duration = "60").copy(enclosureType = "video/mp4").toEpisode("p")
+
+        assertEquals("video/mp4", episode.mediaType)
+        assertTrue(episode.isVideo)
     }
 
     @Test

@@ -272,9 +272,13 @@ class MigrationTest {
                 "publishDate, isPlayed, playbackPosition, isDownloaded, fileSize) VALUES " +
                 "('$episodeId', 'p1', 'Podcast', 'Episode', NULL, 'https://audio', NULL, 60, 0, 1, 42000, 1, NULL)"
         )
-        // Before version 5 the queue was a JSON column.
+        // Before version 5 the queue was a JSON column; named columns, since 26 adds queueUpdatedAt.
+        val queueColumn = queueJson?.let { ", queueJson" }.orEmpty()
         val queueValue = queueJson?.let { ", '$it'" }.orEmpty()
-        execSQL("INSERT INTO playback_state VALUES (0, '$episodeId', 42000, 1.0$queueValue)")
+        execSQL(
+            "INSERT INTO playback_state (id, episodeId, position, speed$queueColumn) " +
+                "VALUES (0, '$episodeId', 42000, 1.0$queueValue)"
+        )
     }
 
     @Test
@@ -334,6 +338,15 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version27KnowsNoMediaTypesUntilTheFeedIsReadAgain() = runTest {
+        helper.createDatabase(MEDIA_TYPE_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(MEDIA_TYPE_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE mediaType IS NULL"))
+        }
+    }
+
     private fun SQLiteConnection.text(sql: String): String = prepare(sql).use { statement ->
         statement.step()
         statement.getText(0)
@@ -364,7 +377,8 @@ class MigrationTest {
         const val LISTENING_VERSION = 24
         const val TRANSCRIPTS_VERSION = 25
         const val SYNC_VERSION = 26
-        const val CURRENT_VERSION = 26
+        const val MEDIA_TYPE_VERSION = 27
+        const val CURRENT_VERSION = 27
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

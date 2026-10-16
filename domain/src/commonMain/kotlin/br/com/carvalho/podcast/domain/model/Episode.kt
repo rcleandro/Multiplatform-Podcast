@@ -37,4 +37,9 @@ data class Episode(
     val transcriptType: String? = null,
     /** When played or progress last changed (epoch ms), here or on a synced device (19.9b); 0 never. */
     val updatedAt: Long = 0,
-)
+    /** The enclosure's type as the feed gives it (`audio/mpeg`, `video/mp4`); null when it gives none (19.10). */
+    val mediaType: String? = null,
+) {
+    /** A video episode: the player shows its picture where the platform can (19.10). */
+    val isVideo: Boolean get() = mediaType?.startsWith("video/", ignoreCase = true) == true
+}

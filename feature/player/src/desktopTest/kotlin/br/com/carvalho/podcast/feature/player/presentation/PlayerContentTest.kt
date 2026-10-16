@@ -25,6 +25,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.LocalPictureInPicture
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.Motion
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
@@ -153,6 +154,77 @@ class PlayerContentTest {
         onNodeWithText(text(Res.string.transcript)).performScrollTo().performClick()
 
         assertEquals(1, opened)
+    }
+
+    private val video: VideoSurface = { modifier -> Box(modifier.testTag("video")) }
+
+    private fun videoEpisode() = episode("v1").copy(mediaType = "video/mp4")
+
+    @Test
+    fun aVideoEpisodeShowsTheVideoWhereTheCoverWas() = runDesktopComposeUiTest(width = WIDE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = videoEpisode(), isPlaying = true),
+                    actions = PlayerActions(),
+                    videoSurface = video,
+                )
+            }
+        }
+        val bounds = onNodeWithTag("video").assertIsDisplayed().getBoundsInRoot()
+        val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+        assertTrue(bounds.right <= play.left, "video $bounds should be left of the play button $play")
+        assertTrue(bounds.right - bounds.left > bounds.bottom - bounds.top, "a video is wider than tall: $bounds")
+    }
+
+    @Test
+    fun anAudioEpisodeKeepsItsCoverWhereVideoIsShown() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                PlayerContent(state = PlayerState(currentEpisode = episode("e1")), actions = PlayerActions(), videoSurface = video)
+            }
+        }
+        onNodeWithTag("video").assertDoesNotExist()
+    }
+
+    @Test
+    fun halfOpenOnATableTheVideoIsAboveTheFold() = runDesktopComposeUiTest(width = PHONE, height = TALL) {
+        val fold = TabletopFold(top = FOLD_TOP, bottom = FOLD_TOP + FOLD_THICKNESS)
+        setContent {
+            PodcastTheme {
+                CompositionLocalProvider(LocalTabletopFold provides fold) {
+                    PlayerContent(
+                        state = PlayerState(currentEpisode = videoEpisode(), isPlaying = true),
+                        actions = PlayerActions(),
+                        videoSurface = video,
+                    )
+                }
+            }
+        }
+        val bounds = onNodeWithTag("video").getBoundsInRoot()
+
+        assertTrue(bounds.bottom.value <= fold.top, "video $bounds should be above the fold at ${fold.top}")
+    }
+
+    @Test
+    fun inPictureInPictureOnlyTheVideoShows() = runDesktopComposeUiTest(width = PHONE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                CompositionLocalProvider(LocalPictureInPicture provides true) {
+                    PlayerContent(
+                        state = PlayerState(currentEpisode = videoEpisode(), isPlaying = true),
+                        actions = PlayerActions(),
+                        videoSurface = video,
+                    )
+                }
+            }
+        }
+        val window = onRoot().getBoundsInRoot()
+
+        assertEquals(window, onNodeWithTag("video").getBoundsInRoot())
+        onNodeWithContentDescription(text(Res.string.pause)).assertDoesNotExist()
+        onNodeWithContentDescription(text(Res.string.minimize)).assertDoesNotExist()
     }
 
     @Test

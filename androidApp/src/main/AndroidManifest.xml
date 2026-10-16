@@ -68,10 +68,13 @@
                 android:resource="@xml/player_widget_info" />
         </receiver>
 
-        <!-- singleTask: a link opened from another app comes to the app already running, not to a second copy. -->
+        <!-- singleTask: a link opened from another app comes to the app already running, not to a second copy.
+             A video episode shrinks to picture-in-picture (19.10) without the activity starting again. -->
         <activity
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:exported="true"
             android:launchMode="singleTask"
+            android:supportsPictureInPicture="true"
             android:name="br.com.carvalho.podcast.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

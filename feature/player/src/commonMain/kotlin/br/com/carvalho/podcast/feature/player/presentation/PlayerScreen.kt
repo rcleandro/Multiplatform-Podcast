@@ -30,6 +30,7 @@ fun PlayerScreen(
     artworkModifier: Modifier = Modifier,
     onQueueClick: () -> Unit = {},
     onTranscriptClick: () -> Unit = {},
+    videoSurface: VideoSurface? = null,
 ) {
     val playerState by viewModel.playerState.collectAsState()
     var dialog by remember { mutableStateOf<PlayerDialog?>(null) }
@@ -40,6 +41,7 @@ fun PlayerScreen(
         PlayerContent(
             state = playerState,
             artworkModifier = artworkModifier,
+            videoSurface = videoSurface,
             actions = PlayerActions(
                 onShare = share,
                 onMinimize = onBackClick,

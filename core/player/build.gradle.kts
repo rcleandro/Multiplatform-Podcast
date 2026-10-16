@@ -36,9 +36,10 @@ kotlin {
                     else -> "mac"
                 }
 
-                // JavaFX ships per-OS jars; the classifier picks the one for the machine that builds.
-                listOf(libs.javafx.media, libs.javafx.graphics, libs.javafx.base).forEach {
-                    implementation("${it.get().module}:$javafxVersion:$classifier")
+                // JavaFX ships per-OS jars; the classifier picks the one for the machine that builds. Exposed so the
+                // app's window can show the player's video (javafx-swing, 19.10).
+                listOf(libs.javafx.media, libs.javafx.graphics, libs.javafx.base, libs.javafx.swing).forEach {
+                    api("${it.get().module}:$javafxVersion:$classifier")
                 }
             }
         }
