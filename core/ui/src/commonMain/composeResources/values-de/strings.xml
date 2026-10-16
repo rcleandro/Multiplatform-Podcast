@@ -113,6 +113,7 @@
     <string name="saved_empty_title">Noch nichts gespeichert</string>
     <string name="saved_empty_message">Speichere eine Folge über ihr ⋮-Menü, um sie später zu hören.</string>
     <string name="filter_history">Verlauf</string>
+    <string name="smart_playlists">Playlists</string>
     <string name="smart_playlist_new">Neue Playlist</string>
     <string name="smart_playlist_edit">Playlist bearbeiten</string>
     <string name="smart_playlist_name">Name</string>

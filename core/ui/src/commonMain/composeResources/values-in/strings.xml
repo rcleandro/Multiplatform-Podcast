@@ -113,6 +113,7 @@
     <string name="saved_empty_title">Belum ada yang disimpan</string>
     <string name="saved_empty_message">Simpan episode dari menu ⋮-nya untuk didengar nanti.</string>
     <string name="filter_history">Riwayat</string>
+    <string name="smart_playlists">Playlist</string>
     <string name="smart_playlist_new">Playlist baru</string>
     <string name="smart_playlist_edit">Edit playlist</string>
     <string name="smart_playlist_name">Nama</string>

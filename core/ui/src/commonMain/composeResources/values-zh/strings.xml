@@ -113,6 +113,7 @@
     <string name="saved_empty_title">还没有收藏</string>
     <string name="saved_empty_message">从单集的 ⋮ 菜单收藏，稍后再听。</string>
     <string name="filter_history">历史记录</string>
+    <string name="smart_playlists">播放列表</string>
     <string name="smart_playlist_new">新建播放列表</string>
     <string name="smart_playlist_edit">编辑播放列表</string>
     <string name="smart_playlist_name">名称</string>

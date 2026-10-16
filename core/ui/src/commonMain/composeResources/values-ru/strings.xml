@@ -113,6 +113,7 @@
     <string name="saved_empty_title">Пока ничего не сохранено</string>
     <string name="saved_empty_message">Сохраните выпуск через его меню ⋮, чтобы послушать позже.</string>
     <string name="filter_history">История</string>
+    <string name="smart_playlists">Плейлисты</string>
     <string name="smart_playlist_new">Новый плейлист</string>
     <string name="smart_playlist_edit">Изменить плейлист</string>
     <string name="smart_playlist_name">Название</string>

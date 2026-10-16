@@ -113,6 +113,7 @@
     <string name="saved_empty_title">まだ何も保存されていません</string>
     <string name="saved_empty_message">あとで聴くエピソードは ⋮ メニューから保存できます。</string>
     <string name="filter_history">履歴</string>
+    <string name="smart_playlists">プレイリスト</string>
     <string name="smart_playlist_new">新しいプレイリスト</string>
     <string name="smart_playlist_edit">プレイリストを編集</string>
     <string name="smart_playlist_name">名前</string>

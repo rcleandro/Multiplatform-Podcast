@@ -113,6 +113,7 @@
     <string name="saved_empty_title">Rien d’enregistré pour l’instant</string>
     <string name="saved_empty_message">Enregistrez un épisode depuis son menu ⋮ pour l’écouter plus tard.</string>
     <string name="filter_history">Historique</string>
+    <string name="smart_playlists">Listes</string>
     <string name="smart_playlist_new">Nouvelle liste</string>
     <string name="smart_playlist_edit">Modifier la liste</string>
     <string name="smart_playlist_name">Nom</string>

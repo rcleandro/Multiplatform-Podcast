@@ -113,6 +113,7 @@
     <string name="saved_empty_title">Henüz kaydedilen bir şey yok</string>
     <string name="saved_empty_message">Sonra dinlemek için bir bölümü ⋮ menüsünden kaydedin.</string>
     <string name="filter_history">Geçmiş</string>
+    <string name="smart_playlists">Çalma listeleri</string>
     <string name="smart_playlist_new">Yeni çalma listesi</string>
     <string name="smart_playlist_edit">Çalma listesini düzenle</string>
     <string name="smart_playlist_name">Ad</string>

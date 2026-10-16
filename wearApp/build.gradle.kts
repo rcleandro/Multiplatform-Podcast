@@ -45,6 +45,8 @@ dependencies {
     implementation(project(":feature:podcast"))
     implementation(project(":feature:player"))
     implementation(project(":feature:discover"))
+    implementation(project(":feature:search"))
+    implementation(project(":feature:episode"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.wear.compose.material3)
     implementation(libs.wear.compose.navigation)

@@ -69,3 +69,7 @@ val generateFeedFixtures by tasks.registering {
 kotlin.sourceSets.commonTest {
     kotlin.srcDir(generateFeedFixtures)
 }
+// Lint reads the host tests' sources too, generated fixtures included: it waits for them like the compiler does.
+tasks.matching { it.name.contains("lint", ignoreCase = true) && it.name.contains("AndroidHostTest") }.configureEach {
+    dependsOn(generateFeedFixtures)
+}

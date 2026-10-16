@@ -30,12 +30,17 @@ import br.com.carvalho.podcast.core.designsystem.DarkColorScheme
 import br.com.carvalho.podcast.core.designsystem.onestFontFamily
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.audio_output
+import br.com.carvalho.podcast.core.ui.generated.resources.cancel_download
+import br.com.carvalho.podcast.core.ui.generated.resources.download_cd
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_downloading
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_played
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_playing
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
+import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
+import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
+import br.com.carvalho.podcast.core.ui.generated.resources.smart_playlists
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribed
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribing
 import br.com.carvalho.podcast.core.ui.generated.resources.volume
@@ -45,7 +50,10 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
+import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailIntent
+import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailUiState
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
@@ -66,6 +74,12 @@ class WearScreensTest {
     val compose = createComposeRule()
 
     private fun text(res: StringResource) = runBlocking { getString(res) }
+
+    /** Lists compose only what is near the screen: scroll the item in first. */
+    private fun tapAfterScrolling(label: String) {
+        compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText(label))
+        compose.onNodeWithText(label).performClick()
+    }
 
     private val podcast = Podcast(
         id = "p1", title = "Hipsters", description = "", imageUrl = null, author = null, language = null,
@@ -94,6 +108,7 @@ class WearScreensTest {
         }
 
         compose.onNodeWithText("Como funciona o Pix").performClick()
+        compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Hipsters"))
         compose.onNodeWithText("Hipsters").performClick()
 
         assertEquals(listOf("player", "p1"), opened)
@@ -216,7 +231,7 @@ class WearScreensTest {
     @Test
     fun eachEpisodeSaysWhereItStands() {
         var row by mutableStateOf(Triple(episode, false, null as DownloadStatus?))
-        watch { EpisodeButton(row.first, isPlaying = row.second, download = row.third, onPlay = {}, onDownload = {}) }
+        watch { EpisodeButton(row.first, isPlaying = row.second, download = row.third, onPlay = {}, onActions = {}) }
         fun says(res: StringResource) = compose.onNodeWithText(text(res), substring = true).assertExists()
 
         row = Triple(episode, true, null)
@@ -280,5 +295,64 @@ class WearScreensTest {
 
         assertEquals(listOf("e2"), played)
         assertEquals(listOf("e2"), removed)
+    }
+
+    @Test
+    fun anEpisodesActionsQueueDownloadAndMarkIt() {
+        val intents = mutableListOf<EpisodeDetailIntent>()
+        var state by mutableStateOf(EpisodeDetailUiState(episode = episode))
+        watch { EpisodeActionsContent(state) { intents += it } }
+
+        compose.onNodeWithText(text(Res.string.play_next)).performClick()
+        tapAfterScrolling(text(Res.string.download_cd))
+        tapAfterScrolling(text(Res.string.mark_as_played))
+        state = state.copy(downloadStatus = DownloadStatus.Downloading(0.5f, 5, 10))
+        compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.cancel_download)))
+
+        assertEquals(
+            listOf(EpisodeDetailIntent.Enqueue(next = true), EpisodeDetailIntent.Download, EpisodeDetailIntent.MarkPlayed),
+            intents,
+        )
+    }
+
+    @Test
+    fun theHomeOpensDownloadsAndPlaylistsAndAPlaylistOpensByItsId() {
+        val opened = mutableListOf<String>()
+        watch {
+            HomeContent(
+                podcasts = emptyList(),
+                playing = null,
+                onPlayer = {},
+                onPopular = {},
+                onPodcast = {},
+                onDownloads = { opened += "downloads" },
+                onPlaylists = { opened += "playlists" },
+            )
+        }
+        compose.onNodeWithText(text(Res.string.filter_downloaded)).performClick()
+        compose.onNodeWithText(text(Res.string.smart_playlists)).performClick()
+
+        assertEquals(listOf("downloads", "playlists"), opened)
+    }
+
+    @Test
+    fun aPlaylistOpensByItsId() {
+        var opened: Long? = null
+        watch { PlaylistsContent(listOf(SmartPlaylist(id = 7, name = "Curtos")), onPlaylist = { opened = it }) }
+
+        compose.onNodeWithText("Curtos").performClick()
+
+        assertEquals(7L, opened)
+    }
+
+    @Test
+    fun aUsualPlaylistIsMadeWithATapWhenThereIsNoKeyboard() {
+        val made = mutableListOf<SmartPlaylist>()
+        val preset = SmartPlaylist(name = "Não ouvidos", unplayedOnly = true)
+        watch { PlaylistsContent(emptyList(), onPlaylist = {}, presets = listOf(preset), onCreate = { made += it }) }
+
+        compose.onNodeWithText("Não ouvidos").performClick()
+
+        assertEquals(listOf(preset), made)
     }
 }

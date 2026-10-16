@@ -113,6 +113,7 @@
     <string name="saved_empty_title">لا شيء محفوظ بعد</string>
     <string name="saved_empty_message">احفظ حلقة من قائمة ⋮ الخاصة بها لتستمع إليها لاحقًا.</string>
     <string name="filter_history">السجل</string>
+    <string name="smart_playlists">قوائم التشغيل</string>
     <string name="smart_playlist_new">قائمة تشغيل جديدة</string>
     <string name="smart_playlist_edit">تعديل قائمة التشغيل</string>
     <string name="smart_playlist_name">الاسم</string>

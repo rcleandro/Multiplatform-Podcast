@@ -14,10 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.BluetoothAudio
-import androidx.compose.material.icons.rounded.Forward30
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -74,6 +72,8 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
+import br.com.carvalho.podcast.feature.player.presentation.skipBackwardIcon
+import br.com.carvalho.podcast.feature.player.presentation.skipForwardIcon
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -250,7 +250,10 @@ private fun PlayerControls(state: PlayerState, onIntent: (PlayerIntent) -> Unit,
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { onIntent(PlayerIntent.SkipBackward) }) {
-                Icon(Icons.Rounded.Replay10, stringResource(Res.string.skip_backward, skips.backwardSeconds))
+                Icon(
+                    skipBackwardIcon(skips.backwardSeconds),
+                    stringResource(Res.string.skip_backward, skips.backwardSeconds),
+                )
             }
             FilledIconButton(onClick = { onIntent(PlayerIntent.PlayPause) }, modifier = Modifier.size(playSize)) {
                 Icon(
@@ -259,7 +262,10 @@ private fun PlayerControls(state: PlayerState, onIntent: (PlayerIntent) -> Unit,
                 )
             }
             IconButton(onClick = { onIntent(PlayerIntent.SkipForward) }) {
-                Icon(Icons.Rounded.Forward30, stringResource(Res.string.skip_forward, skips.forwardSeconds))
+                Icon(
+                    skipForwardIcon(skips.forwardSeconds),
+                    stringResource(Res.string.skip_forward, skips.forwardSeconds),
+                )
             }
         }
         Row {

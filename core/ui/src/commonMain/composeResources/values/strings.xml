@@ -120,6 +120,7 @@
     <string name="saved_empty_title">Nothing saved yet</string>
     <string name="saved_empty_message">Save an episode from its ⋮ menu to hear it later.</string>
     <string name="filter_history">History</string>
+    <string name="smart_playlists">Playlists</string>
     <string name="smart_playlist_new">New playlist</string>
     <string name="smart_playlist_edit">Edit playlist</string>
     <string name="smart_playlist_name">Name</string>

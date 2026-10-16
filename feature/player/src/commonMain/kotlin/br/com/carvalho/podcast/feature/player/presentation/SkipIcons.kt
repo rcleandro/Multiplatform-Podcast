@@ -12,14 +12,14 @@ import androidx.compose.material.icons.rounded.Replay5
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /** The icon with the jump's number when Material has one (5, 10, 30 s); a plain arrow otherwise. */
-internal fun skipForwardIcon(seconds: Int): ImageVector = when (seconds) {
+fun skipForwardIcon(seconds: Int): ImageVector = when (seconds) {
     SHORT_JUMP -> Icons.Rounded.Forward5
     MEDIUM_JUMP -> Icons.Rounded.Forward10
     LONG_JUMP -> Icons.Rounded.Forward30
     else -> Icons.Rounded.FastForward
 }
 
-internal fun skipBackwardIcon(seconds: Int): ImageVector = when (seconds) {
+fun skipBackwardIcon(seconds: Int): ImageVector = when (seconds) {
     SHORT_JUMP -> Icons.Rounded.Replay5
     MEDIUM_JUMP -> Icons.Rounded.Replay10
     LONG_JUMP -> Icons.Rounded.Replay30

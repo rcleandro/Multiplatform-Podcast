@@ -113,6 +113,7 @@
     <string name="saved_empty_title">अभी कुछ सेव नहीं किया</string>
     <string name="saved_empty_message">बाद में सुनने के लिए किसी एपिसोड को उसके ⋮ मेन्यू से सेव करें।</string>
     <string name="filter_history">इतिहास</string>
+    <string name="smart_playlists">प्लेलिस्ट</string>
     <string name="smart_playlist_new">नई प्लेलिस्ट</string>
     <string name="smart_playlist_edit">प्लेलिस्ट संपादित करें</string>
     <string name="smart_playlist_name">नाम</string>

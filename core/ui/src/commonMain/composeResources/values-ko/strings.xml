@@ -113,6 +113,7 @@
     <string name="saved_empty_title">아직 저장한 항목이 없습니다</string>
     <string name="saved_empty_message">나중에 들을 에피소드는 ⋮ 메뉴에서 저장하세요.</string>
     <string name="filter_history">기록</string>
+    <string name="smart_playlists">재생목록</string>
     <string name="smart_playlist_new">새 재생목록</string>
     <string name="smart_playlist_edit">재생목록 편집</string>
     <string name="smart_playlist_name">이름</string>

@@ -118,6 +118,7 @@
     <string name="saved_empty_title">Nada guardado todavía</string>
     <string name="saved_empty_message">Guarda un episodio desde su menú ⋮ para escucharlo después.</string>
     <string name="filter_history">Historial</string>
+    <string name="smart_playlists">Listas</string>
     <string name="smart_playlist_new">Nueva lista</string>
     <string name="smart_playlist_edit">Editar lista</string>
     <string name="smart_playlist_name">Nombre</string>
