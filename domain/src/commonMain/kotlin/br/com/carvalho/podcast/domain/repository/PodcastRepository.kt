@@ -66,6 +66,18 @@ interface PodcastRepository {
 
     /** Every episode the user did something with: played, started, saved or in "History" (for the backup, 19.11). */
     suspend fun getEpisodesWithHistory(): List<Episode>
+
+    /** Every episode played or begun, with when it changed, for the library sync (19.9b). */
+    suspend fun getSyncedEpisodes(): List<Episode>
+
+    /** The latest of those changes, to know when there is something new to sync. */
+    fun lastEpisodeChange(): Flow<Long>
+
+    /** Played and progress as a synced device had them at [updatedAt] (19.9b). */
+    suspend fun applyEpisodeState(id: String, played: Boolean, position: Long, updatedAt: Long)
+
+    /** The podcasts taken out of the library: feed address and when (19.9b). */
+    suspend fun getRemovedPodcasts(): Map<String, Long>
     fun searchEpisodes(query: String): Flow<List<Episode>>
     fun searchEpisodesPaged(
         query: String?,

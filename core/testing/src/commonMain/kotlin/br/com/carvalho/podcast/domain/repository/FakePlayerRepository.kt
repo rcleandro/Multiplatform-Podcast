@@ -15,9 +15,15 @@ class FakePlayerRepository : PlayerRepository {
     /** Every episode's bookmarks, in the order they were added. */
     val savedBookmarks = MutableStateFlow<List<Bookmark>>(emptyList())
 
-    override suspend fun savePlaybackState(episodeId: String?, position: Long, speed: Float, queue: List<Episode>) {
+    override suspend fun savePlaybackState(
+        episodeId: String?,
+        position: Long,
+        speed: Float,
+        queue: List<Episode>,
+        queueUpdatedAt: Long,
+    ) {
         saveCount++
-        savedPlaybackState = PlaybackState(episodeId, position, speed, queue)
+        savedPlaybackState = PlaybackState(episodeId, position, speed, queue, queueUpdatedAt)
     }
 
     override suspend fun getSavedPlaybackState(): PlaybackState? = savedPlaybackState

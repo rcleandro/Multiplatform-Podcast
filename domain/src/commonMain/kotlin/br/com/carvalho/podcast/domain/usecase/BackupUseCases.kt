@@ -144,7 +144,7 @@ class RestoreBackupUseCase(
 }
 
 /** The episodes of the restored podcasts, read once per podcast, by id first and by audio address otherwise. */
-private class EpisodeFinder(private val repository: PodcastRepository, private val podcastIds: Map<String, String>) {
+internal class EpisodeFinder(private val repository: PodcastRepository, private val podcastIds: Map<String, String>) {
     private val loaded = mutableMapOf<String, List<Episode>>()
 
     suspend fun find(ref: EpisodeRef): Episode? {

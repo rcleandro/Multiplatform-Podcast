@@ -247,12 +247,20 @@ interface EpisodeDao {
     @Query(
         """
         UPDATE episodes
-        SET isPlayed = :played, playbackPosition = :position,
+        SET isPlayed = :played, playbackPosition = :position, updatedAt = :updatedAt,
             isNew = CASE WHEN :played THEN 0 ELSE isNew END
         WHERE id = :id
     """
     )
-    suspend fun updatePlayback(id: String, played: Boolean, position: Long)
+    suspend fun updatePlayback(id: String, played: Boolean, position: Long, updatedAt: Long)
+
+    /** Every episode played or begun here or on a synced device, with when (19.9b). */
+    @Query("SELECT * FROM episodes WHERE updatedAt > 0")
+    suspend fun getChanged(): List<EpisodeEntity>
+
+    /** The latest of those changes, to know when there is something new to sync. */
+    @Query("SELECT COALESCE(MAX(updatedAt), 0) FROM episodes")
+    fun lastChange(): Flow<Long>
 
     @Query("SELECT * FROM episodes WHERE isDownloaded = 1 ORDER BY publishDate DESC")
     fun getDownloaded(): Flow<List<EpisodeEntity>>
@@ -277,20 +285,20 @@ interface EpisodeDao {
     @Query(
         """
         UPDATE episodes
-        SET isPlayed = 1, playbackPosition = 0, isNew = 0
+        SET isPlayed = 1, playbackPosition = 0, isNew = 0, updatedAt = :updatedAt
         WHERE podcastId = :podcastId AND publishDate <= :publishDate
     """
     )
-    suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long)
+    suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long, updatedAt: Long)
 
     @Query(
         """
         UPDATE episodes
-        SET isPlayed = 0, playbackPosition = 0
+        SET isPlayed = 0, playbackPosition = 0, updatedAt = :updatedAt
         WHERE podcastId = :podcastId AND publishDate <= :publishDate
     """
     )
-    suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long)
+    suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long, updatedAt: Long)
 
     private companion object {
         /** Row id an IGNOREd insert returns. */

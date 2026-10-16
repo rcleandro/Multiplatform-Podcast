@@ -75,9 +75,12 @@ class FakeAudioPlayer : AudioPlayer {
         extendedBy += minutes
     }
 
+    /** What [setQueue] stamps as the time the queue was arranged. */
+    var clock = 0L
+
     override fun setQueue(episodes: List<Episode>) {
         queueSet = episodes
-        _playerState.value = _playerState.value.copy(queue = episodes)
+        _playerState.value = _playerState.value.copy(queue = episodes, queueUpdatedAt = clock)
     }
 
     var nextCalled = false

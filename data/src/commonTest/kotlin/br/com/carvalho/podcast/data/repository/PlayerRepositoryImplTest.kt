@@ -52,7 +52,7 @@ class PlayerRepositoryImplTest {
         database.episodeDao().insertAll(episodes)
         repository.savePlaybackState("e1", position = 10, speed = 1f, queue = episodes.map { it.toDomain() })
 
-        database.episodeDao().updatePlayback("e2", played = true, position = 0)
+        database.episodeDao().updatePlayback("e2", played = true, position = 0, updatedAt = 1)
 
         val queue = repository.getSavedPlaybackState()!!.queue
         assertEquals(listOf("e1", "e2"), queue.map { it.id })

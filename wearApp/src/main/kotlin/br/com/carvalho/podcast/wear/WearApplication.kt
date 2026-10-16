@@ -6,6 +6,7 @@ import androidx.wear.tiles.TileService
 import androidx.wear.watchface.complications.datasource.ComplicationDataSourceUpdateRequester
 import br.com.carvalho.podcast.core.di.initKoin
 import br.com.carvalho.podcast.core.refresh.BackgroundRefresh
+import br.com.carvalho.podcast.core.sync.WearableSync
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -34,6 +35,7 @@ class WearApplication : Application() {
             modules(module { viewModelOf(::WatchEffectsViewModel) })
         }
         BackgroundRefresh.keepScheduled(this, scope)
+        WearableSync.keepInSync(this, scope)
         keepNowPlayingFresh()
     }
 

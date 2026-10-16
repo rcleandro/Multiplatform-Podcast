@@ -322,6 +322,18 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version26KnowsNoSyncChangesUntilSomethingIsHeard() = runTest {
+        helper.createDatabase(SYNC_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(SYNC_VERSION, migrations).use { connection ->
+            assertEquals("0|0|0", connection.text(
+                "SELECT (SELECT MAX(updatedAt) FROM episodes) || '|' || " +
+                    "(SELECT queueUpdatedAt FROM playback_state) || '|' || (SELECT COUNT(*) FROM removed_podcasts)"
+            ))
+        }
+    }
+
     private fun SQLiteConnection.text(sql: String): String = prepare(sql).use { statement ->
         statement.step()
         statement.getText(0)
@@ -351,7 +363,8 @@ class MigrationTest {
         const val SMART_PLAYLISTS_VERSION = 23
         const val LISTENING_VERSION = 24
         const val TRANSCRIPTS_VERSION = 25
-        const val CURRENT_VERSION = 25
+        const val SYNC_VERSION = 26
+        const val CURRENT_VERSION = 26
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

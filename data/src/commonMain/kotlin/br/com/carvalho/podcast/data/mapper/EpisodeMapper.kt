@@ -29,6 +29,7 @@ fun EpisodeEntity.toDomain(): Episode = Episode(
     chaptersUrl = chaptersUrl,
     transcriptUrl = transcriptUrl,
     transcriptType = transcriptType,
+    updatedAt = updatedAt,
 )
 
 fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
@@ -56,4 +57,5 @@ fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
     chaptersUrl = chaptersUrl,
     transcriptUrl = transcriptUrl,
     transcriptType = transcriptType,
+    updatedAt = updatedAt,
 )

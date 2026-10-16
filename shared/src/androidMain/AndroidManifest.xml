@@ -11,5 +11,18 @@
             android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
+
+        <!-- The phone ↔ watch library sync (19.9b): the other device's snapshot arrives here, app open or not. -->
+        <service
+            android:name="br.com.carvalho.podcast.core.sync.WearableSyncService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/library-sync"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

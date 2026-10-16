@@ -127,6 +127,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.koin.android)
             implementation(libs.androidx.work.runtime)
+            implementation(libs.play.services.wearable)
+            implementation(libs.kotlinx.coroutines.play.services)
             implementation(project.dependencies.platform(libs.firebase.bom))
         }
 

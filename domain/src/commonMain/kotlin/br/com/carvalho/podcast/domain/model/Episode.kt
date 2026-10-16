@@ -35,4 +35,6 @@ data class Episode(
     /** `podcast:transcript` (19.2): where the feed keeps a timed transcript, and its type (VTT, SRT or JSON). */
     val transcriptUrl: String? = null,
     val transcriptType: String? = null,
+    /** When played or progress last changed (epoch ms), here or on a synced device (19.9b); 0 never. */
+    val updatedAt: Long = 0,
 )

@@ -173,7 +173,12 @@ class PlaybackController(
     /** Saved at once: a queue arranged while paused survives the app closing. */
     override fun setQueue(episodes: List<Episode>) {
         val current = _playerState.value.currentEpisode?.id
-        _playerState.update { it.copy(queue = episodes.filter { episode -> episode.id != current }) }
+        _playerState.update {
+            it.copy(
+                queue = episodes.filter { episode -> episode.id != current },
+                queueUpdatedAt = getCurrentTimestamp(),
+            )
+        }
         // ponytail: with nothing playing there is no session row to save the queue in; it lives until the app closes.
         scope.launch { save() }
     }
@@ -362,7 +367,13 @@ class PlaybackController(
         lastSavedPosition = state.position
         withContext(dispatchers.io) {
             saveListening(episode)
-            playerRepository.savePlaybackState(episode.id, state.position, generalSpeed, state.queue)
+            playerRepository.savePlaybackState(
+                episode.id,
+                state.position,
+                generalSpeed,
+                state.queue,
+                state.queueUpdatedAt,
+            )
             val duration = state.duration
             if (duration != null && duration > 0 && state.position > duration * AppConfig.PLAYBACK_FINISHED_THRESHOLD) {
                 podcastRepository.markEpisodeAsPlayed(episode.id)
@@ -387,7 +398,7 @@ class PlaybackController(
             val next = saved.queue.indexOfFirst { it.id == saved.episodeId }.let { saved.queue.drop(it + 1) }
             generalSpeed = saved.speed
             val speed = playback.speed ?: saved.speed
-            _playerState.update { it.copy(speed = speed, queue = next) }
+            _playerState.update { it.copy(speed = speed, queue = next, queueUpdatedAt = saved.queueUpdatedAt) }
             if (adopted == null) engine.setSpeed(speed)
         }
         if (episode == null || _playerState.value.currentEpisode != null) return

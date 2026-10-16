@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.map
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.data.local.dao.PodcastDao
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
@@ -38,7 +39,9 @@ private const val TAG = "PodcastRepository"
 @Suppress("TooManyFunctions") // implements PodcastRepository
 class PodcastRepositoryImpl(
     private val podcastDao: PodcastDao,
-    private val episodeDao: EpisodeDao
+    private val episodeDao: EpisodeDao,
+    /** Stamps played and progress changes and removals for the library sync (19.9b). */
+    private val now: () -> Long = ::getCurrentTimestamp,
 ) : PodcastRepository {
 
     override fun getLibrary(): Flow<List<LibraryEntry>> = podcastDao.getLibrary().map { rows ->
@@ -123,6 +126,17 @@ class PodcastRepositoryImpl(
     private val SmartPlaylist.maxSeconds: Long get() = (maxMinutes ?: 0) * SECONDS_PER_MINUTE
 
     override suspend fun getEpisodesWithHistory(): List<Episode> = episodeDao.getWithHistory().map { it.toDomain() }
+
+    override suspend fun getSyncedEpisodes(): List<Episode> = episodeDao.getChanged().map { it.toDomain() }
+
+    override fun lastEpisodeChange(): Flow<Long> = episodeDao.lastChange()
+
+    override suspend fun applyEpisodeState(id: String, played: Boolean, position: Long, updatedAt: Long) =
+        episodeDao.updatePlayback(id, played, position, updatedAt)
+
+    override suspend fun getRemovedPodcasts(): Map<String, Long> =
+        podcastDao.removed().associate { it.feedUrl to it.removedAt }
+
     override fun getEpisodes(podcastId: String): Flow<List<Episode>> {
         return episodeDao.getByPodcast(podcastId).map { entities ->
             entities.map { it.toDomain() }
@@ -203,11 +217,11 @@ class PodcastRepositoryImpl(
     }
 
     override suspend fun updateEpisodeProgress(id: String, progress: Long) {
-        episodeDao.updatePlayback(id, false, progress)
+        episodeDao.updatePlayback(id, false, progress, now())
     }
 
     override suspend fun markEpisodeAsPlayed(id: String) {
-        episodeDao.updatePlayback(id, true, 0L)
+        episodeDao.updatePlayback(id, true, 0L, now())
     }
 
     override suspend fun dismissNewEpisode(id: String) = episodeDao.dismissNew(id)
@@ -219,7 +233,7 @@ class PodcastRepositoryImpl(
     override suspend fun dismissAllNewEpisodes() = episodeDao.dismissAllNew()
 
     override suspend fun markEpisodeAsUnplayed(id: String) {
-        episodeDao.updatePlayback(id, false, 0L)
+        episodeDao.updatePlayback(id, false, 0L, now())
     }
 
     override suspend fun saveFeed(podcast: Podcast, episodes: List<Episode>) {
@@ -227,17 +241,17 @@ class PodcastRepositoryImpl(
         episodeDao.saveFeed(podcast.toEntity(), episodes.map { it.toEntity() })
     }
 
-    /** One statement: the episodes go with the podcast through the foreign key's ON DELETE CASCADE. */
+    /** The episodes go with the podcast through the foreign key's ON DELETE CASCADE; the removal is kept (19.9b). */
     override suspend fun deletePodcast(id: String) {
         AppLogger.i(TAG, "Deleting podcast id: $id")
-        podcastDao.deleteById(id)
+        podcastDao.remove(id, now())
     }
 
     override suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long) {
-        episodeDao.markOlderAsPlayed(podcastId, publishDate)
+        episodeDao.markOlderAsPlayed(podcastId, publishDate, now())
     }
 
     override suspend fun markOlderEpisodesAsUnplayed(podcastId: String, publishDate: Long) {
-        episodeDao.markOlderAsUnplayed(podcastId, publishDate)
+        episodeDao.markOlderAsUnplayed(podcastId, publishDate, now())
     }
 }

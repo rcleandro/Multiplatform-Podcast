@@ -38,6 +38,7 @@ import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.LibrarySyncUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshInBackgroundUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
@@ -124,6 +125,7 @@ val useCaseModule = module {
     singleOf(::ExportOpmlUseCase)
     singleOf(::ExportBackupUseCase)
     singleOf(::RestoreBackupUseCase)
+    singleOf(::LibrarySyncUseCase)
     singleOf(::RefreshPodcastUseCase)
     singleOf(::DeletePodcastUseCase)
     singleOf(::PlayEpisodeUseCase)

@@ -57,4 +57,6 @@ data class EpisodeEntity(
     /** `podcast:transcript` with timing (19.2), added in version 25. */
     val transcriptUrl: String? = null,
     val transcriptType: String? = null,
+    /** When played or progress last changed here or on a synced device (19.9b), added in version 26; 0 never. */
+    @ColumnInfo(defaultValue = "0") val updatedAt: Long = 0,
 )

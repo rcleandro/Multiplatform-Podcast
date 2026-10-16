@@ -32,8 +32,14 @@ class PlayerRepositoryImpl(
     /** The queue last written; progress is saved every few seconds, the queue only when it changes. */
     private var savedQueueIds: List<String>? = null
 
-    override suspend fun savePlaybackState(episodeId: String?, position: Long, speed: Float, queue: List<Episode>) {
-        playbackStateDao.save(PlaybackStateEntity(episodeId = episodeId, position = position, speed = speed))
+    override suspend fun savePlaybackState(
+        episodeId: String?,
+        position: Long,
+        speed: Float,
+        queue: List<Episode>,
+        queueUpdatedAt: Long,
+    ) {
+        playbackStateDao.save(PlaybackStateEntity(1, episodeId, position, speed, queueUpdatedAt))
         val queueIds = queue.map { it.id }
         if (queueIds != savedQueueIds) {
             playbackStateDao.replaceQueue(queueIds)
@@ -48,6 +54,7 @@ class PlayerRepositoryImpl(
             position = state.position,
             speed = state.speed,
             queue = playbackStateDao.getQueue().map { it.toDomain() },
+            queueUpdatedAt = state.queueUpdatedAt,
         )
     }
 

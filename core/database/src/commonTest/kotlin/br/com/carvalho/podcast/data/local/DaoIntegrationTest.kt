@@ -98,13 +98,29 @@ class DaoIntegrationTest {
             }
         )
 
-        episodeDao.markOlderAsUnplayed("p1", publishDate = 2L)
+        episodeDao.markOlderAsUnplayed("p1", publishDate = 2L, updatedAt = 9L)
 
         val byId = episodeDao.getByPodcast("p1").first().associateBy { it.id }
         assertEquals(false, byId.getValue("old").isPlayed)
         assertEquals(0L, byId.getValue("chosen").playbackPosition)
         assertEquals(false, byId.getValue("chosen").isPlayed)
         assertEquals(true, byId.getValue("new").isPlayed)
+        assertEquals(listOf("chosen", "old"), episodeDao.getChanged().map { it.id }.sorted())
+    }
+
+    @Test
+    fun `removing a podcast keeps its feed and when and progress keeps when it changed`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        podcastDao.insert("p1".createPodcastEntity())
+        episodeDao.insertAll(listOf(createEpisodeEntity("e1", "p1"), createEpisodeEntity("e2", "p1")))
+
+        episodeDao.updatePlayback("e1", played = false, position = 500L, updatedAt = 7L)
+
+        assertEquals(listOf("e1" to 7L), episodeDao.getChanged().map { it.id to it.updatedAt })
+        assertEquals(7L, episodeDao.lastChange().first())
+        podcastDao.remove("p1", at = 8L)
+        assertEquals(null, podcastDao.getById("p1"))
+        assertEquals(listOf(8L), podcastDao.removed().map { it.removedAt })
     }
 
     @Test

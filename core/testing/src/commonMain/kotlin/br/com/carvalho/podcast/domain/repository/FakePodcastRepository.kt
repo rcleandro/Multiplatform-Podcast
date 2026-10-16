@@ -193,9 +193,26 @@ class FakePodcastRepository : PodcastRepository {
         this.episodes.value = this.episodes.value + episodes
     }
 
+    /** Feed address and when, for each podcast [deletePodcast] took out; [clock] stamps it. */
+    val removed = mutableMapOf<String, Long>()
+    var clock = 0L
+
     override suspend fun deletePodcast(id: String) {
         deletePodcastCalledWith = id
+        podcasts.value.find { it.id == id }?.let { removed[it.feedUrl] = clock }
         podcasts.value = podcasts.value.filter { it.id != id }
+    }
+
+    override suspend fun getRemovedPodcasts(): Map<String, Long> = removed.toMap()
+
+    override suspend fun getSyncedEpisodes(): List<Episode> = episodes.value.filter { it.updatedAt > 0 }
+
+    override fun lastEpisodeChange(): Flow<Long> = episodes.map { list -> list.maxOfOrNull { it.updatedAt } ?: 0 }
+
+    override suspend fun applyEpisodeState(id: String, played: Boolean, position: Long, updatedAt: Long) {
+        episodes.value = episodes.value.map {
+            if (it.id == id) it.copy(isPlayed = played, playbackPosition = position, updatedAt = updatedAt) else it
+        }
     }
 
     override suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long) {

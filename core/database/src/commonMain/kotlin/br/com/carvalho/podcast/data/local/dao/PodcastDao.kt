@@ -6,6 +6,7 @@ import androidx.room3.Transaction
 import androidx.room3.Upsert
 import br.com.carvalho.podcast.data.local.entity.LibraryRow
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.data.local.entity.RemovedPodcastEntity
 import br.com.carvalho.podcast.data.local.entity.SmartPlaylistEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -38,6 +39,21 @@ interface PodcastDao {
 
     @Query("DELETE FROM podcasts WHERE id = :id")
     suspend fun deleteById(id: String)
+
+    @Query(
+        "INSERT OR REPLACE INTO removed_podcasts (feedUrl, removedAt) SELECT feedUrl, :at FROM podcasts WHERE id = :id"
+    )
+    suspend fun rememberRemoved(id: String, at: Long)
+
+    /** Takes the podcast out and keeps when (19.9b), so a synced device does not bring it back. */
+    @Transaction
+    suspend fun remove(id: String, at: Long) {
+        rememberRemoved(id, at)
+        deleteById(id)
+    }
+
+    @Query("SELECT * FROM removed_podcasts")
+    suspend fun removed(): List<RemovedPodcastEntity>
 
     @Query(
         "UPDATE podcasts SET playbackSpeed = :speed, skipIntroSeconds = :introSeconds, " +
