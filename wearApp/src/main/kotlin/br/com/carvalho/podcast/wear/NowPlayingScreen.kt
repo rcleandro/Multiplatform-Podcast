@@ -245,6 +245,8 @@ private fun PlayerControls(state: PlayerState, onIntent: (PlayerIntent) -> Unit,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
+            // The screen narrows toward the top on a round watch: keep the title off its edge.
+            modifier = Modifier.padding(horizontal = Spacing.s),
         )
         Text(
             listOfNotNull(state.position.toTime(), state.knownDurationMs().takeIf { it > 0 }?.toTime())
