@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">Kembalikan pustaka, kemajuan, antrean, penanda, dan setelan dari cadangan aplikasi ini</string>
     <string name="settings_export_backup">Ekspor cadangan</string>
     <string name="settings_export_backup_description">Simpan pustaka, kemajuan, antrean, penanda, dan setelan dalam satu file</string>
+    <string name="settings_sync_folder">Sinkronkan lewat folder</string>
+    <string name="settings_sync_folder_description">Jaga pustaka, kemajuan, dan antrean tetap sama di perangkat Anda lewat folder iCloud Drive, Google Drive, Dropbox, atau Syncthing</string>
+    <string name="settings_sync_folder_waiting">%1$s · belum disinkronkan</string>
+    <string name="settings_sync_folder_failed">%1$s · folder tidak dapat diakses. Ketuk untuk memilihnya lagi</string>
+    <string name="settings_sync_stop">Hentikan sinkronisasi</string>
+    <string name="settings_sync_stop_description">File tetap di folder; perangkat ini berhenti memakainya</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">File ini bukan cadangan aplikasi ini</string>
     <string name="stats_title">Statistik mendengarkan</string>
     <string name="stats_description">Seberapa lama Anda mendengarkan per minggu dan per podcast</string>

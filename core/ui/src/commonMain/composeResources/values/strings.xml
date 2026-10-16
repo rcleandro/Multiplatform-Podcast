@@ -149,6 +149,13 @@
     <string name="settings_restore_backup_description">Bring back library, progress, queue, bookmarks and settings from this app's backup</string>
     <string name="settings_export_backup">Export backup</string>
     <string name="settings_export_backup_description">Save library, progress, queue, bookmarks and settings in one file</string>
+    <string name="settings_sync_folder">Sync through a folder</string>
+    <string name="settings_sync_folder_description">Keep library, progress and queue alike on your devices through an iCloud Drive, Google Drive, Dropbox or Syncthing folder</string>
+    <string name="settings_sync_folder_waiting">%1$s · not synced yet</string>
+    <string name="settings_sync_folder_failed">%1$s · can't reach the folder. Tap to choose it again</string>
+    <string name="settings_sync_stop">Stop syncing</string>
+    <string name="settings_sync_stop_description">The files in the folder stay; this device stops using them</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">This file is not a backup of this app</string>
     <string name="stats_title">Listening stats</string>
     <string name="stats_description">How much you heard each week and each podcast</string>

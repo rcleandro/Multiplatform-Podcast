@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.SkipIntervals
+import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import kotlinx.coroutines.flow.StateFlow
 
@@ -88,4 +89,9 @@ interface PreferencesRepository {
     val telemetryEnabled: StateFlow<Boolean>
 
     fun setTelemetryEnabled(enabled: Boolean)
+
+    /** The folder the library syncs through (19.12); null for none, the default. Not backed up: it is this device's. */
+    val syncFolder: StateFlow<SyncFolder?>
+
+    fun setSyncFolder(folder: SyncFolder?)
 }

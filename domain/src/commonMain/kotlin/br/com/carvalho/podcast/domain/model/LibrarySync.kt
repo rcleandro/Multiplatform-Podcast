@@ -34,3 +34,9 @@ data class SyncPlan(
 ) {
     val isEmpty: Boolean get() = subscribe.isEmpty() && unsubscribe.isEmpty() && episodes.isEmpty() && queue == null
 }
+
+/**
+ * The folder the user's own cloud or sync app carries between devices (19.12): [bookmark] is the platform's lasting
+ * permission to it, [name] what Settings show, and [fileName] this device's snapshot file there.
+ */
+data class SyncFolder(val bookmark: String, val name: String, val fileName: String)

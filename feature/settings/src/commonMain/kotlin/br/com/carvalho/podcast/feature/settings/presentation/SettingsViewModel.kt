@@ -11,11 +11,14 @@ import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.SkipIntervals
+import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.FolderSyncStatus
+import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
@@ -43,6 +46,7 @@ class SettingsViewModel(
     private val exportOpml: ExportOpmlUseCase,
     private val exportBackup: ExportBackupUseCase,
     private val restoreBackup: RestoreBackupUseCase,
+    private val folderSync: FolderSyncUseCase,
 ) : ViewModel() {
     private val usedBytes = MutableStateFlow<Long?>(null)
     private val disk = MutableStateFlow<DiskSpace?>(null)
@@ -50,7 +54,7 @@ class SettingsViewModel(
     private val opml = MutableStateFlow(OpmlState())
     private val backup = MutableStateFlow(OpmlState())
 
-    val uiState: StateFlow<SettingsUiState> = combine(
+    private val choices = combine(
         combine(preferences.themeMode, preferences.skipIntervals, preferences.appLanguage, ::Triple),
         combine(
             preferences.telemetryEnabled,
@@ -98,7 +102,14 @@ class SettingsViewModel(
             backup = measured.backup.status,
             backupToSave = measured.backup.toSave,
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
+    }
+
+    val uiState: StateFlow<SettingsUiState> = combine(
+        choices,
+        preferences.syncFolder,
+        folderSync.status,
+    ) { state, folder, sync -> state.copy(syncFolderName = folder?.name, folderSync = sync) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     init {
         // The downloaded list changes when a download ends or is deleted, which is when the space changes too; the
@@ -186,6 +197,15 @@ class SettingsViewModel(
             SettingsIntent.ExportBackup -> exportAll()
             SettingsIntent.BackupHandedOver -> backup.update { it.copy(toSave = null) }
             is SettingsIntent.BackupSaved -> backup.update { it.saved(intent.saved) }
+            // Choosing again keeps this device's file, so the folder does not fill with old ones.
+            is SettingsIntent.ChooseSyncFolder -> preferences.setSyncFolder(
+                SyncFolder(
+                    intent.bookmark,
+                    intent.name,
+                    preferences.syncFolder.value?.fileName ?: FolderSyncUseCase.newFileName(),
+                ),
+            )
+            SettingsIntent.StopSync -> preferences.setSyncFolder(null)
         }
     }
 }
@@ -222,6 +242,9 @@ data class SettingsUiState(
     val backup: OpmlStatus = OpmlStatus.Idle,
     /** An exported backup waiting for the screen to ask where to save it. */
     val backupToSave: String? = null,
+    /** The folder the library syncs through (19.12); null for none. */
+    val syncFolderName: String? = null,
+    val folderSync: FolderSyncStatus = FolderSyncStatus.Idle,
 ) {
     /** The limits the slider stops at, ending with no limit (null). */
     val limitStops: List<Long?> get() = limitStops(disk?.let { it.freeBytes + (usedBytes ?: 0) }, downloadLimitBytes)
@@ -288,6 +311,10 @@ sealed interface SettingsIntent {
     data object ExportBackup : SettingsIntent
     data object BackupHandedOver : SettingsIntent
     data class BackupSaved(val saved: Boolean) : SettingsIntent
+
+    /** The folder picked for library sync (19.12), with the platform's lasting permission to it. */
+    data class ChooseSyncFolder(val bookmark: String, val name: String) : SettingsIntent
+    data object StopSync : SettingsIntent
 }
 
 /** OPML import and export (18.13), shown under their rows. */

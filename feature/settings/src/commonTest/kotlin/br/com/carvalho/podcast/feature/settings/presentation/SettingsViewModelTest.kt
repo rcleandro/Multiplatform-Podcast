@@ -7,6 +7,7 @@ import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
@@ -16,6 +17,9 @@ import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
+import br.com.carvalho.podcast.domain.usecase.LibrarySyncUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
@@ -63,7 +67,29 @@ class SettingsViewModelTest {
             RestoreBackupUseCase(
                 repository, playerRepository, preferences, player, AddPodcastFromUrlUseCase(feedSource, repository),
             ),
+            FolderSyncUseCase(
+                LibrarySyncUseCase(
+                    repository,
+                    player,
+                    AddPodcastFromUrlUseCase(feedSource, repository),
+                    DeletePodcastUseCase(repository, downloader),
+                ),
+            ),
         )
+
+    @Test
+    fun aSyncFolderChosenAgainKeepsThisDevicesFileAndStoppingForgetsIt() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SettingsIntent.ChooseSyncFolder("bookmark-1", "Sync"))
+        val fileName = preferences.syncFolder.value?.fileName
+        viewModel.onIntent(SettingsIntent.ChooseSyncFolder("bookmark-2", "Dropbox"))
+
+        assertEquals(SyncFolder("bookmark-2", "Dropbox", fileName!!), preferences.syncFolder.value)
+        assertEquals("Dropbox", viewModel.uiState.value.syncFolderName)
+        viewModel.onIntent(SettingsIntent.StopSync)
+        assertEquals(null, viewModel.uiState.value.syncFolderName)
+    }
 
     @Test
     fun theChosenThemeIsSavedAndShown() = runTest(dispatcher) {

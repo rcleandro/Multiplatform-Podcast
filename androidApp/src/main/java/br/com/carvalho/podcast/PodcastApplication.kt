@@ -6,6 +6,7 @@ import androidx.media3.cast.Cast
 import androidx.media3.common.util.UnstableApi
 import br.com.carvalho.podcast.core.di.initKoin
 import br.com.carvalho.podcast.core.refresh.BackgroundRefresh
+import br.com.carvalho.podcast.core.sync.FolderSync
 import br.com.carvalho.podcast.core.sync.WearableSync
 import br.com.carvalho.podcast.widget.PlayerWidget
 import kotlinx.coroutines.MainScope
@@ -30,6 +31,7 @@ class PodcastApplication : Application() {
         PlayerWidget.keepUpdated(this, scope)
         BackgroundRefresh.keepScheduled(this, scope)
         WearableSync.keepInSync(this, scope)
+        FolderSync.keepInSync(scope)
         // Before the Cast button or the media service need it (18.17); it loads in the background.
         Cast.getSingletonInstance(this).initialize()
     }

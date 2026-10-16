@@ -93,6 +93,7 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloads
+import br.com.carvalho.podcast.presentation.file.rememberSyncFolderPicker
 import br.com.carvalho.podcast.presentation.format.storageSize
 import br.com.carvalho.podcast.presentation.format.text
 import org.jetbrains.compose.resources.StringResource
@@ -145,6 +146,9 @@ fun SettingsContent(
 ) {
     var picking by rememberSaveable { mutableStateOf<Picker?>(null) }
     val (pickOpml, pickBackup) = rememberSubscriptionFiles(state, onIntent)
+    val pickSyncFolder = rememberSyncFolderPicker { bookmark, name ->
+        onIntent(SettingsIntent.ChooseSyncFolder(bookmark, name))
+    }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -175,7 +179,7 @@ fun SettingsContent(
                 )
             }
             item { LanguageRow(state.language) { picking = Picker.LANGUAGE } }
-            subscriptionSettings(state, pickOpml, pickBackup, onIntent)
+            subscriptionSettings(state, pickOpml, pickBackup, pickSyncFolder, onIntent)
             if (canRefreshInBackground) updateSettings(state, onPick = { picking = Picker.REFRESH }, onIntent)
             playbackSettings(state, onIntent)
             state.usedBytes?.let { downloadSettings(it, state, onIntent) { picking = Picker.DELETE_AFTER } }

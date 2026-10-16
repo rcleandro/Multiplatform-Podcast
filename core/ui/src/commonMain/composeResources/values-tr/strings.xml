@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">Bu uygulamanın yedeğinden kitaplığı, ilerlemeyi, sırayı, yer imlerini ve ayarları geri getirin</string>
     <string name="settings_export_backup">Yedeği dışa aktar</string>
     <string name="settings_export_backup_description">Kitaplığı, ilerlemeyi, sırayı, yer imlerini ve ayarları tek bir dosyaya kaydedin</string>
+    <string name="settings_sync_folder">Bir klasörle eşitle</string>
+    <string name="settings_sync_folder_description">Kitaplığı, ilerlemeyi ve sırayı cihazlarınızda bir iCloud Drive, Google Drive, Dropbox veya Syncthing klasörüyle aynı tutun</string>
+    <string name="settings_sync_folder_waiting">%1$s · henüz eşitlenmedi</string>
+    <string name="settings_sync_folder_failed">%1$s · klasöre erişilemiyor. Yeniden seçmek için dokunun</string>
+    <string name="settings_sync_stop">Eşitlemeyi durdur</string>
+    <string name="settings_sync_stop_description">Dosyalar klasörde kalır; bu cihaz onları kullanmayı bırakır</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">Bu dosya bu uygulamanın yedeği değil</string>
     <string name="stats_title">Dinleme istatistikleri</string>
     <string name="stats_description">Haftalık ve podcast başına ne kadar dinlediğiniz</string>

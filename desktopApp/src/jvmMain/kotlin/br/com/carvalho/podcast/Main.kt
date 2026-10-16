@@ -17,6 +17,9 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.rememberTrayState
 import br.com.carvalho.podcast.core.di.initKoin
+import br.com.carvalho.podcast.core.sync.FolderSync
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import com.arkivanov.decompose.DefaultComponentContext
@@ -32,6 +35,7 @@ private const val MIN_WINDOW_HEIGHT = 320
 /** A podcast link given on the command line opens in "Add podcast" (18.4). */
 fun main(args: Array<String>) {
     initKoin()
+    FolderSync.keepInSync(CoroutineScope(SupervisorJob()))
     val audioPlayer = getKoin().get<AudioPlayer>()
 
     application {

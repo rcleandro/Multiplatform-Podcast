@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">इस ऐप के बैकअप से लाइब्रेरी, प्रगति, कतार, बुकमार्क और सेटिंग्स वापस लाएं</string>
     <string name="settings_export_backup">बैकअप निर्यात करें</string>
     <string name="settings_export_backup_description">लाइब्रेरी, प्रगति, कतार, बुकमार्क और सेटिंग्स एक फ़ाइल में सहेजें</string>
+    <string name="settings_sync_folder">फ़ोल्डर से सिंक करें</string>
+    <string name="settings_sync_folder_description">iCloud Drive, Google Drive, Dropbox या Syncthing फ़ोल्डर से अपने सभी डिवाइस पर लाइब्रेरी, प्रगति और कतार एक जैसी रखें</string>
+    <string name="settings_sync_folder_waiting">%1$s · अभी तक सिंक नहीं हुआ</string>
+    <string name="settings_sync_folder_failed">%1$s · फ़ोल्डर तक नहीं पहुँच सके। फिर से चुनने के लिए टैप करें</string>
+    <string name="settings_sync_stop">सिंक बंद करें</string>
+    <string name="settings_sync_stop_description">फ़ाइलें फ़ोल्डर में रहती हैं; यह डिवाइस उनका उपयोग बंद कर देता है</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">यह फ़ाइल इस ऐप का बैकअप नहीं है</string>
     <string name="stats_title">सुनने के आंकड़े</string>
     <string name="stats_description">हर हफ़्ते और हर पॉडकास्ट में आपने कितना सुना</string>

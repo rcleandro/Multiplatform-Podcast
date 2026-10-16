@@ -19,9 +19,20 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_import_opml_
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_restore_backup
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_restore_backup_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_subscriptions
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_description
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_failed
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_synced
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_waiting
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_stop
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_stop_description
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.domain.usecase.FolderSyncStatus
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.presentation.file.rememberTextFilePicker
 import br.com.carvalho.podcast.presentation.file.rememberTextFileSaver
+import br.com.carvalho.podcast.presentation.format.relativeTime
+import br.com.carvalho.podcast.presentation.format.text
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -46,11 +57,15 @@ internal fun rememberSubscriptionFiles(state: SettingsUiState, onIntent: (Settin
     ),
 )
 
-/** OPML for other apps (18.13) and the backup of everything for this one (19.11). */
+/**
+ * OPML for other apps (18.13), the backup of everything for this one (19.11) and sync through a folder (19.12), where
+ * the platform can keep one ([pickSyncFolder] not null).
+ */
 internal fun LazyListScope.subscriptionSettings(
     state: SettingsUiState,
     pickOpml: () -> Unit,
     pickBackup: () -> Unit,
+    pickSyncFolder: (() -> Unit)?,
     onIntent: (SettingsIntent) -> Unit,
 ) {
     item { Section(stringResource(Res.string.settings_subscriptions)) }
@@ -76,6 +91,39 @@ internal fun LazyListScope.subscriptionSettings(
         onImport = pickBackup,
         onExport = { onIntent(SettingsIntent.ExportBackup) },
     )
+    if (pickSyncFolder != null) syncFolderRows(state, pickSyncFolder, onIntent)
+}
+
+/** The folder to sync through and how the last exchange went; once chosen, a row to stop. */
+private fun LazyListScope.syncFolderRows(state: SettingsUiState, pick: () -> Unit, onIntent: (SettingsIntent) -> Unit) {
+    item {
+        PickerRow(
+            title = stringResource(Res.string.settings_sync_folder),
+            value = syncFolderLabel(state.syncFolderName, state.folderSync),
+            onClick = pick,
+        )
+    }
+    if (state.syncFolderName != null) {
+        item {
+            PickerRow(
+                title = stringResource(Res.string.settings_sync_stop),
+                value = stringResource(Res.string.settings_sync_stop_description),
+                onClick = { onIntent(SettingsIntent.StopSync) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun syncFolderLabel(name: String?, status: FolderSyncStatus): String = when {
+    name == null -> stringResource(Res.string.settings_sync_folder_description)
+    status is FolderSyncStatus.Synced -> stringResource(
+        Res.string.settings_sync_folder_synced,
+        name,
+        relativeTime(status.at, getCurrentTimestamp())?.text().orEmpty(),
+    )
+    status == FolderSyncStatus.Failed -> stringResource(Res.string.settings_sync_folder_failed, name)
+    else -> stringResource(Res.string.settings_sync_folder_waiting, name)
 }
 
 /** The file picker for an import, and the save dialog an export opens once its file is ready; returns the picker. */

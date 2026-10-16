@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">Récupérez bibliothèque, progression, file, signets et réglages depuis une sauvegarde de cette app</string>
     <string name="settings_export_backup">Exporter une sauvegarde</string>
     <string name="settings_export_backup_description">Enregistrez bibliothèque, progression, file, signets et réglages dans un fichier</string>
+    <string name="settings_sync_folder">Synchroniser via un dossier</string>
+    <string name="settings_sync_folder_description">Gardez bibliothèque, progression et file identiques sur vos appareils grâce à un dossier iCloud Drive, Google Drive, Dropbox ou Syncthing</string>
+    <string name="settings_sync_folder_waiting">%1$s · pas encore synchronisé</string>
+    <string name="settings_sync_folder_failed">%1$s · dossier inaccessible. Touchez pour le choisir à nouveau</string>
+    <string name="settings_sync_stop">Arrêter la synchronisation</string>
+    <string name="settings_sync_stop_description">Les fichiers restent dans le dossier ; cet appareil cesse de les utiliser</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">Ce fichier n'est pas une sauvegarde de cette app</string>
     <string name="stats_title">Statistiques d’écoute</string>
     <string name="stats_description">Ce que vous avez écouté par semaine et par podcast</string>

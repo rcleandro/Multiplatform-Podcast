@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">从本应用的备份中恢复节目库、进度、队列、书签和设置</string>
     <string name="settings_export_backup">导出备份</string>
     <string name="settings_export_backup_description">将节目库、进度、队列、书签和设置保存到一个文件</string>
+    <string name="settings_sync_folder">通过文件夹同步</string>
+    <string name="settings_sync_folder_description">通过 iCloud Drive、Google Drive、Dropbox 或 Syncthing 文件夹，让各设备上的节目库、进度和队列保持一致</string>
+    <string name="settings_sync_folder_waiting">%1$s · 尚未同步</string>
+    <string name="settings_sync_folder_failed">%1$s · 无法访问文件夹。点按以重新选择</string>
+    <string name="settings_sync_stop">停止同步</string>
+    <string name="settings_sync_stop_description">文件保留在文件夹中；本设备不再使用它们</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">此文件不是本应用的备份</string>
     <string name="stats_title">收听统计</string>
     <string name="stats_description">每周和每个播客的收听时长</string>

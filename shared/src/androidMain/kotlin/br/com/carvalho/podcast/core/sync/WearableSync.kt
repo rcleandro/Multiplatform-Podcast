@@ -23,8 +23,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.Json
 import org.koin.mp.KoinPlatform.getKoin
@@ -46,9 +44,6 @@ private val SETTLE = SETTLE_SECONDS.seconds
  */
 object WearableSync {
     private val json = Json { ignoreUnknownKeys = true }
-
-    /** Applies run one at a time: one arriving while the app starts must not subscribe to a feed twice. */
-    private val applying = Mutex()
 
     /** Outlives the listener service, which Android may stop as soon as the event is handed over. */
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -105,7 +100,7 @@ object WearableSync {
         val asset = DataMapItem.fromDataItem(item).dataMap.getAsset(KEY) ?: return
         val bytes = Wearable.getDataClient(context).getFdForAsset(asset).await().inputStream.use { it.readBytes() }
         val remote = json.decodeFromString(SyncSnapshot.serializer(), bytes.decodeToString())
-        val plan = applying.withLock { sync.apply(remote) }
+        val plan = sync.apply(remote)
         AppLogger.i(
             TAG,
             "Took ${plan.subscribe.size} podcasts, removed ${plan.unsubscribe.size}, " +

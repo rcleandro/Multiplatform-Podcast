@@ -5,6 +5,7 @@ import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.SkipIntervals
+import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -109,5 +110,11 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override fun setHeadphonesOnly(enabled: Boolean) {
         headphonesOnly.value = enabled
+    }
+
+    override val syncFolder = MutableStateFlow<SyncFolder?>(null)
+
+    override fun setSyncFolder(folder: SyncFolder?) {
+        syncFolder.value = folder
     }
 }

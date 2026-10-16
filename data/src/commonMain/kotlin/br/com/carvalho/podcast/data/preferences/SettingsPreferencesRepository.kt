@@ -5,9 +5,11 @@ import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.SkipIntervals
+import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloads
+import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +33,9 @@ private const val SHOW_EXPLICIT = "show_explicit"
 private const val SKIP_BACKWARD_SECONDS = "skip_backward_seconds"
 private const val APP_LANGUAGE = "app_language"
 private const val SKIP_FORWARD_SECONDS = "skip_forward_seconds"
+private const val SYNC_FOLDER_BOOKMARK = "sync_folder_bookmark"
+private const val SYNC_FOLDER_NAME = "sync_folder_name"
+private const val SYNC_FOLDER_FILE = "sync_folder_file"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
@@ -188,6 +193,28 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setTelemetryEnabled(enabled: Boolean) {
         settings.putBoolean(TELEMETRY_ENABLED, enabled)
         telemetry.value = enabled
+    }
+
+    private val folder = MutableStateFlow(
+        settings.getStringOrNull(SYNC_FOLDER_BOOKMARK)?.let { bookmark ->
+            SyncFolder(
+                bookmark,
+                settings.getString(SYNC_FOLDER_NAME, defaultValue = ""),
+                settings.getString(SYNC_FOLDER_FILE, defaultValue = FolderSyncUseCase.newFileName()),
+            )
+        }
+    )
+    override val syncFolder: StateFlow<SyncFolder?> = folder.asStateFlow()
+
+    override fun setSyncFolder(folder: SyncFolder?) {
+        if (folder == null) {
+            listOf(SYNC_FOLDER_BOOKMARK, SYNC_FOLDER_NAME, SYNC_FOLDER_FILE).forEach(settings::remove)
+        } else {
+            settings.putString(SYNC_FOLDER_BOOKMARK, folder.bookmark)
+            settings.putString(SYNC_FOLDER_NAME, folder.name)
+            settings.putString(SYNC_FOLDER_FILE, folder.fileName)
+        }
+        this.folder.value = folder
     }
 }
 

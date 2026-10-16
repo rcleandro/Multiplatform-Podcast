@@ -146,7 +146,17 @@ kotlin {
         androidMain.get().dependsOn(firebaseMain)
         iosMain.get().dependsOn(firebaseMain)
 
+        // Library sync through a folder (19.12) where the platform keeps one: Android and Desktop.
+        val folderSyncMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.filekit.core)
+            }
+        }
+        androidMain.get().dependsOn(folderSyncMain)
+
         val desktopMain by getting {
+            dependsOn(folderSyncMain)
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(compose.desktop.currentOs)

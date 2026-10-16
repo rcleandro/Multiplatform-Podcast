@@ -51,12 +51,17 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_dark
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_system
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_description
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_failed
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_waiting
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_stop
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
 import br.com.carvalho.podcast.core.ui.generated.resources.size_gigabytes
 import br.com.carvalho.podcast.core.util.DiskSpace
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
+import br.com.carvalho.podcast.domain.usecase.FolderSyncStatus
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -101,6 +106,25 @@ class SettingsContentTest {
 
         onNodeWithText(text(Res.string.settings_export_opml)).performClick()
         assertEquals(listOf<SettingsIntent>(SettingsIntent.ExportOpml), intents)
+    }
+
+    @Test
+    fun theSyncFolderRowSaysHowTheLastExchangeWentAndStopOnlyShowsOnceChosen() = runComposeUiTest {
+        var state by mutableStateOf(SettingsUiState())
+        val intents = mutableListOf<SettingsIntent>()
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        val stop = text(Res.string.settings_sync_stop)
+
+        onNodeWithText(text(Res.string.settings_sync_folder_description)).performScrollTo().assertExists()
+        onNodeWithText(stop).assertDoesNotExist()
+
+        state = SettingsUiState(syncFolderName = "Sync")
+        onNodeWithText(text(Res.string.settings_sync_folder_waiting, "Sync")).performScrollTo().assertExists()
+        state = SettingsUiState(syncFolderName = "Sync", folderSync = FolderSyncStatus.Failed)
+        onNodeWithText(text(Res.string.settings_sync_folder_failed, "Sync")).performScrollTo().assertExists()
+
+        onNodeWithText(stop).performScrollTo().performClick()
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.StopSync), intents)
     }
 
     @Test

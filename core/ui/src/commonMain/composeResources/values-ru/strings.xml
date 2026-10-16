@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">Верните медиатеку, прогресс, очередь, закладки и настройки из резервной копии этого приложения</string>
     <string name="settings_export_backup">Экспорт резервной копии</string>
     <string name="settings_export_backup_description">Сохраните медиатеку, прогресс, очередь, закладки и настройки в одном файле</string>
+    <string name="settings_sync_folder">Синхронизация через папку</string>
+    <string name="settings_sync_folder_description">Медиатека, прогресс и очередь одинаковы на всех ваших устройствах через папку iCloud Drive, Google Drive, Dropbox или Syncthing</string>
+    <string name="settings_sync_folder_waiting">%1$s · ещё не синхронизировано</string>
+    <string name="settings_sync_folder_failed">%1$s · нет доступа к папке. Нажмите, чтобы выбрать её снова</string>
+    <string name="settings_sync_stop">Остановить синхронизацию</string>
+    <string name="settings_sync_stop_description">Файлы остаются в папке; это устройство перестаёт их использовать</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">Этот файл не является резервной копией этого приложения</string>
     <string name="stats_title">Статистика прослушивания</string>
     <string name="stats_description">Сколько вы слушали по неделям и по подкастам</string>

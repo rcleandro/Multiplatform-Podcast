@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">استرجع المكتبة والتقدم وقائمة الانتظار والعلامات والإعدادات من نسخة احتياطية لهذا التطبيق</string>
     <string name="settings_export_backup">تصدير نسخة احتياطية</string>
     <string name="settings_export_backup_description">احفظ المكتبة والتقدم وقائمة الانتظار والعلامات والإعدادات في ملف واحد</string>
+    <string name="settings_sync_folder">المزامنة عبر مجلد</string>
+    <string name="settings_sync_folder_description">حافظ على تطابق المكتبة والتقدم وقائمة الانتظار على أجهزتك عبر مجلد في iCloud Drive أو Google Drive أو Dropbox أو Syncthing</string>
+    <string name="settings_sync_folder_waiting">%1$s · لم تتم المزامنة بعد</string>
+    <string name="settings_sync_folder_failed">%1$s · تعذّر الوصول إلى المجلد. انقر لاختياره مرة أخرى</string>
+    <string name="settings_sync_stop">إيقاف المزامنة</string>
+    <string name="settings_sync_stop_description">تبقى الملفات في المجلد؛ ويتوقف هذا الجهاز عن استخدامها</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">هذا الملف ليس نسخة احتياطية لهذا التطبيق</string>
     <string name="stats_title">إحصاءات الاستماع</string>
     <string name="stats_description">كم استمعت كل أسبوع ولكل بودكاست</string>

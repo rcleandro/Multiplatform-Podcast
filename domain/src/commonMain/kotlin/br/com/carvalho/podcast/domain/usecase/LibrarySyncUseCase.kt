@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * What [local] takes from [remote] (19.9b). Podcasts join, unless one side took a podcast out after the other added
@@ -49,6 +51,9 @@ class LibrarySyncUseCase(
     private val addPodcast: AddPodcastFromUrlUseCase,
     private val deletePodcast: DeletePodcastUseCase,
 ) {
+    /** One apply at a time: the watch's and the folder's (19.12) must not subscribe to a feed twice. */
+    private val applying = Mutex()
+
     /** Emits whenever something a snapshot holds may have changed. */
     fun changes(): Flow<Unit> = combine(
         repository.getPodcasts(),
@@ -73,7 +78,9 @@ class LibrarySyncUseCase(
     }
 
     /** Takes what [remote] knows newer; episodes of feeds not read here yet wait for the next exchange. */
-    suspend fun apply(remote: SyncSnapshot): SyncPlan {
+    suspend fun apply(remote: SyncSnapshot): SyncPlan = applying.withLock { applyNow(remote) }
+
+    private suspend fun applyNow(remote: SyncSnapshot): SyncPlan {
         val plan = planSync(snapshot(), remote)
         if (plan.isEmpty) return plan
         val byKey = repository.getPodcasts().first().associateBy { feedUrlKey(it.feedUrl) }

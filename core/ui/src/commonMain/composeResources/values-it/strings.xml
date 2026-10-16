@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">Recupera libreria, progressi, coda, segnalibri e impostazioni da un backup di questa app</string>
     <string name="settings_export_backup">Esporta backup</string>
     <string name="settings_export_backup_description">Salva libreria, progressi, coda, segnalibri e impostazioni in un file</string>
+    <string name="settings_sync_folder">Sincronizza tramite una cartella</string>
+    <string name="settings_sync_folder_description">Mantieni libreria, progressi e coda uguali sui tuoi dispositivi con una cartella di iCloud Drive, Google Drive, Dropbox o Syncthing</string>
+    <string name="settings_sync_folder_waiting">%1$s · non ancora sincronizzata</string>
+    <string name="settings_sync_folder_failed">%1$s · cartella non raggiungibile. Tocca per sceglierla di nuovo</string>
+    <string name="settings_sync_stop">Interrompi sincronizzazione</string>
+    <string name="settings_sync_stop_description">I file restano nella cartella; questo dispositivo smette di usarli</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">Il file non è un backup di questa app</string>
     <string name="stats_title">Statistiche di ascolto</string>
     <string name="stats_description">Quanto hai ascoltato per settimana e per podcast</string>

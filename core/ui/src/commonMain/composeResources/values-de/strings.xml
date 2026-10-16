@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">Mediathek, Fortschritt, Warteschlange, Lesezeichen und Einstellungen aus einer Sicherung dieser App zurückholen</string>
     <string name="settings_export_backup">Sicherung exportieren</string>
     <string name="settings_export_backup_description">Mediathek, Fortschritt, Warteschlange, Lesezeichen und Einstellungen in einer Datei speichern</string>
+    <string name="settings_sync_folder">Über einen Ordner synchronisieren</string>
+    <string name="settings_sync_folder_description">Mediathek, Fortschritt und Warteschlange auf deinen Geräten gleich halten – über einen Ordner in iCloud Drive, Google Drive, Dropbox oder Syncthing</string>
+    <string name="settings_sync_folder_waiting">%1$s · noch nicht synchronisiert</string>
+    <string name="settings_sync_folder_failed">%1$s · Ordner nicht erreichbar. Tippen, um ihn neu zu wählen</string>
+    <string name="settings_sync_stop">Synchronisierung beenden</string>
+    <string name="settings_sync_stop_description">Die Dateien bleiben im Ordner; dieses Gerät nutzt sie nicht mehr</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">Diese Datei ist keine Sicherung dieser App</string>
     <string name="stats_title">Hörstatistik</string>
     <string name="stats_description">Wie viel du pro Woche und pro Podcast gehört hast</string>

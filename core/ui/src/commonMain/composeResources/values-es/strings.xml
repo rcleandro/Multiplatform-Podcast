@@ -147,6 +147,13 @@
     <string name="settings_restore_backup_description">Recupera biblioteca, progreso, cola, marcadores y ajustes de una copia de esta app</string>
     <string name="settings_export_backup">Exportar copia de seguridad</string>
     <string name="settings_export_backup_description">Guarda biblioteca, progreso, cola, marcadores y ajustes en un archivo</string>
+    <string name="settings_sync_folder">Sincronizar por carpeta</string>
+    <string name="settings_sync_folder_description">Mantén biblioteca, progreso y cola iguales en tus dispositivos con una carpeta de iCloud Drive, Google Drive, Dropbox o Syncthing</string>
+    <string name="settings_sync_folder_waiting">%1$s · aún sin sincronizar</string>
+    <string name="settings_sync_folder_failed">%1$s · no se puede acceder a la carpeta. Toca para elegirla de nuevo</string>
+    <string name="settings_sync_stop">Dejar de sincronizar</string>
+    <string name="settings_sync_stop_description">Los archivos se quedan en la carpeta; este dispositivo deja de usarlos</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">El archivo no es una copia de seguridad de esta app</string>
     <string name="stats_title">Estadísticas de escucha</string>
     <string name="stats_description">Cuánto escuchaste por semana y por pódcast</string>

@@ -142,6 +142,13 @@
     <string name="settings_restore_backup_description">このアプリのバックアップからライブラリ、再生位置、キュー、ブックマーク、設定を戻します</string>
     <string name="settings_export_backup">バックアップを書き出す</string>
     <string name="settings_export_backup_description">ライブラリ、再生位置、キュー、ブックマーク、設定を1つのファイルに保存します</string>
+    <string name="settings_sync_folder">フォルダで同期</string>
+    <string name="settings_sync_folder_description">iCloud Drive、Google Drive、Dropbox、Syncthing のフォルダを通じて、ライブラリ、再生位置、キューをすべてのデバイスでそろえます</string>
+    <string name="settings_sync_folder_waiting">%1$s · まだ同期していません</string>
+    <string name="settings_sync_folder_failed">%1$s · フォルダにアクセスできません。タップして選び直してください</string>
+    <string name="settings_sync_stop">同期を停止</string>
+    <string name="settings_sync_stop_description">ファイルはフォルダに残り、このデバイスは使用を停止します</string>
+    <string name="settings_sync_folder_synced">%1$s · %2$s</string>
     <string name="backup_not_valid">このファイルはこのアプリのバックアップではありません</string>
     <string name="stats_title">再生の統計</string>
     <string name="stats_description">週ごと・ポッドキャストごとの再生時間</string>
