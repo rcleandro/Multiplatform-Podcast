@@ -246,6 +246,10 @@
     <string name="more_options">Opsi lainnya</string>
     <string name="subscribe">Berlangganan</string>
     <string name="subscribed">Berlangganan</string>
+    <string name="subscribing">Berlangganan…</string>
+    <string name="episode_playing">Diputar</string>
+    <string name="episode_downloading">Mengunduh</string>
+    <string name="episode_played">Sudah didengar</string>
     <string name="error_search_directory">Direktori tidak dapat dicari.</string>
     <string name="subscribe_to">Berlangganan %1$s</string>
     <string name="category_arts">Seni</string>

@@ -263,6 +263,10 @@
     <string name="more_options">More options</string>
     <string name="subscribe">Subscribe</string>
     <string name="subscribed">Subscribed</string>
+    <string name="subscribing">Subscribing…</string>
+    <string name="episode_playing">Playing</string>
+    <string name="episode_downloading">Downloading</string>
+    <string name="episode_played">Played</string>
     <string name="error_search_directory">Couldn't search the directory.</string>
     <string name="subscribe_to">Subscribe to %1$s</string>
     <string name="category_arts">Arts</string>

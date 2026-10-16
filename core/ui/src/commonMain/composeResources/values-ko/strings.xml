@@ -246,6 +246,10 @@
     <string name="more_options">옵션 더보기</string>
     <string name="subscribe">구독</string>
     <string name="subscribed">구독함</string>
+    <string name="subscribing">구독 중…</string>
+    <string name="episode_playing">재생 중</string>
+    <string name="episode_downloading">다운로드 중</string>
+    <string name="episode_played">들음</string>
     <string name="error_search_directory">디렉터리를 검색하지 못했습니다.</string>
     <string name="subscribe_to">%1$s 구독</string>
     <string name="category_arts">예술</string>

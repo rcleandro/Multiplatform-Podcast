@@ -2,7 +2,6 @@ package br.com.carvalho.podcast.wear
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -60,7 +59,7 @@ fun HomeContent(
                 item {
                     Button(
                         onClick = onPlayer,
-                        icon = { Icon(Icons.Rounded.PlayArrow, contentDescription = null) },
+                        icon = { Thumbnail(episode.imageUrl) },
                         label = { Text(stringResource(Res.string.now_playing)) },
                         secondaryLabel = { Text(episode.title, maxLines = 2, overflow = TextOverflow.Ellipsis) },
                         modifier = Modifier.fillMaxWidth(),
@@ -78,6 +77,7 @@ fun HomeContent(
             items(podcasts, key = { it.podcast.id }) { entry ->
                 Button(
                     onClick = { onPodcast(entry.podcast.id) },
+                    icon = { Thumbnail(entry.podcast.imageUrl) },
                     label = { Text(entry.podcast.title, maxLines = 2, overflow = TextOverflow.Ellipsis) },
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     modifier = Modifier.fillMaxWidth(),

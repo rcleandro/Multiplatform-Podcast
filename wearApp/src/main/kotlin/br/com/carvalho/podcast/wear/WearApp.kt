@@ -10,6 +10,9 @@ import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 private const val HOME = "home"
 private const val PLAYER = "player"
 private const val POPULAR = "popular"
+private const val QUEUE = "queue"
+private const val SPEED = "speed"
+private const val TIMER = "timer"
 internal const val PODCAST_ID = "id"
 internal const val PODCAST_ROUTE = "podcast/{$PODCAST_ID}"
 
@@ -34,7 +37,16 @@ fun WearApp() {
                     val podcastId = entry.arguments?.getString(PODCAST_ID) ?: return@composable
                     PodcastScreen(podcastId, onPlaying = { navController.navigate(PLAYER) })
                 }
-                composable(PLAYER) { NowPlayingScreen() }
+                composable(PLAYER) {
+                    NowPlayingScreen(
+                        onQueue = { navController.navigate(QUEUE) },
+                        onSpeed = { navController.navigate(SPEED) },
+                        onTimer = { navController.navigate(TIMER) },
+                    )
+                }
+                composable(QUEUE) { QueueScreen() }
+                composable(SPEED) { SpeedScreen(onDone = navController::popBackStack) }
+                composable(TIMER) { SleepTimerScreen(onDone = navController::popBackStack) }
                 composable(POPULAR) { PopularScreen() }
             }
         }

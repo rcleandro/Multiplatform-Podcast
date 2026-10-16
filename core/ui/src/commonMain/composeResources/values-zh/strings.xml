@@ -246,6 +246,10 @@
     <string name="more_options">更多选项</string>
     <string name="subscribe">订阅</string>
     <string name="subscribed">已订阅</string>
+    <string name="subscribing">正在订阅…</string>
+    <string name="episode_playing">正在播放</string>
+    <string name="episode_downloading">正在下载</string>
+    <string name="episode_played">已听</string>
     <string name="error_search_directory">无法搜索目录。</string>
     <string name="subscribe_to">订阅 %1$s</string>
     <string name="category_arts">艺术</string>

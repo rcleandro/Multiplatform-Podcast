@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.BluetoothAudio
 import androidx.compose.material.icons.rounded.Forward30
@@ -46,6 +47,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.foundation.pager.VerticalPager
+import androidx.wear.compose.foundation.pager.rememberPagerState
+import androidx.wear.compose.material3.AnimatedPage
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.FilledIconButton
 import androidx.wear.compose.material3.Icon
@@ -53,16 +57,21 @@ import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.VerticalPagerScaffold
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.audio_output
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
+import br.com.carvalho.podcast.core.ui.generated.resources.queue
 import br.com.carvalho.podcast.core.ui.generated.resources.skip_backward
 import br.com.carvalho.podcast.core.ui.generated.resources.skip_forward
+import br.com.carvalho.podcast.core.ui.generated.resources.timer_disabled
+import br.com.carvalho.podcast.core.ui.generated.resources.timer_end_of_episode
 import br.com.carvalho.podcast.core.ui.generated.resources.volume
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import coil3.compose.AsyncImage
@@ -76,22 +85,54 @@ data class WatchPlayerActions(
     val onVolumeStep: (up: Boolean) -> Unit = {},
     val onVolume: () -> Unit = {},
     val onAudioOutput: () -> Unit = {},
+    val onQueue: () -> Unit = {},
 )
 
+/**
+ * The player in two pages (19.9h): the controls, and a swipe up the episode's details with the speed and the sleep
+ * timer, as the watch's media apps do.
+ */
 @Composable
-fun NowPlayingScreen(viewModel: PlayerViewModel = koinViewModel()) {
+fun NowPlayingScreen(
+    onQueue: () -> Unit,
+    onSpeed: () -> Unit,
+    onTimer: () -> Unit,
+    viewModel: PlayerViewModel = koinViewModel(),
+) {
     val state by viewModel.playerState.collectAsState()
     val context = LocalContext.current
     val volume = remember(context) { WatchVolume(context) }
-    NowPlayingContent(
-        state,
-        viewModel::onIntent,
-        WatchPlayerActions(
-            onVolumeStep = volume::step,
-            onVolume = volume::show,
-            onAudioOutput = context::chooseAudioOutput,
-        ),
-    )
+    val pagerState = rememberPagerState(pageCount = { PLAYER_PAGES })
+    val timer = timerLabel(state)
+    VerticalPagerScaffold(pagerState = pagerState) {
+        VerticalPager(state = pagerState) { page ->
+            AnimatedPage(page, pagerState) {
+                if (page == 0) {
+                    NowPlayingContent(
+                        state,
+                        viewModel::onIntent,
+                        WatchPlayerActions(
+                            onVolumeStep = volume::step,
+                            onVolume = volume::show,
+                            onAudioOutput = context::chooseAudioOutput,
+                            onQueue = onQueue,
+                        ),
+                    )
+                } else {
+                    EpisodeInfoPage(state, timer, onSpeed, onTimer)
+                }
+            }
+        }
+    }
+}
+
+/** What the sleep timer is doing: off, the time left, or the end of the episode. */
+@Composable
+private fun timerLabel(state: PlayerState): String = when (val timer = state.sleepTimer) {
+    null -> stringResource(Res.string.timer_disabled)
+    SleepTimer.EndOfEpisode -> stringResource(Res.string.timer_end_of_episode)
+    is SleepTimer.Minutes ->
+        state.sleepTimerMillis?.toTime() ?: stringResource(SLEEP_TIMER_CHOICES.first { it.first == timer }.second)
 }
 
 /**
@@ -225,6 +266,9 @@ private fun PlayerControls(state: PlayerState, onIntent: (PlayerIntent) -> Unit,
             IconButton(onClick = actions.onVolume) {
                 Icon(Icons.AutoMirrored.Rounded.VolumeUp, stringResource(Res.string.volume))
             }
+            IconButton(onClick = actions.onQueue) {
+                Icon(Icons.AutoMirrored.Rounded.QueueMusic, stringResource(Res.string.queue))
+            }
             IconButton(onClick = actions.onAudioOutput) {
                 Icon(Icons.Rounded.BluetoothAudio, stringResource(Res.string.audio_output))
             }
@@ -240,6 +284,8 @@ private fun PlayerState.progress(): Float =
     knownDurationMs().takeIf { it > 0 }?.let { (position.toFloat() / it).coerceIn(0f, 1f) } ?: 0f
 
 private const val MILLIS_PER_SECOND = 1000L
+
+private const val PLAYER_PAGES = 2
 
 /** How much of the cover shows through the dark layer over it. */
 private const val COVER_SCRIM_ALPHA = 0.6f

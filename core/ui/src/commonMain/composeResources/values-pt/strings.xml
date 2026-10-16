@@ -262,6 +262,10 @@
     <string name="more_options">Mais opções</string>
     <string name="subscribe">Assinar</string>
     <string name="subscribed">Assinado</string>
+    <string name="subscribing">Assinando…</string>
+    <string name="episode_playing">Tocando</string>
+    <string name="episode_downloading">Baixando</string>
+    <string name="episode_played">Ouvido</string>
     <string name="error_search_directory">Não foi possível buscar no diretório.</string>
     <string name="subscribe_to">Assinar %1$s</string>
     <string name="category_arts">Artes</string>

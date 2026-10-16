@@ -246,6 +246,10 @@
     <string name="more_options">Diğer seçenekler</string>
     <string name="subscribe">Abone ol</string>
     <string name="subscribed">Abone olundu</string>
+    <string name="subscribing">Abone olunuyor…</string>
+    <string name="episode_playing">Çalıyor</string>
+    <string name="episode_downloading">İndiriliyor</string>
+    <string name="episode_played">Dinlendi</string>
     <string name="error_search_directory">Dizinde arama yapılamadı.</string>
     <string name="subscribe_to">%1$s podcast'ine abone ol</string>
     <string name="category_arts">Sanat</string>

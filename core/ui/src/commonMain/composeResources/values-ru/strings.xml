@@ -246,6 +246,10 @@
     <string name="more_options">Другие действия</string>
     <string name="subscribe">Подписаться</string>
     <string name="subscribed">Вы подписаны</string>
+    <string name="subscribing">Подписка…</string>
+    <string name="episode_playing">Играет</string>
+    <string name="episode_downloading">Загрузка</string>
+    <string name="episode_played">Прослушано</string>
     <string name="error_search_directory">Не удалось выполнить поиск в каталоге.</string>
     <string name="subscribe_to">Подписаться на %1$s</string>
     <string name="category_arts">Искусство</string>

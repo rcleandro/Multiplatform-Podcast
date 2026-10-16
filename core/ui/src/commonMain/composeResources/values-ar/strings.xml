@@ -246,6 +246,10 @@
     <string name="more_options">خيارات أخرى</string>
     <string name="subscribe">اشتراك</string>
     <string name="subscribed">مشترك</string>
+    <string name="subscribing">جارٍ الاشتراك…</string>
+    <string name="episode_playing">قيد التشغيل</string>
+    <string name="episode_downloading">جارٍ التنزيل</string>
+    <string name="episode_played">تم الاستماع</string>
     <string name="error_search_directory">تعذّر البحث في الدليل.</string>
     <string name="subscribe_to">الاشتراك في %1$s</string>
     <string name="category_arts">الفنون</string>

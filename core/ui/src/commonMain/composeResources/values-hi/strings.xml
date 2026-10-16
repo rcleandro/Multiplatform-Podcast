@@ -246,6 +246,10 @@
     <string name="more_options">और विकल्प</string>
     <string name="subscribe">सदस्यता लें</string>
     <string name="subscribed">सदस्यता ली गई</string>
+    <string name="subscribing">सदस्यता ली जा रही है…</string>
+    <string name="episode_playing">चल रहा है</string>
+    <string name="episode_downloading">डाउनलोड हो रहा है</string>
+    <string name="episode_played">सुना गया</string>
     <string name="error_search_directory">डायरेक्टरी में खोज नहीं हो सकी।</string>
     <string name="subscribe_to">%1$s की सदस्यता लें</string>
     <string name="category_arts">कला</string>

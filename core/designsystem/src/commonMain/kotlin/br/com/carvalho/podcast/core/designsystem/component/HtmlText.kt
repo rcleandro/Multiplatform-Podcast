@@ -57,7 +57,7 @@ private val NAMED_ENTITIES = mapOf(
  * Compose Multiplatform, so this common parser covers what feeds use: `p`, `br`, `div`, `ul`/`ol`/`li`, `b`/`strong`,
  * `i`/`em` and `a href`. Other tags are dropped and keep their text; whitespace collapses as in a browser.
  */
-internal fun parseHtml(html: String, linkStyles: TextLinkStyles? = null): AnnotatedString {
+fun parseHtml(html: String, linkStyles: TextLinkStyles? = null): AnnotatedString {
     val writer = HtmlWriter(linkStyles)
     for (match in TAG_OR_TEXT.findAll(html)) {
         val (slash, name, attributes) = match.destructured

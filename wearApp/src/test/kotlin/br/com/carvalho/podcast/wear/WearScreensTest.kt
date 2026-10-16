@@ -9,12 +9,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performRotaryScrollInput
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.text.font.FontFamily
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.MaterialTheme
@@ -25,9 +30,16 @@ import br.com.carvalho.podcast.core.designsystem.DarkColorScheme
 import br.com.carvalho.podcast.core.designsystem.onestFontFamily
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.audio_output
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_downloading
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_played
+import br.com.carvalho.podcast.core.ui.generated.resources.episode_playing
+import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
+import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribed
+import br.com.carvalho.podcast.core.ui.generated.resources.subscribing
 import br.com.carvalho.podcast.core.ui.generated.resources.volume
+import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryEntry
@@ -185,5 +197,88 @@ class WearScreensTest {
         compose.waitForIdle()
 
         assertEquals(0.5f, ring(), 0.001f)
+    }
+
+    @Test
+    fun aPodcastBeingSubscribedToSaysSoUntilItIsDone() {
+        val found = DirectoryPodcast("NerdCast", null, null, "https://nerd.cast/rss", null, null)
+        var subscribing by mutableStateOf(setOf(found.feedUrl))
+        watch {
+            PopularContent(listOf(DirectoryResult(found, isSubscribed = false)), onSubscribe = {}, subscribing = subscribing)
+        }
+        compose.onNodeWithText(text(Res.string.subscribing)).assertExists()
+
+        subscribing = emptySet()
+
+        compose.onNodeWithText(text(Res.string.subscribing)).assertDoesNotExist()
+    }
+
+    @Test
+    fun eachEpisodeSaysWhereItStands() {
+        var row by mutableStateOf(Triple(episode, false, null as DownloadStatus?))
+        watch { EpisodeButton(row.first, isPlaying = row.second, download = row.third, onPlay = {}, onDownload = {}) }
+        fun says(res: StringResource) = compose.onNodeWithText(text(res), substring = true).assertExists()
+
+        row = Triple(episode, true, null)
+        says(Res.string.episode_playing)
+        row = Triple(episode, false, DownloadStatus.Downloading(0.4f, 40, 100))
+        says(Res.string.episode_downloading)
+        row = Triple(episode.copy(isPlayed = true, isDownloaded = true), false, null)
+        says(Res.string.episode_played)
+        says(Res.string.filter_downloaded)
+        row = Triple(episode.copy(duration = 1_800, playbackPosition = 600_000), false, null)
+        compose.onNodeWithText(runBlocking { getString(Res.string.remaining_time, "20min") }).assertExists()
+    }
+
+    @Test
+    fun theInfoPageShowsTheEpisodeAndOpensSpeedAndTimer() {
+        val opened = mutableListOf<String>()
+        val playing = episode.copy(podcastTitle = "Hipsters", description = "<p>Sobre <b>Pix</b></p>")
+        watch {
+            EpisodeInfoPage(
+                PlayerState(currentEpisode = playing, speed = 1.5f),
+                timerLabel = "4:59",
+                onSpeed = { opened += "speed" },
+                onTimer = { opened += "timer" },
+            )
+        }
+
+        compose.onNodeWithText("1.5×").performClick()
+        compose.onNodeWithText("4:59").performClick()
+        compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Sobre Pix", substring = true))
+
+        assertEquals(listOf("speed", "timer"), opened)
+    }
+
+    @Test
+    fun aChoiceListChecksTheCurrentChoiceAndReturnsTheTappedOne() {
+        var chosen: Int? = null
+        watch { ChoiceList("Speed", listOf("1×" to true, "2×" to false), onChoose = { chosen = it }) }
+
+        compose.onNodeWithText("2×").performClick()
+
+        assertEquals(1, chosen)
+    }
+
+    @Test
+    fun theQueuePlaysATappedEpisodeAndALongPressTakesItOut() {
+        val next = episode.copy(id = "e2", title = "Rust no backend")
+        val played = mutableListOf<String>()
+        val removed = mutableListOf<String>()
+        watch {
+            QueueContent(
+                current = episode,
+                isPlaying = true,
+                upNext = listOf(next),
+                onPlay = { played += it.id },
+                onRemove = { removed += it.id },
+            )
+        }
+
+        compose.onNodeWithText("Rust no backend").performClick()
+        compose.onNodeWithText("Rust no backend").performTouchInput { longClick() }
+
+        assertEquals(listOf("e2"), played)
+        assertEquals(listOf("e2"), removed)
     }
 }

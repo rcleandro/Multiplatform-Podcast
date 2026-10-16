@@ -246,6 +246,10 @@
     <string name="more_options">その他のオプション</string>
     <string name="subscribe">登録</string>
     <string name="subscribed">登録済み</string>
+    <string name="subscribing">登録中…</string>
+    <string name="episode_playing">再生中</string>
+    <string name="episode_downloading">ダウンロード中</string>
+    <string name="episode_played">再生済み</string>
     <string name="error_search_directory">ディレクトリを検索できませんでした。</string>
     <string name="subscribe_to">%1$s を登録</string>
     <string name="category_arts">アート</string>

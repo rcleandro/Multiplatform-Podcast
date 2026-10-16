@@ -246,6 +246,10 @@
     <string name="more_options">Plus d'options</string>
     <string name="subscribe">S'abonner</string>
     <string name="subscribed">Abonné</string>
+    <string name="subscribing">Abonnement…</string>
+    <string name="episode_playing">En lecture</string>
+    <string name="episode_downloading">Téléchargement</string>
+    <string name="episode_played">Écouté</string>
     <string name="error_search_directory">Impossible de chercher dans l'annuaire.</string>
     <string name="subscribe_to">S'abonner à %1$s</string>
     <string name="category_arts">Arts</string>

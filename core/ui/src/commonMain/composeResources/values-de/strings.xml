@@ -246,6 +246,10 @@
     <string name="more_options">Weitere Optionen</string>
     <string name="subscribe">Abonnieren</string>
     <string name="subscribed">Abonniert</string>
+    <string name="subscribing">Wird abonniert…</string>
+    <string name="episode_playing">Läuft</string>
+    <string name="episode_downloading">Wird geladen</string>
+    <string name="episode_played">Gehört</string>
     <string name="error_search_directory">Das Verzeichnis konnte nicht durchsucht werden.</string>
     <string name="subscribe_to">%1$s abonnieren</string>
     <string name="category_arts">Kunst</string>
