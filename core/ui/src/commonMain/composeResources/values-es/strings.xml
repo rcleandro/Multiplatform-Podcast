@@ -40,6 +40,8 @@
     <string name="now_playing">REPRODUCIENDO AHORA</string>
     <string name="minimize">Minimizar</string>
     <string name="playback_speed">Velocidad de reproducción</string>
+    <string name="volume">Volumen</string>
+    <string name="audio_output">Salida de audio</string>
     <string name="sleep_timer">Temporizador de apagado</string>
     <string name="queue">Cola de reproducción</string>
     <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->

@@ -36,6 +36,8 @@
     <string name="now_playing">EN LECTURE</string>
     <string name="minimize">Réduire</string>
     <string name="playback_speed">Vitesse de lecture</string>
+    <string name="volume">Volume</string>
+    <string name="audio_output">Sortie audio</string>
     <string name="sleep_timer">Minuterie de sommeil</string>
     <string name="queue">File d'attente</string>
     <string name="queue_short">File</string>

@@ -36,6 +36,8 @@
     <string name="now_playing">قيد التشغيل الآن</string>
     <string name="minimize">تصغير</string>
     <string name="playback_speed">سرعة التشغيل</string>
+    <string name="volume">مستوى الصوت</string>
+    <string name="audio_output">مخرج الصوت</string>
     <string name="sleep_timer">مؤقّت النوم</string>
     <string name="queue">قائمة الانتظار</string>
     <string name="queue_short">الانتظار</string>

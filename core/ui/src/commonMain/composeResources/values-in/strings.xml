@@ -36,6 +36,8 @@
     <string name="now_playing">SEDANG DIPUTAR</string>
     <string name="minimize">Perkecil</string>
     <string name="playback_speed">Kecepatan putar</string>
+    <string name="volume">Volume</string>
+    <string name="audio_output">Output audio</string>
     <string name="sleep_timer">Timer tidur</string>
     <string name="queue">Antrean</string>
     <string name="queue_short">Antrean</string>

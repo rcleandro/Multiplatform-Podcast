@@ -36,6 +36,8 @@
     <string name="now_playing">LÄUFT GERADE</string>
     <string name="minimize">Minimieren</string>
     <string name="playback_speed">Wiedergabegeschwindigkeit</string>
+    <string name="volume">Lautstärke</string>
+    <string name="audio_output">Audioausgabe</string>
     <string name="sleep_timer">Schlaftimer</string>
     <string name="queue">Warteschlange</string>
     <string name="queue_short">Warteschlange</string>

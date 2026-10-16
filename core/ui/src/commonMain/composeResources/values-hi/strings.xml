@@ -36,6 +36,8 @@
     <string name="now_playing">अभी चल रहा है</string>
     <string name="minimize">छोटा करें</string>
     <string name="playback_speed">चलाने की गति</string>
+    <string name="volume">वॉल्यूम</string>
+    <string name="audio_output">ऑडियो आउटपुट</string>
     <string name="sleep_timer">स्लीप टाइमर</string>
     <string name="queue">कतार</string>
     <string name="queue_short">कतार</string>

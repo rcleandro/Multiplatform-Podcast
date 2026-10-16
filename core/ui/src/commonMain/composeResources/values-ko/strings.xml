@@ -36,6 +36,8 @@
     <string name="now_playing">지금 재생 중</string>
     <string name="minimize">최소화</string>
     <string name="playback_speed">재생 속도</string>
+    <string name="volume">볼륨</string>
+    <string name="audio_output">오디오 출력</string>
     <string name="sleep_timer">수면 타이머</string>
     <string name="queue">재생 대기열</string>
     <string name="queue_short">대기열</string>

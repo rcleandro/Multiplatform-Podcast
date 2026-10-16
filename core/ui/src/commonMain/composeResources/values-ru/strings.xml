@@ -36,6 +36,8 @@
     <string name="now_playing">СЕЙЧАС ИГРАЕТ</string>
     <string name="minimize">Свернуть</string>
     <string name="playback_speed">Скорость воспроизведения</string>
+    <string name="volume">Громкость</string>
+    <string name="audio_output">Аудиовыход</string>
     <string name="sleep_timer">Таймер сна</string>
     <string name="queue">Очередь</string>
     <string name="queue_short">Очередь</string>

@@ -42,6 +42,8 @@
     <string name="now_playing">NOW PLAYING</string>
     <string name="minimize">Minimize</string>
     <string name="playback_speed">Playback speed</string>
+    <string name="volume">Volume</string>
+    <string name="audio_output">Audio output</string>
     <string name="sleep_timer">Sleep Timer</string>
     <string name="queue">Queue</string>
     <!-- Short labels for the player's pills; the full names go to screen readers and dialogs. -->

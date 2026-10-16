@@ -3,7 +3,6 @@ package br.com.carvalho.podcast.wear
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material3.AppScaffold
-import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
@@ -21,7 +20,7 @@ internal fun podcastRoute(podcastId: String) = "podcast/${Uri.encode(podcastId)}
 @Composable
 fun WearApp() {
     val navController = rememberSwipeDismissableNavController()
-    MaterialTheme {
+    WearTheme {
         AppScaffold {
             SwipeDismissableNavHost(navController = navController, startDestination = HOME) {
                 composable(HOME) {

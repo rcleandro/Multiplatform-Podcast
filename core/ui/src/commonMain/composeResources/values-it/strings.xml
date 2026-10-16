@@ -36,6 +36,8 @@
     <string name="now_playing">IN ASCOLTO</string>
     <string name="minimize">Riduci</string>
     <string name="playback_speed">Velocità di riproduzione</string>
+    <string name="volume">Volume</string>
+    <string name="audio_output">Uscita audio</string>
     <string name="sleep_timer">Timer di spegnimento</string>
     <string name="queue">Coda</string>
     <string name="queue_short">Coda</string>

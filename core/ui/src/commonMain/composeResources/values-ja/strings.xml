@@ -36,6 +36,8 @@
     <string name="now_playing">再生中</string>
     <string name="minimize">最小化</string>
     <string name="playback_speed">再生速度</string>
+    <string name="volume">音量</string>
+    <string name="audio_output">音声出力</string>
     <string name="sleep_timer">スリープタイマー</string>
     <string name="queue">キュー</string>
     <string name="queue_short">キュー</string>

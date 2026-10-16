@@ -36,6 +36,8 @@
     <string name="now_playing">ŞİMDİ ÇALIYOR</string>
     <string name="minimize">Küçült</string>
     <string name="playback_speed">Oynatma hızı</string>
+    <string name="volume">Ses düzeyi</string>
+    <string name="audio_output">Ses çıkışı</string>
     <string name="sleep_timer">Uyku zamanlayıcısı</string>
     <string name="queue">Sıra</string>
     <string name="queue_short">Sıra</string>
