@@ -67,6 +67,11 @@ interface PreferencesRepository {
 
     fun setBoostVoice(enabled: Boolean)
 
+    /** On a watch, play only through headphones or a speaker, never the watch's own (19.9f); off by default. */
+    val headphonesOnly: StateFlow<Boolean>
+
+    fun setHeadphonesOnly(enabled: Boolean)
+
     val skipIntervals: StateFlow<SkipIntervals>
 
     fun setSkipIntervals(intervals: SkipIntervals)

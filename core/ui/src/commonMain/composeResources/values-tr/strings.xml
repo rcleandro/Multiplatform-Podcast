@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">Konuşmadaki duraklamalar daha hızlı geçer.</string>
     <string name="settings_boost_voice">Sesleri güçlendir</string>
     <string name="settings_boost_voice_description">Alçak sesle konuşan sunucuları gürültülü yerler için yükseltir.</string>
+    <string name="headphones_only">Yalnızca kulaklıkla çal</string>
     <string name="settings_updates">Güncellemeler</string>
     <string name="settings_refresh">Yeni bölümleri ara</string>
     <string name="settings_refresh_never">Asla, yalnızca uygulama açılınca</string>

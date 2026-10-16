@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">대화 중 쉬는 구간이 더 빨리 지나갑니다.</string>
     <string name="settings_boost_voice">목소리 강조</string>
     <string name="settings_boost_voice_description">작은 목소리를 크게 만들어 시끄러운 곳에서도 잘 들립니다.</string>
+    <string name="headphones_only">헤드폰으로만 재생</string>
     <string name="settings_updates">업데이트</string>
     <string name="settings_refresh">새 에피소드 찾기</string>
     <string name="settings_refresh_never">안 함, 앱을 열 때만</string>

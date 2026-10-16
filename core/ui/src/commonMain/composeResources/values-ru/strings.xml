@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">Паузы в разговоре проходят быстрее.</string>
     <string name="settings_boost_voice">Усиливать голоса</string>
     <string name="settings_boost_voice_description">Делает тихих ведущих громче — для шумных мест.</string>
+    <string name="headphones_only">Только в наушниках</string>
     <string name="settings_updates">Обновления</string>
     <string name="settings_refresh">Искать новые выпуски</string>
     <string name="settings_refresh_never">Никогда, только при открытии приложения</string>

@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">Pausen im Gespräch gehen schneller vorbei.</string>
     <string name="settings_boost_voice">Stimmen verstärken</string>
     <string name="settings_boost_voice_description">Macht leise Sprecher lauter, für laute Umgebungen.</string>
+    <string name="headphones_only">Nur über Kopfhörer</string>
     <string name="settings_updates">Aktualisierung</string>
     <string name="settings_refresh">Nach neuen Folgen suchen</string>
     <string name="settings_refresh_never">Nie, nur beim Öffnen der App</string>

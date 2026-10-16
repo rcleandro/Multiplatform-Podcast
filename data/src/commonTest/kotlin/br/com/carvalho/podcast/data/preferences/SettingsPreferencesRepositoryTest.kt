@@ -83,6 +83,10 @@ class SettingsPreferencesRepositoryTest {
         fresh.setBoostVoice(true)
         assertTrue(SettingsPreferencesRepository(settings).skipSilence.value)
         assertTrue(SettingsPreferencesRepository(settings).boostVoice.value)
+        // Headphones only (19.9f): off until chosen, then kept.
+        assertFalse(fresh.headphonesOnly.value)
+        fresh.setHeadphonesOnly(true)
+        assertTrue(SettingsPreferencesRepository(settings).headphonesOnly.value)
 
         fresh.setWifiOnlyDownloads(true)
         fresh.setDownloadLimitBytes(LIMIT)

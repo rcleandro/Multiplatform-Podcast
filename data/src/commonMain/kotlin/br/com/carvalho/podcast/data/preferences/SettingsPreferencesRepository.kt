@@ -23,6 +23,7 @@ private const val DOWNLOAD_NEXT_ON_FINISH = "download_next_on_finish"
 private const val DELETE_FINISHED_DOWNLOADS = "delete_finished_downloads"
 private const val DELETE_DOWNLOADS_AFTER_DAYS = "delete_downloads_after_days"
 private const val SKIP_SILENCE = "skip_silence"
+private const val HEADPHONES_ONLY = "headphones_only"
 private const val REFRESH_INTERVAL_HOURS = "refresh_interval_hours"
 private const val NOTIFY_NEW_EPISODES = "notify_new_episodes"
 private const val BOOST_VOICE = "boost_voice"
@@ -110,6 +111,14 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     override fun setBoostVoice(enabled: Boolean) {
         settings.putBoolean(BOOST_VOICE, enabled)
         voice.value = enabled
+    }
+
+    private val headphones = MutableStateFlow(settings.getBoolean(HEADPHONES_ONLY, defaultValue = false))
+    override val headphonesOnly: StateFlow<Boolean> = headphones.asStateFlow()
+
+    override fun setHeadphonesOnly(enabled: Boolean) {
+        settings.putBoolean(HEADPHONES_ONLY, enabled)
+        headphones.value = enabled
     }
 
     private val deleteAfter = MutableStateFlow(

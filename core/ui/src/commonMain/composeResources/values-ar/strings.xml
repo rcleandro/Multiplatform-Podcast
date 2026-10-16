@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">تمر الوقفات في الحديث أسرع.</string>
     <string name="settings_boost_voice">تعزيز الأصوات</string>
     <string name="settings_boost_voice_description">يرفع صوت المقدّمين الهادئين، للأماكن الصاخبة.</string>
+    <string name="headphones_only">التشغيل عبر السماعات فقط</string>
     <string name="settings_updates">التحديثات</string>
     <string name="settings_refresh">البحث عن حلقات جديدة</string>
     <string name="settings_refresh_never">أبدًا، فقط عند فتح التطبيق</string>

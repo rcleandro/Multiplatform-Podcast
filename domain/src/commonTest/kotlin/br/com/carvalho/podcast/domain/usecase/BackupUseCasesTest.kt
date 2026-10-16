@@ -55,6 +55,7 @@ class BackupUseCasesTest {
         old.player.setQueue(listOf(episode("a3", FEED_A), episode("b1", FEED_B)))
         old.repository.saveSmartPlaylist(SmartPlaylist(name = "Short", unplayedOnly = true, maxMinutes = 30))
         old.preferences.setThemeMode(ThemeMode.DARK)
+        old.preferences.setHeadphonesOnly(true)
         old.preferences.setSkipIntervals(SkipIntervals(backwardSeconds = 5, forwardSeconds = 30))
 
         val backup = old.export()
@@ -81,6 +82,7 @@ class BackupUseCasesTest {
         assertEquals(listOf("a3", "b1"), new.player.queueSet?.map { it.id })
         assertEquals(listOf("Short" to 30), new.repository.smartPlaylists.value.map { it.name to it.maxMinutes })
         assertEquals(ThemeMode.DARK, new.preferences.themeMode.value)
+        assertEquals(true, new.preferences.headphonesOnly.value)
         assertEquals(SkipIntervals(5, 30), new.preferences.skipIntervals.value)
     }
 

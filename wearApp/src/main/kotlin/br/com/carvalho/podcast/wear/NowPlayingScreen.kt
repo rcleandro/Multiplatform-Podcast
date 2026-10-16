@@ -58,6 +58,8 @@ import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.VerticalPagerScaffold
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.extensions.toTime
+import br.com.carvalho.podcast.core.player.WatchVolume
+import br.com.carvalho.podcast.core.player.chooseAudioOutput
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.audio_output
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
@@ -98,8 +100,10 @@ fun NowPlayingScreen(
     onSpeed: () -> Unit,
     onTimer: () -> Unit,
     viewModel: PlayerViewModel = koinViewModel(),
+    effectsViewModel: WatchEffectsViewModel = koinViewModel(),
 ) {
     val state by viewModel.playerState.collectAsState()
+    val effects by effectsViewModel.effects.collectAsState()
     val context = LocalContext.current
     val volume = remember(context) { WatchVolume(context) }
     val pagerState = rememberPagerState(pageCount = { PLAYER_PAGES })
@@ -119,7 +123,7 @@ fun NowPlayingScreen(
                         ),
                     )
                 } else {
-                    EpisodeInfoPage(state, timer, onSpeed, onTimer)
+                    EpisodeInfoPage(state, timer, onSpeed, onTimer, effects, effectsViewModel::set)
                 }
             }
         }

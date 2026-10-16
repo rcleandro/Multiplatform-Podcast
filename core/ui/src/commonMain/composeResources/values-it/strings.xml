@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">Le pause della conversazione passano più in fretta.</string>
     <string name="settings_boost_voice">Potenzia le voci</string>
     <string name="settings_boost_voice_description">Alza chi parla piano, per i posti rumorosi.</string>
+    <string name="headphones_only">Solo con cuffie</string>
     <string name="settings_updates">Aggiornamenti</string>
     <string name="settings_refresh">Cerca nuovi episodi</string>
     <string name="settings_refresh_never">Mai, solo all'apertura dell'app</string>

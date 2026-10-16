@@ -66,6 +66,7 @@ data class PreferencesBackup(
     val skipIntervals: SkipIntervals = SkipIntervals(),
     val skipSilence: Boolean = false,
     val boostVoice: Boolean = false,
+    val headphonesOnly: Boolean = false,
     val wifiOnlyDownloads: Boolean = false,
     val downloadLimitBytes: Long? = null,
     val downloadNextOnFinish: Boolean = false,
@@ -84,6 +85,7 @@ data class PreferencesBackup(
         preferences.setSkipIntervals(skipIntervals)
         preferences.setSkipSilence(skipSilence)
         preferences.setBoostVoice(boostVoice)
+        preferences.setHeadphonesOnly(headphonesOnly)
         preferences.setWifiOnlyDownloads(wifiOnlyDownloads)
         preferences.setDownloadLimitBytes(downloadLimitBytes)
         preferences.setDownloadNextOnFinish(downloadNextOnFinish)
@@ -105,6 +107,7 @@ data class PreferencesBackup(
                 skipIntervals = preferences.skipIntervals.value,
                 skipSilence = preferences.skipSilence.value,
                 boostVoice = preferences.boostVoice.value,
+                headphonesOnly = preferences.headphonesOnly.value,
                 wifiOnlyDownloads = preferences.wifiOnlyDownloads.value,
                 downloadLimitBytes = preferences.downloadLimitBytes.value,
                 downloadNextOnFinish = preferences.downloadNextOnFinish.value,

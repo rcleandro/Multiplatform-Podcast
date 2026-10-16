@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">会話の間が短くなります。</string>
     <string name="settings_boost_voice">声を強調</string>
     <string name="settings_boost_voice_description">小さな声を大きくします。騒がしい場所向けです。</string>
+    <string name="headphones_only">ヘッドホンのみで再生</string>
     <string name="settings_updates">更新</string>
     <string name="settings_refresh">新しいエピソードを探す</string>
     <string name="settings_refresh_never">しない（アプリを開いたときだけ）</string>

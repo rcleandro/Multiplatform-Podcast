@@ -36,10 +36,12 @@ import br.com.carvalho.podcast.core.ui.generated.resources.episode_downloading
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_played
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_playing
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
+import br.com.carvalho.podcast.core.ui.generated.resources.headphones_only
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play_next
 import br.com.carvalho.podcast.core.ui.generated.resources.remaining_time
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
 import br.com.carvalho.podcast.core.ui.generated.resources.smart_playlists
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribed
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribing
@@ -354,5 +356,31 @@ class WearScreensTest {
         compose.onNodeWithText("Não ouvidos").performClick()
 
         assertEquals(listOf(preset), made)
+    }
+
+    @Test
+    fun theSoundSwitchesTurnOnFromTheDetailsPage() {
+        val changed = mutableListOf<WatchEffects>()
+        watch {
+            EpisodeInfoPage(
+                PlayerState(currentEpisode = episode),
+                timerLabel = null,
+                onSpeed = {},
+                onTimer = {},
+                effects = WatchEffects(skipSilence = true),
+                onEffects = { changed += it },
+            )
+        }
+
+        tapAfterScrolling(text(Res.string.settings_boost_voice))
+        tapAfterScrolling(text(Res.string.headphones_only))
+
+        assertEquals(
+            listOf(
+                WatchEffects(skipSilence = true, boostVoice = true),
+                WatchEffects(skipSilence = true, headphonesOnly = true),
+            ),
+            changed,
+        )
     }
 }

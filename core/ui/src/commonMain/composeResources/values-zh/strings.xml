@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">对话中的停顿过得更快。</string>
     <string name="settings_boost_voice">增强人声</string>
     <string name="settings_boost_voice_description">让声音小的主持人更响亮，适合嘈杂的地方。</string>
+    <string name="headphones_only">仅通过耳机播放</string>
     <string name="settings_updates">更新</string>
     <string name="settings_refresh">查找新单集</string>
     <string name="settings_refresh_never">从不，仅在打开应用时</string>

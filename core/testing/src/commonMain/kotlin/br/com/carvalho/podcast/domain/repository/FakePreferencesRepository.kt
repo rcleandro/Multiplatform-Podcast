@@ -104,4 +104,10 @@ class FakePreferencesRepository : PreferencesRepository {
     override fun setTelemetryEnabled(enabled: Boolean) {
         telemetryEnabled.value = enabled
     }
+
+    override val headphonesOnly = MutableStateFlow(false)
+
+    override fun setHeadphonesOnly(enabled: Boolean) {
+        headphonesOnly.value = enabled
+    }
 }

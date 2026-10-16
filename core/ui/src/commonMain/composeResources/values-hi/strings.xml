@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">बातचीत के बीच के ठहराव जल्दी निकल जाते हैं।</string>
     <string name="settings_boost_voice">आवाज़ बढ़ाएं</string>
     <string name="settings_boost_voice_description">धीमी आवाज़ वाले होस्ट को तेज़ करता है, शोर वाली जगहों के लिए।</string>
+    <string name="headphones_only">सिर्फ़ हेडफ़ोन पर चलाएं</string>
     <string name="settings_updates">अपडेट</string>
     <string name="settings_refresh">नए एपिसोड खोजें</string>
     <string name="settings_refresh_never">कभी नहीं, सिर्फ़ ऐप खुलने पर</string>

@@ -97,9 +97,11 @@ class PodcastMediaService : MediaLibraryService() {
                 )
             }
 
+        val isWatch = packageManager.hasSystemFeature(PackageManager.FEATURE_WATCH)
+        if (isWatch) pauseWithoutHeadphones(player)
         // Plays on the phone, or on a Chromecast while a Cast session is on, carrying the position across (18.17). A
         // watch has no Cast (19.9a): there it is the local player alone.
-        val sessionPlayer: Player = if (packageManager.hasSystemFeature(PackageManager.FEATURE_WATCH)) {
+        val sessionPlayer: Player = if (isWatch) {
             player
         } else {
             CastPlayer.Builder(this)
@@ -126,6 +128,19 @@ class PodcastMediaService : MediaLibraryService() {
             }
         }
     }
+
+    /**
+     * With "Headphones only" on (19.9f), playing with nothing but the watch's speaker pauses at once and opens the
+     * system's output switcher, as the watch's own media apps do. Read on every play, so the switch counts right away.
+     */
+    private fun pauseWithoutHeadphones(player: Player) = player.addListener(object : Player.Listener {
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            if (playWhenReady && preferences.headphonesOnly.value && !hasHeadphones()) {
+                player.pause()
+                chooseAudioOutput()
+            }
+        }
+    })
 
     @OptIn(UnstableApi::class)
     private fun boostVoice(player: ExoPlayer, enabled: Boolean) {

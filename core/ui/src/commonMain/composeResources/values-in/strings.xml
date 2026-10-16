@@ -169,6 +169,7 @@
     <string name="settings_skip_silence_description">Jeda dalam percakapan berlalu lebih cepat.</string>
     <string name="settings_boost_voice">Perkuat suara</string>
     <string name="settings_boost_voice_description">Membuat suara pembawa acara yang pelan lebih keras, untuk tempat bising.</string>
+    <string name="headphones_only">Hanya lewat headphone</string>
     <string name="settings_updates">Pembaruan</string>
     <string name="settings_refresh">Cari episode baru</string>
     <string name="settings_refresh_never">Tidak pernah, hanya saat aplikasi dibuka</string>
