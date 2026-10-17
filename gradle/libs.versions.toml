@@ -45,7 +45,7 @@ koin = "4.2.1"
 decompose = "3.5.0"
 
 # Paging
-paging = "3.5.1"
+paging = "3.5.3"
 
 # Imagem assíncrona
 coil = "3.6.3"
