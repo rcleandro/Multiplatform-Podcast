@@ -51,7 +51,7 @@ paging = "3.5.1"
 coil = "3.6.3"
 
 # Logging
-kermit = "2.1.0"
+kermit = "2.2.0"
 
 # Static Analysis
 detekt = "1.23.8"
