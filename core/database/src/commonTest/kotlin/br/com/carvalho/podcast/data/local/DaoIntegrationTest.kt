@@ -147,6 +147,30 @@ class DaoIntegrationTest {
         assertEquals(listOf("e3", "e1"), playbackStateDao.getQueue().map { it.id })
     }
 
+    @Test
+    fun `saving a feed again updates what the feed says and keeps what the user did`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = "p1".createPodcastEntity()
+        val old = createEpisodeEntity("old", "p1").copy(publishDate = 1L)
+        val latest = createEpisodeEntity("latest", "p1").copy(publishDate = 2L)
+
+        episodeDao.saveFeed(podcast, listOf(old, latest))
+        episodeDao.updatePlayback("latest", played = true, position = 500L, updatedAt = 7L)
+        val refreshed = latest.copy(title = "Renamed", transcriptUrl = "t.vtt", transcriptType = "text/vtt", mediaType = "video/mp4")
+        val arrived = createEpisodeEntity("arrived", "p1").copy(publishDate = 3L)
+        episodeDao.saveFeed(podcast.copy(title = "New title"), listOf(old, refreshed, arrived))
+
+        val byId = episodeDao.getByPodcast("p1").first().associateBy { it.id }
+        assertEquals("New title", podcastDao.getById("p1")?.title)
+        assertEquals("Renamed", byId.getValue("latest").title)
+        assertEquals("video/mp4", byId.getValue("latest").mediaType)
+        assertEquals("t.vtt", byId.getValue("latest").transcriptUrl)
+        assertEquals(true, byId.getValue("latest").isPlayed)
+        assertEquals(500L, byId.getValue("latest").playbackPosition)
+        // Subscribing brings only the latest episode to "New"; a refresh brings what arrived.
+        assertEquals(listOf("arrived"), episodeDao.getNew().map { it.id })
+    }
+
     private fun String.createPodcastEntity() = PodcastEntity(
         id = this,
         title = "Title $this",

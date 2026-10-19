@@ -39,7 +39,7 @@ subprojects {
 // fails `koverVerify`; raise it as tests are added. Goals: domain and data ≥ 90%, features ≥ 70%.
 val coverageFloors = mapOf(
     ":core:common" to 30,
-    ":core:database" to 60,
+    ":core:database" to 73,
     ":core:designsystem" to 92,
     ":core:network" to 87,
     ":core:observability" to 92,
