@@ -20,6 +20,8 @@ appId: br.com.carvalho.podcast
 - extendedWaitUntil:
     visible: "PARA VOCÊ"
     timeout: 30000
+# The search field takes focus: the first back would only close the keyboard.
+- hideKeyboard
 - back
 - tapOn: "Planet Money"
 - tapOn: "Podcasts parecidos"

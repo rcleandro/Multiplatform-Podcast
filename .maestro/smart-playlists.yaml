@@ -17,15 +17,19 @@ appId: br.com.carvalho.podcast
     timeout: 30000
 - back
 - tapOn: "Episódios"
-- scrollUntilVisible:
-    element: "\\+ Nova lista"
-    direction: RIGHT
+# Maestro's sideways scroll swipes the screen, not the row: swipe the filters' row to its end.
+- swipe:
+    start: "90%, 20%"
+    end: "10%, 20%"
+- swipe:
+    start: "90%, 20%"
+    end: "10%, 20%"
 - tapOn: "\\+ Nova lista"
 - tapOn: "Nome"
 - inputText: "Curtos"
-- scrollUntilVisible:
-    element: "Até 30 min"
-    direction: RIGHT
+- swipe:
+    from: "Até 15 min"
+    direction: LEFT
 - tapOn: "Até 30 min"
 - tapOn: "Não ouvidos"
 - tapOn: "Salvar"

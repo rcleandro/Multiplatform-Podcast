@@ -28,5 +28,7 @@ appId: br.com.carvalho.podcast
 - takeScreenshot: video-player
 - pressKey: Home
 - takeScreenshot: video-picture-in-picture
-- launchApp
+# Without stopApp: false Maestro kills the app, and the video with it.
+- launchApp:
+    stopApp: false
 - tapOn: "Pausar"
