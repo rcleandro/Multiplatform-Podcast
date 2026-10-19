@@ -1,6 +1,8 @@
 package br.com.carvalho.podcast.data.local.dao
 
 import androidx.room3.Dao
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import androidx.room3.Transaction
 import androidx.room3.Upsert
@@ -83,7 +85,9 @@ interface PodcastDao {
     @Query("SELECT * FROM smart_playlists ORDER BY id")
     fun smartPlaylists(): Flow<List<SmartPlaylistEntity>>
 
-    @Upsert
+    // Replace, not upsert: an upsert tells a conflict by the exception's message, which Android's host tests leave
+    // empty. Nothing points at a smart playlist, so replacing the row loses nothing.
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveSmartPlaylist(playlist: SmartPlaylistEntity)
 
     @Query("DELETE FROM smart_playlists WHERE id = :id")
