@@ -130,6 +130,13 @@ class DiscoverContentTest {
     }
 
     @Test
+    fun openedForALinkNotYetTakenTheSearchStaysUnfocused() = runComposeUiTest {
+        setContent { PodcastTheme { DiscoverContent(DiscoverUiState(), DiscoverActions(), focusSearch = false) } }
+
+        onNode(hasSetTextAction()).assertIsNotFocused()
+    }
+
+    @Test
     fun withNothingFoundTheAddressIsOffered() = runComposeUiTest {
         var opened = 0
         setContent {

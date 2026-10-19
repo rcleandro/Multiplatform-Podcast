@@ -141,9 +141,13 @@ fun DiscoverScreen(
         }
     }
 
+    // Opened for a link, the search never takes focus: asking for it before the link reaches the view model raced
+    // the clearing below, and the keyboard stayed open over the linked podcast.
+    val openedWithLink = remember { link != null }
     DiscoverContent(
         state = state,
         snackbarHostState = snackbarHostState,
+        focusSearch = !openedWithLink,
         actions = DiscoverActions(
             onBack = onBack,
             onQueryChange = { viewModel.onIntent(DiscoverIntent.ChangeQuery(it)) },
@@ -179,6 +183,7 @@ fun DiscoverContent(
     actions: DiscoverActions,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    focusSearch: Boolean = true,
 ) {
     Scaffold(
         modifier = modifier,
@@ -199,7 +204,7 @@ fun DiscoverContent(
         // Ready to type as soon as the screen opens. Requested in here: the Scaffold builds its content after the
         // composition around it, so a request from outside would find no field yet.
         val searchFocus = remember { FocusRequester() }
-        LaunchedEffect(Unit) { if (!state.isOpeningLink) searchFocus.requestFocus() }
+        LaunchedEffect(Unit) { if (focusSearch && !state.isOpeningLink) searchFocus.requestFocus() }
         // A link's podcast is what to see, not the keyboard over it (18.4).
         val focusManager = LocalFocusManager.current
         LaunchedEffect(state.isOpeningLink) { if (state.isOpeningLink) focusManager.clearFocus() }
