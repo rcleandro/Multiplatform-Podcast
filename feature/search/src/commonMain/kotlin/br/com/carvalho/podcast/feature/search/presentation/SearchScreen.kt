@@ -91,6 +91,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.saved_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_message
 import br.com.carvalho.podcast.core.ui.generated.resources.search_empty_title
 import br.com.carvalho.podcast.core.ui.generated.resources.search_placeholder
+import br.com.carvalho.podcast.core.ui.generated.resources.smart_playlist_new
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
@@ -98,6 +99,7 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.PlayerState
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
@@ -162,6 +164,12 @@ fun SearchScreen(
             onRequestClearHistory = { viewModel.onIntent(SearchIntent.RequestClearHistory) },
             onConfirmClearHistory = { viewModel.onIntent(SearchIntent.ConfirmClearHistory) },
             onDismissClearHistory = { viewModel.onIntent(SearchIntent.DismissClearHistory) },
+            onSelectPlaylist = { viewModel.onIntent(SearchIntent.SelectPlaylist(it)) },
+            onEditPlaylist = { viewModel.onIntent(SearchIntent.EditPlaylist(it)) },
+            onSavePlaylist = { viewModel.onIntent(SearchIntent.SavePlaylist(it)) },
+            onDeletePlaylist = { viewModel.onIntent(SearchIntent.DeletePlaylist(it)) },
+            onDismissPlaylistEditor = { viewModel.onIntent(SearchIntent.DismissPlaylistEditor) },
+            onPlayPlaylist = { viewModel.onIntent(SearchIntent.PlayPlaylist) },
         ),
         snackbarHostState = snackbarHostState,
     )
@@ -196,6 +204,13 @@ data class SearchActions(
     val onRequestClearHistory: () -> Unit = {},
     val onConfirmClearHistory: () -> Unit = {},
     val onDismissClearHistory: () -> Unit = {},
+    /** Smart playlists (19.4): list one, open the editor (null for a new one), save, delete, play all. */
+    val onSelectPlaylist: (SmartPlaylist) -> Unit = {},
+    val onEditPlaylist: (SmartPlaylist?) -> Unit = {},
+    val onSavePlaylist: (SmartPlaylist) -> Unit = {},
+    val onDeletePlaylist: (SmartPlaylist) -> Unit = {},
+    val onDismissPlaylistEditor: () -> Unit = {},
+    val onPlayPlaylist: () -> Unit = {},
 )
 
 /** The fixed "Episodes" title over the search field and filters, which collapse with [scrollState]. */
@@ -206,6 +221,7 @@ private fun SearchTopBar(
     scrollState: TopAppBarState,
     onQueryChange: (String) -> Unit,
     onFilterChange: (EpisodeListFilter) -> Unit,
+    actions: SearchActions,
 ) {
     Column(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).readableWidth()) {
         Text(
@@ -221,10 +237,21 @@ private fun SearchTopBar(
                 onQueryChange = onQueryChange,
                 placeholder = stringResource(Res.string.search_placeholder),
             )
+            // The fixed filters, then the smart playlists (19.4), then "New playlist", which opens the editor.
+            val playlists = state.playlists
             FilterChipRow(
-                options = filters.map { (_, label) -> FilterOption(stringResource(label)) },
-                selectedIndex = filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
-                onSelected = { onFilterChange(filters[it].first) },
+                options = filters.map { (_, label) -> FilterOption(stringResource(label)) } +
+                    playlists.map { FilterOption(it.name) } +
+                    FilterOption("+ " + stringResource(Res.string.smart_playlist_new)),
+                selectedIndex = state.playlist?.let { filters.size + playlists.indexOf(it) }
+                    ?: filters.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
+                onSelected = {
+                    when {
+                        it < filters.size -> onFilterChange(filters[it].first)
+                        it < filters.size + playlists.size -> actions.onSelectPlaylist(playlists[it - filters.size])
+                        else -> actions.onEditPlaylist(null)
+                    }
+                },
                 modifier = Modifier.padding(bottom = Spacing.s),
                 contentPadding = PaddingValues(horizontal = Spacing.l),
             )
@@ -253,7 +280,7 @@ fun SearchContent(
             if (state.selection.isNotEmpty()) {
                 EpisodeSelectionBar(state.selection.size, actions.onActOnSelection, actions.onClearSelection)
             } else {
-                SearchTopBar(state, scrollBehavior.state, actions.onQueryChange, onFilterChange)
+                SearchTopBar(state, scrollBehavior.state, actions.onQueryChange, onFilterChange, actions)
             }
         },
         snackbarHost = { PodcastSnackbarHost(snackbarHostState) },
@@ -271,7 +298,7 @@ fun SearchContent(
                 modifier = Modifier.padding(padding),
             )
             results.itemCount == 0 && refresh is LoadState.NotLoading ->
-                EmptyFilter(state, Modifier.padding(padding))
+                EmptyFilter(state, actions.onEditPlaylist, Modifier.padding(padding))
             else -> SearchResults(
                 state,
                 results,
@@ -312,6 +339,9 @@ private fun LazyListScope.listAction(state: SearchUiState, count: Int, actions: 
 
 @Composable
 private fun SearchDialogs(state: SearchUiState, actions: SearchActions) {
+    state.editingPlaylist?.let {
+        SmartPlaylistEditor(it, actions.onSavePlaylist, actions.onDeletePlaylist, actions.onDismissPlaylistEditor)
+    }
     state.deleteEpisodeConfirmation?.let { episode ->
         ConfirmDialog(
             title = stringResource(Res.string.delete_download),
@@ -361,8 +391,10 @@ private val filters = listOfNotNull(
 
 /** Each filter says why it is empty; a search that finds nothing says so whatever the filter. */
 @Composable
-private fun EmptyFilter(state: SearchUiState, modifier: Modifier) {
+private fun EmptyFilter(state: SearchUiState, onEditPlaylist: (SmartPlaylist) -> Unit, modifier: Modifier) {
+    val playlist = state.playlist
     when {
+        playlist != null -> EmptyPlaylist(playlist, onEditPlaylist, modifier)
         state.searchQuery.isNotBlank() || state.filter == EpisodeListFilter.ALL -> EmptyState(
             icon = Icons.Rounded.Search,
             title = stringResource(Res.string.search_empty_title),
@@ -417,7 +449,12 @@ private fun SearchResults(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = Sizes.listBottomInset)
     ) {
-        listAction(state, results.itemCount, actions)
+        val playlist = state.playlist
+        if (playlist != null) {
+            if (results.itemCount > 0) playlistActions(playlist, actions)
+        } else {
+            listAction(state, results.itemCount, actions)
+        }
         if (state.filter == EpisodeListFilter.DOWNLOADED) {
             item {
                 Text(

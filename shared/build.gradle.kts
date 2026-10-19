@@ -127,7 +127,11 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.koin.android)
             implementation(libs.androidx.work.runtime)
+            implementation(libs.play.services.wearable)
+            implementation(libs.kotlinx.coroutines.play.services)
             implementation(project.dependencies.platform(libs.firebase.bom))
+            // The player's video (19.10).
+            implementation(libs.media3.ui.compose)
         }
 
         // Firebase implementations shared by Android and iOS; Desktop and Web only log.
@@ -142,7 +146,17 @@ kotlin {
         androidMain.get().dependsOn(firebaseMain)
         iosMain.get().dependsOn(firebaseMain)
 
+        // Library sync through a folder (19.12) where the platform keeps one: Android and Desktop.
+        val folderSyncMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.filekit.core)
+            }
+        }
+        androidMain.get().dependsOn(folderSyncMain)
+
         val desktopMain by getting {
+            dependsOn(folderSyncMain)
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(compose.desktop.currentOs)

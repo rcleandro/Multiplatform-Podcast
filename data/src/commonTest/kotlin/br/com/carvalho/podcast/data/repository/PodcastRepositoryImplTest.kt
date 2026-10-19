@@ -13,6 +13,8 @@ import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.EpisodeType
 import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
@@ -387,7 +389,7 @@ class PodcastRepositoryImplTest {
     }
 
     @Test
-    fun `history lists what played, the latest first, and clearing it changes nothing else`() = runTest {
+    fun `history lists what played the latest first and clearing it changes nothing else`() = runTest {
         if (!isDatabaseSupported) return@runTest
         val podcast = podcastEntity.toDomain()
         val episodes = (1..3).map { episodeEntity.copy(id = "e$it", publishDate = it.toLong()).toDomain() }
@@ -408,6 +410,60 @@ class PodcastRepositoryImplTest {
         repository.clearHistory()
         assertEquals(emptyList(), repository.searchEpisodesPaged(null, EpisodeListFilter.HISTORY).asSnapshot())
         assertEquals(5_000L, repository.getEpisodeById("e1")?.playbackPosition)
+    }
+
+    @Test
+    fun `a smart playlist lists what matches its category state and length newest first`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        database.podcastDao().insert(podcastEntity.copy(id = "tech", feedUrl = "tech", categories = "[\"Technology\"]"))
+        database.podcastDao().insert(podcastEntity.copy(id = "news", feedUrl = "news", categories = "[\"News\"]"))
+        database.episodeDao().insertAll(
+            listOf(
+                episodeEntity.copy(id = "short", podcastId = "tech", duration = 600, publishDate = 3),
+                episodeEntity.copy(id = "long", podcastId = "tech", duration = 3_600, publishDate = 4),
+                episodeEntity.copy(id = "unknown", podcastId = "tech", duration = 0, publishDate = 5),
+                episodeEntity.copy(id = "heard", podcastId = "tech", duration = 600, publishDate = 6, isPlayed = true),
+                episodeEntity.copy(id = "other", podcastId = "news", duration = 600, publishDate = 7),
+                episodeEntity.copy(id = "older", podcastId = "tech", duration = 900, publishDate = 1),
+            )
+        )
+        val playlist = SmartPlaylist(
+            name = "Short tech",
+            category = PodcastCategory.TECHNOLOGY,
+            unplayedOnly = true,
+            maxMinutes = 30,
+        )
+
+        assertEquals(listOf("short", "older"), repository.getSmartPlaylistEpisodes(playlist).map { it.id })
+        assertEquals(listOf("short", "older"), repository.getSmartPlaylistEpisodesPaged(playlist).asSnapshot().map { it.id })
+        assertEquals(6, repository.getSmartPlaylistEpisodes(SmartPlaylist(name = "Everything")).size)
+    }
+
+    @Test
+    fun `smart playlists are saved changed and deleted`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        repository.saveSmartPlaylist(SmartPlaylist(name = " News ", category = PodcastCategory.NEWS, downloadedOnly = true))
+        val saved = repository.getSmartPlaylists().first().single()
+        assertEquals(SmartPlaylist(saved.id, "News", PodcastCategory.NEWS, downloadedOnly = true), saved)
+
+        repository.saveSmartPlaylist(saved.copy(name = "Downloaded news", maxMinutes = 15))
+        assertEquals(listOf("Downloaded news" to 15), repository.getSmartPlaylists().first().map { it.name to it.maxMinutes })
+
+        repository.deleteSmartPlaylist(saved.id)
+        assertEquals(emptyList(), repository.getSmartPlaylists().first())
+    }
+
+    @Test
+    fun `the backup gets every episode the user touched and none of the others`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val episodes = (1..5).map { episodeEntity.copy(id = "e$it").toDomain() }
+        repository.saveFeed(podcastEntity.toDomain(), episodes)
+        repository.markEpisodeAsPlayed("e1")
+        repository.updateEpisodeProgress("e2", 5_000L)
+        repository.setEpisodeSaved("e3", saved = true)
+        repository.markEpisodeStarted("e4", at = 100L)
+
+        assertEquals(listOf("e1", "e2", "e3", "e4"), repository.getEpisodesWithHistory().map { it.id }.sorted())
     }
 
     @Test

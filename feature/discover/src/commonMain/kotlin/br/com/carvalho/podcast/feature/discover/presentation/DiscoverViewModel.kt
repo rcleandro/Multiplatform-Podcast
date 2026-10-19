@@ -43,6 +43,7 @@ private const val TAG = "DiscoverViewModel"
  * (18.2), and subscribe with a tap; or add a podcast by its feed address, or by a link opened in the app (18.4). Also
  * the suggestions of an empty library.
  */
+@Suppress("TooManyFunctions") // one function per intent
 class DiscoverViewModel(
     private val searchPodcasts: SearchPodcastsUseCase,
     private val addPodcast: AddPodcastFromUrlUseCase,
@@ -72,6 +73,24 @@ class DiscoverViewModel(
 
     init {
         viewModelScope.launch(dispatchers.io) { searchAsTheUserTypes() }
+        loadForYou()
+    }
+
+    /** "For you" (19.6), from the library's categories; nothing when it fails, the chart is still there. */
+    private fun loadForYou() = viewModelScope.launch(dispatchers.io) {
+        val forYou = searchPodcasts.forLibrary().getOrDefault(emptyList())
+        _uiState.update { it.copy(forYou = forYou) }
+    }
+
+    /** Podcasts like one of the library's (19.6), above the chart until the screen closes. */
+    private fun showSimilar(podcastId: String) {
+        _uiState.update { it.copy(similar = null) }
+        viewModelScope.launch(dispatchers.io) {
+            val similar = searchPodcasts.similarTo(podcastId) ?: return@launch
+            val results = similar.results.getOrDefault(emptyList())
+            analytics.logEvent(AnalyticsEvent.ShowSimilar(results.size))
+            _uiState.update { it.copy(similar = SimilarPodcasts(similar.title, results)) }
+        }
     }
 
     /** Subscribes to an OPML file's feeds (18.13) and says how it went; the screen stays, as with "Subscribe". */
@@ -112,6 +131,7 @@ class DiscoverViewModel(
             is DiscoverIntent.ImportOpml -> import(intent.text)
             is DiscoverIntent.OpenLink -> openPodcastLink(intent.link)
             is DiscoverIntent.Open -> open(intent.session)
+            is DiscoverIntent.ShowSimilar -> showSimilar(intent.podcastId)
         }
     }
 
@@ -148,6 +168,10 @@ class DiscoverViewModel(
                 state.copy(
                     subscribing = state.subscribing - feedUrl,
                     results = state.results.map { if (added) it.subscribedIf(feedUrl) else it },
+                    forYou = state.forYou.map { if (added) it.subscribedIf(feedUrl) else it },
+                    similar = state.similar?.let { similar ->
+                        similar.copy(results = similar.results.map { if (added) it.subscribedIf(feedUrl) else it })
+                    },
                     linked = state.linked?.let { if (added) it.subscribedIf(feedUrl) else it },
                 )
             }
@@ -164,6 +188,7 @@ class DiscoverViewModel(
         if (previous == null || previous == opening) return
         _uiState.value = DiscoverUiState()
         searchRequests.value = SearchRequest(term = "", category = null)
+        loadForYou()
     }
 
     private fun DirectoryResult.subscribedIf(feedUrl: String) =
@@ -245,7 +270,14 @@ data class DiscoverUiState(
     val isOpeningLink: Boolean = false,
     /** Feeds of an OPML file done out of how many, while it imports (18.13). */
     val importProgress: Pair<Int, Int>? = null,
+    /** Suggested from the library's categories (19.6), shown above the overall chart. */
+    val forYou: List<DirectoryResult> = emptyList(),
+    /** Asked from a podcast's page (19.6); null until they arrive. */
+    val similar: SimilarPodcasts? = null,
 )
+
+/** Podcasts like the one titled [title] (19.6). */
+data class SimilarPodcasts(val title: String, val results: List<DirectoryResult>)
 
 sealed interface DiscoverIntent {
     data class ChangeQuery(val query: String) : DiscoverIntent
@@ -263,4 +295,7 @@ sealed interface DiscoverIntent {
 
     /** The screen opened ([session] counts the openings): a new one starts clean. */
     data class Open(val session: Int) : DiscoverIntent
+
+    /** Podcasts like the library's [podcastId] (19.6). */
+    data class ShowSimilar(val podcastId: String) : DiscoverIntent
 }

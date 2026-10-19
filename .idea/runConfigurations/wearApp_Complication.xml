@@ -1,0 +1,30 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="wearApp Complication" type="AndroidComplicationConfigurationType" factoryName="Wear OS Complication">
+    <module name="Podcast.wearApp" />
+    <LaunchOptions>
+      <option name="componentName" value="br.com.carvalho.podcast.wear.NowPlayingComplicationService" />
+      <option name="chosenSlots">
+        <list>
+          <ChosenSlot>
+            <option name="id" value="0" />
+            <option name="type" value="LONG_TEXT" />
+          </ChosenSlot>
+          <ChosenSlot>
+            <option name="id" value="1" />
+            <option name="type" value="RANGED_VALUE" />
+          </ChosenSlot>
+          <ChosenSlot>
+            <option name="id" value="2" />
+            <option name="type" value="SHORT_TEXT" />
+          </ChosenSlot>
+        </list>
+      </option>
+    </LaunchOptions>
+    <DeployOptions>
+      <option name="PM_INSTALL_OPTIONS" value="" />
+    </DeployOptions>
+    <method v="2">
+      <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>

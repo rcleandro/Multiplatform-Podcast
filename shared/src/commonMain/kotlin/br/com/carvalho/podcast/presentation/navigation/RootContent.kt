@@ -65,9 +65,12 @@ import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
 import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.player.presentation.QueueScreen
+import br.com.carvalho.podcast.feature.player.presentation.TranscriptScreen
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
+import br.com.carvalho.podcast.feature.settings.presentation.ListeningStatsScreen
 import br.com.carvalho.podcast.feature.settings.presentation.SettingsScreen
+import br.com.carvalho.podcast.presentation.platformVideoSurface
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -122,25 +125,45 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
         }
 
         Overlay(visible = state.isOrganizingLibrary) { LibraryOrderScreen(onBack = component::onBackClicked) }
-        Overlay(visible = state.isAddingPodcast) {
-            DiscoverScreen(
-                onBack = component::onBackClicked,
-                session = state.addPodcastSession,
-                link = state.podcastLink,
-                onLinkHandled = component::onPodcastLinkHandled,
-                onOpenPodcast = component::onPodcastSelected,
-            )
-        }
-        Overlay(visible = state.isShowingSettings) { SettingsScreen(onBack = component::onBackClicked) }
+        AddPodcastOverlay(state, component)
+        SettingsOverlays(state, component)
         Overlay(visible = state.isPlayerOpen) {
             PlayerScreen(
                 onBackClick = component::onBackClicked,
                 artworkModifier = sharedCover(this),
                 onQueueClick = component::onQueueClicked,
+                onTranscriptClick = component::onTranscriptClicked,
+                videoSurface = platformVideoSurface,
             )
         }
         Overlay(visible = state.isQueueOpen) { QueueScreen(onBack = component::onBackClicked) }
+        Overlay(visible = state.isTranscriptOpen) { TranscriptScreen(onBack = component::onBackClicked) }
     }
+}
+
+/** "Add podcast" over the tabs: the directory, a link opened in the app (18.4) or podcasts like one (19.6). */
+@Composable
+private fun AddPodcastOverlay(state: NavigationState, component: RootComponent) {
+    Overlay(visible = state.isAddingPodcast) {
+        DiscoverScreen(
+            onBack = component::onBackClicked,
+            session = state.addPodcastSession,
+            link = state.podcastLink,
+            onLinkHandled = component::onPodcastLinkHandled,
+            onOpenPodcast = component::onPodcastSelected,
+            similarTo = state.similarTo,
+            onSimilarHandled = component::onSimilarHandled,
+        )
+    }
+}
+
+/** Settings over the tabs, and the listening stats (19.5) over Settings. */
+@Composable
+private fun SettingsOverlays(state: NavigationState, component: RootComponent) {
+    Overlay(visible = state.isShowingSettings) {
+        SettingsScreen(onBack = component::onBackClicked, onOpenStats = component::onOpenListeningStats)
+    }
+    Overlay(visible = state.isShowingStats) { ListeningStatsScreen(onBack = component::onBackClicked) }
 }
 
 /** A screen that slides up over the tabs: the player, the queue, "Organize library", "Add podcast" and Settings. */
@@ -264,7 +287,8 @@ private fun DetailPane(component: RootComponent, podcast: Detail.Podcast?) {
     PodcastDetailScreen(
         podcastId = podcast.podcastId,
         onBackClick = component::onBackClicked,
-        onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcast.podcastId) }
+        onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcast.podcastId) },
+        onSimilarClick = component::onShowSimilar,
     )
 }
 

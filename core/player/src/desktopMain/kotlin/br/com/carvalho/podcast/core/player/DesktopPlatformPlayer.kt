@@ -3,16 +3,28 @@ package br.com.carvalho.podcast.core.player
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.Episode
 import com.sun.javafx.application.PlatformImpl
+import javafx.application.Platform
 import javafx.scene.media.Media
 import javafx.scene.media.MediaPlayer
 import javafx.util.Duration
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 
 private const val TAG = "DesktopPlatformPlayer"
 
 /** JavaFX's [MediaPlayer]; one per episode, since JavaFX cannot change a player's media. */
 class DesktopPlatformPlayer : PlatformPlayer {
-    private var player: MediaPlayer? = null
+    private val current = MutableStateFlow<MediaPlayer?>(null)
+    private var player: MediaPlayer?
+        get() = current.value
+        set(value) {
+            current.value = value
+        }
+
+    /** The episode's player, for showing a video episode's picture (19.10); a new one comes with every episode. */
+    val mediaPlayer: StateFlow<MediaPlayer?> = current.asStateFlow()
     private var speed = 1f
     private var volume = 1f
     private var listener: (PlatformEvent) -> Unit = {}
@@ -26,6 +38,8 @@ class DesktopPlatformPlayer : PlatformPlayer {
         @Suppress("TooGenericExceptionCaught") // JavaFX reports a missing toolkit with any Throwable
         try {
             PlatformImpl.startup {}
+            // Closing the video's panel (19.10), JavaFX's only window, must not stop the toolkit and the episode.
+            Platform.setImplicitExit(false)
         } catch (e: Throwable) {
             AppLogger.e(TAG, "Could not start JavaFX", e)
         }

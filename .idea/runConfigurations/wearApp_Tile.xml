@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="wearApp Tile" type="AndroidTileConfigurationType" factoryName="Wear OS Tile">
+    <module name="Podcast.wearApp" />
+    <LaunchOptions>
+      <option name="componentName" value="br.com.carvalho.podcast.wear.NowPlayingTileService" />
+    </LaunchOptions>
+    <DeployOptions>
+      <option name="PM_INSTALL_OPTIONS" value="" />
+    </DeployOptions>
+    <method v="2">
+      <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>

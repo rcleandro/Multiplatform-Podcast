@@ -66,6 +66,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.glance.appwidget.testing)
     testImplementation(libs.robolectric)
+    testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.appcompat)
     implementation(libs.decompose)

@@ -28,14 +28,20 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
+import br.com.carvalho.podcast.core.ui.generated.resources.backup_not_valid
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_importing
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
 import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after_days
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup
+import br.com.carvalho.podcast.core.ui.generated.resources.stats_title
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_no_limit
@@ -47,18 +53,24 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_telemetry
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_dark
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_theme_system
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_description
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_failed
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_folder_waiting
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_sync_stop
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
 import br.com.carvalho.podcast.core.ui.generated.resources.size_gigabytes
 import br.com.carvalho.podcast.core.util.DiskSpace
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
+import br.com.carvalho.podcast.domain.usecase.FolderSyncStatus
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.getString
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getPluralString
+import org.jetbrains.compose.resources.getString
 
 @OptIn(ExperimentalTestApi::class)
 class SettingsContentTest {
@@ -100,6 +112,25 @@ class SettingsContentTest {
     }
 
     @Test
+    fun theSyncFolderRowSaysHowTheLastExchangeWentAndStopOnlyShowsOnceChosen() = runComposeUiTest {
+        var state by mutableStateOf(SettingsUiState())
+        val intents = mutableListOf<SettingsIntent>()
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        val stop = text(Res.string.settings_sync_stop)
+
+        onNodeWithText(text(Res.string.settings_sync_folder_description)).performScrollTo().assertExists()
+        onNodeWithText(stop).assertDoesNotExist()
+
+        state = SettingsUiState(syncFolderName = "Sync")
+        onNodeWithText(text(Res.string.settings_sync_folder_waiting, "Sync")).performScrollTo().assertExists()
+        state = SettingsUiState(syncFolderName = "Sync", folderSync = FolderSyncStatus.Failed)
+        onNodeWithText(text(Res.string.settings_sync_folder_failed, "Sync")).performScrollTo().assertExists()
+
+        onNodeWithText(stop).performScrollTo().performClick()
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.StopSync), intents)
+    }
+
+    @Test
     fun eachLanguageIsOfferedInItsOwnName() = runComposeUiTest {
         var chosen: AppLanguage? = null
         setContent {
@@ -134,6 +165,7 @@ class SettingsContentTest {
             }
         }
 
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_show_explicit)))
         onNodeWithText(text(Res.string.settings_show_explicit_description)).assertExists()
         onNodeWithText(text(Res.string.settings_show_explicit)).assertIsOn().performClick()
 
@@ -153,6 +185,8 @@ class SettingsContentTest {
             }
         }
 
+        // Last in the list: scrolled to, below the subscription rows.
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_telemetry)))
         onNodeWithText(text(Res.string.settings_telemetry)).assertIsOff()
         onNodeWithText(text(Res.string.settings_telemetry)).performClick()
 
@@ -167,6 +201,7 @@ class SettingsContentTest {
             }
         }
 
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText("50", substring = true))
         onNode(hasText("50", substring = true)).assertExists()
     }
 
@@ -204,7 +239,9 @@ class SettingsContentTest {
         // One sentence for screen readers, with the sizes of the bar, in the runner's language.
         val app = runBlocking { getString(Res.string.size_gigabytes, 1, 0) }
         val free = runBlocking { getString(Res.string.size_gigabytes, 12, 0) }
-        onNode(hasContentDescription(app, substring = true) and hasContentDescription(free, substring = true)).assertExists()
+        val bar = hasContentDescription(app, substring = true) and hasContentDescription(free, substring = true)
+        onNode(hasScrollToNodeAction()).performScrollToNode(bar)
+        onNode(bar).assertExists()
     }
 
     @Test
@@ -238,6 +275,18 @@ class SettingsContentTest {
     }
 
     @Test
+    fun howLongDownloadsStayIsPickedFromItsChoices() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        setContent { PodcastTheme { SettingsContent(SettingsUiState(usedBytes = 0), onBack = {}, onIntent = { intents += it }) } }
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_delete_after)))
+
+        onNodeWithText(text(Res.string.settings_delete_after)).performClick()
+        onNodeWithText(runBlocking { getPluralString(Res.plurals.settings_delete_after_days, 7, 7) }).performClick()
+
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.SetDeleteAfter(7)), intents)
+    }
+
+    @Test
     fun eachJumpIsPickedAmongTheSecondsTheButtonsShow() = runComposeUiTest {
         val intents = mutableListOf<SettingsIntent>()
         setContent { PodcastTheme { SettingsContent(SettingsUiState(), onBack = {}, onIntent = { intents += it }) } }
@@ -253,5 +302,33 @@ class SettingsContentTest {
     private companion object {
         const val GB = 1024L * 1024 * 1024
         const val FIVE_GB_STOP = 5f
+    }
+
+    @Test
+    fun theBackupRowsSayWhatTheyKeepAndRefuseAnotherFile() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        var state by mutableStateOf(SettingsUiState())
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        val list = onNode(hasScrollToNodeAction())
+
+        list.performScrollToNode(hasText(text(Res.string.settings_export_backup)))
+        onNodeWithText(text(Res.string.settings_export_backup_description)).assertExists()
+        onNodeWithText(text(Res.string.settings_export_backup)).performClick()
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.ExportBackup), intents)
+
+        state = state.copy(backup = OpmlStatus.NotABackup)
+        list.performScrollToNode(hasText(text(Res.string.backup_not_valid)))
+    }
+
+    @Test
+    fun theListeningStatsOpenFromTheTopOfSettings() = runComposeUiTest {
+        var opened = 0
+        setContent {
+            PodcastTheme { SettingsContent(SettingsUiState(), onBack = {}, onIntent = {}, onOpenStats = { opened++ }) }
+        }
+
+        onNodeWithText(text(Res.string.stats_title)).performClick()
+
+        assertEquals(1, opened)
     }
 }

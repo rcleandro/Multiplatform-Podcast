@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.core.player
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.audiofx.LoudnessEnhancer
 import android.os.Bundle
 import androidx.annotation.OptIn
@@ -96,13 +97,20 @@ class PodcastMediaService : MediaLibraryService() {
                 )
             }
 
-        // Plays on the phone, or on a Chromecast while a Cast session is on, carrying the position across (18.17).
-        val castPlayer = CastPlayer.Builder(this)
-            .setLocalPlayer(player)
-            .setRemotePlayer(RemoteCastPlayer.Builder(this).setMediaItemConverter(EpisodeCastConverter()).build())
-            .build()
+        val isWatch = packageManager.hasSystemFeature(PackageManager.FEATURE_WATCH)
+        if (isWatch) pauseWithoutHeadphones(player)
+        // Plays on the phone, or on a Chromecast while a Cast session is on, carrying the position across (18.17). A
+        // watch has no Cast (19.9a): there it is the local player alone.
+        val sessionPlayer: Player = if (isWatch) {
+            player
+        } else {
+            CastPlayer.Builder(this)
+                .setLocalPlayer(player)
+                .setRemotePlayer(RemoteCastPlayer.Builder(this).setMediaItemConverter(EpisodeCastConverter()).build())
+                .build()
+        }
 
-        mediaLibrarySession = MediaLibrarySession.Builder(this, castPlayer, LibraryCallback())
+        mediaLibrarySession = MediaLibrarySession.Builder(this, sessionPlayer, LibraryCallback())
             .apply {
                 sessionActivityPendingIntent?.let { setSessionActivity(it) }
             }
@@ -120,6 +128,19 @@ class PodcastMediaService : MediaLibraryService() {
             }
         }
     }
+
+    /**
+     * With "Headphones only" on (19.9f), playing with nothing but the watch's speaker pauses at once and opens the
+     * system's output switcher, as the watch's own media apps do. Read on every play, so the switch counts right away.
+     */
+    private fun pauseWithoutHeadphones(player: Player) = player.addListener(object : Player.Listener {
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            if (playWhenReady && preferences.headphonesOnly.value && !hasHeadphones()) {
+                player.pause()
+                chooseAudioOutput()
+            }
+        }
+    })
 
     @OptIn(UnstableApi::class)
     private fun boostVoice(player: ExoPlayer, enabled: Boolean) {

@@ -106,6 +106,28 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
 
     data object CancelSleepTimer : AnalyticsEvent("cancel_sleep_timer")
 
+    /** A moment marked (19.3); whether it has a note, never the note. */
+    class AddBookmark(hasNote: Boolean) : AnalyticsEvent("add_bookmark", mapOf("has_note" to hasNote))
+
+    data object DeleteBookmark : AnalyticsEvent("delete_bookmark")
+
+    /** A smart playlist made or changed (19.4); its name and filters stay on the device. */
+    class SaveSmartPlaylist(isNew: Boolean) : AnalyticsEvent("save_smart_playlist", mapOf("is_new" to isNew))
+
+    data object DeleteSmartPlaylist : AnalyticsEvent("delete_smart_playlist")
+
+    class PlaySmartPlaylist(episodes: Int) : AnalyticsEvent("play_smart_playlist", mapOf("episodes" to episodes))
+
+    /** "Similar to this" opened from a podcast's page (19.6), with how many it found. */
+    class ShowSimilar(found: Int) : AnalyticsEvent("show_similar", mapOf("found" to found))
+
+    /** Played from a line of the transcript (19.2); whether it was found by a search, never the words. */
+    class PlayFromTranscript(searching: Boolean) :
+        AnalyticsEvent("play_from_transcript", mapOf("searching" to searching))
+
+    /** Played from a bookmark on the episode's page. */
+    data object PlayBookmark : AnalyticsEvent("play_bookmark")
+
     private companion object {
         const val EPISODE_ID = "episode_id"
         const val HOST = "host"

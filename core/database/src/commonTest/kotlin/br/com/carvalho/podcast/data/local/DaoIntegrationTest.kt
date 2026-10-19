@@ -98,13 +98,29 @@ class DaoIntegrationTest {
             }
         )
 
-        episodeDao.markOlderAsUnplayed("p1", publishDate = 2L)
+        episodeDao.markOlderAsUnplayed("p1", publishDate = 2L, updatedAt = 9L)
 
         val byId = episodeDao.getByPodcast("p1").first().associateBy { it.id }
         assertEquals(false, byId.getValue("old").isPlayed)
         assertEquals(0L, byId.getValue("chosen").playbackPosition)
         assertEquals(false, byId.getValue("chosen").isPlayed)
         assertEquals(true, byId.getValue("new").isPlayed)
+        assertEquals(listOf("chosen", "old"), episodeDao.getChanged().map { it.id }.sorted())
+    }
+
+    @Test
+    fun `removing a podcast keeps its feed and when and progress keeps when it changed`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        podcastDao.insert("p1".createPodcastEntity())
+        episodeDao.insertAll(listOf(createEpisodeEntity("e1", "p1"), createEpisodeEntity("e2", "p1")))
+
+        episodeDao.updatePlayback("e1", played = false, position = 500L, updatedAt = 7L)
+
+        assertEquals(listOf("e1" to 7L), episodeDao.getChanged().map { it.id to it.updatedAt })
+        assertEquals(7L, episodeDao.lastChange().first())
+        podcastDao.remove("p1", at = 8L)
+        assertEquals(null, podcastDao.getById("p1"))
+        assertEquals(listOf(8L), podcastDao.removed().map { it.removedAt })
     }
 
     @Test
@@ -129,6 +145,30 @@ class DaoIntegrationTest {
         playbackStateDao.replaceQueue(listOf("e3", "e1"))
 
         assertEquals(listOf("e3", "e1"), playbackStateDao.getQueue().map { it.id })
+    }
+
+    @Test
+    fun `saving a feed again updates what the feed says and keeps what the user did`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = "p1".createPodcastEntity()
+        val old = createEpisodeEntity("old", "p1").copy(publishDate = 1L)
+        val latest = createEpisodeEntity("latest", "p1").copy(publishDate = 2L)
+
+        episodeDao.saveFeed(podcast, listOf(old, latest))
+        episodeDao.updatePlayback("latest", played = true, position = 500L, updatedAt = 7L)
+        val refreshed = latest.copy(title = "Renamed", transcriptUrl = "t.vtt", transcriptType = "text/vtt", mediaType = "video/mp4")
+        val arrived = createEpisodeEntity("arrived", "p1").copy(publishDate = 3L)
+        episodeDao.saveFeed(podcast.copy(title = "New title"), listOf(old, refreshed, arrived))
+
+        val byId = episodeDao.getByPodcast("p1").first().associateBy { it.id }
+        assertEquals("New title", podcastDao.getById("p1")?.title)
+        assertEquals("Renamed", byId.getValue("latest").title)
+        assertEquals("video/mp4", byId.getValue("latest").mediaType)
+        assertEquals("t.vtt", byId.getValue("latest").transcriptUrl)
+        assertEquals(true, byId.getValue("latest").isPlayed)
+        assertEquals(500L, byId.getValue("latest").playbackPosition)
+        // Subscribing brings only the latest episode to "New"; a refresh brings what arrived.
+        assertEquals(listOf("arrived"), episodeDao.getNew().map { it.id })
     }
 
     private fun String.createPodcastEntity() = PodcastEntity(

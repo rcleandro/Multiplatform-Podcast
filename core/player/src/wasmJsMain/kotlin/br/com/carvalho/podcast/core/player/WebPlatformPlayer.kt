@@ -3,17 +3,26 @@ package br.com.carvalho.podcast.core.player
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.Episode
 import kotlinx.browser.window
-import org.w3c.dom.HTMLAudioElement
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLVideoElement
 
 private const val TAG = "WebPlatformPlayer"
 private const val MILLIS = 1000
 
-/** An HTML `<audio>` element and the browser's Media Session (media keys, OS controls). */
+/**
+ * An HTML `<video>` element, which plays audio episodes as well, and the browser's Media Session (media keys, OS
+ * controls). The element lives hidden in the page, and moves into the player while it shows a video episode (19.10).
+ */
 @OptIn(ExperimentalWasmJsInterop::class)
 class WebPlatformPlayer : PlatformPlayer {
     private var listener: (PlatformEvent) -> Unit = {}
+    private var episode: Episode? = null
 
-    private val audio = (window.document.createElement("audio") as HTMLAudioElement).apply {
+    private val media = (window.document.createElement("video") as HTMLVideoElement).apply {
+        style.width = "100%"
+        style.height = "100%"
+        style.backgroundColor = "black"
+        hide()
         onplaying = {
             listener(PlatformEvent.BufferingChanged(false))
             listener(PlatformEvent.PlayingChanged(true))
@@ -27,8 +36,20 @@ class WebPlatformPlayer : PlatformPlayer {
         onended = { listener(PlatformEvent.Ended) }
     }
 
-    override val positionMs: Long get() = (audio.currentTime * MILLIS).toLong()
-    override val durationMs: Long? get() = audio.duration.takeUnless { it.isNaN() }?.let { (it * MILLIS).toLong() }
+    /** Moves the element into a box the player places on the page, and returns the box. */
+    fun showVideo(): HTMLElement = (window.document.createElement("div") as HTMLElement).apply {
+        media.style.display = "block"
+        appendChild(media)
+    }
+
+    /**
+     * Back to the hidden spot, in the same task the player's box goes away: an element out of the page stops
+     * playing, one moved within it does not.
+     */
+    fun hideVideo() = media.hide()
+
+    override val positionMs: Long get() = (media.currentTime * MILLIS).toLong()
+    override val durationMs: Long? get() = media.duration.takeUnless { it.isNaN() }?.let { (it * MILLIS).toLong() }
 
     init {
         fun remote(command: RemoteCommand): () -> Unit = { listener(PlatformEvent.Remote(command)) }
@@ -47,9 +68,10 @@ class WebPlatformPlayer : PlatformPlayer {
     }
 
     override fun load(episode: Episode, positionMs: Long, playWhenReady: Boolean) {
+        this.episode = episode
         updateMediaSessionMetadata(episode.title, episode.podcastTitle.orEmpty(), episode.imageUrl.orEmpty())
-        audio.src = episode.localPath ?: episode.audioUrl
-        audio.currentTime = positionMs / MILLIS.toDouble()
+        media.src = episode.localPath ?: episode.audioUrl
+        media.currentTime = positionMs / MILLIS.toDouble()
         if (playWhenReady) play()
     }
 
@@ -57,26 +79,41 @@ class WebPlatformPlayer : PlatformPlayer {
         // play() returns a promise that the browser rejects without a user gesture; the pause event reports it.
         @Suppress("TooGenericExceptionCaught")
         try {
-            audio.play()
+            media.play()
         } catch (e: Throwable) {
             AppLogger.e(TAG, "The browser refused to play", e)
         }
     }
 
     override fun pause() {
-        audio.pause()
+        media.pause()
     }
 
     override fun seekTo(positionMs: Long) {
-        audio.currentTime = positionMs / MILLIS.toDouble()
+        media.currentTime = positionMs / MILLIS.toDouble()
     }
 
     override fun setVolume(volume: Float) {
-        audio.volume = volume.toDouble()
+        media.volume = volume.toDouble()
     }
 
     override fun setSpeed(speed: Float) {
-        audio.playbackRate = speed.toDouble()
-        audio.defaultPlaybackRate = speed.toDouble()
+        media.playbackRate = speed.toDouble()
+        media.defaultPlaybackRate = speed.toDouble()
     }
+
+    /** The chapter as the browser's title, over the episode's (19.1). */
+    override fun showChapter(title: String?) {
+        val current = episode ?: return
+        updateMediaSessionMetadata(
+            title ?: current.title,
+            if (title == null) current.podcastTitle.orEmpty() else current.title,
+            current.imageUrl.orEmpty(),
+        )
+    }
+}
+
+private fun HTMLVideoElement.hide() {
+    style.display = "none"
+    window.document.body?.appendChild(this)
 }

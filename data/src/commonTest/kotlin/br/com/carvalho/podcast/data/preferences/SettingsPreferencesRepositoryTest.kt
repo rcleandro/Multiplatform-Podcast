@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.data.preferences
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.SkipIntervals
+import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
@@ -13,6 +14,18 @@ import kotlin.test.assertTrue
 
 class SettingsPreferencesRepositoryTest {
     private val settings = MapSettings()
+
+    @Test
+    fun theSyncFolderStartsUnsetAndTheChoiceIsKeptUntilTurnedOff() {
+        val folder = SyncFolder(bookmark = "content://tree/sync", name = "Sync", fileName = "podcast-sync-1.json")
+        assertNull(SettingsPreferencesRepository(settings).syncFolder.value)
+
+        SettingsPreferencesRepository(settings).setSyncFolder(folder)
+        assertEquals(folder, SettingsPreferencesRepository(settings).syncFolder.value)
+
+        SettingsPreferencesRepository(settings).setSyncFolder(null)
+        assertNull(SettingsPreferencesRepository(settings).syncFolder.value)
+    }
 
     @Test
     fun theLibraryStartsAsAGrid() {
@@ -83,6 +96,10 @@ class SettingsPreferencesRepositoryTest {
         fresh.setBoostVoice(true)
         assertTrue(SettingsPreferencesRepository(settings).skipSilence.value)
         assertTrue(SettingsPreferencesRepository(settings).boostVoice.value)
+        // Headphones only (19.9f): off until chosen, then kept.
+        assertFalse(fresh.headphonesOnly.value)
+        fresh.setHeadphonesOnly(true)
+        assertTrue(SettingsPreferencesRepository(settings).headphonesOnly.value)
 
         fresh.setWifiOnlyDownloads(true)
         fresh.setDownloadLimitBytes(LIMIT)

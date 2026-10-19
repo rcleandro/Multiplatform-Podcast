@@ -15,6 +15,16 @@ import br.com.carvalho.podcast.data.local.entity.PodcastFeedFields
 import br.com.carvalho.podcast.data.local.entity.feedFields
 import kotlinx.coroutines.flow.Flow
 
+/** A smart playlist's episodes (19.4), newest first; a duration of 0 is unknown and fails a length limit. */
+private const val SMART_PLAYLIST_QUERY = """
+    SELECT * FROM episodes
+    WHERE (:anyPodcast OR podcastId IN (:podcastIds))
+    AND (:onlyUnplayed = 0 OR isPlayed = 0)
+    AND (:onlyDownloaded = 0 OR isDownloaded = 1)
+    AND (:maxSeconds = 0 OR (duration > 0 AND duration <= :maxSeconds))
+    ORDER BY publishDate DESC
+"""
+
 @Dao
 @DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
 @Suppress("TooManyFunctions") // one function per query
@@ -95,7 +105,8 @@ interface EpisodeDao {
         UPDATE episodes
         SET podcastTitle = :podcastTitle, title = :title, description = :description, audioUrl = :audioUrl,
             imageUrl = :imageUrl, duration = :duration, publishDate = :publishDate, link = :link,
-            explicit = :explicit, season = :season, episodeType = :episodeType
+            explicit = :explicit, season = :season, episodeType = :episodeType, chaptersUrl = :chaptersUrl,
+            transcriptUrl = :transcriptUrl, transcriptType = :transcriptType, mediaType = :mediaType
         WHERE id = :id
     """
     )
@@ -113,6 +124,10 @@ interface EpisodeDao {
         explicit: Boolean,
         season: Int?,
         episodeType: String?,
+        chaptersUrl: String?,
+        transcriptUrl: String?,
+        transcriptType: String?,
+        mediaType: String?,
     )
 
     // The podcast row is written here so [saveFeed] can save it with its episodes in one transaction.
@@ -159,6 +174,32 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE isNew = 1 AND isPlayed = 0 ORDER BY publishDate DESC")
     suspend fun getNew(): List<EpisodeEntity>
 
+    @Query(SMART_PLAYLIST_QUERY)
+    @Suppress("LongParameterList") // one parameter per condition of a smart playlist
+    fun smartPlaylistPagingSource(
+        anyPodcast: Boolean,
+        podcastIds: List<String>,
+        onlyUnplayed: Boolean,
+        onlyDownloaded: Boolean,
+        maxSeconds: Long,
+    ): PagingSource<Int, EpisodeEntity>
+
+    /** The same episodes all at once, for "Play all". */
+    @Query(SMART_PLAYLIST_QUERY)
+    @Suppress("LongParameterList") // one parameter per condition of a smart playlist
+    suspend fun smartPlaylist(
+        anyPodcast: Boolean,
+        podcastIds: List<String>,
+        onlyUnplayed: Boolean,
+        onlyDownloaded: Boolean,
+        maxSeconds: Long,
+    ): List<EpisodeEntity>
+
+    @Query(
+        "SELECT * FROM episodes WHERE isPlayed = 1 OR playbackPosition > 0 OR isSaved = 1 OR lastPlayedAt IS NOT NULL"
+    )
+    suspend fun getWithHistory(): List<EpisodeEntity>
+
     @Query("UPDATE episodes SET isSaved = :saved WHERE id = :id")
     suspend fun setSaved(id: String, saved: Boolean)
 
@@ -194,6 +235,10 @@ interface EpisodeDao {
                 it.explicit,
                 it.season,
                 it.episodeType,
+                it.chaptersUrl,
+                it.transcriptUrl,
+                it.transcriptType,
+                it.mediaType,
             )
         }
     }
@@ -204,12 +249,20 @@ interface EpisodeDao {
     @Query(
         """
         UPDATE episodes
-        SET isPlayed = :played, playbackPosition = :position,
+        SET isPlayed = :played, playbackPosition = :position, updatedAt = :updatedAt,
             isNew = CASE WHEN :played THEN 0 ELSE isNew END
         WHERE id = :id
     """
     )
-    suspend fun updatePlayback(id: String, played: Boolean, position: Long)
+    suspend fun updatePlayback(id: String, played: Boolean, position: Long, updatedAt: Long)
+
+    /** Every episode played or begun here or on a synced device, with when (19.9b). */
+    @Query("SELECT * FROM episodes WHERE updatedAt > 0")
+    suspend fun getChanged(): List<EpisodeEntity>
+
+    /** The latest of those changes, to know when there is something new to sync. */
+    @Query("SELECT COALESCE(MAX(updatedAt), 0) FROM episodes")
+    fun lastChange(): Flow<Long>
 
     @Query("SELECT * FROM episodes WHERE isDownloaded = 1 ORDER BY publishDate DESC")
     fun getDownloaded(): Flow<List<EpisodeEntity>>
@@ -234,20 +287,20 @@ interface EpisodeDao {
     @Query(
         """
         UPDATE episodes
-        SET isPlayed = 1, playbackPosition = 0, isNew = 0
+        SET isPlayed = 1, playbackPosition = 0, isNew = 0, updatedAt = :updatedAt
         WHERE podcastId = :podcastId AND publishDate <= :publishDate
     """
     )
-    suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long)
+    suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long, updatedAt: Long)
 
     @Query(
         """
         UPDATE episodes
-        SET isPlayed = 0, playbackPosition = 0
+        SET isPlayed = 0, playbackPosition = 0, updatedAt = :updatedAt
         WHERE podcastId = :podcastId AND publishDate <= :publishDate
     """
     )
-    suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long)
+    suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long, updatedAt: Long)
 
     private companion object {
         /** Row id an IGNOREd insert returns. */

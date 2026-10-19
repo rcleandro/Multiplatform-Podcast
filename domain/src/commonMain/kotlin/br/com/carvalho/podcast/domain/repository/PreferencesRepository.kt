@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.SkipIntervals
+import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import kotlinx.coroutines.flow.StateFlow
 
@@ -67,6 +68,11 @@ interface PreferencesRepository {
 
     fun setBoostVoice(enabled: Boolean)
 
+    /** On a watch, play only through headphones or a speaker, never the watch's own (19.9f); off by default. */
+    val headphonesOnly: StateFlow<Boolean>
+
+    fun setHeadphonesOnly(enabled: Boolean)
+
     val skipIntervals: StateFlow<SkipIntervals>
 
     fun setSkipIntervals(intervals: SkipIntervals)
@@ -83,4 +89,9 @@ interface PreferencesRepository {
     val telemetryEnabled: StateFlow<Boolean>
 
     fun setTelemetryEnabled(enabled: Boolean)
+
+    /** The folder the library syncs through (19.12); null for none, the default. Not backed up: it is this device's. */
+    val syncFolder: StateFlow<SyncFolder?>
+
+    fun setSyncFolder(folder: SyncFolder?)
 }

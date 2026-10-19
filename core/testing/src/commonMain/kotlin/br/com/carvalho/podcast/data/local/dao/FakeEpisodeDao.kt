@@ -32,6 +32,22 @@ class FakeEpisodeDao : EpisodeDao {
     ): PagingSource<Int, EpisodeEntity> =
         throw NotImplementedError("Paging is tested against the real database")
 
+    override fun smartPlaylistPagingSource(
+        anyPodcast: Boolean,
+        podcastIds: List<String>,
+        onlyUnplayed: Boolean,
+        onlyDownloaded: Boolean,
+        maxSeconds: Long,
+    ): PagingSource<Int, EpisodeEntity> = throw NotImplementedError("Paging is tested against the real database")
+
+    override suspend fun smartPlaylist(
+        anyPodcast: Boolean,
+        podcastIds: List<String>,
+        onlyUnplayed: Boolean,
+        onlyDownloaded: Boolean,
+        maxSeconds: Long,
+    ): List<EpisodeEntity> = throw NotImplementedError("Smart playlists are tested against the real database")
+
     override suspend fun markStarted(id: String, at: Long) {
         episodes.value = episodes.value.map { if (it.id == id) it.copy(isNew = false, lastPlayedAt = at) else it }
     }
@@ -62,6 +78,14 @@ class FakeEpisodeDao : EpisodeDao {
 
     override suspend fun getById(id: String): EpisodeEntity? = episodes.value.find { it.id == id }
 
+    override suspend fun getChanged(): List<EpisodeEntity> = episodes.value.filter { it.updatedAt > 0 }
+
+    override fun lastChange(): Flow<Long> = episodes.map { list -> list.maxOfOrNull { it.updatedAt } ?: 0 }
+
+    override suspend fun getWithHistory(): List<EpisodeEntity> = episodes.value.filter {
+        it.isPlayed || it.playbackPosition > 0 || it.isSaved || it.lastPlayedAt != null
+    }
+
     override fun getUnplayed(): Flow<List<EpisodeEntity>> = episodes.map { it.filter { !it.isPlayed } }
 
     override fun getInProgress(limit: Int): Flow<List<EpisodeEntity>> = episodes.map { list ->
@@ -88,6 +112,10 @@ class FakeEpisodeDao : EpisodeDao {
         explicit: Boolean,
         season: Int?,
         episodeType: String?,
+        chaptersUrl: String?,
+        transcriptUrl: String?,
+        transcriptType: String?,
+        mediaType: String?,
     ) {
         episodes.value = episodes.value.map {
             if (it.id != id) {
@@ -97,6 +125,8 @@ class FakeEpisodeDao : EpisodeDao {
                     podcastTitle = podcastTitle, title = title, description = description, audioUrl = audioUrl,
                     imageUrl = imageUrl, duration = duration, publishDate = publishDate, link = link,
                     explicit = explicit, season = season, episodeType = episodeType,
+                    chaptersUrl = chaptersUrl, transcriptUrl = transcriptUrl, transcriptType = transcriptType,
+                    mediaType = mediaType,
                 )
             }
         }
@@ -108,10 +138,10 @@ class FakeEpisodeDao : EpisodeDao {
 
     override suspend fun exists(id: String): Boolean = episodes.value.any { it.id == id }
 
-    override suspend fun updatePlayback(id: String, played: Boolean, position: Long) {
+    override suspend fun updatePlayback(id: String, played: Boolean, position: Long, updatedAt: Long) {
         episodes.value = episodes.value.map {
             if (it.id == id) {
-                it.copy(isPlayed = played, playbackPosition = position, isNew = it.isNew && !played)
+                it.copy(isPlayed = played, playbackPosition = position, isNew = it.isNew && !played, updatedAt = updatedAt)
             } else {
                 it
             }
@@ -161,16 +191,20 @@ class FakeEpisodeDao : EpisodeDao {
         }
     }
 
-    override suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long) {
+    override suspend fun markOlderAsPlayed(podcastId: String, publishDate: Long, updatedAt: Long) {
         episodes.value = episodes.value.map {
-            if (it.podcastId == podcastId && it.publishDate <= publishDate) it.copy(isPlayed = true, isNew = false) else it
+            if (it.podcastId == podcastId && it.publishDate <= publishDate) {
+                it.copy(isPlayed = true, isNew = false, updatedAt = updatedAt)
+            } else {
+                it
+            }
         }
     }
 
-    override suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long) {
+    override suspend fun markOlderAsUnplayed(podcastId: String, publishDate: Long, updatedAt: Long) {
         episodes.value = episodes.value.map {
             if (it.podcastId == podcastId && it.publishDate <= publishDate) {
-                it.copy(isPlayed = false, playbackPosition = 0)
+                it.copy(isPlayed = false, playbackPosition = 0, updatedAt = updatedAt)
             } else {
                 it
             }

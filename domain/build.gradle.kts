@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.podcast.kmp.library)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -12,6 +13,7 @@ kotlin {
             api(project(":core:common"))
             implementation(project(":core:observability"))
             api(libs.paging.common)
+            implementation(libs.kotlinx.serialization)
         }
         commonTest.dependencies {
             implementation(project(":core:testing"))

@@ -10,6 +10,7 @@ import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SearchPodcastsUseCaseTest {
     private val directory = FakePodcastDirectory()
@@ -81,6 +82,56 @@ class SearchPodcastsUseCaseTest {
         directory.result = Result.failure(AppError.NoConnection)
 
         assertEquals(AppError.NoConnection, search("news").exceptionOrNull())
+    }
+
+    @Test
+    fun similarPodcastsAreTheAuthorsOtherShowsThenItsCategorysChartWithoutWhatTheLibraryHas() = runTest {
+        val podcast = saved("https://a.fm/rss").copy(id = "a", author = "Alura", categories = listOf("Technology"))
+        repository.podcasts.value = listOf(podcast, saved("https://have.fm/rss"))
+        directory.result = Result.success(
+            listOf(
+                found("https://a.fm/rss").copy(author = "Alura"),
+                found("https://other-by-alura.fm/rss").copy(author = "alura"),
+                found("https://someone-else.fm/rss").copy(author = "Someone"),
+            )
+        )
+        directory.topByCategory[PodcastCategory.TECHNOLOGY] =
+            Result.success(listOf(found("https://have.fm/rss"), found("https://tech.fm/rss")))
+
+        val similar = search.similarTo("a")?.results?.getOrThrow()
+
+        assertEquals(listOf("Alura"), directory.searchedTerms)
+        assertEquals(listOf("https://other-by-alura.fm/rss", "https://tech.fm/rss"), similar?.map { it.podcast.feedUrl })
+        assertEquals(null, search.similarTo("not in the library"))
+    }
+
+    @Test
+    fun similarPodcastsFailOnlyWhenNothingCouldBeAsked() = runTest {
+        repository.podcasts.value = listOf(saved("https://a.fm/rss").copy(id = "a", author = "Alura", categories = listOf("News")))
+        directory.result = Result.failure(AppError.NoConnection)
+        directory.topResult = Result.success(listOf(found("https://news.fm/rss")))
+        assertEquals(1, search.similarTo("a")?.results?.getOrThrow()?.size)
+
+        directory.topResult = Result.failure(AppError.NoConnection)
+        assertTrue(search.similarTo("a")?.results?.isFailure == true)
+    }
+
+    @Test
+    fun forTheLibraryTheChartsOfItsTwoMostCommonCategoriesTakeTurns() = runTest {
+        repository.podcasts.value = listOf(
+            saved("https://t1.fm/rss").copy(categories = listOf("Technology")),
+            saved("https://t2.fm/rss").copy(categories = listOf("Technology")),
+            saved("https://n1.fm/rss").copy(categories = listOf("News")),
+            saved("https://c1.fm/rss").copy(categories = listOf("Comedy")),
+        )
+        directory.topByCategory[PodcastCategory.TECHNOLOGY] =
+            Result.success(listOf(found("https://tech-a.fm/rss"), found("https://t1.fm/rss"), found("https://tech-b.fm/rss")))
+        directory.topByCategory[PodcastCategory.NEWS] = Result.success(listOf(found("https://news-a.fm/rss")))
+
+        val forYou = search.forLibrary().getOrThrow().map { it.podcast.feedUrl }
+
+        assertEquals(listOf("https://tech-a.fm/rss", "https://news-a.fm/rss", "https://tech-b.fm/rss"), forYou)
+        assertEquals(setOf(PodcastCategory.TECHNOLOGY, PodcastCategory.NEWS), directory.chartsAsked.toSet())
     }
 
     private fun found(feedUrl: String) = DirectoryPodcast(

@@ -7,6 +7,7 @@ import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import kotlinx.coroutines.flow.Flow
 
 @Suppress("TooManyFunctions") // one function per library query or change
@@ -51,6 +52,32 @@ interface PodcastRepository {
     /** Started and not finished, for "Continue listening". */
     fun getInProgressEpisodes(): Flow<List<Episode>>
     suspend fun getEpisodeById(id: String): Episode?
+
+    /** The saved filters of the Episodes tab (19.4), in the order they were made. */
+    fun getSmartPlaylists(): Flow<List<SmartPlaylist>>
+
+    /** Adds [playlist], or changes the one with its id. */
+    suspend fun saveSmartPlaylist(playlist: SmartPlaylist)
+    suspend fun deleteSmartPlaylist(id: Long)
+
+    /** What matches [playlist] now, newest first. */
+    fun getSmartPlaylistEpisodesPaged(playlist: SmartPlaylist): Flow<PagingData<Episode>>
+    suspend fun getSmartPlaylistEpisodes(playlist: SmartPlaylist): List<Episode>
+
+    /** Every episode the user did something with: played, started, saved or in "History" (for the backup, 19.11). */
+    suspend fun getEpisodesWithHistory(): List<Episode>
+
+    /** Every episode played or begun, with when it changed, for the library sync (19.9b). */
+    suspend fun getSyncedEpisodes(): List<Episode>
+
+    /** The latest of those changes, to know when there is something new to sync. */
+    fun lastEpisodeChange(): Flow<Long>
+
+    /** Played and progress as a synced device had them at [updatedAt] (19.9b). */
+    suspend fun applyEpisodeState(id: String, played: Boolean, position: Long, updatedAt: Long)
+
+    /** The podcasts taken out of the library: feed address and when (19.9b). */
+    suspend fun getRemovedPodcasts(): Map<String, Long>
     fun searchEpisodes(query: String): Flow<List<Episode>>
     fun searchEpisodesPaged(
         query: String?,

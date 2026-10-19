@@ -1,0 +1,39 @@
+# 19.5: time heard shows in the listening stats, opened from Settings.
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/listening-stats.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn: "Configurações"
+- tapOn: "Estatísticas de escuta"
+- assertVisible: "Nada ouvido ainda"
+- back
+- back
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Planet Money"
+- tapOn: "Mais recente"
+- extendedWaitUntil:
+    visible: "Pausar"
+    timeout: 30000
+# More than a minute heard, so "This week" reads 1min.
+- swipe:
+    direction: UP
+    duration: 65000
+- tapOn: "Pausar"
+- back
+- tapOn: "Biblioteca"
+- tapOn: "Configurações"
+- tapOn: "Estatísticas de escuta"
+- assertVisible: "Nesta semana"
+- assertVisible: "Planet Money"

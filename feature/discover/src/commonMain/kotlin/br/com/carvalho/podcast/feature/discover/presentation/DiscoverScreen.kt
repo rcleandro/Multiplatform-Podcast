@@ -115,6 +115,9 @@ fun DiscoverScreen(
     link: String? = null,
     onLinkHandled: () -> Unit = {},
     onOpenPodcast: (String) -> Unit = {},
+    /** A podcast of the library whose similar ones to show (19.6); handed back once taken, like [link]. */
+    similarTo: String? = null,
+    onSimilarHandled: () -> Unit = {},
     viewModel: DiscoverViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -131,10 +134,20 @@ fun DiscoverScreen(
             onLinkHandled()
         }
     }
+    LaunchedEffect(similarTo) {
+        if (similarTo != null) {
+            viewModel.onIntent(DiscoverIntent.ShowSimilar(similarTo))
+            onSimilarHandled()
+        }
+    }
 
+    // Opened for a link, the search never takes focus: asking for it before the link reaches the view model raced
+    // the clearing below, and the keyboard stayed open over the linked podcast.
+    val openedWithLink = remember { link != null }
     DiscoverContent(
         state = state,
         snackbarHostState = snackbarHostState,
+        focusSearch = !openedWithLink,
         actions = DiscoverActions(
             onBack = onBack,
             onQueryChange = { viewModel.onIntent(DiscoverIntent.ChangeQuery(it)) },
@@ -170,6 +183,7 @@ fun DiscoverContent(
     actions: DiscoverActions,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    focusSearch: Boolean = true,
 ) {
     Scaffold(
         modifier = modifier,
@@ -190,7 +204,7 @@ fun DiscoverContent(
         // Ready to type as soon as the screen opens. Requested in here: the Scaffold builds its content after the
         // composition around it, so a request from outside would find no field yet.
         val searchFocus = remember { FocusRequester() }
-        LaunchedEffect(Unit) { if (!state.isOpeningLink) searchFocus.requestFocus() }
+        LaunchedEffect(Unit) { if (focusSearch && !state.isOpeningLink) searchFocus.requestFocus() }
         // A link's podcast is what to see, not the keyboard over it (18.4).
         val focusManager = LocalFocusManager.current
         LaunchedEffect(state.isOpeningLink) { if (state.isOpeningLink) focusManager.clearFocus() }
@@ -249,6 +263,7 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
                             ListTitle(stringResource(Res.string.opened_link))
                             ResultRow(linked, linked.podcast.feedUrl in state.subscribing, actions.onSubscribe)
                         }
+                        Recommendations(state, actions)
                         // A chart says which one: the overall (18.3) or a category's (18.2).
                         ListTitle(stringResource(state.category?.label ?: Res.string.popular))
                     }
@@ -262,7 +277,7 @@ private fun DiscoverBody(state: DiscoverUiState, actions: DiscoverActions) {
 }
 
 @Composable
-private fun ListTitle(text: String) = SectionTitle(text, Modifier.readableWidth().padding(vertical = Spacing.s))
+internal fun ListTitle(text: String) = SectionTitle(text, Modifier.readableWidth().padding(vertical = Spacing.s))
 
 private const val HEADER_KEY = "header"
 
@@ -321,7 +336,7 @@ private fun CategoryChips(selected: PodcastCategory?, onCategoryChange: (Podcast
 }
 
 @Composable
-private fun ResultRow(result: DirectoryResult, isSubscribing: Boolean, onSubscribe: (DirectoryResult) -> Unit) {
+internal fun ResultRow(result: DirectoryResult, isSubscribing: Boolean, onSubscribe: (DirectoryResult) -> Unit) {
     val podcast = result.podcast
     val episodes = podcast.episodeCount?.let { pluralStringResource(Res.plurals.podcast_episode_count, it, it) }
     PodcastListItem(

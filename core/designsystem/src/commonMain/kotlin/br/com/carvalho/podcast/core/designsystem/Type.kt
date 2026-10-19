@@ -22,8 +22,9 @@ data class PodcastTypography(
     val section: TextStyle,
 )
 
+/** The brand's typeface (ADR 0001); public for the watch's theme (19.9d), which is not a Material 3 one. */
 @Composable
-internal fun onestFontFamily(): FontFamily = FontFamily(
+fun onestFontFamily(): FontFamily = FontFamily(
     Font(Res.font.onest_regular, FontWeight.Normal),
     Font(Res.font.onest_medium, FontWeight.Medium),
     Font(Res.font.onest_semibold, FontWeight.SemiBold),

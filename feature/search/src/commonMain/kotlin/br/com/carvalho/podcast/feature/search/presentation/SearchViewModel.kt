@@ -15,6 +15,7 @@ import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
@@ -55,7 +56,7 @@ private const val TAG = "SearchViewModel"
 class SearchViewModel(
     private val repository: PodcastRepository,
     private val episodeDownloader: EpisodeDownloader,
-    audioPlayer: AudioPlayer,
+    private val audioPlayer: AudioPlayer,
     private val playEpisode: PlayEpisodeUseCase,
     private val enqueueEpisode: EnqueueEpisodeUseCase,
     private val actOnEpisodes: ActOnEpisodesUseCase,
@@ -77,13 +78,18 @@ class SearchViewModel(
     val messages: Flow<UiMessage> = merge(episodeDownloader.failureMessages(), notices.receiveAsFlow())
     val playerState = audioPlayer.playerState
 
-    val pagedResults: Flow<PagingData<Episode>> = _uiState.map { it.searchQuery to it.filter }
+    val pagedResults: Flow<PagingData<Episode>> = _uiState.map { Triple(it.searchQuery, it.filter, it.playlist) }
         .distinctUntilChanged()
         .combine(_refreshTrigger) { search, _ -> search }
         .debounce(AppConfig.SEARCH_DEBOUNCE_MS)
-        .flatMapLatest { (query, filter) ->
+        .flatMapLatest { (query, filter, playlist) ->
             AppLogger.d(TAG, "Episodes query or filter changed: $query, $filter")
-            repository.searchEpisodesPaged(query.takeIf { it.isNotBlank() }, filter)
+            // A smart playlist (19.4) is a filter of its own; the search text does not narrow it.
+            if (playlist != null) {
+                repository.getSmartPlaylistEpisodesPaged(playlist)
+            } else {
+                repository.searchEpisodesPaged(query.takeIf { it.isNotBlank() }, filter)
+            }
         }
         .cachedIn(viewModelScope)
 
@@ -91,6 +97,14 @@ class SearchViewModel(
         // The downloaded list changes when a download ends or is removed, which is when the space changes too.
         repository.getDownloadedEpisodes()
             .onEach { _uiState.update { it.copy(usedBytes = episodeDownloader.usedBytes()) } }
+            .launchIn(viewModelScope)
+        // The chosen playlist follows its edits, and goes back to the filter when deleted.
+        repository.getSmartPlaylists()
+            .onEach { playlists ->
+                _uiState.update { state ->
+                    state.copy(playlists = playlists, playlist = playlists.find { it.id == state.playlist?.id })
+                }
+            }
             .launchIn(viewModelScope)
         // Without network the downloaded episodes are the ones that play (ADR 0005).
         viewModelScope.launch {
@@ -110,7 +124,14 @@ class SearchViewModel(
             SearchIntent.DismissClearHistory -> _uiState.update { it.copy(clearHistoryConfirmation = false) }
             SearchIntent.ConfirmClearHistory -> clearHistory()
             is SearchIntent.ChangeQuery -> _uiState.update { it.copy(searchQuery = intent.query) }
-            is SearchIntent.ChangeFilter -> _uiState.update { it.copy(filter = intent.filter) }
+            is SearchIntent.ChangeFilter -> _uiState.update { it.copy(filter = intent.filter, playlist = null) }
+            is SearchIntent.SelectPlaylist -> _uiState.update { it.copy(playlist = intent.playlist) }
+            is SearchIntent.EditPlaylist ->
+                _uiState.update { it.copy(editingPlaylist = intent.playlist ?: SmartPlaylist(name = "")) }
+            SearchIntent.DismissPlaylistEditor -> _uiState.update { it.copy(editingPlaylist = null) }
+            is SearchIntent.SavePlaylist -> savePlaylist(intent.playlist)
+            is SearchIntent.DeletePlaylist -> deletePlaylist(intent.playlist)
+            SearchIntent.PlayPlaylist -> playPlaylist()
             SearchIntent.Refresh -> _refreshTrigger.value += 1
             is SearchIntent.Play -> play(intent.episode)
             is SearchIntent.Enqueue -> enqueue(intent.episode, intent.next)
@@ -125,6 +146,30 @@ class SearchViewModel(
             is SearchIntent.RequestMarkOlder -> _uiState.update { it.copy(olderMark = intent.mark) }
             SearchIntent.DismissMarkOlder -> _uiState.update { it.copy(olderMark = null) }
             is SearchIntent.ConfirmMarkOlder -> markOlder(intent.mark)
+        }
+    }
+
+    private fun savePlaylist(playlist: SmartPlaylist) {
+        analytics.logEvent(AnalyticsEvent.SaveSmartPlaylist(isNew = playlist.id == 0L))
+        _uiState.update { it.copy(editingPlaylist = null) }
+        viewModelScope.launch(dispatchers.io) { repository.saveSmartPlaylist(playlist) }
+    }
+
+    private fun deletePlaylist(playlist: SmartPlaylist) {
+        analytics.logEvent(AnalyticsEvent.DeleteSmartPlaylist)
+        _uiState.update { it.copy(editingPlaylist = null) }
+        viewModelScope.launch(dispatchers.io) { repository.deleteSmartPlaylist(playlist.id) }
+    }
+
+    /** The first match plays now and the rest become the queue, in the playlist's order. */
+    private fun playPlaylist() {
+        val playlist = _uiState.value.playlist ?: return
+        viewModelScope.launch(dispatchers.io) {
+            val episodes = repository.getSmartPlaylistEpisodes(playlist)
+            val first = episodes.firstOrNull() ?: return@launch
+            analytics.logEvent(AnalyticsEvent.PlaySmartPlaylist(episodes.size))
+            audioPlayer.play(first)
+            audioPlayer.setQueue(episodes.drop(1))
         }
     }
 
@@ -221,6 +266,12 @@ data class SearchUiState(
     val selection: List<Episode> = emptyList(),
     /** "Clear history", waiting for confirmation (18.12). */
     val clearHistoryConfirmation: Boolean = false,
+    /** The saved filters (19.4), shown after the fixed ones. */
+    val playlists: List<SmartPlaylist> = emptyList(),
+    /** The playlist listed instead of [filter]; null lists [filter]. */
+    val playlist: SmartPlaylist? = null,
+    /** The playlist in the editor: a new one has id 0; null when the editor is closed. */
+    val editingPlaylist: SmartPlaylist? = null,
 )
 
 sealed interface SearchIntent {
@@ -251,4 +302,12 @@ sealed interface SearchIntent {
     data class RequestMarkOlder(val mark: OlderMark) : SearchIntent
     data class ConfirmMarkOlder(val mark: OlderMark) : SearchIntent
     data object DismissMarkOlder : SearchIntent
+
+    /** Smart playlists (19.4): list one, open the editor (null for a new one), save, delete, play all. */
+    data class SelectPlaylist(val playlist: SmartPlaylist) : SearchIntent
+    data class EditPlaylist(val playlist: SmartPlaylist?) : SearchIntent
+    data object DismissPlaylistEditor : SearchIntent
+    data class SavePlaylist(val playlist: SmartPlaylist) : SearchIntent
+    data class DeletePlaylist(val playlist: SmartPlaylist) : SearchIntent
+    data object PlayPlaylist : SearchIntent
 }

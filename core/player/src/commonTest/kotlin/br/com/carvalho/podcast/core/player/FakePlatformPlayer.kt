@@ -16,6 +16,11 @@ class FakePlatformPlayer : PlatformPlayer {
     var volume = 1f
         private set
     var shownSkipIntervals: SkipIntervals? = null
+    val shownChapters = mutableListOf<String?>()
+
+    override fun showChapter(title: String?) {
+        shownChapters += title
+    }
 
     override fun setSkipIntervals(intervals: SkipIntervals) {
         shownSkipIntervals = intervals

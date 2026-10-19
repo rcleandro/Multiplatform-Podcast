@@ -30,4 +30,16 @@ data class Episode(
     val lastPlayedAt: Long? = null,
     /** When its download finished (epoch ms), for deleting old downloads (18.19); null if not downloaded since. */
     val downloadedAt: Long? = null,
-)
+    /** `podcast:chapters`: where the feed keeps the episode's chapters as JSON (19.1). */
+    val chaptersUrl: String? = null,
+    /** `podcast:transcript` (19.2): where the feed keeps a timed transcript, and its type (VTT, SRT or JSON). */
+    val transcriptUrl: String? = null,
+    val transcriptType: String? = null,
+    /** When played or progress last changed (epoch ms), here or on a synced device (19.9b); 0 never. */
+    val updatedAt: Long = 0,
+    /** The enclosure's type as the feed gives it (`audio/mpeg`, `video/mp4`); null when it gives none (19.10). */
+    val mediaType: String? = null,
+) {
+    /** A video episode: the player shows its picture where the platform can (19.10). */
+    val isVideo: Boolean get() = mediaType?.startsWith("video/", ignoreCase = true) == true
+}

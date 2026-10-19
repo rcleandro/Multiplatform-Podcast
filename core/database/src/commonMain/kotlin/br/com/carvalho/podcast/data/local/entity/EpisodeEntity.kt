@@ -52,4 +52,13 @@ data class EpisodeEntity(
     val lastPlayedAt: Long? = null,
     /** When its download finished (18.19), added in version 20; downloads from before have none. */
     val downloadedAt: Long? = null,
+    /** `podcast:chapters` (19.1), added in version 21. */
+    val chaptersUrl: String? = null,
+    /** `podcast:transcript` with timing (19.2), added in version 25. */
+    val transcriptUrl: String? = null,
+    val transcriptType: String? = null,
+    /** When played or progress last changed here or on a synced device (19.9b), added in version 26; 0 never. */
+    @ColumnInfo(defaultValue = "0") val updatedAt: Long = 0,
+    /** The enclosure's `type` (`audio/mpeg`, `video/mp4`), for showing video (19.10); added in version 27. */
+    val mediaType: String? = null,
 )

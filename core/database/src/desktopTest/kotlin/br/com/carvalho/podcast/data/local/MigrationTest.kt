@@ -272,9 +272,79 @@ class MigrationTest {
                 "publishDate, isPlayed, playbackPosition, isDownloaded, fileSize) VALUES " +
                 "('$episodeId', 'p1', 'Podcast', 'Episode', NULL, 'https://audio', NULL, 60, 0, 1, 42000, 1, NULL)"
         )
-        // Before version 5 the queue was a JSON column.
+        // Before version 5 the queue was a JSON column; named columns, since 26 adds queueUpdatedAt.
+        val queueColumn = queueJson?.let { ", queueJson" }.orEmpty()
         val queueValue = queueJson?.let { ", '$it'" }.orEmpty()
-        execSQL("INSERT INTO playback_state VALUES (0, '$episodeId', 42000, 1.0$queueValue)")
+        execSQL(
+            "INSERT INTO playback_state (id, episodeId, position, speed$queueColumn) " +
+                "VALUES (0, '$episodeId', 42000, 1.0$queueValue)"
+        )
+    }
+
+    @Test
+    fun version21KnowsNoChaptersUntilTheFeedIsReadAgain() = runTest {
+        helper.createDatabase(CHAPTERS_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(CHAPTERS_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE chaptersUrl IS NULL"))
+        }
+    }
+
+    @Test
+    fun version22StartsWithoutBookmarks() = runTest {
+        helper.createDatabase(BOOKMARKS_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(BOOKMARKS_VERSION, migrations).use { connection ->
+            assertEquals("0", connection.text("SELECT COUNT(*) FROM bookmarks"))
+        }
+    }
+
+    @Test
+    fun version23StartsWithoutSmartPlaylists() = runTest {
+        helper.createDatabase(SMART_PLAYLISTS_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(SMART_PLAYLISTS_VERSION, migrations).use { connection ->
+            assertEquals("0", connection.text("SELECT COUNT(*) FROM smart_playlists"))
+        }
+    }
+
+    @Test
+    fun version24StartsWithNothingHeard() = runTest {
+        helper.createDatabase(LISTENING_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(LISTENING_VERSION, migrations).use { connection ->
+            assertEquals("0", connection.text("SELECT COUNT(*) FROM listening"))
+        }
+    }
+
+    @Test
+    fun version25KnowsNoTranscriptsUntilTheFeedIsReadAgain() = runTest {
+        helper.createDatabase(TRANSCRIPTS_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(TRANSCRIPTS_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE transcriptUrl IS NULL"))
+        }
+    }
+
+    @Test
+    fun version26KnowsNoSyncChangesUntilSomethingIsHeard() = runTest {
+        helper.createDatabase(SYNC_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(SYNC_VERSION, migrations).use { connection ->
+            assertEquals("0|0|0", connection.text(
+                "SELECT (SELECT MAX(updatedAt) FROM episodes) || '|' || " +
+                    "(SELECT queueUpdatedAt FROM playback_state) || '|' || (SELECT COUNT(*) FROM removed_podcasts)"
+            ))
+        }
+    }
+
+    @Test
+    fun version27KnowsNoMediaTypesUntilTheFeedIsReadAgain() = runTest {
+        helper.createDatabase(MEDIA_TYPE_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(MEDIA_TYPE_VERSION, migrations).use { connection ->
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes WHERE mediaType IS NULL"))
+        }
     }
 
     private fun SQLiteConnection.text(sql: String): String = prepare(sql).use { statement ->
@@ -301,7 +371,14 @@ class MigrationTest {
         const val NOTIFY_VERSION = 18
         const val AUTO_DOWNLOAD_VERSION = 19
         const val DOWNLOADED_AT_VERSION = 20
-        const val CURRENT_VERSION = 20
+        const val CHAPTERS_VERSION = 21
+        const val BOOKMARKS_VERSION = 22
+        const val SMART_PLAYLISTS_VERSION = 23
+        const val LISTENING_VERSION = 24
+        const val TRANSCRIPTS_VERSION = 25
+        const val SYNC_VERSION = 26
+        const val MEDIA_TYPE_VERSION = 27
+        const val CURRENT_VERSION = 27
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

@@ -142,6 +142,44 @@ class RootComponentTest {
     }
 
     @Test
+    fun similarPodcastsOpenAddPodcastOnceWithThePodcastAsked() {
+        val root = createRoot()
+
+        root.onShowSimilar("p1")
+        assertTrue(root.current.isAddingPodcast)
+        assertEquals("p1", root.current.similarTo)
+        root.onSimilarHandled()
+
+        assertEquals(null, root.current.similarTo)
+    }
+
+    @Test
+    fun theTranscriptOpensOverThePlayerAndBackReturnsToThePlayer() {
+        val root = createRoot()
+        root.onPlayerClicked()
+
+        root.onTranscriptClicked()
+        assertTrue(root.current.isTranscriptOpen)
+        backDispatcher.back()
+
+        assertFalse(root.current.isTranscriptOpen)
+        assertTrue(root.current.isPlayerOpen)
+    }
+
+    @Test
+    fun theListeningStatsOpenOverSettingsAndBackReturnsToSettings() {
+        val root = createRoot()
+        root.onOpenSettings()
+
+        root.onOpenListeningStats()
+        assertTrue(root.current.isShowingStats)
+        backDispatcher.back()
+
+        assertFalse(root.current.isShowingStats)
+        assertTrue(root.current.isShowingSettings)
+    }
+
+    @Test
     fun selectingAnEpisodeOpensItOverItsPodcast() {
         val root = createRoot()
 

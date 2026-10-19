@@ -34,7 +34,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Detekt, module rules and Android lint
-              run: ./gradlew detekt checkModuleDependencies :androidApp:lintDebug
+              run: ./gradlew detekt checkModuleDependencies :androidApp:lintDebug :wearApp:lintDebug
 
             - name: Upload reports
               if: always()
@@ -63,7 +63,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Run tests
-              run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest
+              run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest :wearApp:testDebugUnitTest
 
             - name: Verify coverage floors
               run: ./gradlew koverVerify
@@ -155,14 +155,16 @@ jobs:
             - name: Gradle setup
               uses: ./.github/actions/gradle-setup
 
-            - name: Build Android debug APK
-              run: ./gradlew :androidApp:assembleDebug
+            - name: Build Android debug APKs (phone and watch)
+              run: ./gradlew :androidApp:assembleDebug :wearApp:assembleDebug
 
             - name: Upload Android debug APK
               uses: actions/upload-artifact@v7
               with:
                   name: android-apk
-                  path: androidApp/build/outputs/apk/debug/*.apk
+                  path: |
+                      androidApp/build/outputs/apk/debug/*.apk
+                      wearApp/build/outputs/apk/debug/*.apk
 
             - name: Upload Android build reports
               if: failure()

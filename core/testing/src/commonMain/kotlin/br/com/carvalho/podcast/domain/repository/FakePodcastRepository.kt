@@ -7,6 +7,8 @@ import br.com.carvalho.podcast.domain.model.EpisodeListFilter
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
+import br.com.carvalho.podcast.domain.model.topCategories
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -115,6 +117,38 @@ class FakePodcastRepository : PodcastRepository {
         return episodes.value.find { it.id == id }
     }
 
+    val smartPlaylists = MutableStateFlow<List<SmartPlaylist>>(emptyList())
+
+    override fun getSmartPlaylists(): Flow<List<SmartPlaylist>> = smartPlaylists
+
+    override suspend fun saveSmartPlaylist(playlist: SmartPlaylist) {
+        val nextId = (smartPlaylists.value.maxOfOrNull { it.id } ?: 0) + 1
+        val saved = if (playlist.id == 0L) playlist.copy(id = nextId) else playlist
+        smartPlaylists.value = smartPlaylists.value.filter { it.id != saved.id } + saved
+    }
+
+    override suspend fun deleteSmartPlaylist(id: Long) {
+        smartPlaylists.value = smartPlaylists.value.filter { it.id != id }
+    }
+
+    override fun getSmartPlaylistEpisodesPaged(playlist: SmartPlaylist): Flow<PagingData<Episode>> =
+        episodes.map { PagingData.from(getSmartPlaylistEpisodes(playlist)) }
+
+    /** The same conditions as the database query. */
+    override suspend fun getSmartPlaylistEpisodes(playlist: SmartPlaylist): List<Episode> {
+        val inCategory = podcasts.value.filter { playlist.category == null || playlist.category in it.topCategories }
+            .map { it.id }.toSet()
+        val maxSeconds = playlist.maxMinutes?.let { it * 60L }
+        return episodes.value.filter {
+            it.podcastId in inCategory && (!playlist.unplayedOnly || !it.isPlayed) &&
+                (!playlist.downloadedOnly || it.isDownloaded) &&
+                (maxSeconds == null || it.duration in 1..maxSeconds)
+        }.sortedByDescending { it.publishDate }
+    }
+
+    override suspend fun getEpisodesWithHistory(): List<Episode> = episodes.value.filter {
+        it.isPlayed || it.playbackPosition > 0 || it.isSaved || it.lastPlayedAt != null
+    }
     override fun searchEpisodes(query: String): Flow<List<Episode>> = episodes.map {
         it.filter { e ->
             e.title.contains(
@@ -159,9 +193,26 @@ class FakePodcastRepository : PodcastRepository {
         this.episodes.value = this.episodes.value + episodes
     }
 
+    /** Feed address and when, for each podcast [deletePodcast] took out; [clock] stamps it. */
+    val removed = mutableMapOf<String, Long>()
+    var clock = 0L
+
     override suspend fun deletePodcast(id: String) {
         deletePodcastCalledWith = id
+        podcasts.value.find { it.id == id }?.let { removed[it.feedUrl] = clock }
         podcasts.value = podcasts.value.filter { it.id != id }
+    }
+
+    override suspend fun getRemovedPodcasts(): Map<String, Long> = removed.toMap()
+
+    override suspend fun getSyncedEpisodes(): List<Episode> = episodes.value.filter { it.updatedAt > 0 }
+
+    override fun lastEpisodeChange(): Flow<Long> = episodes.map { list -> list.maxOfOrNull { it.updatedAt } ?: 0 }
+
+    override suspend fun applyEpisodeState(id: String, played: Boolean, position: Long, updatedAt: Long) {
+        episodes.value = episodes.value.map {
+            if (it.id == id) it.copy(isPlayed = played, playbackPosition = position, updatedAt = updatedAt) else it
+        }
     }
 
     override suspend fun markOlderEpisodesAsPlayed(podcastId: String, publishDate: Long) {

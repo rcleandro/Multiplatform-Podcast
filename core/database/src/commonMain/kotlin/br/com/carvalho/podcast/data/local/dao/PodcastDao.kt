@@ -1,11 +1,15 @@
 package br.com.carvalho.podcast.data.local.dao
 
 import androidx.room3.Dao
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import androidx.room3.Transaction
 import androidx.room3.Upsert
 import br.com.carvalho.podcast.data.local.entity.LibraryRow
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
+import br.com.carvalho.podcast.data.local.entity.RemovedPodcastEntity
+import br.com.carvalho.podcast.data.local.entity.SmartPlaylistEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -39,6 +43,21 @@ interface PodcastDao {
     suspend fun deleteById(id: String)
 
     @Query(
+        "INSERT OR REPLACE INTO removed_podcasts (feedUrl, removedAt) SELECT feedUrl, :at FROM podcasts WHERE id = :id"
+    )
+    suspend fun rememberRemoved(id: String, at: Long)
+
+    /** Takes the podcast out and keeps when (19.9b), so a synced device does not bring it back. */
+    @Transaction
+    suspend fun remove(id: String, at: Long) {
+        rememberRemoved(id, at)
+        deleteById(id)
+    }
+
+    @Query("SELECT * FROM removed_podcasts")
+    suspend fun removed(): List<RemovedPodcastEntity>
+
+    @Query(
         "UPDATE podcasts SET playbackSpeed = :speed, skipIntroSeconds = :introSeconds, " +
             "skipOutroSeconds = :outroSeconds WHERE id = :id"
     )
@@ -61,4 +80,16 @@ interface PodcastDao {
     suspend fun reorder(ids: List<String>) {
         ids.forEachIndexed { position, id -> setPosition(id, position) }
     }
+
+    /** The saved filters of the Episodes tab (19.4), in the order they were made. */
+    @Query("SELECT * FROM smart_playlists ORDER BY id")
+    fun smartPlaylists(): Flow<List<SmartPlaylistEntity>>
+
+    // Replace, not upsert: an upsert tells a conflict by the exception's message, which Android's host tests leave
+    // empty. Nothing points at a smart playlist, so replacing the row loses nothing.
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveSmartPlaylist(playlist: SmartPlaylistEntity)
+
+    @Query("DELETE FROM smart_playlists WHERE id = :id")
+    suspend fun deleteSmartPlaylist(id: Long)
 }

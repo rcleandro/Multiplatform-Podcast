@@ -333,7 +333,7 @@ class DiscoverViewModelTest {
     }
 
     @Test
-    fun `opening the screen again starts with nothing typed, no category and no link`() = runTest(dispatcher) {
+    fun `opening the screen again starts with nothing typed no category and no link`() = runTest(dispatcher) {
         directory.lookupResult = Result.success(found(HIPSTERS))
         val viewModel = viewModel()
         viewModel.onIntent(DiscoverIntent.Open(session = 1))
@@ -357,6 +357,35 @@ class DiscoverViewModelTest {
         viewModel.onIntent(DiscoverIntent.Open(session = 1))
 
         assertEquals("frantic nerdcast", viewModel.uiState.value.query)
+    }
+
+    @Test
+    fun `for you comes from the library's category and a subscription there shows as done`() = runTest(dispatcher) {
+        repository.podcasts.value = listOf(podcast("https://mine.fm/rss").copy(categories = listOf("News")))
+        directory.topByCategory[PodcastCategory.NEWS] = Result.success(listOf(found(HIPSTERS)))
+        feedSource.result = Result.success(FetchedFeed(podcast(HIPSTERS), emptyList()))
+        val viewModel = viewModel()
+        val suggested = viewModel.uiState.value.forYou.single()
+
+        viewModel.onIntent(DiscoverIntent.Subscribe(suggested))
+
+        assertTrue(viewModel.uiState.value.forYou.single().isSubscribed)
+    }
+
+    @Test
+    fun `similar podcasts show with the podcast's title and say how many to analytics`() = runTest(dispatcher) {
+        repository.podcasts.value = listOf(
+            podcast("https://mine.fm/rss").copy(id = "p1", title = "Mine", categories = listOf("Technology")),
+        )
+        directory.topByCategory[PodcastCategory.TECHNOLOGY] = Result.success(listOf(found(HIPSTERS)))
+        val viewModel = viewModel()
+
+        viewModel.onIntent(DiscoverIntent.ShowSimilar("p1"))
+
+        val similar = viewModel.uiState.value.similar
+        assertEquals("Mine", similar?.title)
+        assertEquals(listOf(HIPSTERS), similar?.results?.map { it.podcast.feedUrl })
+        assertEquals(mapOf<String, Any?>("found" to 1), analytics.params.last())
     }
 
     private fun found(feedUrl: String) = DirectoryPodcast(

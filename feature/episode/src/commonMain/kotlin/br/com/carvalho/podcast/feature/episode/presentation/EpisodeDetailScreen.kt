@@ -74,6 +74,7 @@ import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.back
+import br.com.carvalho.podcast.core.ui.generated.resources.bookmarks
 import br.com.carvalho.podcast.core.ui.generated.resources.description
 import br.com.carvalho.podcast.core.ui.generated.resources.episode
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_not_found
@@ -91,8 +92,10 @@ import br.com.carvalho.podcast.core.ui.generated.resources.try_again
 import br.com.carvalho.podcast.core.ui.generated.resources.unsave_episode
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
+import br.com.carvalho.podcast.domain.model.Bookmark
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.presentation.MessageEffect
+import br.com.carvalho.podcast.presentation.component.BookmarkRow
 import br.com.carvalho.podcast.presentation.component.downloadAction
 import br.com.carvalho.podcast.presentation.component.remainingDuration
 import br.com.carvalho.podcast.presentation.component.toDownloadState
@@ -130,6 +133,8 @@ fun EpisodeDetailScreen(
             onDeleteDownload = { viewModel.onIntent(EpisodeDetailIntent.DeleteDownload) },
             onMarkPlayed = { viewModel.onIntent(EpisodeDetailIntent.MarkPlayed) },
             onMarkUnplayed = { viewModel.onIntent(EpisodeDetailIntent.MarkUnplayed) },
+            onPlayBookmark = { viewModel.onIntent(EpisodeDetailIntent.PlayBookmark(it)) },
+            onDeleteBookmark = { viewModel.onIntent(EpisodeDetailIntent.DeleteBookmark(it)) },
         ),
     )
 }
@@ -147,6 +152,8 @@ data class EpisodeDetailActions(
     val onDeleteDownload: () -> Unit = {},
     val onMarkPlayed: () -> Unit = {},
     val onMarkUnplayed: () -> Unit = {},
+    val onPlayBookmark: (Bookmark) -> Unit = {},
+    val onDeleteBookmark: (Bookmark) -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -262,6 +269,10 @@ private fun EpisodeDetailBody(
                 .readableWidth()
                 .padding(start = Spacing.l, end = Spacing.l, bottom = Sizes.listBottomInset),
         ) {
+            if (state.bookmarks.isNotEmpty()) {
+                SectionTitle(stringResource(Res.string.bookmarks))
+                state.bookmarks.forEach { BookmarkRow(it, actions.onPlayBookmark, actions.onDeleteBookmark) }
+            }
             SectionTitle(stringResource(Res.string.description))
             HtmlText(html = episode.description ?: stringResource(Res.string.no_description))
         }

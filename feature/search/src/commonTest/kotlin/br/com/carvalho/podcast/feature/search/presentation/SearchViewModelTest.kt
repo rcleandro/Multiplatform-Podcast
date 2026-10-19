@@ -14,6 +14,8 @@ import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
+import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
@@ -183,6 +185,49 @@ class SearchViewModelTest {
         assertFalse(viewModel.uiState.value.clearHistoryConfirmation)
     }
 
+    @Test
+    fun `a smart playlist is made listed instead of the filter followed through edits and deleted`() =
+        runTest(testDispatcher) {
+            val viewModel = createViewModel()
+
+            viewModel.onIntent(SearchIntent.EditPlaylist(null))
+            assertEquals(SmartPlaylist(name = ""), viewModel.uiState.value.editingPlaylist)
+            viewModel.onIntent(SearchIntent.SavePlaylist(SmartPlaylist(name = "Short", maxMinutes = 30)))
+            val saved = viewModel.uiState.value.playlists.single()
+            assertEquals(null, viewModel.uiState.value.editingPlaylist)
+
+            viewModel.onIntent(SearchIntent.SelectPlaylist(saved))
+            viewModel.onIntent(SearchIntent.SavePlaylist(saved.copy(name = "Very short", maxMinutes = 15)))
+            assertEquals("Very short", viewModel.uiState.value.playlist?.name)
+
+            viewModel.onIntent(SearchIntent.DeletePlaylist(saved))
+            assertEquals(null, viewModel.uiState.value.playlist)
+            assertEquals(emptyList(), viewModel.uiState.value.playlists)
+        }
+
+    @Test
+    fun `play all plays the playlist's newest match and queues the rest in order`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(podcast("p1"))
+        repository.episodes.value = listOf(
+            episode("old", publishDate = 1).copy(isPlayed = false),
+            episode("heard", publishDate = 2),
+            episode("new", publishDate = 3).copy(isPlayed = false),
+        )
+        repository.saveSmartPlaylist(SmartPlaylist(name = "Unheard", unplayedOnly = true))
+        val viewModel = createViewModel()
+        viewModel.onIntent(SearchIntent.SelectPlaylist(viewModel.uiState.value.playlists.single()))
+
+        viewModel.onIntent(SearchIntent.PlayPlaylist)
+
+        assertEquals("new", audioPlayer.playCalledWith?.id)
+        assertEquals(listOf("old"), audioPlayer.queueSet?.map { it.id })
+    }
+
+    private fun podcast(id: String) = Podcast(
+        id = id, title = id, description = "", imageUrl = null, author = null, language = null,
+        categories = emptyList(), feedUrl = id, siteUrl = null, lastUpdated = 0, isSubscribed = true,
+    )
+
     private fun episode(id: String, publishDate: Long, podcastId: String = "p1") = Episode(
         id = id, podcastId = podcastId, title = id, description = null, audioUrl = "a", imageUrl = null,
         duration = 0, publishDate = publishDate, isPlayed = true, playbackPosition = 0, isDownloaded = false,
@@ -238,7 +283,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `a download that fails tells why, once, and not for failures from before`() = runTest(testDispatcher) {
+    fun `a download that fails tells why once and not for failures from before`() = runTest(testDispatcher) {
         val old = DownloadStatus.Failed(AppError.NoConnection)
         episodeDownloader.activeDownloads.value = mapOf("old" to old)
         val viewModel = createViewModel()

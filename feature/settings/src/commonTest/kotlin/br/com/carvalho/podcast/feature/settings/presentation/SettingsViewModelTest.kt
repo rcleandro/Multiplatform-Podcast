@@ -7,16 +7,24 @@ import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
+import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeOpmlFormat
+import br.com.carvalho.podcast.domain.repository.FakePlayerRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
+import br.com.carvalho.podcast.domain.usecase.LibrarySyncUseCase
+import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
+import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -39,6 +47,8 @@ class SettingsViewModelTest {
     private val downloader = FakeEpisodeDownloader().apply { usedBytes = USED_BYTES }
     private val repository = FakePodcastRepository()
     private val feedSource = FakeFeedSource()
+    private val playerRepository = FakePlayerRepository()
+    private val player = FakeAudioPlayer()
 
 
     @BeforeTest
@@ -53,7 +63,33 @@ class SettingsViewModelTest {
             CoroutineDispatchers(main = dispatcher, io = dispatcher),
             ImportOpmlUseCase(FakeOpmlFormat, AddPodcastFromUrlUseCase(feedSource, repository)),
             ExportOpmlUseCase(repository, FakeOpmlFormat),
+            ExportBackupUseCase(repository, playerRepository, preferences, player),
+            RestoreBackupUseCase(
+                repository, playerRepository, preferences, player, AddPodcastFromUrlUseCase(feedSource, repository),
+            ),
+            FolderSyncUseCase(
+                LibrarySyncUseCase(
+                    repository,
+                    player,
+                    AddPodcastFromUrlUseCase(feedSource, repository),
+                    DeletePodcastUseCase(repository, downloader),
+                ),
+            ),
         )
+
+    @Test
+    fun aSyncFolderChosenAgainKeepsThisDevicesFileAndStoppingForgetsIt() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SettingsIntent.ChooseSyncFolder("bookmark-1", "Sync"))
+        val fileName = preferences.syncFolder.value?.fileName
+        viewModel.onIntent(SettingsIntent.ChooseSyncFolder("bookmark-2", "Dropbox"))
+
+        assertEquals(SyncFolder("bookmark-2", "Dropbox", fileName!!), preferences.syncFolder.value)
+        assertEquals("Dropbox", viewModel.uiState.value.syncFolderName)
+        viewModel.onIntent(SettingsIntent.StopSync)
+        assertEquals(null, viewModel.uiState.value.syncFolderName)
+    }
 
     @Test
     fun theChosenThemeIsSavedAndShown() = runTest(dispatcher) {
@@ -210,5 +246,26 @@ class SettingsViewModelTest {
 
     private companion object {
         const val USED_BYTES = 52_428_800L
+    }
+
+    @Test
+    fun aBackupIsHandedToTheSaveDialogAndAnotherFileIsRefusedOnRestore() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        preferences.setThemeMode(ThemeMode.DARK)
+
+        viewModel.onIntent(SettingsIntent.ExportBackup)
+        val text = viewModel.uiState.value.backupToSave.orEmpty()
+        assertTrue("\"themeMode\": \"DARK\"" in text, text)
+        viewModel.onIntent(SettingsIntent.BackupHandedOver)
+        viewModel.onIntent(SettingsIntent.BackupSaved(saved = false))
+        assertEquals(OpmlStatus.ExportFailed, viewModel.uiState.value.backup)
+
+        viewModel.onIntent(SettingsIntent.RestoreBackup("<opml/>"))
+        assertEquals(OpmlStatus.NotABackup, viewModel.uiState.value.backup)
+
+        preferences.setThemeMode(ThemeMode.LIGHT)
+        viewModel.onIntent(SettingsIntent.RestoreBackup(text))
+        assertEquals(OpmlStatus.Imported(OpmlImport(0, 0, 0)), viewModel.uiState.value.backup)
+        assertEquals(ThemeMode.DARK, preferences.themeMode.value)
     }
 }

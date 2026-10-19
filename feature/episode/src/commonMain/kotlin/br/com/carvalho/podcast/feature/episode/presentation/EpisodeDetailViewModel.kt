@@ -8,8 +8,10 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import br.com.carvalho.podcast.domain.model.Bookmark
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
@@ -38,7 +40,8 @@ class EpisodeDetailViewModel(
     private val audioPlayer: AudioPlayer,
     private val downloader: EpisodeDownloader,
     private val dispatchers: CoroutineDispatchers,
-    private val analytics: Analytics
+    private val analytics: Analytics,
+    private val playerRepository: PlayerRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EpisodeDetailUiState(isLoading = true))
@@ -58,6 +61,9 @@ class EpisodeDetailViewModel(
                 it.copy(isPlaying = playing, isBuffering = buffering, downloadStatus = download ?: DownloadStatus.Idle)
             }
         }.launchIn(viewModelScope)
+        playerRepository.bookmarks(episodeId)
+            .onEach { bookmarks -> _uiState.update { it.copy(bookmarks = bookmarks) } }
+            .launchIn(viewModelScope)
     }
 
     fun onIntent(intent: EpisodeDetailIntent) {
@@ -83,7 +89,20 @@ class EpisodeDetailViewModel(
                 repository.markEpisodeAsUnplayed(it.id)
                 reload()
             }
+            is EpisodeDetailIntent.PlayBookmark -> withEpisode { playFrom(it, intent.bookmark.positionMs) }
+            is EpisodeDetailIntent.DeleteBookmark -> withEpisode {
+                analytics.logEvent(AnalyticsEvent.DeleteBookmark)
+                playerRepository.deleteBookmark(intent.bookmark.id)
+            }
         }
+    }
+
+    /** Plays the episode from a bookmark (19.3), loading it first unless it is the one in the player. */
+    private suspend fun playFrom(episode: Episode, positionMs: Long) {
+        analytics.logEvent(AnalyticsEvent.PlayBookmark)
+        if (audioPlayer.playerState.value.currentEpisode?.id != episode.id) audioPlayer.play(episode)
+        audioPlayer.seekTo(positionMs)
+        if (!audioPlayer.playerState.value.isPlaying) audioPlayer.resume()
     }
 
     @Suppress("TooGenericExceptionCaught") // any database failure shows the error state with a retry
@@ -133,6 +152,8 @@ data class EpisodeDetailUiState(
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
     val downloadStatus: DownloadStatus = DownloadStatus.Idle,
+    /** The episode's bookmarks (19.3), in the order they come in it. */
+    val bookmarks: List<Bookmark> = emptyList(),
 )
 
 sealed interface EpisodeDetailIntent {
@@ -149,4 +170,8 @@ sealed interface EpisodeDetailIntent {
 
     /** Into "Saved", or out of it (18.12). */
     data class SetSaved(val saved: Boolean) : EpisodeDetailIntent
+
+    /** Plays from the bookmark's moment (19.3). */
+    data class PlayBookmark(val bookmark: Bookmark) : EpisodeDetailIntent
+    data class DeleteBookmark(val bookmark: Bookmark) : EpisodeDetailIntent
 }

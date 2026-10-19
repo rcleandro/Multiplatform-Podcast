@@ -38,6 +38,9 @@ interface PlatformPlayer {
 
     /** Where the system shows the jumps (the iOS lock screen), the ones chosen in Settings; elsewhere nothing. */
     fun setSkipIntervals(intervals: SkipIntervals) = Unit
+
+    /** The chapter now playing (19.1), where the system shows the episode; `null` shows the episode alone. */
+    fun showChapter(title: String?) = Unit
 }
 
 sealed interface PlatformEvent {

@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.domain.player.ChapterSource
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -26,6 +27,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
+import kotlin.time.ComparableTimeMark
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
@@ -49,14 +51,29 @@ class PlaybackController(
     private val onFinished: suspend (finished: Episode, queue: List<Episode>) -> Unit = { _, _ -> },
     /** The jumps chosen in Settings (18.5), for the remote buttons and everything that reads the player's state. */
     private val skipIntervals: StateFlow<SkipIntervals> = MutableStateFlow(SkipIntervals()),
+    /** Where the chapters of the episode loaded come from (19.1). */
+    private val chapterSource: ChapterSource = ChapterSource { emptyList() },
     /** Where the progress loop and the sleep timer run; tests pass one they can end. */
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + dispatchers.main),
+    /** The clock listening time is measured with (19.5); tests pass their virtual one. */
+    private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic,
 ) : AudioPlayer {
     private val _playerState = MutableStateFlow(PlayerState())
     override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
+    private var chaptersJob: Job? = null
+
+    /** Heard since the last save (19.5): real time, and how far the episode moved in it. */
+    private var heardMs = 0L
+    private var movedMs = 0L
+
+    /** When and where the progress was last read while playing; null while paused. */
+    private var lastTick: Pair<ComparableTimeMark, Long>? = null
+
+    /** What the platform was last told about chapters, so it hears again only when the chapter changes. */
+    private var shownChapter: String? = null
 
     /** What is left of a timer of minutes; extending it adds here, while it runs. */
     private var sleepRemainingMs = 0L
@@ -86,6 +103,8 @@ class PlaybackController(
     }
 
     override suspend fun play(episode: Episode) {
+        // The time heard of the episode leaving goes to its own podcast.
+        _playerState.value.currentEpisode?.let { withContext(dispatchers.io) { saveListening(it) } }
         val requested = TimeSource.Monotonic.markNow()
         val playable = withLocalFile(episode)
         playRequest = requested to if (playable.localPath != null) "local" else "stream"
@@ -102,6 +121,7 @@ class PlaybackController(
                 isBuffering = true,
                 speed = speed,
                 queue = state.queue.filter { it.id != episode.id },
+                chapters = emptyList(),
             )
         }
         lastSavedPosition = null
@@ -111,6 +131,7 @@ class PlaybackController(
             engine.load(playable, positionMs = start, playWhenReady = true)
             engine.setSpeed(speed)
         }
+        loadChapters(playable)
     }
 
     override fun pause() {
@@ -132,6 +153,7 @@ class PlaybackController(
         val target = if (duration != null) positionMs.coerceIn(0, duration) else positionMs.coerceAtLeast(0)
         _playerState.update { it.copy(position = target) }
         onMain { engine.seekTo(target) }
+        showChapter()
     }
 
     override fun skipForward(seconds: Int) = seekBy(seconds * AppConfig.MILLIS_PER_SECOND)
@@ -151,7 +173,12 @@ class PlaybackController(
     /** Saved at once: a queue arranged while paused survives the app closing. */
     override fun setQueue(episodes: List<Episode>) {
         val current = _playerState.value.currentEpisode?.id
-        _playerState.update { it.copy(queue = episodes.filter { episode -> episode.id != current }) }
+        _playerState.update {
+            it.copy(
+                queue = episodes.filter { episode -> episode.id != current },
+                queueUpdatedAt = getCurrentTimestamp(),
+            )
+        }
         // ponytail: with nothing playing there is no session row to save the queue in; it lives until the app closes.
         scope.launch { save() }
     }
@@ -225,6 +252,8 @@ class PlaybackController(
         } else {
             progressJob?.cancel()
             readProgress()
+            countListening()
+            lastTick = null
             save()
         }
     }
@@ -255,9 +284,11 @@ class PlaybackController(
 
     private fun startProgress() {
         progressJob?.cancel()
+        lastTick = null
         progressJob = scope.launch {
             while (isActive) {
                 readProgress()
+                countListening()
                 if (reachedOutro()) {
                     // Its own coroutine: ending cancels this loop.
                     scope.launch {
@@ -274,6 +305,54 @@ class PlaybackController(
 
     private fun readProgress() {
         _playerState.update { it.copy(position = engine.positionMs, duration = engine.durationMs ?: it.duration) }
+        showChapter()
+    }
+
+    /** Looked up after the episode starts loading, so the sound never waits for them. */
+    private fun loadChapters(episode: Episode) {
+        chaptersJob?.cancel()
+        shownChapter = null
+        chaptersJob = scope.launch {
+            val chapters = withContext(dispatchers.io) { chapterSource.chapters(episode) }
+            if (_playerState.value.currentEpisode?.id != episode.id) return@launch
+            _playerState.update { it.copy(chapters = chapters) }
+            showChapter()
+        }
+    }
+
+    private fun showChapter() {
+        val title = _playerState.value.currentChapter?.title?.ifBlank { null }
+        if (title == shownChapter) return
+        shownChapter = title
+        onMain { engine.showChapter(title) }
+    }
+
+    /**
+     * Adds the time since the last tick to what was heard, with how far the episode moved in it; a move backwards or
+     * faster than any speed plays is a seek, and does not count.
+     */
+    private fun countListening() {
+        val now = timeSource.markNow()
+        val position = _playerState.value.position
+        lastTick?.let { (then, from) ->
+            val elapsed = (now - then).inWholeMilliseconds
+            val moved = position - from
+            if (moved in 0..elapsed * MAX_MOVE_PER_MS) {
+                heardMs += elapsed
+                movedMs += moved
+            }
+        }
+        lastTick = now to position
+    }
+
+    /** What was heard of [episode] since the last save, to its podcast's totals. */
+    private suspend fun saveListening(episode: Episode) {
+        if (heardMs <= 0) return
+        val heard = heardMs
+        val saved = movedMs - heardMs
+        heardMs = 0
+        movedMs = 0
+        runCatching { playerRepository.addListening(episode.podcastId, getCurrentTimestamp(), heard, saved) }
     }
 
     private fun movedPastLastSave(): Boolean {
@@ -287,7 +366,14 @@ class PlaybackController(
         val episode = state.currentEpisode ?: return
         lastSavedPosition = state.position
         withContext(dispatchers.io) {
-            playerRepository.savePlaybackState(episode.id, state.position, generalSpeed, state.queue)
+            saveListening(episode)
+            playerRepository.savePlaybackState(
+                episode.id,
+                state.position,
+                generalSpeed,
+                state.queue,
+                state.queueUpdatedAt,
+            )
             val duration = state.duration
             if (duration != null && duration > 0 && state.position > duration * AppConfig.PLAYBACK_FINISHED_THRESHOLD) {
                 podcastRepository.markEpisodeAsPlayed(episode.id)
@@ -312,7 +398,7 @@ class PlaybackController(
             val next = saved.queue.indexOfFirst { it.id == saved.episodeId }.let { saved.queue.drop(it + 1) }
             generalSpeed = saved.speed
             val speed = playback.speed ?: saved.speed
-            _playerState.update { it.copy(speed = speed, queue = next) }
+            _playerState.update { it.copy(speed = speed, queue = next, queueUpdatedAt = saved.queueUpdatedAt) }
             if (adopted == null) engine.setSpeed(speed)
         }
         if (episode == null || _playerState.value.currentEpisode != null) return
@@ -321,6 +407,7 @@ class PlaybackController(
             AppLogger.i(TAG, "Adopting ${episode.id}, already loaded by the platform")
             _playerState.update { it.copy(currentEpisode = playable) }
             readProgress()
+            loadChapters(playable)
             return
         }
         val position = saved?.position ?: 0
@@ -328,6 +415,7 @@ class PlaybackController(
         _playerState.update { it.copy(currentEpisode = playable, position = position) }
         lastSavedPosition = position
         engine.load(playable, position, playWhenReady = false)
+        loadChapters(playable)
     }
 
     /**
@@ -375,5 +463,8 @@ class PlaybackController(
         /** The sleep timer's last minute, over which the volume goes down to nothing. */
         const val SLEEP_FADE_MS = 60_000L
         const val FULL_VOLUME = 1f
+
+        /** Faster than the fastest speed with silences skipped: a move beyond this is a seek. */
+        const val MAX_MOVE_PER_MS = 4
     }
 }

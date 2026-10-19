@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import app.cash.turbine.test
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
+import br.com.carvalho.podcast.domain.repository.FakePlayerRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,8 @@ class EpisodeDetailViewModelTest {
     }
 
     private val downloader = FakeEpisodeDownloader()
+    private val analytics = FakeAnalytics()
+    private val playerRepository = FakePlayerRepository()
     private val sampleEpisode = Episode(
         id = episodeId, podcastId = "p", title = "Episode", description = null, audioUrl = "a", imageUrl = null,
         duration = 60, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false, fileSize = null,
@@ -49,7 +52,7 @@ class EpisodeDetailViewModelTest {
 
     private fun createViewModel() = EpisodeDetailViewModel(
         episodeId, repository, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer), audioPlayer, downloader, dispatchers,
-        FakeAnalytics()
+        analytics, playerRepository
     )
 
     @Test
@@ -101,7 +104,7 @@ class EpisodeDetailViewModelTest {
     }
 
     @Test
-    fun `a paused episode resumes where it stopped, and its download can be cancelled or deleted`() =
+    fun `a paused episode resumes where it stopped and its download can be cancelled or deleted`() =
         runTest(testDispatcher) {
             repository.episodes.value = listOf(sampleEpisode)
             val viewModel = createViewModel()
@@ -176,4 +179,26 @@ class EpisodeDetailViewModelTest {
         isDownloaded = false,
         fileSize = null
     )
+
+    @Test
+    fun `a bookmark plays the episode from its moment and can be deleted`() = runTest(testDispatcher) {
+        repository.episodes.value = listOf(sampleEpisode)
+        playerRepository.addBookmark(episodeId, positionMs = BOOKMARK_MS, note = "quote")
+        playerRepository.addBookmark("other", positionMs = 1, note = "elsewhere")
+        val viewModel = createViewModel()
+        val bookmark = viewModel.uiState.value.bookmarks.single()
+
+        viewModel.onIntent(EpisodeDetailIntent.PlayBookmark(bookmark))
+        assertEquals(episodeId, audioPlayer.playCalledWith?.id)
+        assertEquals(BOOKMARK_MS, audioPlayer.playerState.value.position)
+        assertEquals(true, audioPlayer.playerState.value.isPlaying)
+
+        viewModel.onIntent(EpisodeDetailIntent.DeleteBookmark(bookmark))
+        assertEquals(emptyList(), viewModel.uiState.value.bookmarks)
+        assertEquals(listOf("load_episode_detail", "play_bookmark", "delete_bookmark"), analytics.events)
+    }
+
+    private companion object {
+        const val BOOKMARK_MS = 90_000L
+    }
 }

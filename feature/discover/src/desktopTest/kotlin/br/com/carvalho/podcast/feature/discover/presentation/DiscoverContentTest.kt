@@ -1,57 +1,61 @@
 package br.com.carvalho.podcast.feature.discover.presentation
 
-import androidx.compose.ui.test.swipeUp
-import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.hasAnyDescendant
-import androidx.compose.ui.test.hasScrollToIndexAction
-import br.com.carvalho.podcast.core.ui.generated.resources.explicit
-import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import br.com.carvalho.podcast.core.ui.generated.resources.category_technology
-import br.com.carvalho.podcast.domain.model.PodcastCategory
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotFocused
+import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.semantics.ProgressBarRangeInfo
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.SemanticsMatcher
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_by_url
 import br.com.carvalho.podcast.core.ui.generated.resources.add_podcast
-import br.com.carvalho.podcast.core.ui.generated.resources.popular
-import br.com.carvalho.podcast.core.ui.generated.resources.opened_link
 import br.com.carvalho.podcast.core.ui.generated.resources.category_news
+import br.com.carvalho.podcast.core.ui.generated.resources.category_technology
 import br.com.carvalho.podcast.core.ui.generated.resources.error_search_directory
+import br.com.carvalho.podcast.core.ui.generated.resources.explicit
+import br.com.carvalho.podcast.core.ui.generated.resources.for_you
 import br.com.carvalho.podcast.core.ui.generated.resources.more_options
+import br.com.carvalho.podcast.core.ui.generated.resources.opened_link
 import br.com.carvalho.podcast.core.ui.generated.resources.paste
+import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
+import br.com.carvalho.podcast.core.ui.generated.resources.popular
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_import_opml
+import br.com.carvalho.podcast.core.ui.generated.resources.similar_none
+import br.com.carvalho.podcast.core.ui.generated.resources.similar_to
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribe_to
 import br.com.carvalho.podcast.core.ui.generated.resources.subscribed
 import br.com.carvalho.podcast.core.ui.generated.resources.try_again
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
+import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.usecase.DirectoryResult
 import kotlinx.coroutines.runBlocking
-import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getPluralString
 import org.jetbrains.compose.resources.getString
@@ -121,6 +125,13 @@ class DiscoverContentTest {
     @Test
     fun aLinkLeavesTheKeyboardClosed() = runComposeUiTest {
         setContent { PodcastTheme { DiscoverContent(DiscoverUiState(isOpeningLink = true), DiscoverActions()) } }
+
+        onNode(hasSetTextAction()).assertIsNotFocused()
+    }
+
+    @Test
+    fun openedForALinkNotYetTakenTheSearchStaysUnfocused() = runComposeUiTest {
+        setContent { PodcastTheme { DiscoverContent(DiscoverUiState(), DiscoverActions(), focusSearch = false) } }
 
         onNode(hasSetTextAction()).assertIsNotFocused()
     }
@@ -302,5 +313,23 @@ class DiscoverContentTest {
     private companion object {
         const val WIDE = 1200
         const val TALL = 800
+    }
+
+    @Test
+    fun forYouShowsAboveThePopularOnesAndSimilarPodcastsTakeItsPlace() = runComposeUiTest {
+        val suggested = hipsters.copy(podcast = hipsters.podcast.copy(title = "NerdCast", feedUrl = "https://nerd.cast/rss"))
+        var state by mutableStateOf(DiscoverUiState(results = listOf(hipsters), forYou = listOf(suggested)))
+        setContent { PodcastTheme { DiscoverContent(state, DiscoverActions()) } }
+
+        val forYou = onNode(isHeading() and hasText(text(Res.string.for_you), ignoreCase = true)).getBoundsInRoot()
+        val popular = onNode(isHeading() and hasText(text(Res.string.popular), ignoreCase = true)).getBoundsInRoot()
+        assertTrue(forYou.bottom <= popular.top, "for you at $forYou should be above the popular ones at $popular")
+        onNodeWithText("NerdCast").assertExists()
+
+        state = state.copy(similar = SimilarPodcasts("Mine", emptyList()))
+        onNode(isHeading() and hasText(runBlocking { getString(Res.string.similar_to, "Mine") }, ignoreCase = true))
+            .assertExists()
+        onNodeWithText(text(Res.string.similar_none)).assertExists()
+        onNode(isHeading() and hasText(text(Res.string.for_you), ignoreCase = true)).assertDoesNotExist()
     }
 }

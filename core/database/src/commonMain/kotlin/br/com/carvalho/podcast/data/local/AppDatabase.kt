@@ -9,14 +9,27 @@ import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.data.local.dao.PlaybackStateDao
 import br.com.carvalho.podcast.data.local.dao.PodcastDao
+import br.com.carvalho.podcast.data.local.entity.BookmarkEntity
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
+import br.com.carvalho.podcast.data.local.entity.ListeningEntity
 import br.com.carvalho.podcast.data.local.entity.PlaybackStateEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
 import br.com.carvalho.podcast.data.local.entity.QueueItemEntity
+import br.com.carvalho.podcast.data.local.entity.RemovedPodcastEntity
+import br.com.carvalho.podcast.data.local.entity.SmartPlaylistEntity
 
 @Database(
-    entities = [PodcastEntity::class, EpisodeEntity::class, PlaybackStateEntity::class, QueueItemEntity::class],
-    version = 20,
+    entities = [
+        PodcastEntity::class,
+        EpisodeEntity::class,
+        PlaybackStateEntity::class,
+        QueueItemEntity::class,
+        BookmarkEntity::class,
+        SmartPlaylistEntity::class,
+        ListeningEntity::class,
+        RemovedPodcastEntity::class,
+    ],
+    version = 27,
     // Every schema change ships a migration and a MigrationTest case; there is no destructive fallback.
     // 3 → 4, 4 → 5, 5 → 6, 7 → 8 and 8 → 9 are manual (EpisodeIdMigration, QueueItemsMigration,
     // DownloadFileMigration, SubscribedAtMigration, PositionMigration), added by addAppMigrations.
@@ -35,6 +48,13 @@ import br.com.carvalho.podcast.data.local.entity.QueueItemEntity
         AutoMigration(from = 17, to = 18),
         AutoMigration(from = 18, to = 19),
         AutoMigration(from = 19, to = 20),
+        AutoMigration(from = 20, to = 21),
+        AutoMigration(from = 21, to = 22),
+        AutoMigration(from = 22, to = 23),
+        AutoMigration(from = 23, to = 24),
+        AutoMigration(from = 24, to = 25),
+        AutoMigration(from = 25, to = 26),
+        AutoMigration(from = 26, to = 27),
     ],
 )
 @ConstructedBy(AppDatabaseConstructor::class)

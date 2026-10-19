@@ -4,10 +4,13 @@ import br.com.carvalho.podcast.core.image.createImageLoader
 import br.com.carvalho.podcast.core.network.commonJson
 import br.com.carvalho.podcast.core.network.createHttpClient
 import br.com.carvalho.podcast.core.player.PlaybackController
+import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
 import br.com.carvalho.podcast.data.local.AppDatabase
 import br.com.carvalho.podcast.data.preferences.SettingsPreferencesRepository
+import br.com.carvalho.podcast.data.remote.EpisodeChapterSource
+import br.com.carvalho.podcast.data.remote.EpisodeTranscriptSource
 import br.com.carvalho.podcast.data.remote.ITunesPodcastDirectory
 import br.com.carvalho.podcast.data.remote.RssFeedDataSource
 import br.com.carvalho.podcast.data.remote.RssFeedDataSourceImpl
@@ -16,6 +19,8 @@ import br.com.carvalho.podcast.data.remote.XmlOpmlFormat
 import br.com.carvalho.podcast.data.repository.PlayerRepositoryImpl
 import br.com.carvalho.podcast.data.repository.PodcastRepositoryImpl
 import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.domain.player.ChapterSource
+import br.com.carvalho.podcast.domain.player.TranscriptSource
 import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.domain.repository.OpmlFormat
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
@@ -30,11 +35,15 @@ import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloadsUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DownloadNextEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.LibrarySyncUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshInBackgroundUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
 import br.com.carvalho.podcast.feature.discover.discoverFeatureModule
 import br.com.carvalho.podcast.feature.episode.episodeFeatureModule
 import br.com.carvalho.podcast.feature.library.libraryFeatureModule
@@ -65,6 +74,8 @@ val networkModule = module {
     single<FeedSource> { RssFeedSource(get()) }
     single<OpmlFormat> { XmlOpmlFormat }
     single<PodcastDirectory> { ITunesPodcastDirectory(get(), get()) }
+    single<ChapterSource> { EpisodeChapterSource(get(), get(), get<AppDirectories>().fileSystem, get()) }
+    single<TranscriptSource> { EpisodeTranscriptSource(get(), get(), get()) }
 }
 
 val databaseModule = module {
@@ -89,13 +100,14 @@ val playerModule = module {
                 downloadNext(finished, queue)
             },
             skipIntervals = get<PreferencesRepository>().skipIntervals,
+            chapterSource = get(),
         )
     }
 }
 
 val repositoryModule = module {
     single<PodcastRepository> { PodcastRepositoryImpl(get(), get()) }
-    single<PlayerRepository> { PlayerRepositoryImpl(get()) }
+    single<PlayerRepository> { PlayerRepositoryImpl(get(), get()) }
     // Settings comes from each platform module (ADR 0006).
     single<PreferencesRepository> { SettingsPreferencesRepository(get()) }
     // Each platform binds EpisodeDownloader: Android and iOS wrap this one to download in the background.
@@ -112,6 +124,10 @@ val useCaseModule = module {
     singleOf(::AutoDownloadUseCase)
     single { DeleteOldDownloadsUseCase(get(), get(), get(), get()) }
     singleOf(::ExportOpmlUseCase)
+    singleOf(::ExportBackupUseCase)
+    singleOf(::RestoreBackupUseCase)
+    singleOf(::LibrarySyncUseCase)
+    single { FolderSyncUseCase(get()) }
     singleOf(::RefreshPodcastUseCase)
     singleOf(::DeletePodcastUseCase)
     singleOf(::PlayEpisodeUseCase)

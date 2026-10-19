@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.remote
 
+import br.com.carvalho.podcast.data.remote.model.RssTranscript
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -127,6 +128,54 @@ class RssXmlParserFieldsTest {
         assertEquals(7, episode.episode)
         assertEquals("bonus", episode.episodeType)
         assertEquals("https://example.com/one", episode.link)
+    }
+
+    @Test
+    fun `reads the JSON chapters under whatever prefix the feed binds the Podcasting 2_0 namespace to`() {
+        val feed = RssXmlParser.parse(
+            """
+            <rss xmlns:p2="https://podcastindex.org/namespace/1.0">
+              <channel>
+                <item>
+                  <enclosure url="https://cdn.example.com/1.mp3"/>
+                  <p2:chapters url="https://example.com/1.psc" type="application/psc+xml"/>
+                  <p2:chapters url=" https://example.com/1.json " type="application/json+chapters"/>
+                </item>
+                <item><enclosure url="https://cdn.example.com/2.mp3"/></item>
+              </channel>
+            </rss>
+            """.trimIndent()
+        )
+
+        assertEquals(listOf("https://example.com/1.json", null), feed.episodes.map { it.chaptersUrl })
+    }
+
+    @Test
+    fun `picks the transcript the player can follow with WebVTT before SRT and JSON and never HTML`() {
+        val feed = RssXmlParser.parse(
+            """
+            <rss xmlns:podcast="https://podcastindex.org/namespace/1.0">
+              <channel>
+                <item>
+                  <enclosure url="https://cdn.example.com/1.mp3"/>
+                  <podcast:transcript url="https://example.com/1.html" type="text/html"/>
+                  <podcast:transcript url="https://example.com/1.json" type="application/json"/>
+                  <podcast:transcript url="https://example.com/1.srt" type="application/x-subrip"/>
+                  <podcast:transcript url="https://example.com/1.vtt" type="text/vtt" language="pt"/>
+                </item>
+                <item>
+                  <enclosure url="https://cdn.example.com/2.mp3"/>
+                  <podcast:transcript url="https://example.com/2.html" type="text/html"/>
+                </item>
+              </channel>
+            </rss>
+            """.trimIndent()
+        )
+
+        assertEquals(
+            listOf(RssTranscript("https://example.com/1.vtt", "text/vtt"), null),
+            feed.episodes.map { it.transcript },
+        )
     }
 
     @Test

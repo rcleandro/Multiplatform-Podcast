@@ -8,6 +8,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -16,7 +17,13 @@ import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
 import br.com.carvalho.podcast.core.ui.generated.resources.resume_remaining
+import br.com.carvalho.podcast.core.ui.generated.resources.bookmark_delete
+import br.com.carvalho.podcast.core.ui.generated.resources.bookmarks
+import br.com.carvalho.podcast.domain.model.Bookmark
 import br.com.carvalho.podcast.domain.model.Episode
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
@@ -103,5 +110,29 @@ class EpisodeDetailContentTest {
         onNodeWithText(text(Res.string.add_to_queue)).performClick()
 
         assertEquals(listOf(true, false), asked)
+    }
+
+    @Test
+    fun theBookmarksShowAboveTheDescriptionOnlyWhenThereAreAny() = runComposeUiTest {
+        var state by mutableStateOf(EpisodeDetailUiState(episode = episode()))
+        var played: Bookmark? = null
+        var deleted: Bookmark? = null
+        setContent {
+            PodcastTheme {
+                EpisodeDetailContent(
+                    state,
+                    EpisodeDetailActions(onPlayBookmark = { played = it }, onDeleteBookmark = { deleted = it }),
+                )
+            }
+        }
+        onNodeWithText(text(Res.string.bookmarks)).assertDoesNotExist()
+
+        val bookmark = Bookmark(id = 1, episodeId = "e1", positionMs = 754_000, note = "The quote", createdAt = 0)
+        state = state.copy(bookmarks = listOf(bookmark))
+        onNodeWithText("12:34").performScrollTo().performClick()
+        onNodeWithContentDescription(text(Res.string.bookmark_delete)).performClick()
+
+        assertEquals(bookmark, played)
+        assertEquals(bookmark, deleted)
     }
 }

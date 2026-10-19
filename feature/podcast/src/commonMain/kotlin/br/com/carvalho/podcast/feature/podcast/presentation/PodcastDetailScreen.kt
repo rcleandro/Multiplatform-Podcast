@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Share
@@ -92,6 +93,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.season_number
 import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
 import br.com.carvalho.podcast.core.ui.generated.resources.show_more
+import br.com.carvalho.podcast.core.ui.generated.resources.similar_button
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
@@ -117,7 +119,8 @@ fun PodcastDetailScreen(
     podcastId: String,
     viewModel: PodcastDetailViewModel = koinViewModel(key = podcastId) { parametersOf(podcastId) },
     onBackClick: () -> Unit,
-    onEpisodeClick: (String, String) -> Unit
+    onEpisodeClick: (String, String) -> Unit,
+    onSimilarClick: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagedEpisodes = viewModel.pagedEpisodes.collectAsLazyPagingItems()
@@ -136,6 +139,7 @@ fun PodcastDetailScreen(
         snackbarHostState = snackbarHostState,
         actions = PodcastDetailActions(
             onBack = onBackClick,
+            onSimilar = { onSimilarClick(podcastId) },
             onShare = { uiState.podcast?.let { share(podcastShareText(it)) } },
             onRefresh = { viewModel.onIntent(PodcastDetailIntent.Refresh) },
             onFilterSelected = { viewModel.onIntent(PodcastDetailIntent.SetFilter(it)) },
@@ -166,6 +170,8 @@ fun PodcastDetailScreen(
 
 data class PodcastDetailActions(
     val onBack: () -> Unit = {},
+    /** Podcasts like this one (19.6), in "Add podcast". */
+    val onSimilar: () -> Unit = {},
     val onShare: () -> Unit = {},
     val onRefresh: () -> Unit = {},
     val onFilterSelected: (EpisodeFilter) -> Unit = {},
@@ -482,6 +488,9 @@ private fun HeaderActions(state: PodcastDetailUiState, actions: PodcastDetailAct
         }
         FilledTonalIconButton(onClick = actions.onRefresh) {
             Icon(Icons.Rounded.Refresh, contentDescription = stringResource(Res.string.refresh))
+        }
+        FilledTonalIconButton(onClick = actions.onSimilar) {
+            Icon(Icons.Rounded.Explore, contentDescription = stringResource(Res.string.similar_button))
         }
     }
 }

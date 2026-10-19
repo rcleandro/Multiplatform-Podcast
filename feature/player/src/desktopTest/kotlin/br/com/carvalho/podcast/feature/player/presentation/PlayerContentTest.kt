@@ -25,12 +25,15 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.unit.dp
+import br.com.carvalho.podcast.core.designsystem.LocalPictureInPicture
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.Motion
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.TabletopFold
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.chapters
+import br.com.carvalho.podcast.core.ui.generated.resources.transcript
 import br.com.carvalho.podcast.core.ui.generated.resources.minimize
 import br.com.carvalho.podcast.core.ui.generated.resources.next
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
@@ -40,6 +43,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer
 import br.com.carvalho.podcast.core.ui.generated.resources.sleep_timer_extend
 import br.com.carvalho.podcast.core.ui.generated.resources.state_on
+import br.com.carvalho.podcast.domain.model.Chapter
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
@@ -68,6 +72,8 @@ class PlayerContentTest {
         /** The window an app gets on the Razr 60's cover screen, in dp. */
         const val COVER_WIDTH = 469
         const val COVER_HEIGHT = 318
+
+        val CHAPTERS = listOf(Chapter(0, "Intro"), Chapter(60_000, "News"), Chapter(120_000, ""))
         const val FOLD_THICKNESS = 20
 
         /** The aux row under the controls moves them up a bit from the exact center. */
@@ -116,6 +122,109 @@ class PlayerContentTest {
         onNodeWithContentDescription(text(Res.string.sleep_timer_extend), substring = true).performClick()
 
         assertEquals(1, extended)
+    }
+
+    @Test
+    fun theChapterPlayingShowsUnderTheTitleAndTheButtonOpensTheList() = runComposeUiTest {
+        var opened = 0
+        var state by mutableStateOf(PlayerState(currentEpisode = episode("e1")))
+        setContent { PodcastTheme { PlayerContent(state = state, actions = PlayerActions(onChaptersClick = { opened++ })) } }
+        onNodeWithText(text(Res.string.chapters)).assertDoesNotExist()
+
+        state = state.copy(chapters = CHAPTERS, position = 70_000)
+        onNodeWithText("News").assertIsDisplayed()
+        onNodeWithText(text(Res.string.chapters)).performScrollTo().performClick()
+        // A chapter without a title goes by when it starts.
+        state = state.copy(position = 130_000)
+        onNodeWithText("2:00").assertIsDisplayed()
+
+        assertEquals(1, opened)
+    }
+
+    @Test
+    fun theTranscriptButtonShowsOnlyWhenTheFeedGivesOne() = runComposeUiTest {
+        var opened = 0
+        var state by mutableStateOf(PlayerState(currentEpisode = episode("e1")))
+        setContent {
+            PodcastTheme { PlayerContent(state = state, actions = PlayerActions(onTranscriptClick = { opened++ })) }
+        }
+        onNodeWithText(text(Res.string.transcript)).assertDoesNotExist()
+
+        state = state.copy(currentEpisode = episode("e1").copy(transcriptUrl = "https://example.com/1.vtt"))
+        onNodeWithText(text(Res.string.transcript)).performScrollTo().performClick()
+
+        assertEquals(1, opened)
+    }
+
+    private val video: VideoSurface = { modifier -> Box(modifier.testTag("video")) }
+
+    private fun videoEpisode() = episode("v1").copy(mediaType = "video/mp4")
+
+    @Test
+    fun aVideoEpisodeShowsTheVideoWhereTheCoverWas() = runDesktopComposeUiTest(width = WIDE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                PlayerContent(
+                    state = PlayerState(currentEpisode = videoEpisode(), isPlaying = true),
+                    actions = PlayerActions(),
+                    videoSurface = video,
+                )
+            }
+        }
+        val bounds = onNodeWithTag("video").assertIsDisplayed().getBoundsInRoot()
+        val play = onNodeWithContentDescription(text(Res.string.pause)).getBoundsInRoot()
+
+        assertTrue(bounds.right <= play.left, "video $bounds should be left of the play button $play")
+        assertTrue(bounds.right - bounds.left > bounds.bottom - bounds.top, "a video is wider than tall: $bounds")
+    }
+
+    @Test
+    fun anAudioEpisodeKeepsItsCoverWhereVideoIsShown() = runComposeUiTest {
+        setContent {
+            PodcastTheme {
+                PlayerContent(state = PlayerState(currentEpisode = episode("e1")), actions = PlayerActions(), videoSurface = video)
+            }
+        }
+        onNodeWithTag("video").assertDoesNotExist()
+    }
+
+    @Test
+    fun halfOpenOnATableTheVideoIsAboveTheFold() = runDesktopComposeUiTest(width = PHONE, height = TALL) {
+        val fold = TabletopFold(top = FOLD_TOP, bottom = FOLD_TOP + FOLD_THICKNESS)
+        setContent {
+            PodcastTheme {
+                CompositionLocalProvider(LocalTabletopFold provides fold) {
+                    PlayerContent(
+                        state = PlayerState(currentEpisode = videoEpisode(), isPlaying = true),
+                        actions = PlayerActions(),
+                        videoSurface = video,
+                    )
+                }
+            }
+        }
+        val bounds = onNodeWithTag("video").getBoundsInRoot()
+
+        assertTrue(bounds.bottom.value <= fold.top, "video $bounds should be above the fold at ${fold.top}")
+    }
+
+    @Test
+    fun inPictureInPictureOnlyTheVideoShows() = runDesktopComposeUiTest(width = PHONE, height = TALL) {
+        setContent {
+            PodcastTheme {
+                CompositionLocalProvider(LocalPictureInPicture provides true) {
+                    PlayerContent(
+                        state = PlayerState(currentEpisode = videoEpisode(), isPlaying = true),
+                        actions = PlayerActions(),
+                        videoSurface = video,
+                    )
+                }
+            }
+        }
+        val window = onRoot().getBoundsInRoot()
+
+        assertEquals(window, onNodeWithTag("video").getBoundsInRoot())
+        onNodeWithContentDescription(text(Res.string.pause)).assertDoesNotExist()
+        onNodeWithContentDescription(text(Res.string.minimize)).assertDoesNotExist()
     }
 
     @Test
@@ -210,8 +319,9 @@ class PlayerContentTest {
         runDesktopComposeUiTest(width = SIDEWAYS_WIDTH, height = SIDEWAYS_HEIGHT) {
             setContent {
                 PodcastTheme {
+                    // With chapters, the most the player shows: their line and button too.
                     PlayerContent(
-                        state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                        state = PlayerState(currentEpisode = episode("e1"), isPlaying = true, chapters = CHAPTERS),
                         actions = PlayerActions(),
                         artworkModifier = Modifier.testTag("cover"),
                     )
@@ -231,7 +341,7 @@ class PlayerContentTest {
         setContent {
             PodcastTheme {
                 PlayerContent(
-                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true),
+                    state = PlayerState(currentEpisode = episode("e1"), isPlaying = true, chapters = CHAPTERS),
                     actions = PlayerActions(),
                     artworkModifier = Modifier.testTag("cover"),
                 )

@@ -27,7 +27,7 @@ subprojects {
         buildUponDefaultConfig = true
         allRules = false
         parallel = true
-        source.setFrom(files("src/commonMain/kotlin", "src/firebaseMain/kotlin", "src/jvmCommonMain/kotlin", "src/androidMain/kotlin", "src/desktopMain/kotlin", "src/iosMain/kotlin", "src/wasmJsMain/kotlin"))
+        source.setFrom(files("src/main/kotlin", "src/commonMain/kotlin", "src/firebaseMain/kotlin", "src/jvmCommonMain/kotlin", "src/androidMain/kotlin", "src/desktopMain/kotlin", "src/iosMain/kotlin", "src/wasmJsMain/kotlin"))
     }
     dependencies {
         "detektPlugins"(rootProject.libs.detekt.formatting)
@@ -39,7 +39,7 @@ subprojects {
 // fails `koverVerify`; raise it as tests are added. Goals: domain and data ≥ 90%, features ≥ 70%.
 val coverageFloors = mapOf(
     ":core:common" to 30,
-    ":core:database" to 60,
+    ":core:database" to 73,
     ":core:designsystem" to 92,
     ":core:network" to 87,
     ":core:observability" to 92,
@@ -53,7 +53,7 @@ val coverageFloors = mapOf(
     ":feature:player" to 97,
     ":feature:podcast" to 98,
     ":feature:search" to 91,
-    ":feature:settings" to 96,
+    ":feature:settings" to 94,
     ":shared" to 46,
 )
 

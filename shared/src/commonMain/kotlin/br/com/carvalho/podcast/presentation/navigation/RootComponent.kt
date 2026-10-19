@@ -40,9 +40,11 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
                 stacks = stacks,
                 isPlayerOpen = false,
                 isQueueOpen = false,
+                isTranscriptOpen = false,
                 isOrganizingLibrary = false,
                 isAddingPodcast = false,
                 isShowingSettings = false,
+                isShowingStats = false,
             )
         }
     }
@@ -66,6 +68,11 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         _state.update { it.copy(isQueueOpen = true) }
     }
 
+    /** Opens the transcript (19.2) over the player. */
+    fun onTranscriptClicked() {
+        _state.update { it.copy(isTranscriptOpen = true) }
+    }
+
     /** Opens "Organize library" over the tabs, the only place that arranges the custom order. */
     fun onOrganizeLibrary() {
         _state.update { it.copy(isOrganizingLibrary = true) }
@@ -85,8 +92,10 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         _state.update {
             it.copy(
                 isPlayerOpen = false,
+                isTranscriptOpen = false,
                 isOrganizingLibrary = false,
                 isShowingSettings = false,
+                isShowingStats = false,
                 isAddingPodcast = true,
                 addPodcastSession = it.addPodcastSession + 1,
                 podcastLink = link,
@@ -98,9 +107,25 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
         _state.update { it.copy(podcastLink = null) }
     }
 
+    /** "Add podcast" with podcasts like the library's [podcastId] above the chart (19.6), from that podcast's page. */
+    fun onShowSimilar(podcastId: String) {
+        _state.update {
+            it.copy(isAddingPodcast = true, addPodcastSession = it.addPodcastSession + 1, similarTo = podcastId)
+        }
+    }
+
+    fun onSimilarHandled() {
+        _state.update { it.copy(similarTo = null) }
+    }
+
     /** Opens Settings over the tabs, from the gear in the library's bar (18.5, ADR 0005). */
     fun onOpenSettings() {
         _state.update { it.copy(isShowingSettings = true) }
+    }
+
+    /** Opens the listening stats over Settings (19.5); going back returns to Settings. */
+    fun onOpenListeningStats() {
+        _state.update { it.copy(isShowingStats = true) }
     }
 
     fun onPodcastSelected(podcastId: String) {
@@ -121,10 +146,12 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
     fun onBackClicked() {
         _state.update {
             when {
+                it.isTranscriptOpen -> it.copy(isTranscriptOpen = false)
                 it.isQueueOpen -> it.copy(isQueueOpen = false)
                 it.isPlayerOpen -> it.copy(isPlayerOpen = false)
                 it.isOrganizingLibrary -> it.copy(isOrganizingLibrary = false)
                 it.isAddingPodcast -> it.copy(isAddingPodcast = false)
+                it.isShowingStats -> it.copy(isShowingStats = false)
                 it.isShowingSettings -> it.copy(isShowingSettings = false)
                 it.currentStack.isNotEmpty() ->
                     it.copy(stacks = it.stacks + (it.selectedTab to it.currentStack.dropLast(1)))
@@ -136,7 +163,12 @@ class RootComponent(componentContext: ComponentContext) : ComponentContext by co
     private fun setStack(stack: List<Detail>) {
         // From "Add podcast" too: a link to a podcast the library has opens it (18.4).
         _state.update {
-            it.copy(stacks = it.stacks + (it.selectedTab to stack), isPlayerOpen = false, isAddingPodcast = false)
+            it.copy(
+                stacks = it.stacks + (it.selectedTab to stack),
+                isPlayerOpen = false,
+                isTranscriptOpen = false,
+                isAddingPodcast = false,
+            )
         }
     }
 }
@@ -161,9 +193,13 @@ data class NavigationState(
     val isPlayerOpen: Boolean = false,
     /** The queue (18.6), over the player when it was opened from there. */
     val isQueueOpen: Boolean = false,
+    /** The transcript (19.2), over the player. */
+    val isTranscriptOpen: Boolean = false,
     val isOrganizingLibrary: Boolean = false,
     val isAddingPodcast: Boolean = false,
     val isShowingSettings: Boolean = false,
+    /** The listening stats (19.5), over Settings. */
+    val isShowingStats: Boolean = false,
     /**
      * Counts the times "Add podcast" was opened: each opening starts clean, while a rotation or a fold, which keep
      * this number, keep what was typed.
@@ -171,11 +207,13 @@ data class NavigationState(
     val addPodcastSession: Int = 0,
     /** A podcast link waiting for "Add podcast" to show it (18.4). */
     val podcastLink: String? = null,
+    /** A podcast whose similar ones "Add podcast" shows (19.6), held until the screen takes it. */
+    val similarTo: String? = null,
 ) {
     val currentStack: List<Detail> get() = stacks[selectedTab].orEmpty()
     val podcast: Detail.Podcast? get() = currentStack.filterIsInstance<Detail.Podcast>().lastOrNull()
     val episode: Detail.Episode? get() = currentStack.lastOrNull() as? Detail.Episode
     val canGoBack: Boolean
-        get() = isPlayerOpen || isQueueOpen || isOrganizingLibrary || isAddingPodcast || isShowingSettings ||
-            currentStack.isNotEmpty() || selectedTab != Tab.Library
+        get() = isPlayerOpen || isQueueOpen || isTranscriptOpen || isOrganizingLibrary || isAddingPodcast ||
+            isShowingSettings || isShowingStats || currentStack.isNotEmpty() || selectedTab != Tab.Library
 }

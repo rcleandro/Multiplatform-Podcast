@@ -1,0 +1,44 @@
+# 19.4: a smart playlist made in the Episodes tab lists what matches and plays it all.
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/smart-playlists.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Episódios"
+# Maestro's sideways scroll swipes the screen, not the row: swipe the filters' row to its end.
+- swipe:
+    start: "90%, 20%"
+    end: "10%, 20%"
+- swipe:
+    start: "90%, 20%"
+    end: "10%, 20%"
+- tapOn: "\\+ Nova lista"
+- tapOn: "Nome"
+- inputText: "Curtos"
+- swipe:
+    from: "Até 15 min"
+    direction: LEFT
+- tapOn: "Até 30 min"
+- tapOn: "Não ouvidos"
+- tapOn: "Salvar"
+- tapOn: "Curtos"
+- extendedWaitUntil:
+    visible: "Tocar tudo"
+    timeout: 15000
+- tapOn: "Tocar tudo"
+- extendedWaitUntil:
+    visible: "Pausar"
+    timeout: 30000
+- tapOn: "Pausar"

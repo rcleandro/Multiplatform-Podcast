@@ -14,6 +14,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.core.app.PictureInPictureModeChangedInfo
+import androidx.core.util.Consumer
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -22,13 +25,19 @@ import androidx.lifecycle.lifecycleScope
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
+import br.com.carvalho.podcast.core.designsystem.LocalPictureInPicture
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.TabletopFold
 import br.com.carvalho.podcast.core.designsystem.tabletopFold
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.launch
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.player.AudioPlayer
+import br.com.carvalho.podcast.shortcut.AppShortcuts
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.presentation.isDark
 import br.com.carvalho.podcast.presentation.navigation.RootComponent
@@ -36,6 +45,7 @@ import org.koin.android.ext.android.inject
 import com.arkivanov.decompose.defaultComponentContext
 
 private const val TAG = "MainActivity"
+private val RESTORE_TIMEOUT = 5.seconds
 
 class MainActivity : AppCompatActivity() {
 
@@ -59,7 +69,9 @@ class MainActivity : AppCompatActivity() {
 
         root = RootComponent(defaultComponentContext())
         // Only on a fresh start: a recreated activity already took its link.
-        if (savedInstanceState == null) openPodcastLink(intent)
+        if (savedInstanceState == null) openIntent(intent)
+        // Here and not in the Application: the activity starts again when the language changes.
+        lifecycleScope.launch { AppShortcuts.publish(this@MainActivity) }
 
         // A half open foldable lays the player out around its fold (21.3).
         val tabletopFolds = WindowInfoTracker.getOrCreate(this).windowLayoutInfo(this).map { it.tabletopFold() }
@@ -80,7 +92,13 @@ class MainActivity : AppCompatActivity() {
                 onDispose { }
             }
             val fold by tabletopFolds.collectAsState(initial = null)
-            CompositionLocalProvider(LocalTabletopFold provides fold) {
+            // A video playing when the user leaves the app shrinks to picture-in-picture (19.10).
+            val pictureInPicture by produceState(isInPictureInPictureMode) {
+                val listener = Consumer<PictureInPictureModeChangedInfo> { value = it.isInPictureInPictureMode }
+                addOnPictureInPictureModeChangedListener(listener)
+                awaitDispose { removeOnPictureInPictureModeChangedListener(listener) }
+            }
+            CompositionLocalProvider(LocalTabletopFold provides fold, LocalPictureInPicture provides pictureInPicture) {
                 App(root)
             }
         }
@@ -88,12 +106,22 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        openPodcastLink(intent)
+        openIntent(intent)
     }
 
-    /** A podcast link the app was opened with (18.4) goes to "Add podcast". */
-    private fun openPodcastLink(intent: Intent?) {
+    /** A podcast link (18.4) goes to "Add podcast"; a launcher shortcut (19.7) opens what it names. */
+    private fun openIntent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_VIEW) intent.dataString?.let(root::onPodcastLink)
+        if (AppShortcuts.open(intent?.action, root)) resumeOnceRestored()
+    }
+
+    /** On a cold start the player is still loading the last episode: play it once it is there. */
+    private fun resumeOnceRestored() {
+        val player: AudioPlayer by inject()
+        lifecycleScope.launch {
+            withTimeoutOrNull(RESTORE_TIMEOUT) { player.playerState.first { it.currentEpisode != null } }
+                ?.let { player.resume() }
+        }
     }
 
     /**

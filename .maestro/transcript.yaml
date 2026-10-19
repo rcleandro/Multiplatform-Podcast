@@ -1,0 +1,42 @@
+# 19.2: the transcript of an episode follows the audio, plays from a line and finds words.
+# Podcasting 2.0 publishes SRT captions with every episode. Needs the debug app installed, a device in Portuguese and
+# internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/transcript.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.podcastindex.org/pc20.xml"
+- extendedWaitUntil:
+    visible: "Assinar Podcasting 2.0"
+    timeout: 30000
+- tapOn: "Assinar Podcasting 2.0"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Podcasting 2.0"
+- tapOn: "Mais recente"
+- tapOn:
+    text: "Podcasting 2.0"
+    index: 1
+- extendedWaitUntil:
+    visible: "Transcrição"
+    timeout: 30000
+- tapOn: "Transcrição"
+- extendedWaitUntil:
+    visible: ".*Podcasting 2.0.*"
+    timeout: 30000
+- tapOn: "Buscar na transcrição"
+- inputText: "podcasting"
+- tapOn:
+    text: "[0-9]+:[0-9]{2}(:[0-9]{2})?"
+    # The typed word replaces the field's hint.
+    below: "podcasting"
+    index: 0
+# The search field keeps focus: the first back would only close the keyboard.
+- hideKeyboard
+- back
+- tapOn: "Pausar"

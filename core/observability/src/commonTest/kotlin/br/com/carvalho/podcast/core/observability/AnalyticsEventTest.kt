@@ -62,6 +62,14 @@ class AnalyticsEventTest {
             AnalyticsEvent.SetSleepTimer(null),
             AnalyticsEvent.CancelSleepTimer,
             AnalyticsEvent.ExtendSleepTimer(minutes = 5),
+            AnalyticsEvent.AddBookmark(hasNote = true),
+            AnalyticsEvent.DeleteBookmark,
+            AnalyticsEvent.PlayBookmark,
+            AnalyticsEvent.SaveSmartPlaylist(isNew = true),
+            AnalyticsEvent.DeleteSmartPlaylist,
+            AnalyticsEvent.PlaySmartPlaylist(episodes = 3),
+            AnalyticsEvent.ShowSimilar(found = 4),
+            AnalyticsEvent.PlayFromTranscript(searching = true),
         )
         samples.forEach { covered(it) }
         return samples
@@ -79,7 +87,10 @@ class AnalyticsEventTest {
         is AnalyticsEvent.MarkPlayed, is AnalyticsEvent.MarkOlderPlayed, is AnalyticsEvent.PlayInPlayer,
         AnalyticsEvent.Pause, AnalyticsEvent.Resume, is AnalyticsEvent.Seek, AnalyticsEvent.SkipForward,
         AnalyticsEvent.SkipBackward, is AnalyticsEvent.SetSpeed, AnalyticsEvent.PlayNext, AnalyticsEvent.PlayPrevious,
-        is AnalyticsEvent.SetSleepTimer, AnalyticsEvent.CancelSleepTimer, is AnalyticsEvent.ExtendSleepTimer -> Unit
+        is AnalyticsEvent.SetSleepTimer, AnalyticsEvent.CancelSleepTimer, is AnalyticsEvent.ExtendSleepTimer,
+        is AnalyticsEvent.AddBookmark, AnalyticsEvent.DeleteBookmark, AnalyticsEvent.PlayBookmark,
+        is AnalyticsEvent.SaveSmartPlaylist, AnalyticsEvent.DeleteSmartPlaylist, is AnalyticsEvent.PlaySmartPlaylist,
+        is AnalyticsEvent.ShowSimilar, is AnalyticsEvent.PlayFromTranscript -> Unit
     }
 
     /** Firebase: up to 40 characters, a letter first, then letters, digits and `_`; reserved prefixes rejected. */

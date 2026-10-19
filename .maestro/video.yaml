@@ -1,0 +1,34 @@
+# 19.10: a video episode shows its picture in the player and shrinks to picture-in-picture when the app is left.
+# TWiT publishes its shows as MP4. Needs the debug app installed, a device in Portuguese and internet (the feed is
+# real); the screenshots show the video in place of the cover and the PiP window:
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/video.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- openLink: "pcast://feeds.twit.tv/twit_video_hd.xml"
+- extendedWaitUntil:
+    visible: "Assinar This Week in Tech (Video)"
+    timeout: 30000
+- tapOn: "Assinar This Week in Tech (Video)"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "This Week in Tech (Video)"
+- tapOn: "Mais recente"
+- tapOn:
+    text: "This Week in Tech (Video)"
+    index: 1
+- extendedWaitUntil:
+    visible: "Pausar"
+    timeout: 30000
+- takeScreenshot: video-player
+- pressKey: Home
+- takeScreenshot: video-picture-in-picture
+# Without stopApp: false Maestro kills the app, and the video with it.
+- launchApp:
+    stopApp: false
+- tapOn: "Pausar"
