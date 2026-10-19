@@ -35,6 +35,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_impor
 import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after_days
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup
@@ -67,6 +69,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getPluralString
 import org.jetbrains.compose.resources.getString
 
 @OptIn(ExperimentalTestApi::class)
@@ -269,6 +272,18 @@ class SettingsContentTest {
         onNodeWithText(text(Res.string.delete)).performClick()
 
         assertEquals(listOf(SettingsIntent.RequestDeleteAll, SettingsIntent.ConfirmDeleteAll), intents)
+    }
+
+    @Test
+    fun howLongDownloadsStayIsPickedFromItsChoices() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        setContent { PodcastTheme { SettingsContent(SettingsUiState(usedBytes = 0), onBack = {}, onIntent = { intents += it }) } }
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_delete_after)))
+
+        onNodeWithText(text(Res.string.settings_delete_after)).performClick()
+        onNodeWithText(runBlocking { getPluralString(Res.plurals.settings_delete_after_days, 7, 7) }).performClick()
+
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.SetDeleteAfter(7)), intents)
     }
 
     @Test

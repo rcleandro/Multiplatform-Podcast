@@ -11,7 +11,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
+import br.com.carvalho.podcast.core.ui.generated.resources.transcript_failed
 import br.com.carvalho.podcast.core.ui.generated.resources.transcript_no_match
+import br.com.carvalho.podcast.core.ui.generated.resources.try_again
 import br.com.carvalho.podcast.domain.model.TranscriptLine
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
@@ -57,5 +59,16 @@ class TranscriptContentTest {
 
         state = state.copy(shown = emptyList(), query = "java")
         onNodeWithText(runBlocking { getString(Res.string.transcript_no_match, "java") }).assertExists()
+    }
+
+    @Test
+    fun aTranscriptThatFailedToLoadOffersToTryAgain() = runComposeUiTest {
+        val intents = mutableListOf<TranscriptIntent>()
+        setContent { PodcastTheme { TranscriptContent(TranscriptUiState(failed = true), onBack = {}, onIntent = { intents += it }) } }
+
+        onNodeWithText(runBlocking { getString(Res.string.transcript_failed) }).assertExists()
+        onNodeWithText(runBlocking { getString(Res.string.try_again) }).performClick()
+
+        assertEquals(listOf<TranscriptIntent>(TranscriptIntent.Retry), intents)
     }
 }
