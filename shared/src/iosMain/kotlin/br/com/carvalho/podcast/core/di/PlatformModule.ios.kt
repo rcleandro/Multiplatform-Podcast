@@ -7,12 +7,14 @@ import br.com.carvalho.podcast.core.observability.FirebaseCrashReporter
 import br.com.carvalho.podcast.core.observability.whenAllowed
 import br.com.carvalho.podcast.core.player.IosPlatformPlayer
 import br.com.carvalho.podcast.core.player.PlatformPlayer
+import br.com.carvalho.podcast.core.safety.StoreAgeSignalSource
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.IosNetworkMonitor
 import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.data.download.UrlSessionEpisodeDownloader
 import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import br.com.carvalho.podcast.domain.repository.AgeSignalSource
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import com.russhwolf.settings.Settings
 import okio.FileSystem
@@ -43,6 +45,7 @@ actual val platformModule = module {
     }
     single<EpisodeDownloader> { get<UrlSessionEpisodeDownloader>() }
     single<NetworkMonitor> { IosNetworkMonitor() }
+    single<AgeSignalSource> { StoreAgeSignalSource }
 }
 
 private fun documentsDirectory() =

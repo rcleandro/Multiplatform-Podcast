@@ -39,6 +39,7 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.shortcut.AppShortcuts
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.presentation.isDark
 import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import org.koin.android.ext.android.inject
@@ -59,6 +60,14 @@ class MainActivity : AppCompatActivity() {
         } else {
             AppLogger.d(TAG, "Notification permission denied")
         }
+    }
+
+    private val childSafety: ChildSafety by inject()
+
+    // Brazil's age signal (26.2): read on opening and each time the app comes back to the front.
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch { childSafety.refresh() }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

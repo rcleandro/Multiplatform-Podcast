@@ -30,6 +30,7 @@ import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.AutoDownloadUseCase
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.domain.usecase.DeleteFinishedDownloadUseCase
 import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloadsUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
@@ -118,6 +119,8 @@ val repositoryModule = module {
 }
 
 val useCaseModule = module {
+    // Brazil's ECA Digital (26.2): one per app, read by whatever the age changes.
+    single { ChildSafety(get()) }
     singleOf(::AddPodcastFromUrlUseCase)
     singleOf(::ImportOpmlUseCase)
     singleOf(::RefreshInBackgroundUseCase)

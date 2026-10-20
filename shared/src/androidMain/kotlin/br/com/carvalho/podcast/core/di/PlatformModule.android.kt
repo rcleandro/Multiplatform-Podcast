@@ -9,12 +9,16 @@ import br.com.carvalho.podcast.core.observability.FirebaseCrashReporter
 import br.com.carvalho.podcast.core.observability.whenAllowed
 import br.com.carvalho.podcast.core.player.AndroidPlatformPlayer
 import br.com.carvalho.podcast.core.player.PlatformPlayer
+import br.com.carvalho.podcast.core.safety.PlayAgeSignalSource
+import br.com.carvalho.podcast.core.safety.ResumedActivity
 import br.com.carvalho.podcast.core.util.AndroidNetworkMonitor
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import br.com.carvalho.podcast.domain.repository.AgeSignalSource
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import com.google.android.play.agesignals.AgeSignalsManagerFactory
 import com.russhwolf.settings.Settings
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -42,4 +46,13 @@ actual val platformModule = module {
         }
     }
     single<NetworkMonitor> { AndroidNetworkMonitor(androidContext()) }
+    // From the start, to know the screen in front when Play asks to share the age (26.2).
+    single<AgeSignalSource>(createdAtStart = true) {
+        val resumed = ResumedActivity(androidContext())
+        PlayAgeSignalSource(
+            context = androidContext(),
+            manager = AgeSignalsManagerFactory.create(androidContext()),
+            currentActivity = resumed::get,
+        )
+    }
 }

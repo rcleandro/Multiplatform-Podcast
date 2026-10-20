@@ -19,6 +19,7 @@ Cada exceção fica listada aqui, com o motivo e a condição para sair. Quem ad
 | `-Xexpect-actual-classes` | `podcast.kmp.library` | Classes `expect`/`actual` ainda são beta no Kotlin | Kotlin estabilizar o recurso, ou os `expect object` virarem interfaces injetadas (11.6) |
 | Podfile sintético com pods em iOS 15 | `shared/build.gradle.kts` | O plugin CocoaPods do Kotlin só sobe os pods para iOS 12 (KT-57741), e o Xcode 26+ exige 15; sem isso o sync do Android Studio e o build iOS quebram | Plugin subir o mínimo, ou Firebase 12 (mínimo iOS 15) no lugar dos pods 11.x |
 | FileKit `0.16.0` (pré-1.0) | `libs.versions.toml`, `core:ui` | Seletor de arquivo e "Salvar como" nativos nas quatro plataformas para o OPML (18.13); a API ainda muda entre versões 0.x e não tem "Salvar como" na Web (lá o arquivo é baixado) | FileKit 1.0; enquanto isso, conferir importar e exportar a cada atualização |
+| Play Age Signals `0.0.4` (beta) | `libs.versions.toml`, `shared` (androidMain) | Sinal de idade do Google Play para o ECA Digital (26.2, ADR 0012); só existe em beta, e a 0.0.3 já foi descontinuada | Versão estável; conferir a cada atualização se `requestAgeSignalsAccess` e `checkAgeSignals` mudaram (o `PlayAgeSignalSourceTest` quebra se mudarem) |
 | Baseline do Detekt (189 achados) e do lint Android (1 erro, 7 avisos) | `config/detekt/baseline.xml`, `androidApp/lint-baseline.xml` | Código antigo; só problemas novos quebram o build | Zerar na 17.1; os itens do lint estão nas 20.7 (busca por voz do Android Auto) e 22.2 (serviço exportado) |
 
 ## Removido nesta decisão
