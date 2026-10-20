@@ -134,7 +134,9 @@ val useCaseModule = module {
     // Lives as long as the app: the player and every list read it (26.3).
     single { ExplicitContent.following(get(), get(), CoroutineScope(SupervisorJob())) }
     // From the start: listening counts toward a minor's break with the app's screens closed too (26.5).
-    single(createdAtStart = true) { UsageReminder(get(), get(), CoroutineScope(SupervisorJob() + Dispatchers.Default)) }
+    single(createdAtStart = true) {
+        UsageReminder(get(), get(), get(), CoroutineScope(SupervisorJob() + Dispatchers.Default))
+    }
     singleOf(::AddPodcastFromUrlUseCase)
     singleOf(::ImportOpmlUseCase)
     singleOf(::RefreshInBackgroundUseCase)

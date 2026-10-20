@@ -111,6 +111,8 @@ class SettingsViewModel(
         )
     }
 
+    private val guardian = GuardianSession(preferences)
+
     val uiState: StateFlow<SettingsUiState> = combine(
         choices,
         preferences.syncFolder,
@@ -125,6 +127,7 @@ class SettingsViewModel(
             continuousPlayback = continuous,
         )
     }
+        .combine(guardian.state(childSafety.state)) { state, guardian -> state.copy(guardian = guardian) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     init {
@@ -188,6 +191,7 @@ class SettingsViewModel(
     @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: SettingsIntent) {
         when (intent) {
+            is GuardianIntent -> guardian.onIntent(intent)
             is SettingsIntent.SetTheme -> preferences.setThemeMode(intent.mode)
             is SettingsIntent.SetLanguage -> preferences.setAppLanguage(intent.language)
             is SettingsIntent.SetTelemetry -> preferences.setTelemetryEnabled(intent.enabled)
@@ -240,6 +244,8 @@ data class SettingsUiState(
      */
     val isMinor: Boolean = false,
     val continuousPlayback: Boolean = true,
+    /** The guardians' section (26.6). */
+    val guardian: GuardianState = GuardianState(),
     val skipSilence: Boolean = false,
     val boostVoice: Boolean = false,
     /** Disk space the downloads take; null while it is measured, and where there are no downloads (Web). */

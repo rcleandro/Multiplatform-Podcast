@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.data.preferences
 
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.RefreshInterval
@@ -37,6 +38,10 @@ private const val SKIP_FORWARD_SECONDS = "skip_forward_seconds"
 private const val SYNC_FOLDER_BOOKMARK = "sync_folder_bookmark"
 private const val SYNC_FOLDER_NAME = "sync_folder_name"
 private const val SYNC_FOLDER_FILE = "sync_folder_file"
+private const val GUARDIAN_PIN = "guardian_pin"
+private const val GUARDIAN_CONTINUOUS = "guardian_allow_continuous"
+private const val GUARDIAN_NOTIFICATIONS = "guardian_allow_notifications"
+private const val GUARDIAN_BREAK_MINUTES = "guardian_break_minutes"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
@@ -230,6 +235,30 @@ class SettingsPreferencesRepository(
             settings.putString(SYNC_FOLDER_FILE, folder.fileName)
         }
         this.folder.value = folder
+    }
+
+    private val pin = MutableStateFlow(settings.getStringOrNull(GUARDIAN_PIN))
+    override val guardianPin: StateFlow<String?> = pin.asStateFlow()
+
+    override fun setGuardianPin(hash: String?) {
+        if (hash == null) settings.remove(GUARDIAN_PIN) else settings.putString(GUARDIAN_PIN, hash)
+        pin.value = hash
+    }
+
+    private val guardian = MutableStateFlow(
+        GuardianControls(
+            allowContinuousPlayback = settings.getBoolean(GUARDIAN_CONTINUOUS, defaultValue = false),
+            allowNewEpisodeNotifications = settings.getBoolean(GUARDIAN_NOTIFICATIONS, defaultValue = false),
+            breakReminderMinutes = settings.getInt(GUARDIAN_BREAK_MINUTES, GuardianControls.DEFAULT_BREAK_MINUTES),
+        )
+    )
+    override val guardianControls: StateFlow<GuardianControls> = guardian.asStateFlow()
+
+    override fun setGuardianControls(controls: GuardianControls) {
+        settings.putBoolean(GUARDIAN_CONTINUOUS, controls.allowContinuousPlayback)
+        settings.putBoolean(GUARDIAN_NOTIFICATIONS, controls.allowNewEpisodeNotifications)
+        settings.putInt(GUARDIAN_BREAK_MINUTES, controls.breakReminderMinutes)
+        guardian.value = controls
     }
 }
 

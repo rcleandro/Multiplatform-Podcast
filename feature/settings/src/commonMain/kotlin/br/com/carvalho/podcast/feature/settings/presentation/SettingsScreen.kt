@@ -37,6 +37,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_break_reminder
 import br.com.carvalho.podcast.core.ui.generated.resources.language_arabic
 import br.com.carvalho.podcast.core.ui.generated.resources.language_chinese
 import br.com.carvalho.podcast.core.ui.generated.resources.language_english
@@ -93,6 +94,7 @@ import br.com.carvalho.podcast.core.util.canLimitDownloadsToWifi
 import br.com.carvalho.podcast.core.util.canRefreshInBackground
 import br.com.carvalho.podcast.core.util.openSystemLanguageSettings
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloads
@@ -187,28 +189,28 @@ fun SettingsContent(
             playbackSettings(state, onIntent)
             state.usedBytes?.let { downloadSettings(it, state, onIntent) { picking = Picker.DELETE_AFTER } }
             contentAndPrivacySettings(state, onIntent)
+            guardianSettings(state, onIntent, onOpenStats, onPickBreak = { picking = Picker.BREAK })
         }
     }
 
     picking?.let { PickerDialog(it, state, onDone = { picking = null }, onIntent = onIntent) }
+    state.guardian.pinStep?.let { GuardianPinDialog(it, state.guardian.pinError, onIntent) }
 
-    if (state.isConfirmingDeleteAll) {
-        ConfirmDialog(
-            title = stringResource(Res.string.settings_delete_all),
-            message = stringResource(
-                Res.string.settings_delete_all_confirmation,
-                storageSize(state.usedBytes ?: 0).text()
-            ),
-            confirmLabel = stringResource(Res.string.delete),
-            dismissLabel = stringResource(Res.string.cancel),
-            onConfirm = { onIntent(SettingsIntent.ConfirmDeleteAll) },
-            onDismiss = { onIntent(SettingsIntent.DismissDeleteAll) },
-        )
-    }
+    if (state.isConfirmingDeleteAll) DeleteAllDialog(state.usedBytes ?: 0, onIntent)
 }
 
+@Composable
+private fun DeleteAllDialog(usedBytes: Long, onIntent: (SettingsIntent) -> Unit) = ConfirmDialog(
+    title = stringResource(Res.string.settings_delete_all),
+    message = stringResource(Res.string.settings_delete_all_confirmation, storageSize(usedBytes).text()),
+    confirmLabel = stringResource(Res.string.delete),
+    dismissLabel = stringResource(Res.string.cancel),
+    onConfirm = { onIntent(SettingsIntent.ConfirmDeleteAll) },
+    onDismiss = { onIntent(SettingsIntent.DismissDeleteAll) },
+)
+
 /** Settings whose choices open in a dialog, so the screen stays short as they grow (18.5). */
-private enum class Picker { THEME, LANGUAGE, REFRESH, DELETE_AFTER }
+private enum class Picker { THEME, LANGUAGE, REFRESH, DELETE_AFTER, BREAK }
 
 /** The choices of [picker]; [onDone] closes it, whether one was picked or not. */
 @Composable
@@ -226,6 +228,16 @@ private fun PickerDialog(
             onSelect = {
                 onDone()
                 onIntent(SettingsIntent.SetTheme(it))
+            },
+            onDismiss = onDone,
+        )
+        Picker.BREAK -> ChoiceDialog(
+            title = stringResource(Res.string.guardian_break_reminder),
+            options = GuardianControls.BREAK_CHOICES.map { it to breakLabel(it) },
+            selected = state.guardian.controls.breakReminderMinutes,
+            onSelect = {
+                onDone()
+                onIntent(GuardianIntent.SetControls(state.guardian.controls.copy(breakReminderMinutes = it)))
             },
             onDismiss = onDone,
         )
@@ -330,13 +342,15 @@ private fun LazyListScope.playbackSettings(state: SettingsUiState, onIntent: (Se
             onIntent(SettingsIntent.SetSkipIntervals(skips.copy(forwardSeconds = it)))
         }
     }
+    // A minor in Brazil, unless the guardians allow it (26.5, 26.6).
+    val locked = state.isMinor && !state.guardian.controls.allowContinuousPlayback
     item {
         SwitchRow(
             title = stringResource(Res.string.settings_continuous_playback),
-            description = lockedForMinors(state.isMinor, Res.string.settings_continuous_playback_description),
-            checked = state.continuousPlayback && !state.isMinor,
+            description = lockedForMinors(locked, Res.string.settings_continuous_playback_description),
+            checked = state.continuousPlayback && !locked,
             onChange = { onIntent(SettingsIntent.SetContinuousPlayback(it)) },
-            enabled = !state.isMinor,
+            enabled = !locked,
         )
     }
     if (canEnhanceSpeech) {

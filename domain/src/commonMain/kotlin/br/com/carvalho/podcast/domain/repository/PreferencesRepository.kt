@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.SkipIntervals
@@ -99,4 +100,14 @@ interface PreferencesRepository {
     val syncFolder: StateFlow<SyncFolder?>
 
     fun setSyncFolder(folder: SyncFolder?)
+
+    /** The guardians' PIN as [GuardianPin.hash] keeps it (26.6); null for none. Not backed up nor synced. */
+    val guardianPin: StateFlow<String?>
+
+    fun setGuardianPin(hash: String?)
+
+    /** What the guardians allow a minor in Brazil (26.6). */
+    val guardianControls: StateFlow<GuardianControls>
+
+    fun setGuardianControls(controls: GuardianControls)
 }

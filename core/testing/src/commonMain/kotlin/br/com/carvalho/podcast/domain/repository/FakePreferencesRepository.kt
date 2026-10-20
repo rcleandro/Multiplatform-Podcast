@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.RefreshInterval
@@ -122,5 +123,17 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override fun setSyncFolder(folder: SyncFolder?) {
         syncFolder.value = folder
+    }
+
+    override val guardianPin = MutableStateFlow<String?>(null)
+
+    override fun setGuardianPin(hash: String?) {
+        guardianPin.value = hash
+    }
+
+    override val guardianControls = MutableStateFlow(GuardianControls())
+
+    override fun setGuardianControls(controls: GuardianControls) {
+        guardianControls.value = controls
     }
 }

@@ -14,6 +14,7 @@ import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
@@ -25,12 +26,18 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.backup_not_valid
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_create_pin
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_notice
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_ok
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_wrong
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_title
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_importing
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
 import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
@@ -210,6 +217,27 @@ class SettingsContentTest {
         state = SettingsUiState(isMinor = true)
         onNodeWithText(text(Res.string.settings_locked_for_minors)).assertExists()
         onNode(row).assertIsOff().assertIsNotEnabled()
+    }
+
+    @Test
+    fun inBrazilTheGuardiansSectionSaysWhatIsInEffectAndAsksForThePin() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        var state by mutableStateOf(SettingsUiState())
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        onAllNodesWithText(text(Res.string.guardian_title), ignoreCase = true).assertCountEquals(0)
+
+        state = SettingsUiState(isMinor = true, guardian = GuardianState(inBrazil = true))
+        val list = onNode(hasScrollToNodeAction())
+        list.performScrollToNode(hasText(text(Res.string.guardian_notice)))
+        list.performScrollToNode(hasText(text(Res.string.guardian_create_pin)))
+        onNodeWithText(text(Res.string.guardian_create_pin)).performClick()
+        assertEquals(listOf<SettingsIntent>(GuardianIntent.Open), intents)
+
+        state = state.copy(guardian = state.guardian.copy(pinStep = PinStep.UNLOCK, pinError = PinError.WRONG))
+        onNodeWithText(text(Res.string.guardian_pin_wrong)).assertExists()
+        onNode(hasSetTextAction()).performTextInput("12a34")
+        onNodeWithText(text(Res.string.guardian_pin_ok)).performClick()
+        assertEquals(GuardianIntent.EnterPin("1234"), intents.last())
     }
 
     @Test

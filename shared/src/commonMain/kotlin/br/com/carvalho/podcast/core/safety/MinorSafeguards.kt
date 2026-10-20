@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.core.safety
 
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import kotlinx.coroutines.CoroutineScope
@@ -17,15 +18,26 @@ fun telemetryAllowed(preferences: PreferencesRepository, childSafety: ChildSafet
 fun telemetryAllowedFlow(preferences: PreferencesRepository, childSafety: ChildSafety): Flow<Boolean> =
     combine(preferences.telemetryEnabled, childSafety.state) { enabled, safety -> enabled && !safety.isMinor }
 
-/** The queue moves on by itself only if the user left it on and is not a minor in Brazil (26.5). */
+/**
+ * The queue moves on by itself only if the user left it on and, for a minor in Brazil, the guardians allow it (26.5,
+ * 26.6).
+ */
 fun continuousPlaybackAllowed(
     preferences: PreferencesRepository,
     childSafety: ChildSafety,
     scope: CoroutineScope,
-): StateFlow<Boolean> =
-    combine(preferences.continuousPlayback, childSafety.state) { enabled, safety -> enabled && !safety.isMinor }
-        .stateIn(
-            scope = scope,
-            started = SharingStarted.Eagerly,
-            initialValue = preferences.continuousPlayback.value && !childSafety.state.value.isMinor,
-        )
+): StateFlow<Boolean> {
+    fun allowed(enabled: Boolean, minor: Boolean, controls: GuardianControls) =
+        enabled && (!minor || controls.allowContinuousPlayback)
+    return combine(preferences.continuousPlayback, childSafety.state, preferences.guardianControls) { on, safety, c ->
+        allowed(on, safety.isMinor, c)
+    }.stateIn(
+        scope = scope,
+        started = SharingStarted.Eagerly,
+        initialValue = allowed(
+            preferences.continuousPlayback.value,
+            childSafety.state.value.isMinor,
+            preferences.guardianControls.value,
+        ),
+    )
+}

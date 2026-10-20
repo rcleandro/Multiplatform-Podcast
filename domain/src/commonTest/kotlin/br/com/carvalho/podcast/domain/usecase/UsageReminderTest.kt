@@ -1,8 +1,10 @@
 package br.com.carvalho.podcast.domain.usecase
 
 import br.com.carvalho.podcast.domain.model.AgeGroup
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeAgeSignalSource
+import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -20,7 +22,10 @@ class UsageReminderTest {
     private val signal = FakeAgeSignalSource(countries = setOf("BR"), ageGroup = AgeGroup.MINOR)
     private val childSafety = ChildSafety(signal)
 
-    private fun TestScope.reminder() = UsageReminder(player, childSafety, backgroundScope).also { runCurrent() }
+    private val preferences = FakePreferencesRepository()
+
+    private fun TestScope.reminder() =
+        UsageReminder(player, childSafety, preferences, backgroundScope).also { runCurrent() }
 
     @Test
     fun aMinorIsOfferedABreakAfterAnHourOfListeningPausesIncluded() = runTest {
@@ -39,6 +44,22 @@ class UsageReminderTest {
 
         reminder.dismiss()
         advanceTimeBy(59.minutes)
+        assertFalse(reminder.due.value)
+    }
+
+    @Test
+    fun theGuardiansChooseHowLongOrNever() = runTest {
+        childSafety.refresh()
+        val reminder = reminder()
+        preferences.setGuardianControls(GuardianControls(breakReminderMinutes = 30))
+
+        player.resume()
+        advanceTimeBy(31.minutes)
+        assertTrue(reminder.due.value)
+
+        reminder.dismiss()
+        preferences.setGuardianControls(GuardianControls(breakReminderMinutes = 0))
+        advanceTimeBy(5.hours)
         assertFalse(reminder.due.value)
     }
 
