@@ -27,8 +27,12 @@ class PlayAgeSignalSource(
     private val currentActivity: () -> Activity?,
 ) : AgeSignalSource {
 
+    /** A debug build's stand-in for the store (26.9): Maestro flows open the app as a minor in Brazil with it. */
+    var debugOverride: Pair<String, AgeGroup>? = null
+
     // The network's and the SIM's country say where the phone is better than the language does.
     override fun countries(): Set<String> {
+        debugOverride?.let { (country, _) -> return setOf(country) }
         val telephony = context.getSystemService<TelephonyManager>()
         return listOfNotNull(telephony?.networkCountryIso, telephony?.simCountryIso, deviceCountry())
             .filter { it.isNotBlank() }
@@ -40,7 +44,9 @@ class PlayAgeSignalSource(
     // still show it again on the next start. Keep the answer in preferences if that turns out to annoy.
     private var shared: Boolean? = null
 
-    override suspend fun ageGroup(): AgeGroup {
+    override suspend fun ageGroup(): AgeGroup = debugOverride?.second ?: storeAgeGroup()
+
+    private suspend fun storeAgeGroup(): AgeGroup {
         if (shared == null) shared = askToShare()
         if (shared != true) return AgeGroup.UNKNOWN
         val result = manager.checkAgeSignals(AgeSignalsRequest.builder().build()).await()
