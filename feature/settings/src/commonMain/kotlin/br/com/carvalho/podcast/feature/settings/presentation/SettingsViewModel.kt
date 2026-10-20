@@ -15,6 +15,7 @@ import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.FolderSyncStatus
@@ -47,6 +48,8 @@ class SettingsViewModel(
     private val exportBackup: ExportBackupUseCase,
     private val restoreBackup: RestoreBackupUseCase,
     private val folderSync: FolderSyncUseCase,
+    /** Locks "Show explicit content" off under Brazil's ECA Digital (26.3). */
+    private val explicitContent: ExplicitContent = ExplicitContent(),
 ) : ViewModel() {
     private val usedBytes = MutableStateFlow<Long?>(null)
     private val disk = MutableStateFlow<DiskSpace?>(null)
@@ -58,7 +61,7 @@ class SettingsViewModel(
         combine(preferences.themeMode, preferences.skipIntervals, preferences.appLanguage, ::Triple),
         combine(
             preferences.telemetryEnabled,
-            preferences.showExplicit,
+            combine(preferences.showExplicit, explicitContent.rule) { show, rule -> show to rule.hidesExplicit },
             combine(preferences.skipSilence, preferences.boostVoice, ::Pair),
             ::Triple,
         ),
@@ -83,7 +86,8 @@ class SettingsViewModel(
             themeMode = theme,
             language = language,
             telemetryEnabled = telemetry,
-            showExplicit = explicit,
+            showExplicit = explicit.first && !explicit.second,
+            explicitLocked = explicit.second,
             skipSilence = speech.first,
             boostVoice = speech.second,
             usedBytes = measured.bytes,
@@ -215,6 +219,8 @@ data class SettingsUiState(
     val language: AppLanguage = AppLanguage.SYSTEM,
     val telemetryEnabled: Boolean = true,
     val showExplicit: Boolean = true,
+    /** Off and not to be turned on: a minor's signal or none, in Brazil (26.3). */
+    val explicitLocked: Boolean = false,
     val skipSilence: Boolean = false,
     val boostVoice: Boolean = false,
     /** Disk space the downloads take; null while it is measured, and where there are no downloads (Web). */

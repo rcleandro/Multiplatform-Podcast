@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.observability.urlHost
@@ -21,6 +22,7 @@ import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.EpisodeAction
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
@@ -61,7 +63,9 @@ class PodcastDetailViewModel(
     private val episodeDownloader: EpisodeDownloader,
     private val repository: PodcastRepository,
     private val dispatchers: CoroutineDispatchers,
-    private val analytics: Analytics
+    private val analytics: Analytics,
+    /** An explicit podcast or episode stays out under Brazil's ECA Digital (26.3). */
+    private val explicitContent: ExplicitContent = ExplicitContent(),
 ) : ViewModel() {
 
     val playerState = audioPlayer.playerState
@@ -78,13 +82,20 @@ class PodcastDetailViewModel(
         .map { it.filter to it.oldestFirst }
         .distinctUntilChanged()
         .flatMapLatest { (filter, oldestFirst) -> repository.getEpisodesPaged(podcastId, filter, oldestFirst) }
+        .combine(explicitContent.rule) { episodes, rule -> episodes.filter { rule.allows(it) } }
         .cachedIn(viewModelScope)
 
     init {
-        repository.getPodcastByIdFlow(podcastId)
+        // A hidden podcast opens as one the library does not have.
+        combine(repository.getPodcastByIdFlow(podcastId), explicitContent.rule) { podcast, rule ->
+            podcast?.takeIf { rule.allows(it) }
+        }
             .onEach { podcast -> _uiState.update { it.copy(podcast = podcast, isLoading = false) } }
             .launchIn(viewModelScope)
-        combine(repository.getEpisodeCount(podcastId), repository.getLatestUnplayedEpisode(podcastId), ::Pair)
+        val latest = combine(repository.getLatestUnplayedEpisode(podcastId), explicitContent.rule) { episode, rule ->
+            episode?.takeIf { rule.allows(it) }
+        }
+        combine(repository.getEpisodeCount(podcastId), latest, ::Pair)
             .onEach { (count, latest) -> _uiState.update { it.copy(episodeCount = count, latestUnplayed = latest) } }
             .launchIn(viewModelScope)
     }

@@ -7,6 +7,7 @@ import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -46,6 +47,18 @@ class SearchPodcastsUseCaseTest {
         preferences.setShowExplicit(false)
 
         assertEquals(listOf("https://clean.fm/rss"), search("show").getOrThrow().map { it.podcast.feedUrl })
+    }
+
+    @Test
+    fun underTheEcaDigitalExplicitShowsStayOutEvenWithTheSwitchOn() = runTest {
+        directory.result = Result.success(
+            listOf(found("https://clean.fm/rss"), found("https://explicit.fm/rss").copy(explicit = true))
+        )
+        val hidden = SearchPodcastsUseCase(
+            directory, repository, preferences, ExplicitContent(MutableStateFlow(ExplicitRule(hidesExplicit = true)))
+        )
+
+        assertEquals(listOf("https://clean.fm/rss"), hidden("show").getOrThrow().map { it.podcast.feedUrl })
     }
 
     @Test

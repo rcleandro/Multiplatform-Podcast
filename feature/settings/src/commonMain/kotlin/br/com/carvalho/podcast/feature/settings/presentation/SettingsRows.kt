@@ -137,13 +137,19 @@ internal fun <T> ChoiceDialog(
 }
 
 @Composable
-internal fun SwitchRow(title: String, description: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+internal fun SwitchRow(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         modifier = Modifier
             .readableWidth()
-            .toggleable(value = checked, onValueChange = onChange, role = Role.Switch)
+            .toggleable(value = checked, onValueChange = onChange, enabled = enabled, role = Role.Switch)
             .padding(vertical = Spacing.s),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs), modifier = Modifier.weight(1f)) {
@@ -154,7 +160,7 @@ internal fun SwitchRow(title: String, description: String, checked: Boolean, onC
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Switch(checked = checked, onCheckedChange = null)
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
 

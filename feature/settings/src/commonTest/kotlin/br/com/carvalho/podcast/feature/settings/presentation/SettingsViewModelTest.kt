@@ -18,6 +18,8 @@ import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
+import br.com.carvalho.podcast.domain.usecase.ExplicitRule
 import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
 import br.com.carvalho.podcast.domain.usecase.LibrarySyncUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
@@ -27,6 +29,7 @@ import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -75,7 +78,24 @@ class SettingsViewModelTest {
                     DeletePodcastUseCase(repository, downloader),
                 ),
             ),
+            ExplicitContent(explicitRule),
         )
+
+    private val explicitRule = MutableStateFlow(ExplicitRule())
+
+    @Test
+    fun underTheEcaDigitalExplicitContentIsOffAndLockedWhateverWasChosen() = runTest(dispatcher) {
+        explicitRule.value = ExplicitRule(hidesExplicit = true)
+        val viewModel = viewModel()
+
+        assertFalse(viewModel.uiState.value.showExplicit)
+        assertTrue(viewModel.uiState.value.explicitLocked)
+        assertTrue(preferences.showExplicit.value)
+
+        explicitRule.value = ExplicitRule()
+        assertTrue(viewModel.uiState.value.showExplicit)
+        assertFalse(viewModel.uiState.value.explicitLocked)
+    }
 
     @Test
     fun aSyncFolderChosenAgainKeepsThisDevicesFileAndStoppingForgetsIt() = runTest(dispatcher) {

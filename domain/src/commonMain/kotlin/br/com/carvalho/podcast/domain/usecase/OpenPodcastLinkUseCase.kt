@@ -14,14 +14,20 @@ data class LinkedPodcast(val podcast: DirectoryPodcast, val libraryId: String?)
 /**
  * Opens a podcast link: an Apple Podcasts show comes from the directory, a feed is read to show what it is. A feed the
  * library has, by address or by one the feed declares, is not subscribed to twice. An unknown link is
- * [AppError.NotFound].
+ * [AppError.NotFound], and so is an explicit podcast under Brazil's ECA Digital (26.3).
  */
 class OpenPodcastLinkUseCase(
     private val directory: PodcastDirectory,
     private val feedSource: FeedSource,
     private val podcastRepository: PodcastRepository,
+    private val explicitContent: ExplicitContent = ExplicitContent(),
 ) {
-    suspend operator fun invoke(link: String): Result<LinkedPodcast> {
+    suspend operator fun invoke(link: String): Result<LinkedPodcast> = open(link).mapCatching { linked ->
+        if (linked.podcast.explicit && explicitContent.rule.value.hidesExplicit) throw AppError.NotFound
+        linked
+    }
+
+    private suspend fun open(link: String): Result<LinkedPodcast> {
         val library = podcastRepository.getPodcasts().first().associateBy { feedUrlKey(it.feedUrl) }
         fun saved(url: String) = library[feedUrlKey(url)]
         return when (val target = podcastLink(link)) {
@@ -50,5 +56,6 @@ class OpenPodcastLinkUseCase(
         feedUrl = feedUrl,
         genre = null,
         episodeCount = episodes,
+        explicit = explicit,
     )
 }

@@ -16,12 +16,13 @@ private const val RECOMMENDATIONS = 10
  * The directory of "Add podcast": search (18.1) and charts per category (18.2). A term shorter than two letters does
  * not reach the network, and each result says whether the library already has it, by the same feed key that adding by
  * address uses; the same feed listed twice comes once. With "Show explicit content" off, explicit shows stay out
- * (18.5).
+ * (18.5), and so they do under Brazil's ECA Digital (26.3).
  */
 class SearchPodcastsUseCase(
     private val directory: PodcastDirectory,
     private val podcastRepository: PodcastRepository,
     private val preferences: PreferencesRepository,
+    private val explicitContent: ExplicitContent = ExplicitContent(),
 ) {
     suspend operator fun invoke(term: String): Result<List<DirectoryResult>> {
         val trimmed = term.trim()
@@ -79,12 +80,14 @@ class SearchPodcastsUseCase(
         }
     }
 
+    private fun showsExplicit() = preferences.showExplicit.value && !explicitContent.rule.value.hidesExplicit
+
     private suspend fun Result<List<DirectoryPodcast>>.markingSubscribed(): Result<List<DirectoryResult>> {
         val saved = podcastRepository.getPodcasts().first().map { feedUrlKey(it.feedUrl) }.toSet()
         // Apple sometimes lists one feed under two entries: one row each, or the list would show it twice.
         return map { found ->
             found.distinctBy { feedUrlKey(it.feedUrl) }
-                .filter { preferences.showExplicit.value || !it.explicit }
+                .filter { showsExplicit() || !it.explicit }
                 .map { DirectoryResult(it, isSubscribed = feedUrlKey(it.feedUrl) in saved) }
         }
     }

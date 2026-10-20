@@ -352,6 +352,7 @@
     <string name="settings_content">Контент</string>
     <string name="settings_show_explicit">Показывать откровенный контент</string>
     <string name="settings_show_explicit_description">Если выключено, подкасты с пометкой «откровенный» не попадают в поиск, чарты и подборки.</string>
+    <string name="settings_show_explicit_locked">Заблокировано в Бразилии законом ECA Digital: пока ваш аккаунт Play Маркета или App Store не подтверждает, что вы взрослый, подкасты и выпуски с откровенным содержанием скрыты и не воспроизводятся.</string>
     <string name="explicit">Откровенный</string>
     <string name="filter_new">Новые</string>
     <string name="new_empty_title">Ничего нового</string>

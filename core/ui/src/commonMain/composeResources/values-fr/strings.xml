@@ -352,6 +352,7 @@
     <string name="settings_content">Contenu</string>
     <string name="settings_show_explicit">Afficher le contenu explicite</string>
     <string name="settings_show_explicit_description">Désactivé, les podcasts marqués comme explicites n'apparaissent ni dans la recherche, ni dans les classements, ni dans les suggestions.</string>
+    <string name="settings_show_explicit_locked">Verrouillé au Brésil par la loi ECA Digital : tant que votre compte Play Store ou App Store n’indique pas que vous êtes adulte, les podcasts et épisodes explicites restent masqués et ne sont pas lus.</string>
     <string name="explicit">Explicite</string>
     <string name="filter_new">Nouveaux</string>
     <string name="new_empty_title">Rien de nouveau</string>

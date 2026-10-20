@@ -36,6 +36,7 @@ import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloadsUseCase
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.DownloadNextEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
@@ -53,7 +54,9 @@ import br.com.carvalho.podcast.feature.podcast.podcastFeatureModule
 import br.com.carvalho.podcast.feature.search.searchFeatureModule
 import br.com.carvalho.podcast.feature.settings.settingsFeatureModule
 import io.ktor.utils.io.ioDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -102,6 +105,7 @@ val playerModule = module {
             },
             skipIntervals = get<PreferencesRepository>().skipIntervals,
             chapterSource = get(),
+            explicitRule = get<ExplicitContent>().rule,
         )
     }
 }
@@ -121,6 +125,8 @@ val repositoryModule = module {
 val useCaseModule = module {
     // Brazil's ECA Digital (26.2): one per app, read by whatever the age changes.
     single { ChildSafety(get()) }
+    // Lives as long as the app: the player and every list read it (26.3).
+    single { ExplicitContent.following(get(), get(), CoroutineScope(SupervisorJob())) }
     singleOf(::AddPodcastFromUrlUseCase)
     singleOf(::ImportOpmlUseCase)
     singleOf(::RefreshInBackgroundUseCase)

@@ -22,6 +22,7 @@ import br.com.carvalho.podcast.domain.model.topCategories
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
@@ -48,7 +49,9 @@ class LibraryViewModel(
     private val preferences: PreferencesRepository,
     private val playEpisode: PlayEpisodeUseCase,
     private val dispatchers: CoroutineDispatchers,
-    private val analytics: Analytics
+    private val analytics: Analytics,
+    /** Explicit podcasts and episodes stay out under Brazil's ECA Digital (26.3). */
+    private val explicitContent: ExplicitContent = ExplicitContent(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LibraryUiState(isLoading = true, layout = preferences.libraryLayout.value))
@@ -64,7 +67,9 @@ class LibraryViewModel(
         viewModelScope.launch(dispatchers.io) {
             val library = repository.getLibrary().onEach { Metrics.recordAppStart("podcasts" to it.size) }
             combine(
-                library.onStart { emit(emptyList()) },
+                combine(library.onStart { emit(emptyList()) }, explicitContent.rule) { all, rule ->
+                    all.filter { rule.allows(it.podcast) }
+                },
                 preferences.librarySort,
                 chosenCategory
             ) { all, sort, chosen ->
@@ -92,7 +97,9 @@ class LibraryViewModel(
                 }
             }
         }
-        repository.getInProgressEpisodes()
+        combine(repository.getInProgressEpisodes(), explicitContent.rule) { episodes, rule ->
+            episodes.filter { rule.allows(it) }
+        }
             .onEach { episodes -> _uiState.update { it.copy(inProgress = episodes) } }
             .launchIn(viewModelScope)
     }

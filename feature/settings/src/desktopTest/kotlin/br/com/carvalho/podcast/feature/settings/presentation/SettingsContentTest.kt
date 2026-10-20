@@ -8,6 +8,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
@@ -40,6 +41,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_locked
 import br.com.carvalho.podcast.core.ui.generated.resources.stats_title
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
@@ -170,6 +172,26 @@ class SettingsContentTest {
         onNodeWithText(text(Res.string.settings_show_explicit)).assertIsOn().performClick()
 
         assertEquals(false, shown)
+    }
+
+    @Test
+    fun underTheEcaDigitalTheExplicitSwitchIsOffLockedAndSaysWhy() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        setContent {
+            PodcastTheme {
+                SettingsContent(
+                    SettingsUiState(showExplicit = false, explicitLocked = true),
+                    onBack = {},
+                    onIntent = { intents += it },
+                )
+            }
+        }
+
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_show_explicit)))
+        onNodeWithText(text(Res.string.settings_show_explicit_locked)).assertExists()
+        onNodeWithText(text(Res.string.settings_show_explicit)).assertIsOff().assertIsNotEnabled().performClick()
+
+        assertEquals(emptyList(), intents)
     }
 
     @Test

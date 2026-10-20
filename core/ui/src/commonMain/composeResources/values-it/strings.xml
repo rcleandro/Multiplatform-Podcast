@@ -352,6 +352,7 @@
     <string name="settings_content">Contenuti</string>
     <string name="settings_show_explicit">Mostra contenuti espliciti</string>
     <string name="settings_show_explicit_description">Se disattivato, i podcast segnati come espliciti restano fuori da ricerca, classifiche e suggerimenti.</string>
+    <string name="settings_show_explicit_locked">Bloccato in Brasile dalla legge ECA Digital: finché il tuo account Play Store o App Store non indica che sei maggiorenne, i podcast e gli episodi espliciti restano nascosti e non vengono riprodotti.</string>
     <string name="explicit">Esplicito</string>
     <string name="filter_new">Nuovi</string>
     <string name="new_empty_title">Niente di nuovo</string>

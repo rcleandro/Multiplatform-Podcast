@@ -71,6 +71,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_locked
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_backward
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_forward
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_silence
@@ -278,9 +279,16 @@ private fun LazyListScope.contentAndPrivacySettings(state: SettingsUiState, onIn
     item {
         SwitchRow(
             title = stringResource(Res.string.settings_show_explicit),
-            description = stringResource(Res.string.settings_show_explicit_description),
+            description = stringResource(
+                if (state.explicitLocked) {
+                    Res.string.settings_show_explicit_locked
+                } else {
+                    Res.string.settings_show_explicit_description
+                }
+            ),
             checked = state.showExplicit,
             onChange = { onIntent(SettingsIntent.SetShowExplicit(it)) },
+            enabled = !state.explicitLocked,
         )
     }
     item { Section(stringResource(Res.string.settings_privacy)) }

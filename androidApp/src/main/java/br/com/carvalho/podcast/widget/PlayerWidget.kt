@@ -31,6 +31,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.widget_nothing_playin
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -66,11 +67,14 @@ class PlayerWidget : GlanceAppWidget() {
         val koin = getKoin()
         val player = koin.get<AudioPlayer>()
         val repository = koin.get<PodcastRepository>()
+        val explicitRule = koin.get<ExplicitContent>().rule
         val loader = Artwork(context)
         // Only what the widget shows: the position ticks every second and would redraw it as often.
         val shown = combine(
             player.playerState.map { it.currentEpisode to it.isPlaying }.distinctUntilChanged(),
-            repository.getInProgressEpisodes().distinctUntilChanged(),
+            // Nothing explicit under Brazil's ECA Digital (26.3).
+            combine(repository.getInProgressEpisodes(), explicitRule) { episodes, rule -> episodes.filter(rule::allows) }
+                .distinctUntilChanged(),
         ) { (current, isPlaying), started ->
             PlayerWidgetState(
                 episode = current?.let { loader.episode(it) },
