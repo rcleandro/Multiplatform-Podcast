@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -71,6 +72,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language_ios
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_playback
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_policy
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_policy_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
@@ -305,9 +308,10 @@ private fun LazyListScope.contentAndPrivacySettings(state: SettingsUiState, onIn
             enabled = !state.explicitLocked,
         )
     }
+    item { Section(stringResource(Res.string.settings_privacy)) }
+    item { PrivacyPolicyRow() }
     // A minor in Brazil has telemetry off for good (26.4): nothing to choose, so no row.
     if (state.isMinor) return
-    item { Section(stringResource(Res.string.settings_privacy)) }
     item {
         SwitchRow(
             title = stringResource(Res.string.settings_telemetry),
@@ -432,4 +436,19 @@ private fun LazyListScope.downloadSettings(
             }
         }
     }
+}
+
+// Public, so it can be read before installing too (ECA Digital art. 16), and linked from the stores (26.8).
+private const val PRIVACY_POLICY_URL =
+    "https://github.com/rcleandro/Multiplatform-Podcast/blob/main/docs/PRIVACIDADE.md"
+
+@Composable
+private fun PrivacyPolicyRow() {
+    val uriHandler = LocalUriHandler.current
+    PickerRow(
+        title = stringResource(Res.string.settings_privacy_policy),
+        value = stringResource(Res.string.settings_privacy_policy_description),
+        // No browser to open it: nothing else to do.
+        onClick = { runCatching { uriHandler.openUri(PRIVACY_POLICY_URL) } },
+    )
 }

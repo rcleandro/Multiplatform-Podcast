@@ -404,4 +404,6 @@
     <string name="report_channels">Wenn es eine Straftat ist, melde sie auch bei Disque 100, Comunica PF oder der ANPD.</string>
     <string name="report_email_subject">Meldung: %1$s</string>
     <string name="report_email_body">Grund: %1$s\nPodcast: %2$s\nFolge: %3$s\nFeed-Host: %4$s</string>
+    <string name="settings_privacy_policy">Datenschutzerklärung und Bedingungen</string>
+    <string name="settings_privacy_policy_description">Was die App speichert und sendet und was sich für Minderjährige in Brasilien ändert.</string>
 </resources>

@@ -423,4 +423,6 @@
     <string name="report_channels">Si es un delito, denúncialo también al Disque 100, al Comunica PF o a la ANPD.</string>
     <string name="report_email_subject">Denuncia: %1$s</string>
     <string name="report_email_body">Motivo: %1$s\nPódcast: %2$s\nEpisodio: %3$s\nHost del feed: %4$s</string>
+    <string name="settings_privacy_policy">Política de privacidad y términos</string>
+    <string name="settings_privacy_policy_description">Lo que la app guarda y envía, y lo que cambia para menores en Brasil.</string>
 </resources>

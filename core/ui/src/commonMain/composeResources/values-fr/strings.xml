@@ -404,4 +404,6 @@
     <string name="report_channels">S’il s’agit d’un crime, signalez-le aussi au Disque 100, à Comunica PF ou à l’ANPD.</string>
     <string name="report_email_subject">Signalement : %1$s</string>
     <string name="report_email_body">Motif : %1$s\nPodcast : %2$s\nÉpisode : %3$s\nHôte du flux : %4$s</string>
+    <string name="settings_privacy_policy">Politique de confidentialité et conditions</string>
+    <string name="settings_privacy_policy_description">Ce que l’app conserve et envoie, et ce qui change pour les mineurs au Brésil.</string>
 </resources>

@@ -404,4 +404,6 @@
     <string name="report_channels">अगर यह अपराध है, तो Disque 100, Comunica PF या ANPD को भी रिपोर्ट करें।</string>
     <string name="report_email_subject">रिपोर्ट: %1$s</string>
     <string name="report_email_body">कारण: %1$s\nपॉडकास्ट: %2$s\nएपिसोड: %3$s\nफ़ीड होस्ट: %4$s</string>
+    <string name="settings_privacy_policy">गोपनीयता नीति और शर्तें</string>
+    <string name="settings_privacy_policy_description">ऐप क्या रखता और भेजता है, और ब्राज़ील में नाबालिगों के लिए क्या बदलता है।</string>
 </resources>

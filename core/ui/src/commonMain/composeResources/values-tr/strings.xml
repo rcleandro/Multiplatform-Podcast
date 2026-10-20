@@ -404,4 +404,6 @@
     <string name="report_channels">Suç ise Disque 100, Comunica PF veya ANPD'ye de bildir.</string>
     <string name="report_email_subject">Bildirim: %1$s</string>
     <string name="report_email_body">Neden: %1$s\nPodcast: %2$s\nBölüm: %3$s\nAkış sunucusu: %4$s</string>
+    <string name="settings_privacy_policy">Gizlilik politikası ve koşullar</string>
+    <string name="settings_privacy_policy_description">Uygulamanın neyi saklayıp gönderdiği ve Brezilya'da reşit olmayanlar için neyin değiştiği.</string>
 </resources>

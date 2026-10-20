@@ -50,6 +50,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_locked_for_minors
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_policy
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_locked
 import br.com.carvalho.podcast.core.ui.generated.resources.stats_title
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup_description
@@ -244,7 +245,8 @@ class SettingsContentTest {
     fun aMinorInBrazilSeesNoTelemetryRow() = runComposeUiTest {
         setContent { PodcastTheme { SettingsContent(SettingsUiState(isMinor = true), onBack = {}, onIntent = {}) } }
 
-        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_show_explicit)))
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_privacy_policy)))
+        onNodeWithText(text(Res.string.settings_privacy_policy)).assertExists()
         onAllNodesWithText(text(Res.string.settings_telemetry)).assertCountEquals(0)
     }
 

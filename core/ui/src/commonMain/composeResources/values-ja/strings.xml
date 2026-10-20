@@ -404,4 +404,6 @@
     <string name="report_channels">犯罪の場合は、Disque 100、Comunica PF、ANPD にも通報してください。</string>
     <string name="report_email_subject">報告: %1$s</string>
     <string name="report_email_body">理由: %1$s\nポッドキャスト: %2$s\nエピソード: %3$s\nフィードのホスト: %4$s</string>
+    <string name="settings_privacy_policy">プライバシーポリシーと利用規約</string>
+    <string name="settings_privacy_policy_description">アプリが保存・送信する内容と、ブラジルの未成年者向けの変更点。</string>
 </resources>

@@ -404,4 +404,6 @@
     <string name="report_channels">如果涉及犯罪，也请向 Disque 100、Comunica PF 或 ANPD 举报。</string>
     <string name="report_email_subject">举报：%1$s</string>
     <string name="report_email_body">原因：%1$s\n播客：%2$s\n单集：%3$s\n订阅源主机：%4$s</string>
+    <string name="settings_privacy_policy">隐私政策和条款</string>
+    <string name="settings_privacy_policy_description">应用保存和发送的内容，以及对巴西未成年人的变化。</string>
 </resources>

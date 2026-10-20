@@ -404,4 +404,6 @@
     <string name="report_channels">إذا كانت جريمة، فأبلغ أيضًا Disque 100 أو Comunica PF أو ANPD.</string>
     <string name="report_email_subject">بلاغ: %1$s</string>
     <string name="report_email_body">السبب: %1$s\nالبودكاست: %2$s\nالحلقة: %3$s\nمضيف الخلاصة: %4$s</string>
+    <string name="settings_privacy_policy">سياسة الخصوصية والشروط</string>
+    <string name="settings_privacy_policy_description">ما يحفظه التطبيق ويرسله، وما يتغير للقاصرين في البرازيل.</string>
 </resources>

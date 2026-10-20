@@ -404,4 +404,6 @@
     <string name="report_channels">Если это преступление, сообщите также в Disque 100, Comunica PF или ANPD.</string>
     <string name="report_email_subject">Жалоба: %1$s</string>
     <string name="report_email_body">Причина: %1$s\nПодкаст: %2$s\nВыпуск: %3$s\nХост ленты: %4$s</string>
+    <string name="settings_privacy_policy">Политика конфиденциальности и условия</string>
+    <string name="settings_privacy_policy_description">Что приложение хранит и отправляет и что меняется для несовершеннолетних в Бразилии.</string>
 </resources>
