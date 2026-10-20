@@ -27,4 +27,14 @@ class ExplicitRuleTest {
         assertTrue(rule.allows(clean.copy(explicit = true)))
         assertTrue(rule.allows(clean.copy(podcastId = "adult")))
     }
+
+    @Test
+    fun whatWasHiddenAfterAReportStaysOutForAnyone() {
+        val rule = ExplicitRule(hiddenPodcasts = setOf("https://feed"), hiddenEpisodes = setOf("e"))
+
+        assertFalse(rule.allows(clean))
+        assertFalse(rule.allows(clean.copy(id = "other", podcastId = "https://feed")))
+        assertTrue(rule.allows(clean.copy(id = "other")))
+        assertTrue(rule.hides("https://feed"))
+    }
 }

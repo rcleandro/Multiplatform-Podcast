@@ -136,4 +136,15 @@ class FakePreferencesRepository : PreferencesRepository {
     override fun setGuardianControls(controls: GuardianControls) {
         guardianControls.value = controls
     }
+
+    override val hiddenPodcasts = MutableStateFlow<Set<String>>(emptySet())
+    override val hiddenEpisodes = MutableStateFlow<Set<String>>(emptySet())
+
+    override fun hidePodcast(id: String) {
+        hiddenPodcasts.value += id
+    }
+
+    override fun hideEpisode(id: String) {
+        hiddenEpisodes.value += id
+    }
 }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Close
@@ -46,7 +47,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -85,6 +89,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.no_description
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
 import br.com.carvalho.podcast.core.ui.generated.resources.play_next
+import br.com.carvalho.podcast.core.ui.generated.resources.report
 import br.com.carvalho.podcast.core.ui.generated.resources.resume_remaining
 import br.com.carvalho.podcast.core.ui.generated.resources.save_episode
 import br.com.carvalho.podcast.core.ui.generated.resources.share
@@ -94,8 +99,12 @@ import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.model.Bookmark
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.BookmarkRow
+import br.com.carvalho.podcast.presentation.component.ReportFlow
+import br.com.carvalho.podcast.presentation.component.ReportTarget
 import br.com.carvalho.podcast.presentation.component.downloadAction
 import br.com.carvalho.podcast.presentation.component.remainingDuration
 import br.com.carvalho.podcast.presentation.component.toDownloadState
@@ -104,6 +113,7 @@ import br.com.carvalho.podcast.presentation.format.text
 import br.com.carvalho.podcast.presentation.share.episodeShareText
 import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -111,12 +121,17 @@ import org.koin.core.parameter.parametersOf
 fun EpisodeDetailScreen(
     episodeId: String,
     viewModel: EpisodeDetailViewModel = koinViewModel(key = episodeId) { parametersOf(episodeId) },
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    // Reporting is a duty under Brazil's ECA Digital (26.7): offered there only, hiding through the preferences.
+    childSafety: ChildSafety = koinInject(),
+    preferences: PreferencesRepository = koinInject(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val share = rememberShare(snackbarHostState)
     MessageEffect(viewModel.messages, snackbarHostState)
+    val inBrazil = childSafety.state.collectAsState().value.inBrazil
+    var reporting by rememberSaveable { mutableStateOf(false) }
 
     EpisodeDetailContent(
         state = uiState,
@@ -124,6 +139,7 @@ fun EpisodeDetailScreen(
         actions = EpisodeDetailActions(
             onBack = onBackClick,
             onShare = { uiState.episode?.let { share(episodeShareText(it)) } },
+            onReport = if (inBrazil) ({ reporting = true }) else null,
             onPlayPause = { viewModel.onIntent(EpisodeDetailIntent.PlayPause) },
             onRetry = { viewModel.onIntent(EpisodeDetailIntent.Retry) },
             onEnqueue = { viewModel.onIntent(EpisodeDetailIntent.Enqueue(next = it)) },
@@ -137,11 +153,25 @@ fun EpisodeDetailScreen(
             onDeleteBookmark = { viewModel.onIntent(EpisodeDetailIntent.DeleteBookmark(it)) },
         ),
     )
+
+    // A library podcast's id is its feed address.
+    if (reporting) {
+        ReportFlow(
+            target = uiState.episode?.let { ReportTarget(it.podcastTitle.orEmpty(), it.podcastId, it.title) },
+            onHide = {
+                preferences.hideEpisode(episodeId)
+                onBackClick()
+            },
+            onClose = { reporting = false },
+        )
+    }
 }
 
 data class EpisodeDetailActions(
     val onBack: () -> Unit = {},
     val onShare: () -> Unit = {},
+    /** Opens the report (26.7); null hides the button, outside Brazil. */
+    val onReport: (() -> Unit)? = null,
     val onPlayPause: () -> Unit = {},
     val onRetry: () -> Unit = {},
     /** "Play next" when true, else "Add to queue" (18.6). */
@@ -182,6 +212,11 @@ fun EpisodeDetailContent(
                     if (state.episode != null) {
                         IconButton(onClick = actions.onShare) {
                             Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
+                        }
+                        actions.onReport?.let { report ->
+                            IconButton(onClick = report) {
+                                Icon(Icons.Outlined.Flag, contentDescription = stringResource(Res.string.report))
+                            }
                         }
                     }
                 },

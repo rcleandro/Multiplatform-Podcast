@@ -389,4 +389,19 @@
     <string name="guardian_remove_pin">إزالة رمز PIN</string>
     <string name="guardian_remove_pin_description">ما كان مسموحًا به يعود متوقفًا.</string>
     <string name="guardian_lock">قفل</string>
+    <string name="report">إبلاغ</string>
+    <string name="report_podcast_title">الإبلاغ عن البودكاست</string>
+    <string name="report_episode_title">الإبلاغ عن الحلقة</string>
+    <string name="report_reason_sexual_abuse">استغلال أو اعتداء جنسي</string>
+    <string name="report_reason_violence">عنف أو تنمّر أو تحرّش</string>
+    <string name="report_reason_harm_to_health">التحريض على إيذاء النفس أو الانتحار أو المخدرات أو أضرار صحية أخرى</string>
+    <string name="report_reason_gambling">المراهنات أو الكحول أو التبغ أو منتجات محظورة على القاصرين</string>
+    <string name="report_reason_advertising">إعلانات مضلِّلة أو استغلالية</string>
+    <string name="report_reason_pornography">محتوى إباحي</string>
+    <string name="report_reason_other">انتهاك آخر لحقوق الأطفال والمراهقين</string>
+    <string name="report_hide">إخفاؤه على هذا الجهاز</string>
+    <string name="report_send">إرسال بالبريد الإلكتروني</string>
+    <string name="report_channels">إذا كانت جريمة، فأبلغ أيضًا Disque 100 أو Comunica PF أو ANPD.</string>
+    <string name="report_email_subject">بلاغ: %1$s</string>
+    <string name="report_email_body">السبب: %1$s\nالبودكاست: %2$s\nالحلقة: %3$s\nمضيف الخلاصة: %4$s</string>
 </resources>

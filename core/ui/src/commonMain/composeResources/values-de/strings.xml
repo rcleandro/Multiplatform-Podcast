@@ -389,4 +389,19 @@
     <string name="guardian_remove_pin">PIN entfernen</string>
     <string name="guardian_remove_pin_description">Was erlaubt war, ist wieder aus.</string>
     <string name="guardian_lock">Sperren</string>
+    <string name="report">Melden</string>
+    <string name="report_podcast_title">Podcast melden</string>
+    <string name="report_episode_title">Folge melden</string>
+    <string name="report_reason_sexual_abuse">Sexuelle Ausbeutung oder Missbrauch</string>
+    <string name="report_reason_violence">Gewalt, Mobbing oder Belästigung</string>
+    <string name="report_reason_harm_to_health">Aufforderung zu Selbstverletzung, Suizid, Drogen oder anderen Gesundheitsschäden</string>
+    <string name="report_reason_gambling">Wetten, Alkohol, Tabak oder für Minderjährige verbotene Produkte</string>
+    <string name="report_reason_advertising">Irreführende oder ausbeuterische Werbung</string>
+    <string name="report_reason_pornography">Pornografische Inhalte</string>
+    <string name="report_reason_other">Andere Verletzung von Kinderrechten</string>
+    <string name="report_hide">Auf diesem Gerät ausblenden</string>
+    <string name="report_send">Per E-Mail senden</string>
+    <string name="report_channels">Wenn es eine Straftat ist, melde sie auch bei Disque 100, Comunica PF oder der ANPD.</string>
+    <string name="report_email_subject">Meldung: %1$s</string>
+    <string name="report_email_body">Grund: %1$s\nPodcast: %2$s\nFolge: %3$s\nFeed-Host: %4$s</string>
 </resources>

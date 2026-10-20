@@ -92,7 +92,7 @@ class SearchPodcastsUseCase(
         // Apple sometimes lists one feed under two entries: one row each, or the list would show it twice.
         return map { found ->
             found.distinctBy { feedUrlKey(it.feedUrl) }
-                .filter { showsExplicit() || !it.explicit }
+                .filter { (showsExplicit() || !it.explicit) && !explicitContent.rule.value.hides(it.feedUrl) }
                 .map { DirectoryResult(it, isSubscribed = feedUrlKey(it.feedUrl) in saved) }
         }
     }

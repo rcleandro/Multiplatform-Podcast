@@ -409,4 +409,19 @@
     <string name="guardian_remove_pin">Remove the PIN</string>
     <string name="guardian_remove_pin_description">What was allowed goes back to off.</string>
     <string name="guardian_lock">Lock</string>
+    <string name="report">Report</string>
+    <string name="report_podcast_title">Report podcast</string>
+    <string name="report_episode_title">Report episode</string>
+    <string name="report_reason_sexual_abuse">Sexual exploitation or abuse</string>
+    <string name="report_reason_violence">Violence, bullying or harassment</string>
+    <string name="report_reason_harm_to_health">Encouraging self-harm, suicide, drugs or other harm to health</string>
+    <string name="report_reason_gambling">Betting, alcohol, tobacco or products banned for minors</string>
+    <string name="report_reason_advertising">Misleading or predatory advertising</string>
+    <string name="report_reason_pornography">Pornographic content</string>
+    <string name="report_reason_other">Another violation of children's rights</string>
+    <string name="report_hide">Hide it on this device</string>
+    <string name="report_send">Send by email</string>
+    <string name="report_channels">If it is a crime, also report it to Disque 100, Comunica PF or the ANPD.</string>
+    <string name="report_email_subject">Report: %1$s</string>
+    <string name="report_email_body">Reason: %1$s\nPodcast: %2$s\nEpisode: %3$s\nFeed host: %4$s</string>
 </resources>

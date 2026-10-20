@@ -389,4 +389,19 @@
     <string name="guardian_remove_pin">PIN を削除</string>
     <string name="guardian_remove_pin_description">許可していた項目はオフに戻ります。</string>
     <string name="guardian_lock">ロック</string>
+    <string name="report">報告</string>
+    <string name="report_podcast_title">ポッドキャストを報告</string>
+    <string name="report_episode_title">エピソードを報告</string>
+    <string name="report_reason_sexual_abuse">性的搾取または虐待</string>
+    <string name="report_reason_violence">暴力、いじめ、嫌がらせ</string>
+    <string name="report_reason_harm_to_health">自傷、自殺、薬物などの健康被害をあおる内容</string>
+    <string name="report_reason_gambling">賭博、酒、たばこ、未成年者に禁止された商品</string>
+    <string name="report_reason_advertising">誤解を招く、または悪質な広告</string>
+    <string name="report_reason_pornography">ポルノコンテンツ</string>
+    <string name="report_reason_other">その他の子どもの権利の侵害</string>
+    <string name="report_hide">このデバイスで非表示にする</string>
+    <string name="report_send">メールで送信</string>
+    <string name="report_channels">犯罪の場合は、Disque 100、Comunica PF、ANPD にも通報してください。</string>
+    <string name="report_email_subject">報告: %1$s</string>
+    <string name="report_email_body">理由: %1$s\nポッドキャスト: %2$s\nエピソード: %3$s\nフィードのホスト: %4$s</string>
 </resources>

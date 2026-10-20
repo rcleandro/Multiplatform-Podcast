@@ -23,7 +23,9 @@ class OpenPodcastLinkUseCase(
     private val explicitContent: ExplicitContent = ExplicitContent(),
 ) {
     suspend operator fun invoke(link: String): Result<LinkedPodcast> = open(link).mapCatching { linked ->
-        if (linked.podcast.explicit && explicitContent.rule.value.hidesExplicit) throw AppError.NotFound
+        val rule = explicitContent.rule.value
+        val hidden = rule.hides(linked.podcast.feedUrl)
+        if ((linked.podcast.explicit && rule.hidesExplicit) || hidden) throw AppError.NotFound
         linked
     }
 

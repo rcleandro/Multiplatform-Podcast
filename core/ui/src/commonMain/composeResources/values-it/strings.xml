@@ -389,4 +389,19 @@
     <string name="guardian_remove_pin">Rimuovi il PIN</string>
     <string name="guardian_remove_pin_description">Ciò che era consentito torna disattivato.</string>
     <string name="guardian_lock">Blocca</string>
+    <string name="report">Segnala</string>
+    <string name="report_podcast_title">Segnala podcast</string>
+    <string name="report_episode_title">Segnala episodio</string>
+    <string name="report_reason_sexual_abuse">Sfruttamento o abuso sessuale</string>
+    <string name="report_reason_violence">Violenza, bullismo o molestie</string>
+    <string name="report_reason_harm_to_health">Incitamento ad autolesionismo, suicidio, droghe o altri danni alla salute</string>
+    <string name="report_reason_gambling">Scommesse, alcol, tabacco o prodotti vietati ai minori</string>
+    <string name="report_reason_advertising">Pubblicità ingannevole o abusiva</string>
+    <string name="report_reason_pornography">Contenuti pornografici</string>
+    <string name="report_reason_other">Altra violazione dei diritti di bambini e adolescenti</string>
+    <string name="report_hide">Nascondi su questo dispositivo</string>
+    <string name="report_send">Invia per email</string>
+    <string name="report_channels">Se è un reato, segnalalo anche a Disque 100, Comunica PF o all’ANPD.</string>
+    <string name="report_email_subject">Segnalazione: %1$s</string>
+    <string name="report_email_body">Motivo: %1$s\nPodcast: %2$s\nEpisodio: %3$s\nHost del feed: %4$s</string>
 </resources>

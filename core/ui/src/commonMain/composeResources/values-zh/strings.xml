@@ -389,4 +389,19 @@
     <string name="guardian_remove_pin">移除 PIN</string>
     <string name="guardian_remove_pin_description">已允许的项目会重新关闭。</string>
     <string name="guardian_lock">锁定</string>
+    <string name="report">举报</string>
+    <string name="report_podcast_title">举报播客</string>
+    <string name="report_episode_title">举报单集</string>
+    <string name="report_reason_sexual_abuse">性剥削或性虐待</string>
+    <string name="report_reason_violence">暴力、欺凌或骚扰</string>
+    <string name="report_reason_harm_to_health">鼓励自残、自杀、吸毒或其他健康危害</string>
+    <string name="report_reason_gambling">赌博、酒精、烟草或禁止向未成年人销售的产品</string>
+    <string name="report_reason_advertising">误导性或掠夺性广告</string>
+    <string name="report_reason_pornography">色情内容</string>
+    <string name="report_reason_other">其他侵犯儿童和青少年权利的行为</string>
+    <string name="report_hide">在此设备上隐藏</string>
+    <string name="report_send">通过电子邮件发送</string>
+    <string name="report_channels">如果涉及犯罪，也请向 Disque 100、Comunica PF 或 ANPD 举报。</string>
+    <string name="report_email_subject">举报：%1$s</string>
+    <string name="report_email_body">原因：%1$s\n播客：%2$s\n单集：%3$s\n订阅源主机：%4$s</string>
 </resources>

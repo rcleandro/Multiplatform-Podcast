@@ -389,4 +389,19 @@
     <string name="guardian_remove_pin">Удалить PIN-код</string>
     <string name="guardian_remove_pin_description">Разрешённое снова выключится.</string>
     <string name="guardian_lock">Заблокировать</string>
+    <string name="report">Пожаловаться</string>
+    <string name="report_podcast_title">Пожаловаться на подкаст</string>
+    <string name="report_episode_title">Пожаловаться на выпуск</string>
+    <string name="report_reason_sexual_abuse">Сексуальная эксплуатация или насилие</string>
+    <string name="report_reason_violence">Насилие, травля или домогательства</string>
+    <string name="report_reason_harm_to_health">Призывы к самоповреждению, суициду, наркотикам или иному вреду здоровью</string>
+    <string name="report_reason_gambling">Азартные игры, алкоголь, табак или товары, запрещённые несовершеннолетним</string>
+    <string name="report_reason_advertising">Вводящая в заблуждение или недобросовестная реклама</string>
+    <string name="report_reason_pornography">Порнографический контент</string>
+    <string name="report_reason_other">Другое нарушение прав детей и подростков</string>
+    <string name="report_hide">Скрыть на этом устройстве</string>
+    <string name="report_send">Отправить по почте</string>
+    <string name="report_channels">Если это преступление, сообщите также в Disque 100, Comunica PF или ANPD.</string>
+    <string name="report_email_subject">Жалоба: %1$s</string>
+    <string name="report_email_body">Причина: %1$s\nПодкаст: %2$s\nВыпуск: %3$s\nХост ленты: %4$s</string>
 </resources>

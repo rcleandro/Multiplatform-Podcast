@@ -149,6 +149,17 @@ class SettingsPreferencesRepositoryTest {
     }
 
     @Test
+    fun whatWasHiddenAfterAReportStaysHidden() {
+        SettingsPreferencesRepository(settings).hidePodcast("https://feed.example.com/rss")
+        SettingsPreferencesRepository(settings).hideEpisode("e1")
+        SettingsPreferencesRepository(settings).hideEpisode("e2")
+
+        val reopened = SettingsPreferencesRepository(settings)
+        assertEquals(setOf("https://feed.example.com/rss"), reopened.hiddenPodcasts.value)
+        assertEquals(setOf("e1", "e2"), reopened.hiddenEpisodes.value)
+    }
+
+    @Test
     fun telemetryStartsOnAndTurningItOffIsKept() {
         assertTrue(SettingsPreferencesRepository(settings).telemetryEnabled.value)
 

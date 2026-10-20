@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -89,6 +90,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
 import br.com.carvalho.podcast.core.ui.generated.resources.play_latest
 import br.com.carvalho.podcast.core.ui.generated.resources.podcast_episode_count
 import br.com.carvalho.podcast.core.ui.generated.resources.refresh
+import br.com.carvalho.podcast.core.ui.generated.resources.report
 import br.com.carvalho.podcast.core.ui.generated.resources.season_number
 import br.com.carvalho.podcast.core.ui.generated.resources.share
 import br.com.carvalho.podcast.core.ui.generated.resources.show_less
@@ -101,16 +103,21 @@ import br.com.carvalho.podcast.domain.model.EpisodeFilter
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.domain.usecase.EpisodeAction
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.EpisodeListItem
 import br.com.carvalho.podcast.presentation.component.EpisodeSelectionBar
 import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import br.com.carvalho.podcast.presentation.component.ReportFlow
+import br.com.carvalho.podcast.presentation.component.ReportTarget
 import br.com.carvalho.podcast.presentation.share.podcastShareText
 import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -121,6 +128,9 @@ fun PodcastDetailScreen(
     onBackClick: () -> Unit,
     onEpisodeClick: (String, String) -> Unit,
     onSimilarClick: (String) -> Unit = {},
+    // Reporting is a duty under Brazil's ECA Digital (26.7): offered there only, hiding through the preferences.
+    childSafety: ChildSafety = koinInject(),
+    preferences: PreferencesRepository = koinInject(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagedEpisodes = viewModel.pagedEpisodes.collectAsLazyPagingItems()
@@ -130,6 +140,8 @@ fun PodcastDetailScreen(
 
     MessageEffect(viewModel.messages, snackbarHostState)
     val share = rememberShare(snackbarHostState)
+    val inBrazil = childSafety.state.collectAsState().value.inBrazil
+    var reporting by rememberSaveable { mutableStateOf(false) }
 
     PodcastDetailContent(
         state = uiState,
@@ -141,6 +153,7 @@ fun PodcastDetailScreen(
             onBack = onBackClick,
             onSimilar = { onSimilarClick(podcastId) },
             onShare = { uiState.podcast?.let { share(podcastShareText(it)) } },
+            onReport = if (inBrazil) ({ reporting = true }) else null,
             onRefresh = { viewModel.onIntent(PodcastDetailIntent.Refresh) },
             onFilterSelected = { viewModel.onIntent(PodcastDetailIntent.SetFilter(it)) },
             onOldestFirstChange = { viewModel.onIntent(PodcastDetailIntent.SetOldestFirst(it)) },
@@ -166,6 +179,18 @@ fun PodcastDetailScreen(
             onAutoDownloadChange = { viewModel.onIntent(PodcastDetailIntent.SetAutoDownload(it)) },
         ),
     )
+
+    // A library podcast's id is its feed address.
+    if (reporting) {
+        ReportFlow(
+            target = uiState.podcast?.let { ReportTarget(it.title, it.feedUrl) },
+            onHide = {
+                preferences.hidePodcast(podcastId)
+                onBackClick()
+            },
+            onClose = { reporting = false },
+        )
+    }
 }
 
 data class PodcastDetailActions(
@@ -173,6 +198,8 @@ data class PodcastDetailActions(
     /** Podcasts like this one (19.6), in "Add podcast". */
     val onSimilar: () -> Unit = {},
     val onShare: () -> Unit = {},
+    /** Opens the report (26.7); null hides the button, outside Brazil. */
+    val onReport: (() -> Unit)? = null,
     val onRefresh: () -> Unit = {},
     val onFilterSelected: (EpisodeFilter) -> Unit = {},
     val onOldestFirstChange: (Boolean) -> Unit = {},
@@ -287,6 +314,11 @@ private fun PodcastDetailTopBar(
             if (canShare) {
                 IconButton(onClick = actions.onShare) {
                     Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
+                }
+                actions.onReport?.let { report ->
+                    IconButton(onClick = report) {
+                        Icon(Icons.Outlined.Flag, contentDescription = stringResource(Res.string.report))
+                    }
                 }
             }
         },

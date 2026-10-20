@@ -389,4 +389,19 @@
     <string name="guardian_remove_pin">PIN 삭제</string>
     <string name="guardian_remove_pin_description">허용했던 항목이 다시 꺼집니다.</string>
     <string name="guardian_lock">잠그기</string>
+    <string name="report">신고</string>
+    <string name="report_podcast_title">팟캐스트 신고</string>
+    <string name="report_episode_title">에피소드 신고</string>
+    <string name="report_reason_sexual_abuse">성 착취 또는 학대</string>
+    <string name="report_reason_violence">폭력, 괴롭힘 또는 희롱</string>
+    <string name="report_reason_harm_to_health">자해, 자살, 약물 등 건강 피해 조장</string>
+    <string name="report_reason_gambling">도박, 술, 담배 또는 미성년자 금지 상품</string>
+    <string name="report_reason_advertising">허위 또는 악의적 광고</string>
+    <string name="report_reason_pornography">음란물</string>
+    <string name="report_reason_other">기타 아동·청소년 권리 침해</string>
+    <string name="report_hide">이 기기에서 숨기기</string>
+    <string name="report_send">이메일로 보내기</string>
+    <string name="report_channels">범죄라면 Disque 100, Comunica PF 또는 ANPD에도 신고하세요.</string>
+    <string name="report_email_subject">신고: %1$s</string>
+    <string name="report_email_body">사유: %1$s\n팟캐스트: %2$s\n에피소드: %3$s\n피드 호스트: %4$s</string>
 </resources>

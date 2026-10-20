@@ -408,4 +408,19 @@
     <string name="guardian_remove_pin">Remover o PIN</string>
     <string name="guardian_remove_pin_description">O que estava permitido volta a ficar desligado.</string>
     <string name="guardian_lock">Bloquear</string>
+    <string name="report">Denunciar</string>
+    <string name="report_podcast_title">Denunciar podcast</string>
+    <string name="report_episode_title">Denunciar episódio</string>
+    <string name="report_reason_sexual_abuse">Exploração ou abuso sexual</string>
+    <string name="report_reason_violence">Violência, intimidação ou assédio</string>
+    <string name="report_reason_harm_to_health">Incentivo a automutilação, suicídio, drogas ou outros danos à saúde</string>
+    <string name="report_reason_gambling">Apostas, álcool, tabaco ou produtos proibidos a menores</string>
+    <string name="report_reason_advertising">Publicidade enganosa ou abusiva</string>
+    <string name="report_reason_pornography">Conteúdo pornográfico</string>
+    <string name="report_reason_other">Outra violação dos direitos de crianças e adolescentes</string>
+    <string name="report_hide">Esconder deste aparelho</string>
+    <string name="report_send">Enviar por e-mail</string>
+    <string name="report_channels">Se for crime, denuncie também ao Disque 100, ao Comunica PF ou à ANPD.</string>
+    <string name="report_email_subject">Denúncia: %1$s</string>
+    <string name="report_email_body">Motivo: %1$s\nPodcast: %2$s\nEpisódio: %3$s\nHost do feed: %4$s</string>
 </resources>

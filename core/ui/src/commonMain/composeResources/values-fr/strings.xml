@@ -389,4 +389,19 @@
     <string name="guardian_remove_pin">Supprimer le code</string>
     <string name="guardian_remove_pin_description">Ce qui était autorisé est de nouveau désactivé.</string>
     <string name="guardian_lock">Verrouiller</string>
+    <string name="report">Signaler</string>
+    <string name="report_podcast_title">Signaler le podcast</string>
+    <string name="report_episode_title">Signaler l’épisode</string>
+    <string name="report_reason_sexual_abuse">Exploitation ou abus sexuel</string>
+    <string name="report_reason_violence">Violence, intimidation ou harcèlement</string>
+    <string name="report_reason_harm_to_health">Incitation à l’automutilation, au suicide, aux drogues ou à d’autres atteintes à la santé</string>
+    <string name="report_reason_gambling">Paris, alcool, tabac ou produits interdits aux mineurs</string>
+    <string name="report_reason_advertising">Publicité trompeuse ou abusive</string>
+    <string name="report_reason_pornography">Contenu pornographique</string>
+    <string name="report_reason_other">Autre atteinte aux droits des enfants et des adolescents</string>
+    <string name="report_hide">Le masquer sur cet appareil</string>
+    <string name="report_send">Envoyer par e-mail</string>
+    <string name="report_channels">S’il s’agit d’un crime, signalez-le aussi au Disque 100, à Comunica PF ou à l’ANPD.</string>
+    <string name="report_email_subject">Signalement : %1$s</string>
+    <string name="report_email_body">Motif : %1$s\nPodcast : %2$s\nÉpisode : %3$s\nHôte du flux : %4$s</string>
 </resources>

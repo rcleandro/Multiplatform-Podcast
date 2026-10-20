@@ -389,4 +389,19 @@
     <string name="guardian_remove_pin">Hapus PIN</string>
     <string name="guardian_remove_pin_description">Yang diizinkan kembali nonaktif.</string>
     <string name="guardian_lock">Kunci</string>
+    <string name="report">Laporkan</string>
+    <string name="report_podcast_title">Laporkan podcast</string>
+    <string name="report_episode_title">Laporkan episode</string>
+    <string name="report_reason_sexual_abuse">Eksploitasi atau pelecehan seksual</string>
+    <string name="report_reason_violence">Kekerasan, perundungan, atau pelecehan</string>
+    <string name="report_reason_harm_to_health">Mendorong melukai diri, bunuh diri, narkoba, atau bahaya kesehatan lain</string>
+    <string name="report_reason_gambling">Taruhan, alkohol, tembakau, atau produk terlarang bagi anak</string>
+    <string name="report_reason_advertising">Iklan menyesatkan atau eksploitatif</string>
+    <string name="report_reason_pornography">Konten pornografi</string>
+    <string name="report_reason_other">Pelanggaran lain atas hak anak dan remaja</string>
+    <string name="report_hide">Sembunyikan di perangkat ini</string>
+    <string name="report_send">Kirim lewat email</string>
+    <string name="report_channels">Jika ini kejahatan, laporkan juga ke Disque 100, Comunica PF, atau ANPD.</string>
+    <string name="report_email_subject">Laporan: %1$s</string>
+    <string name="report_email_body">Alasan: %1$s\nPodcast: %2$s\nEpisode: %3$s\nHost feed: %4$s</string>
 </resources>

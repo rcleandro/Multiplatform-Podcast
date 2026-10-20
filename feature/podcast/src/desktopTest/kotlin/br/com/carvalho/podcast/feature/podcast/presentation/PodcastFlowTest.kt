@@ -23,7 +23,9 @@ import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
@@ -74,7 +76,14 @@ class PodcastFlowTest {
     fun anEpisodeIsPlayedDownloadedAndItsDownloadRemovedFromItsMenu() = runComposeUiTest {
         setContent {
             PodcastTheme {
-                PodcastDetailScreen(PODCAST_ID, viewModel(), onBackClick = {}, onEpisodeClick = { _, _ -> })
+                PodcastDetailScreen(
+                    PODCAST_ID,
+                    viewModel(),
+                    onBackClick = {},
+                    onEpisodeClick = { _, _ -> },
+                    childSafety = ChildSafety(),
+                    preferences = FakePreferencesRepository(),
+                )
             }
         }
         waitUntilExactlyOneExists(hasText(episode.title))

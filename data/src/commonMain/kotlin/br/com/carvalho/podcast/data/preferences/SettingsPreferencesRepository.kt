@@ -39,6 +39,8 @@ private const val SYNC_FOLDER_BOOKMARK = "sync_folder_bookmark"
 private const val SYNC_FOLDER_NAME = "sync_folder_name"
 private const val SYNC_FOLDER_FILE = "sync_folder_file"
 private const val GUARDIAN_PIN = "guardian_pin"
+private const val HIDDEN_PODCASTS = "hidden_podcasts"
+private const val HIDDEN_EPISODES = "hidden_episodes"
 private const val GUARDIAN_CONTINUOUS = "guardian_allow_continuous"
 private const val GUARDIAN_NOTIFICATIONS = "guardian_allow_notifications"
 private const val GUARDIAN_BREAK_MINUTES = "guardian_break_minutes"
@@ -260,7 +262,27 @@ class SettingsPreferencesRepository(
         settings.putInt(GUARDIAN_BREAK_MINUTES, controls.breakReminderMinutes)
         guardian.value = controls
     }
+
+    private val podcastsHidden = MutableStateFlow(settings.idSet(HIDDEN_PODCASTS))
+    override val hiddenPodcasts: StateFlow<Set<String>> = podcastsHidden.asStateFlow()
+    private val episodesHidden = MutableStateFlow(settings.idSet(HIDDEN_EPISODES))
+    override val hiddenEpisodes: StateFlow<Set<String>> = episodesHidden.asStateFlow()
+
+    override fun hidePodcast(id: String) = hide(HIDDEN_PODCASTS, podcastsHidden, id)
+
+    override fun hideEpisode(id: String) = hide(HIDDEN_EPISODES, episodesHidden, id)
+
+    private fun hide(key: String, ids: MutableStateFlow<Set<String>>, id: String) {
+        ids.value += id
+        settings.putString(key, ids.value.joinToString(ID_SEPARATOR))
+    }
 }
+
+// Ids are feed addresses and hashes: neither holds a line break.
+private const val ID_SEPARATOR = "\n"
+
+private fun Settings.idSet(key: String): Set<String> =
+    getStringOrNull(key)?.split(ID_SEPARATOR)?.filter { it.isNotEmpty() }?.toSet().orEmpty()
 
 // A value written by another app version, or by hand, falls back to the default instead of crashing.
 private inline fun <reified T : Enum<T>> Settings.enumOrDefault(key: String, default: T): T =

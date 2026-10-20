@@ -110,4 +110,12 @@ interface PreferencesRepository {
     val guardianControls: StateFlow<GuardianControls>
 
     fun setGuardianControls(controls: GuardianControls)
+
+    /** Podcasts (by id) and episodes (by id) hidden after a report (26.7): out of every list, and they do not play. */
+    val hiddenPodcasts: StateFlow<Set<String>>
+    val hiddenEpisodes: StateFlow<Set<String>>
+
+    fun hidePodcast(id: String)
+
+    fun hideEpisode(id: String)
 }

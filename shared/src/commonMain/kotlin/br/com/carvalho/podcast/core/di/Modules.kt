@@ -132,7 +132,7 @@ val useCaseModule = module {
     // Brazil's ECA Digital (26.2): one per app, read by whatever the age changes.
     single { ChildSafety(get()) }
     // Lives as long as the app: the player and every list read it (26.3).
-    single { ExplicitContent.following(get(), get(), CoroutineScope(SupervisorJob())) }
+    single { ExplicitContent.following(get(), get(), get(), CoroutineScope(SupervisorJob())) }
     // From the start: listening counts toward a minor's break with the app's screens closed too (26.5).
     single(createdAtStart = true) {
         UsageReminder(get(), get(), get(), CoroutineScope(SupervisorJob() + Dispatchers.Default))
