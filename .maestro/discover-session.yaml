@@ -18,5 +18,5 @@ appId: br.com.carvalho.podcast
 - hideKeyboard
 - back
 - tapOn: "Adicionar Podcast"
-- assertNotVisible: "nerdcast"
+# The field shows its hint again: NerdCast itself may be in the chart below.
 - assertVisible: "Buscar por nome, autor ou assunto"

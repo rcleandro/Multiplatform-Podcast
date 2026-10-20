@@ -7,6 +7,9 @@ appId: br.com.carvalho.podcast
     clearState: true
     permissions:
       all: allow
+    # Outside Brazil: there the ECA Digital locks explicit content off (26.3) and this switch with it.
+    arguments:
+      debug_country: US
 - tapOn: "Adicionar Podcast"
 - inputText: "nerdcast"
 - extendedWaitUntil:

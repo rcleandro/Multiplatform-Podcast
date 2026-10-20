@@ -32,11 +32,21 @@ import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.backup_not_valid
+import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_allow_continuous
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_allow_notifications
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_break_every
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_break_reminder
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_change_pin
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_create_pin
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_lock
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_notice
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_open
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_create
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_ok
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_wrong
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_remove_pin
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_title
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_importing
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
@@ -73,6 +83,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
 import br.com.carvalho.podcast.core.ui.generated.resources.size_gigabytes
 import br.com.carvalho.podcast.core.util.DiskSpace
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.FolderSyncStatus
@@ -239,6 +250,45 @@ class SettingsContentTest {
         onNode(hasSetTextAction()).performTextInput("12a34")
         onNodeWithText(text(Res.string.guardian_pin_ok)).performClick()
         assertEquals(GuardianIntent.EnterPin("1234"), intents.last())
+    }
+
+    @Test
+    fun withThePinTheGuardiansAllowChooseTheBreakAndLockAgain() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        var state by mutableStateOf(SettingsUiState(guardian = GuardianState(inBrazil = true, hasPin = true)))
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        val list = onNode(hasScrollToNodeAction())
+        list.performScrollToNode(hasText(text(Res.string.guardian_open)))
+        onNodeWithText(text(Res.string.guardian_open)).performClick()
+        assertEquals(GuardianIntent.Open, intents.last())
+
+        state = state.copy(guardian = state.guardian.copy(unlocked = true))
+        list.performScrollToNode(hasText(text(Res.string.guardian_allow_continuous)))
+        onNodeWithText(text(Res.string.guardian_allow_continuous)).performClick()
+        assertEquals(GuardianIntent.SetControls(GuardianControls(allowContinuousPlayback = true)), intents.last())
+        list.performScrollToNode(hasText(text(Res.string.guardian_allow_notifications)))
+        onNodeWithText(text(Res.string.guardian_allow_notifications)).performClick()
+        assertEquals(GuardianIntent.SetControls(GuardianControls(allowNewEpisodeNotifications = true)), intents.last())
+
+        list.performScrollToNode(hasText(text(Res.string.guardian_break_reminder)))
+        onNodeWithText(text(Res.string.guardian_break_reminder)).performClick()
+        onNodeWithText(runBlocking { getString(Res.string.guardian_break_every, 30) }).performClick()
+        assertEquals(GuardianIntent.SetControls(GuardianControls(breakReminderMinutes = 30)), intents.last())
+
+        for ((row, intent) in listOf(
+            Res.string.guardian_change_pin to GuardianIntent.ChangePin,
+            Res.string.guardian_remove_pin to GuardianIntent.RemovePin,
+            Res.string.guardian_lock to GuardianIntent.Lock,
+        )) {
+            list.performScrollToNode(hasText(text(row)))
+            onNodeWithText(text(row)).performClick()
+            assertEquals(intent, intents.last())
+        }
+
+        state = state.copy(guardian = state.guardian.copy(pinStep = PinStep.CREATE))
+        onNodeWithText(text(Res.string.guardian_pin_create)).assertExists()
+        onNodeWithText(text(Res.string.cancel)).performClick()
+        assertEquals(GuardianIntent.DismissPin, intents.last())
     }
 
     @Test

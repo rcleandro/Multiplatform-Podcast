@@ -18,7 +18,8 @@ appId: br.com.carvalho.podcast
     visible: "Planet Money"
     timeout: 30000
 - tapOn: "Configurações"
-- assertVisible: "Downloads 0 MB"
+- scrollUntilVisible:
+    element: "Downloads 0 MB"
 - back
 - tapOn: "Planet Money"
 - tapOn:
@@ -30,7 +31,8 @@ appId: br.com.carvalho.podcast
     timeout: 120000
 - back
 - tapOn: "Configurações"
-- assertVisible: "Downloads [1-9].* MB"
+- scrollUntilVisible:
+    element: "Downloads [1-9].* MB"
 - scrollUntilVisible:
     element: "Apagar todos os downloads"
 - tapOn: "Apagar todos os downloads"

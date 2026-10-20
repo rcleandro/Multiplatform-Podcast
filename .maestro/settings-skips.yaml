@@ -8,6 +8,9 @@ appId: br.com.carvalho.podcast
     permissions:
       all: allow
 - tapOn: "Configurações"
+# Below the subscription rows of 19.11 and 19.12: the row after the jumps brings both into view.
+- scrollUntilVisible:
+    element: "Tocar a fila em sequência"
 # Skip back's choices come first: the second "5 s" is skip forward's.
 - tapOn:
     text: "5 s"
