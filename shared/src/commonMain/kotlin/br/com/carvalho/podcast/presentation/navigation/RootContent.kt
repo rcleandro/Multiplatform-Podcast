@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Podcasts
+import androidx.compose.material.icons.automirrored.rounded.FeaturedPlayList
+import androidx.compose.material.icons.rounded.VideoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -331,6 +331,6 @@ private fun SharedTransitionScope.coverShared(visibility: AnimatedVisibilityScop
 private const val SCROLL_THRESHOLD = 1f
 
 private val TABS: List<Triple<Tab, ImageVector, StringResource>> = listOf(
-    Triple(Tab.Library, Icons.Rounded.Home, Res.string.library_title),
-    Triple(Tab.Episodes, Icons.Rounded.Podcasts, Res.string.episodes_tab),
+    Triple(Tab.Library, Icons.Rounded.VideoLibrary, Res.string.library_title),
+    Triple(Tab.Episodes, Icons.AutoMirrored.Rounded.FeaturedPlayList, Res.string.episodes_tab),
 )

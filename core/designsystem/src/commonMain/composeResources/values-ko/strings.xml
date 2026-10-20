@@ -19,4 +19,5 @@
     <plurals name="ds_unplayed_count"><item quantity="other">듣지 않은 에피소드 %1$d개</item></plurals>
     <string name="ds_open_player">플레이어 열기</string>
     <string name="ds_open_queue">재생 대기열 열기</string>
+    <string name="ds_explicit">성인용</string>
 </resources>

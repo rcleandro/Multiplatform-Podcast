@@ -19,4 +19,5 @@
     <plurals name="ds_unplayed_count"><item quantity="zero">%1$d حلقة لم يُستمع إليها</item><item quantity="one">حلقة واحدة لم يُستمع إليها</item><item quantity="two">حلقتان لم يُستمع إليهما</item><item quantity="few">%1$d حلقات لم يُستمع إليها</item><item quantity="many">%1$d حلقة لم يُستمع إليها</item><item quantity="other">%1$d حلقة لم يُستمع إليها</item></plurals>
     <string name="ds_open_player">فتح المشغّل</string>
     <string name="ds_open_queue">فتح قائمة الانتظار</string>
+    <string name="ds_explicit">محتوى صريح</string>
 </resources>

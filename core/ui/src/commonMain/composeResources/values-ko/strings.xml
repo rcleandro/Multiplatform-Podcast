@@ -353,7 +353,6 @@
     <string name="settings_show_explicit">선정적인 콘텐츠 표시</string>
     <string name="settings_show_explicit_description">끄면 선정적인 콘텐츠로 표시된 팟캐스트가 검색, 차트, 추천에 나오지 않습니다.</string>
     <string name="settings_show_explicit_locked">브라질에서는 ECA Digital 법에 따라 잠겨 있습니다. Play 스토어 또는 App Store 계정에서 성인임이 확인되지 않으면 성인용 팟캐스트와 에피소드는 숨겨지고 재생되지 않습니다.</string>
-    <string name="explicit">선정적</string>
     <string name="filter_new">새 에피소드</string>
     <string name="new_empty_title">새 에피소드 없음</string>
     <string name="new_empty_message">팟캐스트에 올라온 에피소드는 듣거나 숨길 때까지 여기에 표시됩니다.</string>

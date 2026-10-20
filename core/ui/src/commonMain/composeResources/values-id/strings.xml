@@ -353,7 +353,6 @@
     <string name="settings_show_explicit">Tampilkan konten eksplisit</string>
     <string name="settings_show_explicit_description">Jika nonaktif, podcast yang ditandai eksplisit tidak muncul di pencarian, tangga lagu, dan saran.</string>
     <string name="settings_show_explicit_locked">Dikunci di Brasil oleh undang-undang ECA Digital: selama akun Play Store atau App Store Anda tidak menyatakan bahwa Anda dewasa, podcast dan episode eksplisit tetap tersembunyi dan tidak diputar.</string>
-    <string name="explicit">Eksplisit</string>
     <string name="filter_new">Baru</string>
     <string name="new_empty_title">Tidak ada yang baru</string>
     <string name="new_empty_message">Episode yang tiba di podcast Anda muncul di sini sampai Anda mendengarkan atau mengabaikannya.</string>

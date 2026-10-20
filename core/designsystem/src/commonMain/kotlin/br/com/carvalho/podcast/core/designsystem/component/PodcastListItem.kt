@@ -35,6 +35,7 @@ fun PodcastListItem(
     actions: List<ItemAction> = emptyList(),
     actionsLabel: String? = null,
     trailing: (@Composable () -> Unit)? = null,
+    explicit: Boolean = false,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val openMenu = { menuOpen = true }.takeIf { actions.isNotEmpty() }
@@ -55,13 +56,20 @@ fun PodcastListItem(
     ) {
         PodcastArtwork(imageUrl = imageUrl, contentDescription = null, modifier = Modifier.size(Sizes.artworkS))
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs), modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (explicit) ExplicitBadge()
+            }
             listOfNotNull(author, supportingText).forEach {
                 Text(
                     text = it,

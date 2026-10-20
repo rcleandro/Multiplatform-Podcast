@@ -353,7 +353,6 @@
     <string name="settings_show_explicit">Müstehcen içeriği göster</string>
     <string name="settings_show_explicit_description">Kapalıyken müstehcen olarak işaretlenen podcast'ler aramada, listelerde ve önerilerde görünmez.</string>
     <string name="settings_show_explicit_locked">Brezilya'da ECA Digital yasası nedeniyle kilitli: Play Store veya App Store hesabınız yetişkin olduğunuzu göstermediği sürece müstehcen podcast'ler ve bölümler gizli kalır ve oynatılmaz.</string>
-    <string name="explicit">Müstehcen</string>
     <string name="filter_new">Yeni</string>
     <string name="new_empty_title">Yeni bir şey yok</string>
     <string name="new_empty_message">Podcast'lerinize gelen bölümler, siz dinleyene veya kapatana kadar burada görünür.</string>

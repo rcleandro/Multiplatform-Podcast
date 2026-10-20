@@ -353,7 +353,6 @@
     <string name="settings_show_explicit">عرض المحتوى الصريح</string>
     <string name="settings_show_explicit_description">عند الإيقاف، لا تظهر البودكاست المعلَّمة كصريحة في البحث والقوائم والاقتراحات.</string>
     <string name="settings_show_explicit_locked">مقفل في البرازيل بموجب قانون ECA Digital: ما لم يُظهر حسابك في Play Store أو App Store أنك بالغ، تبقى البودكاست والحلقات الصريحة مخفية ولا تُشغَّل.</string>
-    <string name="explicit">صريح</string>
     <string name="filter_new">الجديدة</string>
     <string name="new_empty_title">لا جديد</string>
     <string name="new_empty_message">تظهر هنا الحلقات التي تصل إلى البودكاست الخاصة بك حتى تستمع إليها أو تتجاهلها.</string>

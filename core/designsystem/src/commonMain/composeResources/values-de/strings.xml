@@ -19,4 +19,5 @@
     <plurals name="ds_unplayed_count"><item quantity="one">%1$d ungehörte Folge</item><item quantity="other">%1$d ungehörte Folgen</item></plurals>
     <string name="ds_open_player">Player öffnen</string>
     <string name="ds_open_queue">Warteschlange öffnen</string>
+    <string name="ds_explicit">Explizit</string>
 </resources>

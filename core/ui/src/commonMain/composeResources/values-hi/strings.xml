@@ -353,7 +353,6 @@
     <string name="settings_show_explicit">आपत्तिजनक सामग्री दिखाएं</string>
     <string name="settings_show_explicit_description">बंद होने पर, आपत्तिजनक मार्क किए गए पॉडकास्ट खोज, चार्ट और सुझावों में नहीं दिखते।</string>
     <string name="settings_show_explicit_locked">ब्राज़ील में ECA Digital क़ानून के कारण लॉक है: जब तक आपका Play Store या App Store खाता यह न बताए कि आप वयस्क हैं, तब तक स्पष्ट सामग्री वाले पॉडकास्ट और एपिसोड छिपे रहेंगे और नहीं चलेंगे।</string>
-    <string name="explicit">आपत्तिजनक</string>
     <string name="filter_new">नए</string>
     <string name="new_empty_title">कुछ नया नहीं</string>
     <string name="new_empty_message">आपके पॉडकास्ट में आने वाले एपिसोड यहां तब तक दिखते हैं जब तक आप उन्हें सुन न लें या हटा न दें।</string>

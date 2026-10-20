@@ -19,4 +19,5 @@
     <plurals name="ds_unplayed_count"><item quantity="other">%1$d episode belum didengar</item></plurals>
     <string name="ds_open_player">Buka pemutar</string>
     <string name="ds_open_queue">Buka antrean</string>
+    <string name="ds_explicit">Eksplisit</string>
 </resources>

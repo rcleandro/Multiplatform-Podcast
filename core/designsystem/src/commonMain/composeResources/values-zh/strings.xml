@@ -19,4 +19,5 @@
     <plurals name="ds_unplayed_count"><item quantity="other">%1$d 个未听单集</item></plurals>
     <string name="ds_open_player">打开播放器</string>
     <string name="ds_open_queue">打开播放队列</string>
+    <string name="ds_explicit">露骨内容</string>
 </resources>

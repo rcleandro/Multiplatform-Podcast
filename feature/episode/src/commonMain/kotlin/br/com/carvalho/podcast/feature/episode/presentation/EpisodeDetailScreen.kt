@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
-import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Close
@@ -26,11 +25,11 @@ import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.OutlinedFlag
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.QueuePlayNext
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
@@ -67,12 +66,14 @@ import br.com.carvalho.podcast.core.designsystem.component.ArtworkBackdrop
 import br.com.carvalho.podcast.core.designsystem.component.DownloadState
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.ErrorState
+import br.com.carvalho.podcast.core.designsystem.component.ExplicitBadge
 import br.com.carvalho.podcast.core.designsystem.component.HtmlText
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastArtwork
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
 import br.com.carvalho.podcast.core.designsystem.component.morphingShape
+import br.com.carvalho.podcast.core.designsystem.icon.PodcastIcons
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -215,7 +216,7 @@ fun EpisodeDetailContent(
                         }
                         actions.onReport?.let { report ->
                             IconButton(onClick = report) {
-                                Icon(Icons.Outlined.Flag, contentDescription = stringResource(Res.string.report))
+                                Icon(Icons.Rounded.OutlinedFlag, contentDescription = stringResource(Res.string.report))
                             }
                         }
                     }
@@ -291,6 +292,7 @@ private fun EpisodeDetailBody(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.semantics { heading() },
                     )
+                    if (episode.explicit) ExplicitBadge()
                     EpisodeFacts(episode)
                 }
                 PlayPauseButton(episode, state, actions.onPlayPause)
@@ -383,7 +385,7 @@ private fun EpisodeActionButtons(episode: Episode, state: EpisodeDetailUiState, 
         }
         if (episode.isPlayed) {
             IconLabelButton(
-                Icons.Rounded.RemoveDone,
+                PodcastIcons.MarkUnplayed,
                 stringResource(Res.string.mark_as_unplayed),
                 actions.onMarkUnplayed,
             )

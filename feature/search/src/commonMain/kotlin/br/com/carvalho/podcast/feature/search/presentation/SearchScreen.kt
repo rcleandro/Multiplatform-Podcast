@@ -20,8 +20,8 @@ import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Inbox
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Timelapse
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -420,7 +420,7 @@ private fun EmptyFilter(state: SearchUiState, onEditPlaylist: (SmartPlaylist) ->
             modifier = modifier,
         )
         state.filter == EpisodeListFilter.IN_PROGRESS -> EmptyState(
-            icon = Icons.Rounded.PlayArrow,
+            icon = Icons.Rounded.Timelapse,
             title = stringResource(Res.string.in_progress_empty_title),
             message = stringResource(Res.string.in_progress_empty_message),
             modifier = modifier,

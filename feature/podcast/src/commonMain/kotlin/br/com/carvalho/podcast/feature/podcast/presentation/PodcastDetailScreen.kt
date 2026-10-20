@@ -18,9 +18,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Sort
-import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Explore
+import androidx.compose.material.icons.rounded.OutlinedFlag
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Share
@@ -68,6 +68,7 @@ import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.component.ArtworkBackdrop
 import br.com.carvalho.podcast.core.designsystem.component.ConfirmDialog
+import br.com.carvalho.podcast.core.designsystem.component.ExplicitBadge
 import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
 import br.com.carvalho.podcast.core.designsystem.component.FilterOption
 import br.com.carvalho.podcast.core.designsystem.component.HtmlText
@@ -317,7 +318,7 @@ private fun PodcastDetailTopBar(
                 }
                 actions.onReport?.let { report ->
                     IconButton(onClick = report) {
-                        Icon(Icons.Outlined.Flag, contentDescription = stringResource(Res.string.report))
+                        Icon(Icons.Rounded.OutlinedFlag, contentDescription = stringResource(Res.string.report))
                     }
                 }
             }
@@ -491,6 +492,7 @@ private fun PodcastHeader(
                     maxLines = TITLE_MAX_LINES,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (podcast.explicit) ExplicitBadge()
                 val count = state.episodeCount.takeIf { it > 0 }
                     ?.let { pluralStringResource(Res.plurals.podcast_episode_count, it, it) }
                 listOfNotNull(podcast.author, count).joinToString(" · ").takeIf { it.isNotEmpty() }?.let {

@@ -19,4 +19,5 @@
     <plurals name="ds_unplayed_count"><item quantity="one">%1$d épisode non écouté</item><item quantity="other">%1$d épisodes non écoutés</item></plurals>
     <string name="ds_open_player">Ouvrir le lecteur</string>
     <string name="ds_open_queue">Ouvrir la file d'attente</string>
+    <string name="ds_explicit">Explicite</string>
 </resources>

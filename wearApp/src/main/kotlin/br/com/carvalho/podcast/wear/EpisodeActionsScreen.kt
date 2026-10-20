@@ -10,7 +10,6 @@ import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.QueuePlayNext
-import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,6 +24,7 @@ import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
+import br.com.carvalho.podcast.core.designsystem.icon.PodcastIcons
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel_download
@@ -96,7 +96,7 @@ fun EpisodeActionsContent(state: EpisodeDetailUiState, onAction: (EpisodeDetailI
             item { ActionButton(download.first, stringResource(download.second)) { onAction(download.third) } }
             item {
                 if (episode.isPlayed) {
-                    ActionButton(Icons.Rounded.RemoveDone, stringResource(Res.string.mark_as_unplayed)) {
+                    ActionButton(PodcastIcons.MarkUnplayed, stringResource(Res.string.mark_as_unplayed)) {
                         onAction(EpisodeDetailIntent.MarkUnplayed)
                     }
                 } else {

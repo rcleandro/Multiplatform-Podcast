@@ -353,7 +353,6 @@
     <string name="settings_show_explicit">显示露骨内容</string>
     <string name="settings_show_explicit_description">关闭后，标为露骨的播客不会出现在搜索、排行榜和推荐中。</string>
     <string name="settings_show_explicit_locked">在巴西受 ECA Digital 法律限制而锁定：除非你的 Play 商店或 App Store 账户表明你已成年，否则含露骨内容的播客和单集将被隐藏且无法播放。</string>
-    <string name="explicit">露骨</string>
     <string name="filter_new">新单集</string>
     <string name="new_empty_title">没有新单集</string>
     <string name="new_empty_message">你的播客新发布的单集会显示在这里，直到你收听或忽略。</string>

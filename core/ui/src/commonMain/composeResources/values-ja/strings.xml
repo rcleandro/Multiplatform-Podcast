@@ -353,7 +353,6 @@
     <string name="settings_show_explicit">露骨な表現を含むコンテンツを表示</string>
     <string name="settings_show_explicit_description">オフにすると、露骨な表現を含むとされたポッドキャストは検索、ランキング、おすすめに表示されません。</string>
     <string name="settings_show_explicit_locked">ブラジルでは ECA Digital 法によりロックされています。Play ストアまたは App Store のアカウントで成人であることが示されない限り、露骨な表現を含むポッドキャストとエピソードは非表示になり、再生されません。</string>
-    <string name="explicit">露骨な表現</string>
     <string name="filter_new">新着</string>
     <string name="new_empty_title">新着はありません</string>
     <string name="new_empty_message">ポッドキャストに届いたエピソードは、聴くか非表示にするまでここに表示されます。</string>

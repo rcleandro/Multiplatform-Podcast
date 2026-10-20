@@ -353,7 +353,6 @@
     <string name="settings_show_explicit">Explizite Inhalte anzeigen</string>
     <string name="settings_show_explicit_description">Wenn aus, erscheinen als explizit markierte Podcasts nicht in Suche, Charts und Vorschlägen.</string>
     <string name="settings_show_explicit_locked">In Brasilien durch das ECA-Digital-Gesetz gesperrt: Solange dein Play-Store- oder App-Store-Konto dich nicht als volljährig ausweist, bleiben explizite Podcasts und Folgen ausgeblendet und werden nicht abgespielt.</string>
-    <string name="explicit">Explizit</string>
     <string name="filter_new">Neu</string>
     <string name="new_empty_title">Nichts Neues</string>
     <string name="new_empty_message">Folgen, die in deinen Podcasts erscheinen, stehen hier, bis du sie hörst oder verwirfst.</string>

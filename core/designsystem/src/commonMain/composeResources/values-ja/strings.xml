@@ -19,4 +19,5 @@
     <plurals name="ds_unplayed_count"><item quantity="other">未再生のエピソード %1$d 件</item></plurals>
     <string name="ds_open_player">プレーヤーを開く</string>
     <string name="ds_open_queue">キューを開く</string>
+    <string name="ds_explicit">露骨な表現</string>
 </resources>
