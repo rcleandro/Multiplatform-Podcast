@@ -82,7 +82,7 @@ uiautomator = "2.4.0"
 
 # Media
 media3 = "1.11.1"
-javafx = "21.0.5"
+javafx = "27"
 
 [libraries]
 # Gradle plugins, for the convention plugins in build-logic
