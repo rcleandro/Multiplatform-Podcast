@@ -359,4 +359,10 @@
     <string name="new_empty_message">ポッドキャストに届いたエピソードは、聴くか非表示にするまでここに表示されます。</string>
     <string name="dismiss_new">非表示</string>
     <string name="dismiss_all_new">すべて非表示</string>
+    <string name="settings_continuous_playback">キューを続けて再生</string>
+    <string name="settings_continuous_playback_description">エピソードが終わると、キューの次のエピソードが自動で始まります。オフにすると、各エピソードの最後で再生が止まります。</string>
+    <string name="settings_locked_for_minors">ブラジルでは ECA Digital 法により未成年者はオフです。</string>
+    <string name="usage_reminder_title">休憩しませんか？</string>
+    <string name="usage_reminder_message">しばらく聴き続けています。</string>
+    <string name="usage_reminder_keep_listening">聴き続ける</string>
 </resources>

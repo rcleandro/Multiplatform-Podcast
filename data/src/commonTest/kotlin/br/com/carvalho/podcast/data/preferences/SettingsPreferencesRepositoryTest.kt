@@ -140,6 +140,8 @@ class SettingsPreferencesRepositoryTest {
         val brazil = SettingsPreferencesRepository(settings, protectiveDefaults = true)
         assertFalse(brazil.telemetryEnabled.value)
         assertFalse(brazil.notifyNewEpisodes.value)
+        assertFalse(brazil.continuousPlayback.value)
+        assertTrue(SettingsPreferencesRepository(settings).continuousPlayback.value)
 
         SettingsPreferencesRepository(settings).setTelemetryEnabled(true)
 

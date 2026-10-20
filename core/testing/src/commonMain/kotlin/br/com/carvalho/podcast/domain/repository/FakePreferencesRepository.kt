@@ -64,6 +64,12 @@ class FakePreferencesRepository : PreferencesRepository {
         notifyNewEpisodes.value = enabled
     }
 
+    override val continuousPlayback = MutableStateFlow(true)
+
+    override fun setContinuousPlayback(enabled: Boolean) {
+        continuousPlayback.value = enabled
+    }
+
     override val refreshIntervalHours = MutableStateFlow(RefreshInterval.DEFAULT_HOURS)
 
     override fun setRefreshIntervalHours(hours: Int) {

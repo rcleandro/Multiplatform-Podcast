@@ -359,4 +359,10 @@
     <string name="new_empty_message">팟캐스트에 올라온 에피소드는 듣거나 숨길 때까지 여기에 표시됩니다.</string>
     <string name="dismiss_new">숨기기</string>
     <string name="dismiss_all_new">모두 숨기기</string>
+    <string name="settings_continuous_playback">대기열 연속 재생</string>
+    <string name="settings_continuous_playback_description">에피소드가 끝나면 대기열의 다음 에피소드가 자동으로 시작됩니다. 끄면 각 에피소드가 끝날 때 재생이 멈춥니다.</string>
+    <string name="settings_locked_for_minors">브라질에서는 ECA Digital 법에 따라 미성년자에게 꺼져 있습니다.</string>
+    <string name="usage_reminder_title">잠시 쉬어 볼까요?</string>
+    <string name="usage_reminder_message">한동안 계속 듣고 있어요.</string>
+    <string name="usage_reminder_keep_listening">계속 듣기</string>
 </resources>

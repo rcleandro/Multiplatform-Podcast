@@ -6,12 +6,14 @@ import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after_days
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after_never
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_locked_for_minors
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_notify_new
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_notify_new_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh_every
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh_never
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_updates
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -34,9 +36,10 @@ internal fun LazyListScope.updateSettings(
         item {
             SwitchRow(
                 title = stringResource(Res.string.settings_notify_new),
-                description = stringResource(Res.string.settings_notify_new_description),
-                checked = state.notifyNewEpisodes,
+                description = lockedForMinors(state.isMinor, Res.string.settings_notify_new_description),
+                checked = state.notifyNewEpisodes && !state.isMinor,
                 onChange = { onIntent(SettingsIntent.SetNotifyNewEpisodes(it)) },
+                enabled = !state.isMinor,
             )
         }
     }
@@ -70,3 +73,8 @@ internal fun LazyListScope.deleteAfterRow(days: Int, onPick: () -> Unit) {
         )
     }
 }
+
+/** A switch's own explanation, or why a minor in Brazil cannot turn it on (26.5). */
+@Composable
+internal fun lockedForMinors(isMinor: Boolean, description: StringResource): String =
+    stringResource(if (isMinor) Res.string.settings_locked_for_minors else description)

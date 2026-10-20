@@ -36,11 +36,13 @@ import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_impor
 import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_continuous_playback
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after_days
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_locked_for_minors
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_locked
 import br.com.carvalho.podcast.core.ui.generated.resources.stats_title
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup_description
@@ -192,6 +194,22 @@ class SettingsContentTest {
         onNodeWithText(text(Res.string.settings_show_explicit)).assertIsOff().assertIsNotEnabled().performClick()
 
         assertEquals(emptyList(), intents)
+    }
+
+    @Test
+    fun theQueueMovingOnIsASwitchAMinorInBrazilCannotTurnOn() = runComposeUiTest {
+        var state by mutableStateOf(SettingsUiState())
+        val intents = mutableListOf<SettingsIntent>()
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        val row = hasText(text(Res.string.settings_continuous_playback))
+        onNode(hasScrollToNodeAction()).performScrollToNode(row)
+
+        onNode(row).assertIsOn().performClick()
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.SetContinuousPlayback(false)), intents)
+
+        state = SettingsUiState(isMinor = true)
+        onNodeWithText(text(Res.string.settings_locked_for_minors)).assertExists()
+        onNode(row).assertIsOff().assertIsNotEnabled()
     }
 
     @Test

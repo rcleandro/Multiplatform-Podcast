@@ -359,4 +359,10 @@
     <string name="new_empty_message">Les épisodes qui arrivent dans vos podcasts apparaissent ici jusqu'à ce que vous les écoutiez ou les ignoriez.</string>
     <string name="dismiss_new">Ignorer</string>
     <string name="dismiss_all_new">Tout ignorer</string>
+    <string name="settings_continuous_playback">Lire la file à la suite</string>
+    <string name="settings_continuous_playback_description">Quand un épisode se termine, le suivant de la file démarre tout seul. Désactivé, la lecture s’arrête à la fin de chaque épisode.</string>
+    <string name="settings_locked_for_minors">Désactivé pour les mineurs au Brésil, en vertu de la loi ECA Digital.</string>
+    <string name="usage_reminder_title">L’heure d’une pause ?</string>
+    <string name="usage_reminder_message">Vous écoutez depuis un bon moment.</string>
+    <string name="usage_reminder_keep_listening">Continuer l’écoute</string>
 </resources>

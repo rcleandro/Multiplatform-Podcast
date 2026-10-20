@@ -359,4 +359,10 @@
     <string name="new_empty_message">你的播客新发布的单集会显示在这里，直到你收听或忽略。</string>
     <string name="dismiss_new">忽略</string>
     <string name="dismiss_all_new">全部忽略</string>
+    <string name="settings_continuous_playback">连续播放队列</string>
+    <string name="settings_continuous_playback_description">一集结束后，队列中的下一集会自动开始。关闭后，每集结束时停止播放。</string>
+    <string name="settings_locked_for_minors">根据 ECA Digital 法律，在巴西对未成年人关闭。</string>
+    <string name="usage_reminder_title">休息一下吧？</string>
+    <string name="usage_reminder_message">你已经听了一段时间了。</string>
+    <string name="usage_reminder_keep_listening">继续收听</string>
 </resources>

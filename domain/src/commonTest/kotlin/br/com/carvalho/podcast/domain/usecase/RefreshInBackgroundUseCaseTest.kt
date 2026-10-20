@@ -1,7 +1,9 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.domain.model.AgeGroup
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.repository.FakeAgeSignalSource
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
@@ -50,6 +52,19 @@ class RefreshInBackgroundUseCaseTest {
         )
 
         assertEquals(listOf("clean"), hidden().toNotify.map { it.id })
+    }
+
+    @Test
+    fun aMinorInBrazilIsToldAboutNothing() = runTest {
+        repository.podcasts.value = listOf(loud)
+        feedSource.resultsByUrl[loud.feedUrl] = Result.success(FetchedFeed(loud, listOf(episode("arrived", loud.id))))
+        val minor = ChildSafety(FakeAgeSignalSource(countries = setOf("BR"), ageGroup = AgeGroup.MINOR))
+        minor.refresh()
+        val refresh = RefreshInBackgroundUseCase(
+            RefreshPodcastUseCase(feedSource, repository), repository, preferences, childSafety = minor,
+        )
+
+        assertTrue(refresh().toNotify.isEmpty())
     }
 
     @Test

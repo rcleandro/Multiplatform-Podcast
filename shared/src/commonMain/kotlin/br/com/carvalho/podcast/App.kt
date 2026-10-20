@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.core.image.createImageLoader
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.presentation.ProvideAppLanguage
 import br.com.carvalho.podcast.presentation.ProvideLayoutDirection
+import br.com.carvalho.podcast.presentation.UsageReminderHost
 import br.com.carvalho.podcast.presentation.isDark
 import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import br.com.carvalho.podcast.presentation.navigation.RootContent
@@ -29,6 +30,7 @@ fun App(root: RootComponent, keyboardShortcuts: Boolean = false) {
         ProvideLayoutDirection {
             PodcastTheme(darkTheme = themeMode.isDark()) {
                 RootContent(root, keyboardShortcuts)
+                UsageReminderHost()
             }
         }
     }

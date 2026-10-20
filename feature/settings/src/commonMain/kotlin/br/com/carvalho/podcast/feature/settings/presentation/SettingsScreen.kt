@@ -56,6 +56,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_appearance
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_content
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_continuous_playback
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_continuous_playback_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all_confirmation
@@ -327,6 +329,15 @@ private fun LazyListScope.playbackSettings(state: SettingsUiState, onIntent: (Se
         SkipChoice(stringResource(Res.string.settings_skip_forward), skips.forwardSeconds) {
             onIntent(SettingsIntent.SetSkipIntervals(skips.copy(forwardSeconds = it)))
         }
+    }
+    item {
+        SwitchRow(
+            title = stringResource(Res.string.settings_continuous_playback),
+            description = lockedForMinors(state.isMinor, Res.string.settings_continuous_playback_description),
+            checked = state.continuousPlayback && !state.isMinor,
+            onChange = { onIntent(SettingsIntent.SetContinuousPlayback(it)) },
+            enabled = !state.isMinor,
+        )
     }
     if (canEnhanceSpeech) {
         item {

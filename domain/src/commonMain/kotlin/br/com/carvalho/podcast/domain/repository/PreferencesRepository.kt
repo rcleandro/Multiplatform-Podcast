@@ -54,6 +54,11 @@ interface PreferencesRepository {
 
     fun setNotifyNewEpisodes(enabled: Boolean)
 
+    /** When an episode ends, the next in the queue starts by itself (26.5); off in Brazil until chosen. */
+    val continuousPlayback: StateFlow<Boolean>
+
+    fun setContinuousPlayback(enabled: Boolean)
+
     /** Hours between looks for new episodes while the app is closed (18.18); 0 never looks. */
     val refreshIntervalHours: StateFlow<Int>
 

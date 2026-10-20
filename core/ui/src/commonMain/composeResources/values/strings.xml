@@ -379,4 +379,10 @@
     <string name="new_empty_message">Episodes that arrive in your podcasts show up here until you hear or dismiss them.</string>
     <string name="dismiss_new">Dismiss</string>
     <string name="dismiss_all_new">Dismiss all</string>
+    <string name="settings_continuous_playback">Play the queue in a row</string>
+    <string name="settings_continuous_playback_description">When an episode ends, the next one in the queue starts by itself. Off, playback stops at the end of each episode.</string>
+    <string name="settings_locked_for_minors">Off for minors in Brazil, by the ECA Digital law.</string>
+    <string name="usage_reminder_title">Time for a break?</string>
+    <string name="usage_reminder_message">You have been listening for a while.</string>
+    <string name="usage_reminder_keep_listening">Keep listening</string>
 </resources>

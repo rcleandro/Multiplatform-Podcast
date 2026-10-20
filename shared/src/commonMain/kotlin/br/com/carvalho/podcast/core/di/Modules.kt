@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.core.image.createImageLoader
 import br.com.carvalho.podcast.core.network.commonJson
 import br.com.carvalho.podcast.core.network.createHttpClient
 import br.com.carvalho.podcast.core.player.PlaybackController
+import br.com.carvalho.podcast.core.safety.continuousPlaybackAllowed
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
@@ -46,6 +47,7 @@ import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshInBackgroundUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
+import br.com.carvalho.podcast.domain.usecase.UsageReminder
 import br.com.carvalho.podcast.feature.discover.discoverFeatureModule
 import br.com.carvalho.podcast.feature.episode.episodeFeatureModule
 import br.com.carvalho.podcast.feature.library.libraryFeatureModule
@@ -106,6 +108,7 @@ val playerModule = module {
             skipIntervals = get<PreferencesRepository>().skipIntervals,
             chapterSource = get(),
             explicitRule = get<ExplicitContent>().rule,
+            continuousPlayback = continuousPlaybackAllowed(get(), get(), CoroutineScope(SupervisorJob())),
         )
     }
 }
@@ -130,6 +133,8 @@ val useCaseModule = module {
     single { ChildSafety(get()) }
     // Lives as long as the app: the player and every list read it (26.3).
     single { ExplicitContent.following(get(), get(), CoroutineScope(SupervisorJob())) }
+    // From the start: listening counts toward a minor's break with the app's screens closed too (26.5).
+    single(createdAtStart = true) { UsageReminder(get(), get(), CoroutineScope(SupervisorJob() + Dispatchers.Default)) }
     singleOf(::AddPodcastFromUrlUseCase)
     singleOf(::ImportOpmlUseCase)
     singleOf(::RefreshInBackgroundUseCase)

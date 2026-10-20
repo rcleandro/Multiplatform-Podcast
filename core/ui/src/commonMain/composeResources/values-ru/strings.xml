@@ -359,4 +359,10 @@
     <string name="new_empty_message">Новые выпуски ваших подкастов остаются здесь, пока вы их не прослушаете или не скроете.</string>
     <string name="dismiss_new">Скрыть</string>
     <string name="dismiss_all_new">Скрыть все</string>
+    <string name="settings_continuous_playback">Воспроизводить очередь подряд</string>
+    <string name="settings_continuous_playback_description">Когда выпуск заканчивается, следующий в очереди начинается сам. Если выключено, воспроизведение останавливается в конце каждого выпуска.</string>
+    <string name="settings_locked_for_minors">Выключено для несовершеннолетних в Бразилии по закону ECA Digital.</string>
+    <string name="usage_reminder_title">Пора сделать перерыв?</string>
+    <string name="usage_reminder_message">Вы слушаете уже довольно долго.</string>
+    <string name="usage_reminder_keep_listening">Продолжить слушать</string>
 </resources>

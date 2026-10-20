@@ -41,6 +41,7 @@ class PlaybackControllerTest {
     private val skips = MutableStateFlow(SkipIntervals())
     private val chapters = mutableMapOf<String, List<Chapter>>()
     private val explicitRule = MutableStateFlow(ExplicitRule())
+    private val continuous = MutableStateFlow(true)
 
     @Test
     fun theJumpsChosenInSettingsReachTheStateThePlatformAndTheRemoteButtons() = runTest(dispatcher) {
@@ -68,7 +69,24 @@ class PlaybackControllerTest {
         scope = backgroundScope,
         timeSource = testScheduler.timeSource,
         explicitRule = explicitRule,
+        continuousPlayback = continuous,
     ).also { runCurrent() }
+
+    @Test
+    fun withoutContinuousPlaybackTheQueueWaitsAtTheEndOfAnEpisode() = runTest(dispatcher) {
+        continuous.value = false
+        val controller = controller()
+        controller.setQueue(listOf(second))
+        controller.play(first)
+        runCurrent()
+
+        engine.raise(PlatformEvent.Ended)
+        runCurrent()
+
+        assertEquals("first", engine.loaded?.id)
+        assertFalse(controller.playerState.value.isPlaying)
+        assertEquals(listOf("second"), controller.playerState.value.queue.map { it.id })
+    }
 
     @Test
     fun underTheEcaDigitalAnExplicitEpisodeDoesNotPlayAndNextSkipsIt() = runTest(dispatcher) {

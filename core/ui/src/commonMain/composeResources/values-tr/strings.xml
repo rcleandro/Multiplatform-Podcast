@@ -359,4 +359,10 @@
     <string name="new_empty_message">Podcast'lerinize gelen bölümler, siz dinleyene veya kapatana kadar burada görünür.</string>
     <string name="dismiss_new">Kapat</string>
     <string name="dismiss_all_new">Tümünü kapat</string>
+    <string name="settings_continuous_playback">Sırayı arka arkaya çal</string>
+    <string name="settings_continuous_playback_description">Bir bölüm bittiğinde sıradaki bölüm kendiliğinden başlar. Kapalıyken oynatma her bölümün sonunda durur.</string>
+    <string name="settings_locked_for_minors">Brezilya'da ECA Digital yasası gereği reşit olmayanlar için kapalı.</string>
+    <string name="usage_reminder_title">Mola zamanı mı?</string>
+    <string name="usage_reminder_message">Bir süredir dinliyorsun.</string>
+    <string name="usage_reminder_keep_listening">Dinlemeye devam et</string>
 </resources>

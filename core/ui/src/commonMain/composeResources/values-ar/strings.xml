@@ -359,4 +359,10 @@
     <string name="new_empty_message">تظهر هنا الحلقات التي تصل إلى البودكاست الخاصة بك حتى تستمع إليها أو تتجاهلها.</string>
     <string name="dismiss_new">تجاهل</string>
     <string name="dismiss_all_new">تجاهل الكل</string>
+    <string name="settings_continuous_playback">تشغيل قائمة الانتظار بالتتابع</string>
+    <string name="settings_continuous_playback_description">عند انتهاء حلقة، تبدأ الحلقة التالية في قائمة الانتظار تلقائيًا. عند الإيقاف، يتوقف التشغيل في نهاية كل حلقة.</string>
+    <string name="settings_locked_for_minors">متوقف للقاصرين في البرازيل بموجب قانون ECA Digital.</string>
+    <string name="usage_reminder_title">هل حان وقت الاستراحة؟</string>
+    <string name="usage_reminder_message">أنت تستمع منذ فترة.</string>
+    <string name="usage_reminder_keep_listening">متابعة الاستماع</string>
 </resources>

@@ -359,4 +359,10 @@
     <string name="new_empty_message">Gli episodi che arrivano nei tuoi podcast compaiono qui finché non li ascolti o li ignori.</string>
     <string name="dismiss_new">Ignora</string>
     <string name="dismiss_all_new">Ignora tutti</string>
+    <string name="settings_continuous_playback">Riproduci la coda di seguito</string>
+    <string name="settings_continuous_playback_description">Quando un episodio finisce, il successivo della coda parte da solo. Disattivato, la riproduzione si ferma alla fine di ogni episodio.</string>
+    <string name="settings_locked_for_minors">Disattivato per i minori in Brasile, per la legge ECA Digital.</string>
+    <string name="usage_reminder_title">È ora di una pausa?</string>
+    <string name="usage_reminder_message">Stai ascoltando da un bel po’.</string>
+    <string name="usage_reminder_keep_listening">Continua ad ascoltare</string>
 </resources>

@@ -378,4 +378,10 @@
     <string name="new_empty_message">Os episódios que chegarem nos seus podcasts aparecem aqui até você ouvir ou dispensar.</string>
     <string name="dismiss_new">Dispensar</string>
     <string name="dismiss_all_new">Dispensar todos</string>
+    <string name="settings_continuous_playback">Tocar a fila em sequência</string>
+    <string name="settings_continuous_playback_description">Quando um episódio termina, o próximo da fila começa sozinho. Desligado, o player para no fim de cada episódio.</string>
+    <string name="settings_locked_for_minors">Desligado para menores no Brasil, pelo ECA Digital.</string>
+    <string name="usage_reminder_title">Hora de uma pausa?</string>
+    <string name="usage_reminder_message">Você está ouvindo há um bom tempo.</string>
+    <string name="usage_reminder_keep_listening">Continuar ouvindo</string>
 </resources>

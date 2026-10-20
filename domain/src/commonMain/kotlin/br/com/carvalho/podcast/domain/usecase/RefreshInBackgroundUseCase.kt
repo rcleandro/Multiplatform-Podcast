@@ -18,11 +18,13 @@ class RefreshInBackgroundUseCase(
     private val preferences: PreferencesRepository,
     /** Nothing explicit is announced under Brazil's ECA Digital (26.3). */
     private val explicitContent: ExplicitContent = ExplicitContent(),
+    /** A minor in Brazil gets no new-episode notifications (26.5). */
+    private val childSafety: ChildSafety = ChildSafety(),
 ) {
     suspend operator fun invoke(): BackgroundRefresh {
         val before = repository.getNewEpisodes().map { it.id }.toSet()
         val summary = refresh.refreshAll()
-        val toNotify = if (preferences.notifyNewEpisodes.value) {
+        val toNotify = if (preferences.notifyNewEpisodes.value && !childSafety.state.value.isMinor) {
             val podcasts = repository.getPodcasts().first()
             val quiet = podcasts.filterNot { it.notifyNewEpisodes }.map { it.id }.toSet()
             // From the podcasts read here: in a worker's fresh process the rule may not have them yet.

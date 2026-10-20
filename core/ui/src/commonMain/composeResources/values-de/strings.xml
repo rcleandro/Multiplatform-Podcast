@@ -359,4 +359,10 @@
     <string name="new_empty_message">Folgen, die in deinen Podcasts erscheinen, stehen hier, bis du sie hörst oder verwirfst.</string>
     <string name="dismiss_new">Verwerfen</string>
     <string name="dismiss_all_new">Alle verwerfen</string>
+    <string name="settings_continuous_playback">Warteschlange am Stück abspielen</string>
+    <string name="settings_continuous_playback_description">Wenn eine Folge endet, startet die nächste in der Warteschlange von selbst. Ausgeschaltet stoppt die Wiedergabe am Ende jeder Folge.</string>
+    <string name="settings_locked_for_minors">Für Minderjährige in Brasilien ausgeschaltet, nach dem ECA-Digital-Gesetz.</string>
+    <string name="usage_reminder_title">Zeit für eine Pause?</string>
+    <string name="usage_reminder_message">Du hörst schon eine ganze Weile zu.</string>
+    <string name="usage_reminder_keep_listening">Weiterhören</string>
 </resources>

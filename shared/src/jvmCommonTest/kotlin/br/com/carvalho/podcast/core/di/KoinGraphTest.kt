@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.core.di
 import io.ktor.client.engine.HttpClientEngine
 import kotlin.test.Test
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import okio.FileSystem
 import okio.Path
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -21,6 +22,7 @@ class KoinGraphTest {
         /** Built inside definition lambdas from values Koin does not provide. */
         val EXTRA_TYPES = listOf(
             CoroutineDispatcher::class,
+            CoroutineScope::class,
             HttpClientEngine::class,
             FileSystem::class,
             Path::class,

@@ -28,6 +28,7 @@ private const val SKIP_SILENCE = "skip_silence"
 private const val HEADPHONES_ONLY = "headphones_only"
 private const val REFRESH_INTERVAL_HOURS = "refresh_interval_hours"
 private const val NOTIFY_NEW_EPISODES = "notify_new_episodes"
+private const val CONTINUOUS_PLAYBACK = "continuous_playback"
 private const val BOOST_VOICE = "boost_voice"
 private const val SHOW_EXPLICIT = "show_explicit"
 private const val SKIP_BACKWARD_SECONDS = "skip_backward_seconds"
@@ -40,8 +41,8 @@ private const val SYNC_FOLDER_FILE = "sync_folder_file"
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
  * flows live here and this class is the only writer (a Koin singleton). [protectiveDefaults] in Brazil, for the ECA
- * Digital (26.4, ADR 0012): what nobody chose yet starts off (telemetry, new-episode notifications); what was chosen
- * stays.
+ * Digital (26.4, ADR 0012): what nobody chose yet starts off (telemetry, new-episode notifications, the queue moving
+ * on); what was chosen stays.
  */
 @Suppress("TooManyFunctions") // implements PreferencesRepository
 class SettingsPreferencesRepository(
@@ -86,6 +87,15 @@ class SettingsPreferencesRepository(
     override fun setDownloadNextOnFinish(enabled: Boolean) {
         settings.putBoolean(DOWNLOAD_NEXT_ON_FINISH, enabled)
         downloadNext.value = enabled
+    }
+
+    private val continuous =
+        MutableStateFlow(settings.getBoolean(CONTINUOUS_PLAYBACK, defaultValue = !protectiveDefaults))
+    override val continuousPlayback: StateFlow<Boolean> = continuous.asStateFlow()
+
+    override fun setContinuousPlayback(enabled: Boolean) {
+        settings.putBoolean(CONTINUOUS_PLAYBACK, enabled)
+        continuous.value = enabled
     }
 
     private val notify = MutableStateFlow(settings.getBoolean(NOTIFY_NEW_EPISODES, defaultValue = !protectiveDefaults))

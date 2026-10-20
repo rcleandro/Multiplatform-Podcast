@@ -359,4 +359,10 @@
     <string name="new_empty_message">आपके पॉडकास्ट में आने वाले एपिसोड यहां तब तक दिखते हैं जब तक आप उन्हें सुन न लें या हटा न दें।</string>
     <string name="dismiss_new">हटाएं</string>
     <string name="dismiss_all_new">सब हटाएं</string>
+    <string name="settings_continuous_playback">कतार लगातार चलाएँ</string>
+    <string name="settings_continuous_playback_description">एपिसोड ख़त्म होने पर कतार का अगला एपिसोड अपने आप शुरू होता है। बंद होने पर हर एपिसोड के अंत में प्लेबैक रुक जाता है।</string>
+    <string name="settings_locked_for_minors">ब्राज़ील में ECA Digital क़ानून के तहत नाबालिगों के लिए बंद।</string>
+    <string name="usage_reminder_title">थोड़ा आराम करें?</string>
+    <string name="usage_reminder_message">आप काफ़ी देर से सुन रहे हैं।</string>
+    <string name="usage_reminder_keep_listening">सुनना जारी रखें</string>
 </resources>

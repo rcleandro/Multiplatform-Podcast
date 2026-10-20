@@ -378,4 +378,10 @@
     <string name="new_empty_message">Los episodios que lleguen a tus podcasts aparecen aquí hasta que los escuches o los descartes.</string>
     <string name="dismiss_new">Descartar</string>
     <string name="dismiss_all_new">Descartar todos</string>
+    <string name="settings_continuous_playback">Reproducir la cola seguida</string>
+    <string name="settings_continuous_playback_description">Cuando termina un episodio, el siguiente de la cola empieza solo. Desactivado, la reproducción se detiene al final de cada episodio.</string>
+    <string name="settings_locked_for_minors">Desactivado para menores en Brasil, por el ECA Digital.</string>
+    <string name="usage_reminder_title">¿Hora de un descanso?</string>
+    <string name="usage_reminder_message">Llevas un buen rato escuchando.</string>
+    <string name="usage_reminder_keep_listening">Seguir escuchando</string>
 </resources>

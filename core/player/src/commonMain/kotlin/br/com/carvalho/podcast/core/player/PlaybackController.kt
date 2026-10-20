@@ -60,6 +60,8 @@ class PlaybackController(
     private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic,
     /** What may play under Brazil's ECA Digital (26.3): nothing explicit for a minor or without a signal. */
     private val explicitRule: StateFlow<ExplicitRule> = MutableStateFlow(ExplicitRule()),
+    /** Whether the queue moves on by itself when an episode ends (26.5): never for a minor in Brazil. */
+    private val continuousPlayback: StateFlow<Boolean> = MutableStateFlow(true),
 ) : AudioPlayer {
     private val _playerState = MutableStateFlow(PlayerState())
     override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
@@ -290,8 +292,9 @@ class PlaybackController(
             podcastRepository.markEpisodeAsPlayed(finished.id)
             onFinished(finished, _playerState.value.queue)
         }
-        if (_playerState.value.sleepTimer == SleepTimer.EndOfEpisode) {
-            _playerState.update { it.copy(isPlaying = false, sleepTimer = null) }
+        val timerEnds = _playerState.value.sleepTimer == SleepTimer.EndOfEpisode
+        if (timerEnds || !continuousPlayback.value) {
+            _playerState.update { it.copy(isPlaying = false, sleepTimer = if (timerEnds) null else it.sleepTimer) }
             return
         }
         playNext()

@@ -116,8 +116,14 @@ class SettingsViewModel(
         preferences.syncFolder,
         folderSync.status,
         childSafety.state,
-    ) { state, folder, sync, safety ->
-        state.copy(syncFolderName = folder?.name, folderSync = sync, isMinor = safety.isMinor)
+        preferences.continuousPlayback,
+    ) { state, folder, sync, safety, continuous ->
+        state.copy(
+            syncFolderName = folder?.name,
+            folderSync = sync,
+            isMinor = safety.isMinor,
+            continuousPlayback = continuous,
+        )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
@@ -189,6 +195,7 @@ class SettingsViewModel(
             is SettingsIntent.SetSkipSilence -> preferences.setSkipSilence(intent.enabled)
             is SettingsIntent.SetRefreshInterval -> preferences.setRefreshIntervalHours(intent.hours)
             is SettingsIntent.SetNotifyNewEpisodes -> preferences.setNotifyNewEpisodes(intent.enabled)
+            is SettingsIntent.SetContinuousPlayback -> preferences.setContinuousPlayback(intent.enabled)
             is SettingsIntent.SetBoostVoice -> preferences.setBoostVoice(intent.enabled)
             is SettingsIntent.SetWifiOnly -> preferences.setWifiOnlyDownloads(intent.enabled)
             is SettingsIntent.SetDownloadLimit -> preferences.setDownloadLimitBytes(intent.bytes)
@@ -227,8 +234,12 @@ data class SettingsUiState(
     val showExplicit: Boolean = true,
     /** Off and not to be turned on: a minor's signal or none, in Brazil (26.3). */
     val explicitLocked: Boolean = false,
-    /** A minor in Brazil (26.4): no telemetry row, since it stays off. */
+    /**
+     * A minor in Brazil (26.4, 26.5): no telemetry row, since it stays off, and new-episode notifications and the
+     * queue moving on show off and locked.
+     */
     val isMinor: Boolean = false,
+    val continuousPlayback: Boolean = true,
     val skipSilence: Boolean = false,
     val boostVoice: Boolean = false,
     /** Disk space the downloads take; null while it is measured, and where there are no downloads (Web). */
@@ -301,6 +312,7 @@ sealed interface SettingsIntent {
     data class SetSkipSilence(val enabled: Boolean) : SettingsIntent
     data class SetRefreshInterval(val hours: Int) : SettingsIntent
     data class SetNotifyNewEpisodes(val enabled: Boolean) : SettingsIntent
+    data class SetContinuousPlayback(val enabled: Boolean) : SettingsIntent
     data class SetBoostVoice(val enabled: Boolean) : SettingsIntent
     data class SetWifiOnly(val enabled: Boolean) : SettingsIntent
     data class SetDownloadLimit(val bytes: Long?) : SettingsIntent

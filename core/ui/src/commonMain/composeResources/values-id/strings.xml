@@ -359,4 +359,10 @@
     <string name="new_empty_message">Episode yang tiba di podcast Anda muncul di sini sampai Anda mendengarkan atau mengabaikannya.</string>
     <string name="dismiss_new">Abaikan</string>
     <string name="dismiss_all_new">Abaikan semua</string>
+    <string name="settings_continuous_playback">Putar antrean berurutan</string>
+    <string name="settings_continuous_playback_description">Saat episode selesai, episode berikutnya di antrean mulai sendiri. Jika nonaktif, pemutaran berhenti di akhir setiap episode.</string>
+    <string name="settings_locked_for_minors">Nonaktif untuk anak di bawah umur di Brasil, berdasarkan undang-undang ECA Digital.</string>
+    <string name="usage_reminder_title">Waktunya istirahat?</string>
+    <string name="usage_reminder_message">Anda sudah mendengarkan cukup lama.</string>
+    <string name="usage_reminder_keep_listening">Terus mendengarkan</string>
 </resources>
