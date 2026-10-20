@@ -112,6 +112,9 @@ Um `AgeSignal` do domínio tem três valores:
 - **No Brasil sem sinal, quem quer conteúdo explícito não tem como liberar.** Isso vale para todo Desktop e toda Web,
   e para quem não compartilha a faixa na loja. Reavaliar quando houver um mecanismo de verificação aceito pela ANPD
   e disponível nessas plataformas.
+- **Padrões protetores para adultos no Brasil também:** o que ninguém escolheu começa desligado assim que o app abre
+  no Brasil, antes de o sinal de idade chegar. Um adulto no Brasil começa com telemetria e notificações desligadas e
+  pode ligar nas Configurações (26.4).
 - **A Play Age Signals está indo para o mundo todo até o fim de 2026.** O sinal deixa de indicar Brasil, por isso o
   país sai das fontes do aparelho, não do sinal.
 - **A Declared Age Range no Brasil está em beta e depende de consentimento.** Até o iOS ganhar a interface em SwiftUI

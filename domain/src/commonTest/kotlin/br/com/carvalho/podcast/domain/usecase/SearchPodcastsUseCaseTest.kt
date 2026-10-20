@@ -1,9 +1,11 @@
 package br.com.carvalho.podcast.domain.usecase
 
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.domain.model.AgeGroup
 import br.com.carvalho.podcast.domain.model.DirectoryPodcast
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.PodcastCategory
+import br.com.carvalho.podcast.domain.repository.FakeAgeSignalSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
@@ -127,6 +129,19 @@ class SearchPodcastsUseCaseTest {
 
         directory.topResult = Result.failure(AppError.NoConnection)
         assertTrue(search.similarTo("a")?.results?.isFailure == true)
+    }
+
+    @Test
+    fun aMinorInBrazilGetsNothingForTheirLibrary() = runTest {
+        repository.podcasts.value = listOf(saved("https://t1.fm/rss").copy(categories = listOf("Technology")))
+        directory.topByCategory[PodcastCategory.TECHNOLOGY] = Result.success(listOf(found("https://tech-a.fm/rss")))
+        val minor = ChildSafety(FakeAgeSignalSource(countries = setOf("BR"), ageGroup = AgeGroup.MINOR))
+        minor.refresh()
+
+        val forYou = SearchPodcastsUseCase(directory, repository, preferences, childSafety = minor).forLibrary()
+
+        assertEquals(emptyList(), forYou.getOrThrow())
+        assertTrue(directory.chartsAsked.isEmpty())
     }
 
     @Test

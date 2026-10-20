@@ -16,7 +16,7 @@ private const val BRAZIL = "BR"
  * Who the ECA Digital protects (26.2, ADR 0012), read when the app opens and comes back to the foreground. Until a
  * signal arrives, someone in Brazil counts as unknown: the protective side. Only kept in memory.
  */
-class ChildSafety(private val source: AgeSignalSource) {
+class ChildSafety(private val source: AgeSignalSource = AgeSignalSource.None) {
     private val _state = MutableStateFlow(ChildSafetyState(inBrazil = isInBrazil()))
     val state: StateFlow<ChildSafetyState> = _state.asStateFlow()
     private val refreshing = Mutex()

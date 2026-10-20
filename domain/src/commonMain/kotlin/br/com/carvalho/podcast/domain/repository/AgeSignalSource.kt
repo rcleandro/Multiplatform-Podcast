@@ -9,4 +9,11 @@ interface AgeSignalSource {
 
     /** The shared age range; [AgeGroup.UNKNOWN] when not shared, declined or unavailable. Asked only in Brazil. */
     suspend fun ageGroup(): AgeGroup
+
+    /** Nowhere and no age: outside Brazil, so nothing changes. What tests and previews start with. */
+    object None : AgeSignalSource {
+        override fun countries(): Set<String> = emptySet()
+
+        override suspend fun ageGroup(): AgeGroup = AgeGroup.UNKNOWN
+    }
 }

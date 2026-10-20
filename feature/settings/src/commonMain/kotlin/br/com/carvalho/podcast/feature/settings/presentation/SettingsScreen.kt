@@ -291,6 +291,8 @@ private fun LazyListScope.contentAndPrivacySettings(state: SettingsUiState, onIn
             enabled = !state.explicitLocked,
         )
     }
+    // A minor in Brazil has telemetry off for good (26.4): nothing to choose, so no row.
+    if (state.isMinor) return
     item { Section(stringResource(Res.string.settings_privacy)) }
     item {
         SwitchRow(

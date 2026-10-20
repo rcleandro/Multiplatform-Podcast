@@ -4,11 +4,13 @@ import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
+import br.com.carvalho.podcast.domain.model.AgeGroup
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
+import br.com.carvalho.podcast.domain.repository.FakeAgeSignalSource
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeOpmlFormat
@@ -17,6 +19,7 @@ import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.ExplicitRule
@@ -79,7 +82,23 @@ class SettingsViewModelTest {
                 ),
             ),
             ExplicitContent(explicitRule),
+            childSafety,
         )
+
+    private val ageSignal = FakeAgeSignalSource(countries = setOf("BR"), ageGroup = AgeGroup.ADULT)
+    private val childSafety = ChildSafety(ageSignal)
+
+    @Test
+    fun aMinorInBrazilHasNoTelemetryToChoose() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        childSafety.refresh()
+        assertFalse(viewModel.uiState.value.isMinor)
+
+        ageSignal.ageGroup = AgeGroup.MINOR
+        childSafety.refresh()
+
+        assertTrue(viewModel.uiState.value.isMinor)
+    }
 
     private val explicitRule = MutableStateFlow(ExplicitRule())
 

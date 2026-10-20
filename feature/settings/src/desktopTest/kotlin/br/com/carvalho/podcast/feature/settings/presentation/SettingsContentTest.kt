@@ -195,6 +195,14 @@ class SettingsContentTest {
     }
 
     @Test
+    fun aMinorInBrazilSeesNoTelemetryRow() = runComposeUiTest {
+        setContent { PodcastTheme { SettingsContent(SettingsUiState(isMinor = true), onBack = {}, onIntent = {}) } }
+
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_show_explicit)))
+        onAllNodesWithText(text(Res.string.settings_telemetry)).assertCountEquals(0)
+    }
+
+    @Test
     fun telemetryIsASwitchWithItsExplanation() = runComposeUiTest {
         var enabled: Boolean? = null
         setContent {

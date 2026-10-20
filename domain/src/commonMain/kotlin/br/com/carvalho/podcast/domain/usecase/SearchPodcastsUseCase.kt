@@ -23,6 +23,7 @@ class SearchPodcastsUseCase(
     private val podcastRepository: PodcastRepository,
     private val preferences: PreferencesRepository,
     private val explicitContent: ExplicitContent = ExplicitContent(),
+    private val childSafety: ChildSafety = ChildSafety(),
 ) {
     suspend operator fun invoke(term: String): Result<List<DirectoryResult>> {
         val trimmed = term.trim()
@@ -51,9 +52,13 @@ class SearchPodcastsUseCase(
         return Similar(podcast.title, recommending(listOf(byAuthor, byCategory)) { it + feedUrlKey(podcast.feedUrl) })
     }
 
-    /** For the library (19.6): the charts of its two most common categories, taking turns. Empty for an empty one. */
+    /**
+     * For the library (19.6): the charts of its two most common categories, taking turns. Empty for an empty one, and
+     * for a minor in Brazil, since it follows what they subscribe to (26.4).
+     */
     suspend fun forLibrary(): Result<List<DirectoryResult>> {
-        val categories = podcastRepository.getPodcasts().first()
+        val library = podcastRepository.getPodcasts().first().takeUnless { childSafety.state.value.isMinor }.orEmpty()
+        val categories = library
             .flatMap { it.topCategories }
             .groupingBy { it }.eachCount()
             .entries.sortedByDescending { it.value }

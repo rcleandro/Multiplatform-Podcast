@@ -39,10 +39,15 @@ private const val SYNC_FOLDER_FILE = "sync_folder_file"
 
 /**
  * [PreferencesRepository] over multiplatform-settings (ADR 0006). Not every platform's Settings can be observed, so the
- * flows live here and this class is the only writer (a Koin singleton).
+ * flows live here and this class is the only writer (a Koin singleton). [protectiveDefaults] in Brazil, for the ECA
+ * Digital (26.4, ADR 0012): what nobody chose yet starts off (telemetry, new-episode notifications); what was chosen
+ * stays.
  */
 @Suppress("TooManyFunctions") // implements PreferencesRepository
-class SettingsPreferencesRepository(private val settings: Settings) : PreferencesRepository {
+class SettingsPreferencesRepository(
+    private val settings: Settings,
+    private val protectiveDefaults: Boolean = false,
+) : PreferencesRepository {
     private val layout = MutableStateFlow(settings.enumOrDefault(LIBRARY_LAYOUT, LibraryLayout.GRID))
     override val libraryLayout: StateFlow<LibraryLayout> = layout.asStateFlow()
 
@@ -83,7 +88,7 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         downloadNext.value = enabled
     }
 
-    private val notify = MutableStateFlow(settings.getBoolean(NOTIFY_NEW_EPISODES, defaultValue = true))
+    private val notify = MutableStateFlow(settings.getBoolean(NOTIFY_NEW_EPISODES, defaultValue = !protectiveDefaults))
     override val notifyNewEpisodes: StateFlow<Boolean> = notify.asStateFlow()
 
     override fun setNotifyNewEpisodes(enabled: Boolean) {
@@ -187,7 +192,7 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         theme.value = mode
     }
 
-    private val telemetry = MutableStateFlow(settings.getBoolean(TELEMETRY_ENABLED, defaultValue = true))
+    private val telemetry = MutableStateFlow(settings.getBoolean(TELEMETRY_ENABLED, defaultValue = !protectiveDefaults))
     override val telemetryEnabled: StateFlow<Boolean> = telemetry.asStateFlow()
 
     override fun setTelemetryEnabled(enabled: Boolean) {

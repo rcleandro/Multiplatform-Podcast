@@ -114,7 +114,10 @@ val repositoryModule = module {
     single<PodcastRepository> { PodcastRepositoryImpl(get(), get()) }
     single<PlayerRepository> { PlayerRepositoryImpl(get(), get()) }
     // Settings comes from each platform module (ADR 0006).
-    single<PreferencesRepository> { SettingsPreferencesRepository(get()) }
+    single<PreferencesRepository> {
+        // In Brazil, unchosen options start in the protective position (26.4): someone there is unknown until signed.
+        SettingsPreferencesRepository(get(), protectiveDefaults = get<ChildSafety>().state.value.inBrazil)
+    }
     // Each platform binds EpisodeDownloader: Android and iOS wrap this one to download in the background.
     single {
         val preferences = get<PreferencesRepository>()

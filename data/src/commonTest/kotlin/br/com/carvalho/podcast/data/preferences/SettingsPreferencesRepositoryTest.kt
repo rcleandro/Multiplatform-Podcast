@@ -136,6 +136,17 @@ class SettingsPreferencesRepositoryTest {
     }
 
     @Test
+    fun inBrazilWhatNobodyChoseStartsOffAndWhatWasChosenStays() {
+        val brazil = SettingsPreferencesRepository(settings, protectiveDefaults = true)
+        assertFalse(brazil.telemetryEnabled.value)
+        assertFalse(brazil.notifyNewEpisodes.value)
+
+        SettingsPreferencesRepository(settings).setTelemetryEnabled(true)
+
+        assertTrue(SettingsPreferencesRepository(settings, protectiveDefaults = true).telemetryEnabled.value)
+    }
+
+    @Test
     fun telemetryStartsOnAndTurningItOffIsKept() {
         assertTrue(SettingsPreferencesRepository(settings).telemetryEnabled.value)
 

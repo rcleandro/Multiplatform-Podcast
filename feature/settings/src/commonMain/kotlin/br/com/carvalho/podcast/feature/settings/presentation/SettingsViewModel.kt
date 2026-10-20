@@ -15,6 +15,7 @@ import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
@@ -50,6 +51,8 @@ class SettingsViewModel(
     private val folderSync: FolderSyncUseCase,
     /** Locks "Show explicit content" off under Brazil's ECA Digital (26.3). */
     private val explicitContent: ExplicitContent = ExplicitContent(),
+    /** A minor in Brazil has no telemetry to turn on (26.4). */
+    private val childSafety: ChildSafety = ChildSafety(),
 ) : ViewModel() {
     private val usedBytes = MutableStateFlow<Long?>(null)
     private val disk = MutableStateFlow<DiskSpace?>(null)
@@ -112,7 +115,10 @@ class SettingsViewModel(
         choices,
         preferences.syncFolder,
         folderSync.status,
-    ) { state, folder, sync -> state.copy(syncFolderName = folder?.name, folderSync = sync) }
+        childSafety.state,
+    ) { state, folder, sync, safety ->
+        state.copy(syncFolderName = folder?.name, folderSync = sync, isMinor = safety.isMinor)
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     init {
@@ -221,6 +227,8 @@ data class SettingsUiState(
     val showExplicit: Boolean = true,
     /** Off and not to be turned on: a minor's signal or none, in Brazil (26.3). */
     val explicitLocked: Boolean = false,
+    /** A minor in Brazil (26.4): no telemetry row, since it stays off. */
+    val isMinor: Boolean = false,
     val skipSilence: Boolean = false,
     val boostVoice: Boolean = false,
     /** Disk space the downloads take; null while it is measured, and where there are no downloads (Web). */

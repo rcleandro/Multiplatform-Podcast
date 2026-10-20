@@ -8,6 +8,7 @@ import br.com.carvalho.podcast.core.observability.whenAllowed
 import br.com.carvalho.podcast.core.player.IosPlatformPlayer
 import br.com.carvalho.podcast.core.player.PlatformPlayer
 import br.com.carvalho.podcast.core.safety.StoreAgeSignalSource
+import br.com.carvalho.podcast.core.safety.telemetryAllowed
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.IosNetworkMonitor
 import br.com.carvalho.podcast.core.util.NetworkMonitor
@@ -16,6 +17,7 @@ import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.repository.AgeSignalSource
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import com.russhwolf.settings.Settings
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -33,11 +35,13 @@ actual val platformModule = module {
     single { AppDirectories(FileSystem.SYSTEM, documentsDirectory()) }
     single<Analytics> {
         val preferences = get<PreferencesRepository>()
-        FirebaseAnalytics().whenAllowed { preferences.telemetryEnabled.value }
+        val childSafety = get<ChildSafety>()
+        FirebaseAnalytics().whenAllowed { telemetryAllowed(preferences, childSafety) }
     }
     single<CrashReporter> {
         val preferences = get<PreferencesRepository>()
-        FirebaseCrashReporter().whenAllowed { preferences.telemetryEnabled.value }
+        val childSafety = get<ChildSafety>()
+        FirebaseCrashReporter().whenAllowed { telemetryAllowed(preferences, childSafety) }
     }
     single(createdAtStart = true) {
         val preferences = get<PreferencesRepository>()
