@@ -1,8 +1,8 @@
 [versions]
 # Kotlin e build
-componentsResources = "1.12.1"
-foundation = "1.12.1"
-kotlin = "2.4.20"
+componentsResources = "1.12.2"
+foundation = "1.12.2"
+kotlin = "2.4.21"
 agp = "9.4.1"
 ksp = "2.3.12"
 android-compileSdk = "37"
@@ -11,7 +11,7 @@ android-targetSdk = "37"
 material3 = "1.9.0"
 
 # UI
-compose-multiplatform = "1.12.1"
+compose-multiplatform = "1.12.2"
 androidx-activity = "1.13.0"
 wear-compose = "1.7.0"
 wear-tiles = "1.6.2"
@@ -38,7 +38,7 @@ ktor = "3.6.0"
 kotlinx-serialization = "1.11.0"
 kotlinx-coroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
-okio = "3.17.0"
+okio = "3.18.2"
 xmlutil = "1.0.2.1"
 filekit = "0.16.0"
 multiplatform-settings = "1.3.0"
@@ -51,13 +51,13 @@ koin = "4.2.1"
 decompose = "3.5.0"
 
 # Paging
-paging = "3.5.1"
+paging = "3.5.3"
 
 # Imagem assíncrona
 coil = "3.6.3"
 
 # Logging
-kermit = "2.1.0"
+kermit = "2.2.0"
 
 # Static Analysis
 detekt = "1.23.8"
@@ -71,7 +71,7 @@ firebase-crashlytics-plugin = "3.0.8"
 # Testes
 turbine = "1.2.1"
 mockk = "1.14.11"
-uiTest = "1.12.1"
+uiTest = "1.12.2"
 kover = "0.9.11"
 roborazzi = "1.76.0"
 robolectric = "4.17"
@@ -83,7 +83,7 @@ uiautomator = "2.4.0"
 
 # Media
 media3 = "1.11.1"
-javafx = "21.0.5"
+javafx = "27"
 
 [libraries]
 # Gradle plugins, for the convention plugins in build-logic
