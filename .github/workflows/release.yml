@@ -1,0 +1,169 @@
+name: Release
+
+# 20.6: pushing a tag vX.Y.Z builds every installer and publishes a GitHub Release with notes from the commits.
+# Bump version.properties first; the tag must name the same version.
+# iOS waits for 20.3 (signing and TestFlight); the macOS app is signed once a Developer ID is in the secrets (20.5).
+on:
+    push:
+        tags: [ 'v*.*.*' ]
+
+concurrency:
+    group: release-${{ github.ref }}
+
+env:
+    GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx8192M -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true"
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+    version:
+        name: Check the version
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Tag matches version.properties
+              run: |
+                  version=$(sed -n 's/^APP_VERSION=//p' version.properties)
+                  if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+                      echo "::error::Tag $GITHUB_REF_NAME does not match APP_VERSION=$version in version.properties."
+                      exit 1
+                  fi
+
+    android:
+        name: Android
+        needs: version
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Create google-services.json
+              uses: ./.github/actions/secret-file
+              with:
+                  content: ${{ secrets.GOOGLE_SERVICES_JSON }}
+                  path: androidApp/google-services.json
+                  placeholder: .github/ci/google-services.json
+
+            # The placeholder is fine for CI, not for users: their crashes would go nowhere.
+            - name: Refuse the placeholder Firebase config
+              run: |
+                  if cmp -s androidApp/google-services.json .github/ci/google-services.json; then
+                      echo "::error::GOOGLE_SERVICES_JSON is missing or invalid; a release needs the real file."
+                      exit 1
+                  fi
+
+            - name: Release keystore
+              env:
+                  KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+              run: |
+                  if [ -z "$KEYSTORE" ]; then
+                      echo "::warning::ANDROID_KEYSTORE_BASE64 is empty; the APKs and bundles come out unsigned."
+                      exit 0
+                  fi
+                  printf '%s' "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/release.jks"
+                  echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+            - name: Gradle setup
+              uses: ./.github/actions/gradle-setup
+
+            - name: Build APKs and App Bundles (phone and watch)
+              env:
+                  ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+                  ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+                  ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+              run: ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease :wearApp:assembleRelease :wearApp:bundleRelease
+
+            - name: Collect
+              run: |
+                  mkdir dist
+                  cp androidApp/build/outputs/apk/release/*.apk "dist/podcast-$GITHUB_REF_NAME-phone.apk"
+                  cp androidApp/build/outputs/bundle/release/*.aab "dist/podcast-$GITHUB_REF_NAME-phone.aab"
+                  cp wearApp/build/outputs/apk/release/*.apk "dist/podcast-$GITHUB_REF_NAME-watch.apk"
+                  cp wearApp/build/outputs/bundle/release/*.aab "dist/podcast-$GITHUB_REF_NAME-watch.aab"
+
+            - name: Upload
+              uses: actions/upload-artifact@v7
+              with:
+                  name: release-android
+                  path: dist/
+
+    desktop:
+        name: Desktop (${{ matrix.os }})
+        needs: version
+        strategy:
+            matrix:
+                os: [ ubuntu-latest, macos-15, windows-latest ]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Gradle setup
+              uses: ./.github/actions/gradle-setup
+
+            - name: Package
+              shell: bash
+              run: ./gradlew :desktopApp:packageDistributionForCurrentOS
+
+            - name: Upload
+              uses: actions/upload-artifact@v7
+              with:
+                  name: release-desktop-${{ matrix.os }}
+                  path: |
+                      desktopApp/build/compose/binaries/main/dmg/*.dmg
+                      desktopApp/build/compose/binaries/main/msi/*.msi
+                      desktopApp/build/compose/binaries/main/deb/*.deb
+
+    web:
+        name: Web
+        needs: version
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Gradle setup
+              uses: ./.github/actions/gradle-setup
+
+            - name: Build
+              run: ./gradlew :webApp:wasmJsBrowserDistribution
+
+            # The host must send COOP and COEP, or the database is lost on every reload (ADR 0013).
+            - name: Zip
+              run: |
+                  mkdir dist
+                  (cd webApp/build/dist/wasmJs/productionExecutable && zip -qr "$GITHUB_WORKSPACE/dist/podcast-$GITHUB_REF_NAME-web.zip" .)
+
+            - name: Upload
+              uses: actions/upload-artifact@v7
+              with:
+                  name: release-web
+                  path: dist/
+
+    publish:
+        name: GitHub Release
+        needs: [ android, desktop, web ]
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Download
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: release-*
+                  path: dist
+                  merge-multiple: true
+
+            - name: Release notes
+              run: .github/scripts/changelog.sh "$GITHUB_REF_NAME" > notes.md
+
+            - name: Publish
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md dist/*
