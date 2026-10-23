@@ -182,10 +182,7 @@ class PodcastMediaService : MediaLibraryService() {
             session: MediaSession,
             controller: MediaSession.ControllerInfo
         ): MediaSession.ConnectionResult {
-            val availableSessionCommands = SessionCommands.Builder()
-                .add(skipForwardCommand)
-                .add(skipBackwardCommand)
-                .build()
+            val availableSessionCommands = sessionCommandsWith(skipForwardCommand, skipBackwardCommand)
 
             val customLayout = skipButtons(preferences.skipIntervals.value)
 
@@ -272,6 +269,32 @@ class PodcastMediaService : MediaLibraryService() {
             }
         }
 
+        // The car's search box finds what a voice search would play (20.7).
+        override fun onSearch(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            query: String,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<Void>> {
+            serviceScope.launch {
+                val count = withContext(Dispatchers.IO) { tree.search(query).size }
+                session.notifySearchResultChanged(browser, query, count, params)
+            }
+            return Futures.immediateFuture(LibraryResult.ofVoid())
+        }
+
+        // ponytail: one page with every match; page through it if a library grows big enough to need it.
+        override fun onGetSearchResult(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            query: String,
+            page: Int,
+            pageSize: Int,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = serviceScope.future {
+            LibraryResult.ofItemList(withContext(Dispatchers.IO) { tree.search(query) }, params)
+        }
+
         override fun onAddMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
@@ -317,6 +340,16 @@ class PodcastMediaService : MediaLibraryService() {
         super.onTaskRemoved(rootIntent)
     }
 }
+
+/**
+ * What a controller may ask the session: Media3's defaults plus [custom]. Starting from an empty set dropped the
+ * library commands, and Android Auto, finding no "get library root", showed the app as not working (20.7).
+ */
+@OptIn(UnstableApi::class)
+internal fun sessionCommandsWith(vararg custom: SessionCommand): SessionCommands =
+    MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
+        .apply { custom.forEach { add(it) } }
+        .build()
 
 /** Media3's icon with the jump's number when there is one; a plain arrow otherwise. */
 private fun skipForwardIcon(seconds: Int): Int = when (seconds) {
