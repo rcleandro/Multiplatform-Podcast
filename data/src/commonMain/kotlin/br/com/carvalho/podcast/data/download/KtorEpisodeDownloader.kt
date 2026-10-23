@@ -5,6 +5,7 @@ import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.core.util.diskSpace
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.data.remote.toAppError
@@ -43,6 +44,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okio.BufferedSink
 import okio.IOException
 import okio.Path
 import okio.buffer
@@ -64,6 +66,8 @@ class KtorEpisodeDownloader(
     ioDispatcher: CoroutineDispatcher = Dispatchers.Default,
     /** The space the downloads may take (Settings, 18.5); null for no limit. */
     private val storageLimitBytes: () -> Long? = { null },
+    /** Free space of the disk that holds the downloads; null where the system does not say. */
+    private val freeDiskBytes: () -> Long? = { diskSpace(directories.baseDir.toString())?.freeBytes },
 ) : EpisodeDownloader {
     private val fileSystem = directories.fileSystem
 
@@ -119,8 +123,11 @@ class KtorEpisodeDownloader(
                     updateStatus(episodeId, DownloadStatus.Failed(AppError.Http(response.status.value)))
                     return@execute null
                 }
+                // A host that answers a login or a paywall with 200 sends a page, not the episode (22.5).
+                if (response.contentType().isPage()) throw AppError.Unknown(IllegalStateException("Not audio"))
+                val room = room()
                 fileSystem.createDirectories(directories.downloadsDir)
-                writeBody(response.bodyAsChannel(), partPath, response.contentLength())
+                writeBody(response.bodyAsChannel(), partPath, response.contentLength(), room)
                 fileName(episodeId, response.contentType(), audioUrl).also {
                     fileSystem.atomicMove(partPath, directories.downloadPath(it))
                 }
@@ -204,22 +211,42 @@ class KtorEpisodeDownloader(
         fileSystem.listOrNull(directories.downloadsDir).orEmpty().sumOf { fileSystem.metadataOrNull(it)?.size ?: 0L }
     }
 
-    private suspend fun writeBody(channel: ByteReadChannel, destPath: Path, contentLength: Long?) {
-        var written = 0L
-        fileSystem.sink(destPath).buffer().use { sink ->
-            val buffer = ByteArray(AppConfig.DOWNLOAD_BUFFER_SIZE)
-            while (!channel.isClosedForRead) {
-                val read = channel.readAvailable(buffer)
-                if (read > 0) {
-                    sink.write(buffer, 0, read)
-                    written += read
-                }
-            }
-        }
+    /**
+     * What this download may still write (22.5, T5 of ADR 0014): under the limit from Settings, and leaving the disk
+     * [RESERVED_DISK_BYTES] so the device keeps working. The audio URL comes from the feed, which may declare 50 GB
+     * or be an endless radio stream with no length at all.
+     */
+    internal suspend fun room(): Room {
+        val underLimit = storageLimitBytes()?.let { Room(it - usedBytes(), AppError.StorageLimit) }
+        val onDisk = freeDiskBytes()?.let { Room(it - RESERVED_DISK_BYTES, AppError.StorageFull) }
+        // ponytail: each download counts the room alone; two at once may each take it. Share a budget if that shows.
+        return listOfNotNull(underLimit, onDisk).minByOrNull { it.bytes } ?: Room(Long.MAX_VALUE, AppError.StorageFull)
+    }
+
+    internal class Room(val bytes: Long, val error: AppError)
+
+    private suspend fun writeBody(channel: ByteReadChannel, destPath: Path, contentLength: Long?, room: Room) {
+        if (contentLength != null && contentLength > room.bytes) throw room.error
+        val written = fileSystem.sink(destPath).buffer().use { sink -> copyWithin(channel, sink, room) }
         // A connection that drops mid-body can still end the channel normally.
         if (contentLength != null && written != contentLength) {
             throw IOException("Body ended at $written of $contentLength bytes")
         }
+    }
+
+    /** Copies the body to [sink] and says how much came; one byte past [room] stops it with the room's error. */
+    private suspend fun copyWithin(channel: ByteReadChannel, sink: BufferedSink, room: Room): Long {
+        var written = 0L
+        val buffer = ByteArray(AppConfig.DOWNLOAD_BUFFER_SIZE)
+        while (!channel.isClosedForRead) {
+            val read = channel.readAvailable(buffer)
+            if (read > 0) {
+                sink.write(buffer, 0, read)
+                written += read
+            }
+            if (written > room.bytes) throw room.error
+        }
+        return written
     }
 
     internal fun updateStatus(episodeId: String, status: DownloadStatus) {
@@ -228,6 +255,17 @@ class KtorEpisodeDownloader(
 }
 
 private const val DEFAULT_EXTENSION = "mp3"
+
+/** What a download leaves free on the disk: 200 MB, so a full download folder never stalls the device. */
+internal const val RESERVED_DISK_BYTES = 200L * 1024 * 1024
+
+/** Types that mean a page, not audio; an unknown or generic type (`application/octet-stream`) still counts as audio. */
+private val PAGE_SUBTYPES = setOf("html", "json", "xml")
+
+internal fun ContentType?.isPage(): Boolean = this != null && (
+    contentType.equals("text", ignoreCase = true) ||
+        contentSubtype.lowercase().substringAfterLast('+') in PAGE_SUBTYPES
+    )
 
 private val EXTENSIONS_BY_TYPE = mapOf(
     "audio/mpeg" to "mp3",
