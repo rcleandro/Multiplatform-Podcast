@@ -18,6 +18,7 @@ one to "substituída por ADR NNNN" instead of deleting it.
 | [0011](0011-sincronizacao-por-pasta.md) | Sincronização entre aparelhos por uma pasta que o usuário já sincroniza: um arquivo por aparelho, merge da 19.9b; Android e Desktop |
 | [0012](0012-eca-digital.md) | ECA Digital: o app está no escopo; no Brasil, explícito escondido e travado para menor e sem sinal de idade; padrões protetores mudáveis só para sem sinal |
 | [0013](0013-web-como-demonstracao.md) | A Web como demonstração: sem proxy; feed recusado pelo navegador (CORS) vira `BrowserBlocked` com explicação; COOP/COEP na hospedagem |
+| [0014](0014-modelo-de-ameacas.md) | Modelo de ameaças: ativos (tokens de feed, biblioteca, downloads, PIN, chave), atacantes e 12 ameaças, cada uma ligada a um item da fase 22; sem pinning |
 
 ## Modelo
 
