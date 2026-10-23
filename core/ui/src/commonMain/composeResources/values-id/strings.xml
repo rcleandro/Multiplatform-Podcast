@@ -376,6 +376,8 @@
     <string name="guardian_pin_repeat">Ulangi PIN</string>
     <string name="guardian_pin_unlock">PIN orang tua</string>
     <string name="guardian_pin_wrong">PIN salah</string>
+    <string name="guardian_pin_wait_seconds">Terlalu banyak PIN salah. Coba lagi dalam %1$d dtk</string>
+    <string name="guardian_pin_wait_minutes">Terlalu banyak PIN salah. Coba lagi dalam %1$d mnt</string>
     <string name="guardian_pin_mismatch">PIN tidak cocok</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">Izinkan antrean berurutan</string>

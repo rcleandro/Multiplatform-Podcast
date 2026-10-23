@@ -376,6 +376,8 @@
     <string name="guardian_pin_repeat">PIN をもう一度入力</string>
     <string name="guardian_pin_unlock">保護者用 PIN</string>
     <string name="guardian_pin_wrong">PIN が違います</string>
+    <string name="guardian_pin_wait_seconds">PIN の誤りが多すぎます。%1$d 秒後にもう一度お試しください</string>
+    <string name="guardian_pin_wait_minutes">PIN の誤りが多すぎます。%1$d 分後にもう一度お試しください</string>
     <string name="guardian_pin_mismatch">PIN が一致しません</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">キューの連続再生を許可</string>

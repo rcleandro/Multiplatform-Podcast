@@ -395,6 +395,8 @@
     <string name="guardian_pin_repeat">Repita o PIN</string>
     <string name="guardian_pin_unlock">PIN dos responsáveis</string>
     <string name="guardian_pin_wrong">PIN errado</string>
+    <string name="guardian_pin_wait_seconds">Muitos PINs errados. Tente de novo em %1$d s</string>
+    <string name="guardian_pin_wait_minutes">Muitos PINs errados. Tente de novo em %1$d min</string>
     <string name="guardian_pin_mismatch">Os PINs não são iguais</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">Permitir a fila em sequência</string>

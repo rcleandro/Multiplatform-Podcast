@@ -197,7 +197,9 @@ fun SettingsContent(
     }
 
     picking?.let { PickerDialog(it, state, onDone = { picking = null }, onIntent = onIntent) }
-    state.guardian.pinStep?.let { GuardianPinDialog(it, state.guardian.pinError, onIntent) }
+    state.guardian.pinStep?.let { step ->
+        GuardianPinDialog(step, state.guardian.pinError, state.guardian.pinWaitSeconds, onIntent)
+    }
 
     if (state.isConfirmingDeleteAll) DeleteAllDialog(state.usedBytes ?: 0, onIntent)
 }

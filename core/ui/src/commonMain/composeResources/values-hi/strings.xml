@@ -376,6 +376,8 @@
     <string name="guardian_pin_repeat">PIN दोबारा डालें</string>
     <string name="guardian_pin_unlock">अभिभावक PIN</string>
     <string name="guardian_pin_wrong">गलत PIN</string>
+    <string name="guardian_pin_wait_seconds">बहुत सारे गलत PIN। %1$d सेकंड बाद फिर कोशिश करें</string>
+    <string name="guardian_pin_wait_minutes">बहुत सारे गलत PIN। %1$d मिनट बाद फिर कोशिश करें</string>
     <string name="guardian_pin_mismatch">PIN मेल नहीं खाते</string>
     <string name="guardian_pin_ok">ठीक है</string>
     <string name="guardian_allow_continuous">कतार लगातार चलाने दें</string>

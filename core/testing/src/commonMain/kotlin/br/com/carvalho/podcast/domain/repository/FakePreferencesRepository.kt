@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.PinAttempts
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.SyncFolder
@@ -129,6 +130,12 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override fun setGuardianPin(hash: String?) {
         guardianPin.value = hash
+    }
+
+    override val guardianPinAttempts = MutableStateFlow(PinAttempts())
+
+    override fun setGuardianPinAttempts(attempts: PinAttempts) {
+        guardianPinAttempts.value = attempts
     }
 
     override val guardianControls = MutableStateFlow(GuardianControls())

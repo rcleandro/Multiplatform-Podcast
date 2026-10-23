@@ -376,6 +376,8 @@
     <string name="guardian_pin_repeat">أعد إدخال رمز PIN</string>
     <string name="guardian_pin_unlock">رمز PIN لأولياء الأمور</string>
     <string name="guardian_pin_wrong">رمز PIN غير صحيح</string>
+    <string name="guardian_pin_wait_seconds">عدد كبير جدًا من أرقام PIN الخاطئة. حاول مرة أخرى بعد %1$d ث</string>
+    <string name="guardian_pin_wait_minutes">عدد كبير جدًا من أرقام PIN الخاطئة. حاول مرة أخرى بعد %1$d د</string>
     <string name="guardian_pin_mismatch">رمزا PIN غير متطابقين</string>
     <string name="guardian_pin_ok">موافق</string>
     <string name="guardian_allow_continuous">السماح بتشغيل قائمة الانتظار بالتتابع</string>

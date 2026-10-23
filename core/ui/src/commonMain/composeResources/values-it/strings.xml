@@ -376,6 +376,8 @@
     <string name="guardian_pin_repeat">Ripeti il PIN</string>
     <string name="guardian_pin_unlock">PIN dei genitori</string>
     <string name="guardian_pin_wrong">PIN errato</string>
+    <string name="guardian_pin_wait_seconds">Troppi PIN errati. Riprova tra %1$d s</string>
+    <string name="guardian_pin_wait_minutes">Troppi PIN errati. Riprova tra %1$d min</string>
     <string name="guardian_pin_mismatch">I PIN non coincidono</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">Consenti la coda di seguito</string>

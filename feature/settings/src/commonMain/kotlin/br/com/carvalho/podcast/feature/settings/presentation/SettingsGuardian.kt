@@ -40,6 +40,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_mismatch
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_ok
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_repeat
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_unlock
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_wait_minutes
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_wait_seconds
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_wrong
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_remove_pin
 import br.com.carvalho.podcast.core.ui.generated.resources.guardian_remove_pin_description
@@ -141,7 +143,12 @@ internal fun breakLabel(minutes: Int): String =
 
 /** Asks for the PIN: to create it (twice) or to open the controls. Digits only, never shown. */
 @Composable
-internal fun GuardianPinDialog(step: PinStep, error: PinError?, onIntent: (SettingsIntent) -> Unit) {
+internal fun GuardianPinDialog(
+    step: PinStep,
+    error: PinError?,
+    waitSeconds: Long,
+    onIntent: (SettingsIntent) -> Unit,
+) {
     var pin by rememberSaveable(step) { mutableStateOf("") }
     val title = when (step) {
         PinStep.CREATE -> Res.string.guardian_pin_create
@@ -160,13 +167,7 @@ internal fun GuardianPinDialog(step: PinStep, error: PinError?, onIntent: (Setti
                     isError = error != null,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    supportingText = error?.let { shown ->
-                        val message = when (shown) {
-                            PinError.WRONG -> Res.string.guardian_pin_wrong
-                            PinError.MISMATCH -> Res.string.guardian_pin_mismatch
-                        }
-                        { Text(stringResource(message)) }
-                    },
+                    supportingText = error?.let { shown -> { Text(pinErrorText(shown, waitSeconds)) } },
                 )
             }
         },
@@ -185,3 +186,18 @@ internal fun GuardianPinDialog(step: PinStep, error: PinError?, onIntent: (Setti
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     )
 }
+
+@Composable
+private fun pinErrorText(error: PinError, waitSeconds: Long): String = when (error) {
+    PinError.WRONG -> stringResource(Res.string.guardian_pin_wrong)
+    PinError.MISMATCH -> stringResource(Res.string.guardian_pin_mismatch)
+    // Up to a minute in seconds, then in whole minutes, rounded up so the wait never reads shorter than it is.
+    PinError.WAIT -> if (waitSeconds <= SECONDS_PER_MINUTE) {
+        stringResource(Res.string.guardian_pin_wait_seconds, waitSeconds)
+    } else {
+        val minutes = (waitSeconds + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE
+        stringResource(Res.string.guardian_pin_wait_minutes, minutes)
+    }
+}
+
+private const val SECONDS_PER_MINUTE = 60L

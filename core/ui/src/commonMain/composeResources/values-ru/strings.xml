@@ -376,6 +376,8 @@
     <string name="guardian_pin_repeat">Повторите PIN-код</string>
     <string name="guardian_pin_unlock">Родительский PIN-код</string>
     <string name="guardian_pin_wrong">Неверный PIN-код</string>
+    <string name="guardian_pin_wait_seconds">Слишком много неверных PIN-кодов. Повторите через %1$d с</string>
+    <string name="guardian_pin_wait_minutes">Слишком много неверных PIN-кодов. Повторите через %1$d мин</string>
     <string name="guardian_pin_mismatch">PIN-коды не совпадают</string>
     <string name="guardian_pin_ok">ОК</string>
     <string name="guardian_allow_continuous">Разрешить воспроизведение очереди подряд</string>

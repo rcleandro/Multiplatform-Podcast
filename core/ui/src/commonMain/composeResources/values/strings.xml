@@ -396,6 +396,8 @@
     <string name="guardian_pin_repeat">Repeat the PIN</string>
     <string name="guardian_pin_unlock">Guardians' PIN</string>
     <string name="guardian_pin_wrong">Wrong PIN</string>
+    <string name="guardian_pin_wait_seconds">Too many wrong PINs. Try again in %1$d s</string>
+    <string name="guardian_pin_wait_minutes">Too many wrong PINs. Try again in %1$d min</string>
     <string name="guardian_pin_mismatch">The PINs do not match</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">Allow the queue to play in a row</string>

@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.util.DiskSpace
 import br.com.carvalho.podcast.core.util.diskSpace
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.AppLanguage
@@ -53,6 +54,8 @@ class SettingsViewModel(
     private val explicitContent: ExplicitContent = ExplicitContent(),
     /** A minor in Brazil has no telemetry to turn on (26.4). */
     private val childSafety: ChildSafety = ChildSafety(),
+    /** The clock the PIN's wait runs on (22.11). */
+    now: () -> Long = ::getCurrentTimestamp,
 ) : ViewModel() {
     private val usedBytes = MutableStateFlow<Long?>(null)
     private val disk = MutableStateFlow<DiskSpace?>(null)
@@ -111,7 +114,7 @@ class SettingsViewModel(
         )
     }
 
-    private val guardian = GuardianSession(preferences)
+    private val guardian = GuardianSession(preferences, now)
 
     val uiState: StateFlow<SettingsUiState> = combine(
         choices,

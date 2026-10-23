@@ -376,6 +376,8 @@
     <string name="guardian_pin_repeat">PIN 다시 입력</string>
     <string name="guardian_pin_unlock">보호자 PIN</string>
     <string name="guardian_pin_wrong">PIN이 틀렸습니다</string>
+    <string name="guardian_pin_wait_seconds">잘못된 PIN이 너무 많습니다. %1$d초 후에 다시 시도하세요</string>
+    <string name="guardian_pin_wait_minutes">잘못된 PIN이 너무 많습니다. %1$d분 후에 다시 시도하세요</string>
     <string name="guardian_pin_mismatch">PIN이 일치하지 않습니다</string>
     <string name="guardian_pin_ok">확인</string>
     <string name="guardian_allow_continuous">대기열 연속 재생 허용</string>

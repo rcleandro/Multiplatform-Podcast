@@ -376,6 +376,8 @@
     <string name="guardian_pin_repeat">再次输入 PIN</string>
     <string name="guardian_pin_unlock">监护人 PIN</string>
     <string name="guardian_pin_wrong">PIN 错误</string>
+    <string name="guardian_pin_wait_seconds">PIN 错误次数过多。请在 %1$d 秒后重试</string>
+    <string name="guardian_pin_wait_minutes">PIN 错误次数过多。请在 %1$d 分钟后重试</string>
     <string name="guardian_pin_mismatch">两次 PIN 不一致</string>
     <string name="guardian_pin_ok">确定</string>
     <string name="guardian_allow_continuous">允许连续播放队列</string>

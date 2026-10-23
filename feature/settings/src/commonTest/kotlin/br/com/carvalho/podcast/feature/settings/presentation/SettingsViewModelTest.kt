@@ -9,12 +9,14 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.GuardianPin
+import br.com.carvalho.podcast.domain.model.PinAttempts
+import br.com.carvalho.podcast.domain.model.PinLockout
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
+import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeAgeSignalSource
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
-import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeOpmlFormat
 import br.com.carvalho.podcast.domain.repository.FakePlayerRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
@@ -25,14 +27,13 @@ import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
 import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.ExplicitRule
-import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
-import br.com.carvalho.podcast.domain.usecase.LibrarySyncUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
+import br.com.carvalho.podcast.domain.usecase.LibrarySyncUseCase
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
-import kotlin.test.assertNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -86,10 +88,41 @@ class SettingsViewModelTest {
             ),
             ExplicitContent(explicitRule),
             childSafety,
+            now = { clock },
         )
+
+    /** The time the PIN's wait sees (22.11). */
+    private var clock = 0L
 
     private val ageSignal = FakeAgeSignalSource(countries = setOf("BR"), ageGroup = AgeGroup.ADULT)
     private val childSafety = ChildSafety(ageSignal)
+
+    @Test
+    fun wrongPinsMakeTheNextTryWaitEvenForTheRightOneAndAcrossRestarts() = runTest(dispatcher) {
+        childSafety.refresh()
+        preferences.setGuardianPin(GuardianPin.hash("1234"))
+        val viewModel = viewModel()
+        viewModel.onIntent(GuardianIntent.Open)
+
+        repeat(PinLockout.FREE_FAILURES - 1) { viewModel.onIntent(GuardianIntent.EnterPin("0000")) }
+        assertEquals(PinError.WRONG, viewModel.uiState.value.guardian.pinError)
+        viewModel.onIntent(GuardianIntent.EnterPin("0000"))
+        assertEquals(PinError.WAIT, viewModel.uiState.value.guardian.pinError)
+        assertEquals(30, viewModel.uiState.value.guardian.pinWaitSeconds)
+
+        // While it waits, not even the right PIN opens, and a new Settings screen remembers the wait.
+        clock += 10_000
+        val reopened = viewModel()
+        reopened.onIntent(GuardianIntent.Open)
+        reopened.onIntent(GuardianIntent.EnterPin("1234"))
+        assertFalse(reopened.uiState.value.guardian.unlocked)
+        assertEquals(20, reopened.uiState.value.guardian.pinWaitSeconds)
+
+        clock += 20_000
+        reopened.onIntent(GuardianIntent.EnterPin("1234"))
+        assertTrue(reopened.uiState.value.guardian.unlocked)
+        assertEquals(PinAttempts(), preferences.guardianPinAttempts.value)
+    }
 
     @Test
     fun theGuardiansCreateTheirPinAndOnlyItOpensTheControls() = runTest(dispatcher) {
