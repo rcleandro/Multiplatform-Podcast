@@ -221,6 +221,7 @@
     <string name="error_no_connection">لا يوجد اتصال بالإنترنت. تحقّق من شبكتك وأعد المحاولة.</string>
     <string name="error_server">ردّ خادم الخلاصة بخطأ. أعد المحاولة لاحقًا.</string>
     <string name="error_invalid_feed">هذا العنوان ليس خلاصة بودكاست. استخدم رابط RSS.</string>
+    <string name="error_feed_too_large">هذه الخلاصة أكبر من أن تُقرأ. تحقّق من أنها رابط RSS الخاص بالبودكاست.</string>
     <string name="error_invalid_url">هذا العنوان غير صالح. تحقّق منه والصق رابط الخلاصة مرة أخرى.</string>
     <string name="error_browser_blocked">تعذّر على المتصفح قراءة هذه الخلاصة: كثير من مواقع البودكاست لا تسمح بقراءتها إلا للتطبيقات. استخدم التطبيق على هاتفك أو حاسوبك، أو تحقّق من اتصالك.</string>
     <string name="error_storage_full">لا توجد مساحة كافية. أفرغ بعض المساحة وأعد المحاولة.</string>

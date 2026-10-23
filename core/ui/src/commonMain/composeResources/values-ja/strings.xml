@@ -221,6 +221,7 @@
     <string name="error_no_connection">インターネットに接続されていません。ネットワークを確認して再試行してください。</string>
     <string name="error_server">フィードのサーバーがエラーを返しました。あとで再試行してください。</string>
     <string name="error_invalid_feed">このアドレスはポッドキャストのフィードではありません。RSS のリンクを使ってください。</string>
+    <string name="error_feed_too_large">このフィードは大きすぎて読み込めません。ポッドキャストの RSS リンクか確認してください。</string>
     <string name="error_invalid_url">有効なアドレスではありません。確認してフィードのリンクを貼り直してください。</string>
     <string name="error_browser_blocked">ブラウザーでこのフィードを読み込めませんでした。多くのポッドキャストサイトはアプリからの読み込みのみ許可しています。スマートフォンかパソコンのアプリを使うか、接続を確認してください。</string>
     <string name="error_storage_full">空き容量が足りません。空きを作って再試行してください。</string>

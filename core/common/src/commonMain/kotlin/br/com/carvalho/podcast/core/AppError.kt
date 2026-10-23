@@ -13,6 +13,12 @@ sealed class AppError(cause: Throwable? = null) : Exception(cause) {
 
     /** The URL answered, but not with an RSS feed (a web page, for instance). */
     data object InvalidFeed : AppError()
+
+    /**
+     * The feed is bigger than the app reads (22.3): a real one never gets there, a hostile one would fill the
+     * memory.
+     */
+    data object FeedTooLarge : AppError()
     data object AlreadyExists : AppError()
     data object NotFound : AppError()
     data object StorageFull : AppError()

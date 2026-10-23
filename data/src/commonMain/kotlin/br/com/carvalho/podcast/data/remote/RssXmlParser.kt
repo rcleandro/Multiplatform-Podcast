@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.remote
 
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.data.remote.model.RssEpisode
 import br.com.carvalho.podcast.data.remote.model.RssFeed
@@ -19,6 +20,9 @@ private val PODCAST_NS = setOf(
     "https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md",
 )
 private const val TITLE_FALLBACK_LENGTH = 80
+
+/** Real feeds nest a handful of levels; a deeper one is built to overflow the stack (22.3). */
+private const val MAX_DEPTH = 64
 private val EXPLICIT_VALUES = setOf("yes", "true", "explicit")
 
 /** The timed transcript types, best first, as parts of their MIME types. */
@@ -31,8 +35,12 @@ private val TRANSCRIPT_TYPES = listOf("vtt", "srt", "subrip", "json")
 object RssXmlParser {
     fun parse(xml: String): RssFeed {
         AppLogger.d(TAG, "Starting XML parse (length: ${xml.length})")
+        // The reader expands entities a DOCTYPE declares, without bound: a few KB of nested ones fill the memory (the
+        // billion laughs, T3 of ADR 0014). No real feed declares any, so such a feed is refused before it is read.
+        if ("<!ENTITY" in xml.substringBefore("<channel")) throw AppError.InvalidFeed
         val channel = readTree(xml).find("channel") ?: Node("channel")
-        val channelImage = channel.child("itunes:image")?.attributes?.get("href") ?: channel.child("image")?.text("url")
+        val channelImage = channel.child("itunes:image")?.attributes?.get("href").webUrl()
+            ?: channel.child("image")?.text("url").webUrl()
         val episodes = channel.children("item").mapNotNull { it.toEpisode(channelImage) }
         AppLogger.d(TAG, "Finished XML parse. Total episodes: ${episodes.size}")
 
@@ -43,12 +51,12 @@ object RssXmlParser {
             author = channel.text("itunes:author"),
             language = channel.text("language"),
             categories = channel.categories(),
-            link = channel.text("link"),
+            link = channel.text("link").webUrl(),
             ttl = channel.text("ttl")?.toIntOrNull(),
             episodes = episodes,
             selfUrl = channel.children("atom:link").firstOrNull { it.attributes["rel"] == "self" }
-                ?.attributes?.get("href"),
-            newFeedUrl = channel.text("itunes:new-feed-url"),
+                ?.attributes?.get("href").webUrl(),
+            newFeedUrl = channel.text("itunes:new-feed-url").webUrl(),
             explicit = channel.text("itunes:explicit")?.lowercase() in EXPLICIT_VALUES,
             serial = channel.text("itunes:type")?.lowercase() == "serial",
         )
@@ -57,7 +65,7 @@ object RssXmlParser {
     // An item without audio (a blog post in the same feed) is not an episode.
     private fun Node.toEpisode(defaultImage: String?): RssEpisode? {
         val enclosure = child("enclosure")?.attributes
-        val enclosureUrl = enclosure?.get("url")?.trim().orEmpty().ifEmpty { return null }
+        val enclosureUrl = enclosure?.get("url").webUrl() ?: return null
         val description = text("description") ?: text("content:encoded") ?: text("itunes:summary")
         // Without a title, fall back to the feed's own data instead of a fixed text.
         val title = text("title")
@@ -68,11 +76,11 @@ object RssXmlParser {
             title = title,
             description = description,
             enclosureUrl = enclosureUrl,
-            link = text("link"),
+            link = text("link").webUrl(),
             enclosureType = enclosure?.get("type"),
             duration = text("itunes:duration"),
             publishDate = text("pubDate").orEmpty(),
-            imageUrl = child("itunes:image")?.attributes?.get("href") ?: defaultImage,
+            imageUrl = child("itunes:image")?.attributes?.get("href").webUrl() ?: defaultImage,
             explicit = text("itunes:explicit")?.lowercase() in EXPLICIT_VALUES,
             season = text("itunes:season")?.toIntOrNull(),
             episode = text("itunes:episode")?.toIntOrNull(),
@@ -85,7 +93,7 @@ object RssXmlParser {
     // Only the JSON chapters (19.1); a type is required by the spec, but some feeds leave it out.
     private fun Node.chaptersUrl(): String? = children("podcast:chapters")
         .firstOrNull { it.attributes["type"]?.contains("json") ?: true }
-        ?.attributes?.get("url")?.trim()?.ifEmpty { null }
+        ?.attributes?.get("url").webUrl()
 
     /**
      * A transcript the player can follow (19.2): WebVTT first, then SRT, then the Podcasting 2.0 JSON. HTML and plain
@@ -93,7 +101,7 @@ object RssXmlParser {
      */
     private fun Node.transcript(): RssTranscript? = children("podcast:transcript")
         .mapNotNull { node ->
-            val url = node.attributes["url"]?.trim()?.ifEmpty { null } ?: return@mapNotNull null
+            val url = node.attributes["url"].webUrl() ?: return@mapNotNull null
             val type = node.attributes["type"]?.trim()?.lowercase().orEmpty()
             TRANSCRIPT_TYPES.indexOfFirst { it in type }.takeIf { it >= 0 }?.let { it to RssTranscript(url, type) }
         }
@@ -115,6 +123,7 @@ object RssXmlParser {
                     val attributes = (0 until reader.attributeCount).associate {
                         reader.getAttributeLocalName(it) to reader.getAttributeValue(it)
                     }
+                    if (stack.size > MAX_DEPTH) throw AppError.InvalidFeed
                     val node = Node(reader.qualifiedName(), attributes)
                     stack.last().children += node
                     stack.addLast(node)
@@ -150,3 +159,13 @@ object RssXmlParser {
         fun find(name: String): Node? = child(name) ?: children.firstNotNullOfOrNull { it.find(name) }
     }
 }
+
+/**
+ * Only a web address, trimmed: the player, the image loader and iOS's URLSession would also open `file:`, `content:`
+ * and the like, so a feed could point them at the app's own files (22.3, T4 of ADR 0014).
+ */
+internal fun String?.webUrl(): String? = this?.trim()?.takeIf { url ->
+    WEB_SCHEMES.any { url.startsWith(it, ignoreCase = true) }
+}
+
+private val WEB_SCHEMES = listOf("https://", "http://")

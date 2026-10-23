@@ -221,6 +221,7 @@
     <string name="error_no_connection">İnternet bağlantısı yok. Ağınızı kontrol edip tekrar deneyin.</string>
     <string name="error_server">Akışın sunucusu hata döndürdü. Daha sonra tekrar deneyin.</string>
     <string name="error_invalid_feed">Bu adres bir podcast akışı değil. RSS bağlantısını kullanın.</string>
+    <string name="error_feed_too_large">Bu akış okunamayacak kadar büyük. Podcast'in RSS bağlantısı olduğundan emin olun.</string>
     <string name="error_invalid_url">Bu geçerli bir adres değil. Kontrol edip akış bağlantısını tekrar yapıştırın.</string>
     <string name="error_browser_blocked">Tarayıcı bu akışı okuyamadı: birçok podcast sitesi yalnızca uygulamaların okumasına izin veriyor. Uygulamayı telefonunuzda veya bilgisayarınızda kullanın ya da bağlantınızı kontrol edin.</string>
     <string name="error_storage_full">Yeterli alan yok. Yer açıp tekrar deneyin.</string>

@@ -221,6 +221,7 @@
     <string name="error_no_connection">没有网络连接。请检查网络后重试。</string>
     <string name="error_server">订阅源服务器返回了错误。请稍后重试。</string>
     <string name="error_invalid_feed">这个地址不是播客订阅源。请使用 RSS 链接。</string>
+    <string name="error_feed_too_large">此订阅源太大，无法读取。请确认这是播客的 RSS 链接。</string>
     <string name="error_invalid_url">这不是有效的地址。请检查后重新粘贴订阅源链接。</string>
     <string name="error_browser_blocked">浏览器无法读取此订阅源：许多播客网站只允许应用读取。请在手机或电脑上使用本应用，或检查网络连接。</string>
     <string name="error_storage_full">存储空间不足。请释放空间后重试。</string>

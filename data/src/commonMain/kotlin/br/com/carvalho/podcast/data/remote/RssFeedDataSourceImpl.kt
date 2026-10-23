@@ -9,16 +9,23 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
+import io.ktor.http.charset
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
+import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.charsets.decode
+import io.ktor.utils.io.readBuffer
 import kotlinx.coroutines.withContext
 
 private const val TAG = "RssFeedDataSource"
 private const val CHANNEL_TAG = "<channel"
+
+// ponytail: one fixed cap, decompressed; the biggest real feeds are a few MB, and the watch refreshes feeds too.
+internal const val MAX_FEED_BYTES = 30L * 1024 * 1024
 
 // A feed request follows redirects itself to tell permanent ones (the feed moved) from temporary ones.
 private const val MAX_REDIRECTS = 5
@@ -27,7 +34,8 @@ private val TEMPORARY_REDIRECTS = setOf(HttpStatusCode.Found, HttpStatusCode.See
 
 class RssFeedDataSourceImpl(
     client: HttpClient,
-    private val dispatchers: CoroutineDispatchers
+    private val dispatchers: CoroutineDispatchers,
+    private val maxFeedBytes: Long = MAX_FEED_BYTES,
 ) : RssFeedDataSource {
     // Same engine and plugins; only feeds stop following redirects automatically (downloads still do).
     private val client = client.config { followRedirects = false }
@@ -52,7 +60,7 @@ class RssFeedDataSourceImpl(
             AppLogger.e(TAG, "Server returned error: ${response.status} for URL: $target")
             throw AppError.Http(response.status.value)
         }
-        val xmlContent = response.bodyAsText()
+        val xmlContent = response.feedText()
         if (CHANNEL_TAG !in xmlContent) throw AppError.InvalidFeed
 
         val etag = response.headers[HttpHeaders.ETag]
@@ -61,6 +69,16 @@ class RssFeedDataSourceImpl(
         withContext(dispatchers.default) {
             RssXmlParser.parse(xmlContent).copy(version = received, permanentRedirect = permanentRedirect)
         }
+    }
+
+    /**
+     * The body as text, at most [maxFeedBytes] of it (22.3, T2 of ADR 0014). The length the server declares can be
+     * missing or false, and a gzip body grows when unpacked, so the cap counts what arrives, already decompressed.
+     */
+    private suspend fun HttpResponse.feedText(): String {
+        val body = bodyAsChannel().readBuffer(maxFeedBytes + 1)
+        if (body.size > maxFeedBytes) throw AppError.FeedTooLarge
+        return (charset() ?: Charsets.UTF_8).newDecoder().decode(body)
     }
 
     private suspend fun get(url: String, version: FeedVersion?): HttpResponse = client.get(url) {

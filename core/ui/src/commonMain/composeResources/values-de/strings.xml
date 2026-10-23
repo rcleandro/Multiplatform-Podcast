@@ -221,6 +221,7 @@
     <string name="error_no_connection">Keine Internetverbindung. Prüfe dein Netzwerk und versuche es erneut.</string>
     <string name="error_server">Der Server des Feeds hat mit einem Fehler geantwortet. Versuche es später erneut.</string>
     <string name="error_invalid_feed">Diese Adresse ist kein Podcast-Feed. Verwende den RSS-Link.</string>
+    <string name="error_feed_too_large">Dieser Feed ist zu groß zum Lesen. Prüfe, ob es der RSS-Link des Podcasts ist.</string>
     <string name="error_invalid_url">Diese Adresse ist ungültig. Prüfe sie und füge den Link des Feeds erneut ein.</string>
     <string name="error_browser_blocked">Der Browser konnte diesen Feed nicht lesen: Viele Podcast-Seiten erlauben das nur Apps. Nutze die App auf dem Handy oder Computer oder prüfe deine Verbindung.</string>
     <string name="error_storage_full">Nicht genug Speicherplatz. Gib Speicher frei und versuche es erneut.</string>
