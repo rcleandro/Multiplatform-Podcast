@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.core.player
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.audiofx.LoudnessEnhancer
+import android.os.Build
 import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.cast.CastPlayer
@@ -171,6 +172,15 @@ class PodcastMediaService : MediaLibraryService() {
             .build(),
     )
 
+    /** Android Auto from the store, not an app that took its name (`hasSigningCertificate` follows key rotation). */
+    private fun isSignedByAndroidAuto(packageName: String): Boolean =
+        // ponytail: Android 8 has no hasSigningCertificate; there Android Auto counts only through Media3's own trust.
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && packageManager.hasSigningCertificate(
+            packageName,
+            ANDROID_AUTO_CERTIFICATE_SHA256.hexToByteArray(),
+            PackageManager.CERT_INPUT_SHA256,
+        )
+
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
         AppLogger.d(TAG, "onGetSession from ${controllerInfo.packageName}")
         return mediaLibrarySession
@@ -182,12 +192,15 @@ class PodcastMediaService : MediaLibraryService() {
             session: MediaSession,
             controller: MediaSession.ControllerInfo
         ): MediaSession.ConnectionResult {
-            val availableSessionCommands = sessionCommandsWith(skipForwardCommand, skipBackwardCommand)
-
+            // Other installed apps get the transport only (22.2, T1 of ADR 0014): no library, nothing new to play.
+            val trusted = browsesLibrary(controller.isTrusted, controller.packageName) {
+                isSignedByAndroidAuto(controller.packageName)
+            }
             val customLayout = skipButtons(preferences.skipIntervals.value)
 
             return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
-                .setAvailableSessionCommands(availableSessionCommands)
+                .setAvailableSessionCommands(sessionCommandsFor(trusted, skipForwardCommand, skipBackwardCommand))
+                .setAvailablePlayerCommands(playerCommandsFor(trusted))
                 .setCustomLayout(ImmutableList.copyOf(customLayout))
                 .build()
         }
@@ -341,15 +354,54 @@ class PodcastMediaService : MediaLibraryService() {
     }
 }
 
+internal const val ANDROID_AUTO_PACKAGE = "com.google.android.projection.gearhead"
+
+/** Android Auto's signing certificate (SHA-256), read from the store's build on a Razr 60 on 23/10/2026. */
+private const val ANDROID_AUTO_CERTIFICATE_SHA256 = "1ca8dcc0bed3cbd872d2cb791200c0292ca9975768a82d676b8b424fb65b5295"
+
 /**
- * What a controller may ask the session: Media3's defaults plus [custom]. Starting from an empty set dropped the
- * library commands, and Android Auto, finding no "get library root", showed the app as not working (20.7).
+ * Whether a controller sees the library and may change what plays (22.2). Media3's trust covers this app, the system
+ * and apps with media control access or a notification listener; Android Auto has only the listener, which people turn
+ * off, so it also counts when it is the real, Google-signed Android Auto.
+ */
+internal fun browsesLibrary(trusted: Boolean, packageName: String, signedByAndroidAuto: () -> Boolean): Boolean =
+    trusted || (packageName == ANDROID_AUTO_PACKAGE && signedByAndroidAuto())
+
+/**
+ * What a controller may ask the session. A trusted one (this app, the system's notification and lock screen, Android
+ * Auto, apps with media control access or a notification listener; see `ControllerInfo.isTrusted`) gets Media3's
+ * defaults, library included: starting from an empty set had hidden the library from Android Auto (20.7). Any other app
+ * gets only [custom], the jump buttons, and never browses or searches the library (22.2).
  */
 @OptIn(UnstableApi::class)
-internal fun sessionCommandsWith(vararg custom: SessionCommand): SessionCommands =
-    MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
+internal fun sessionCommandsFor(trusted: Boolean, vararg custom: SessionCommand): SessionCommands =
+    (if (trusted) MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS else SessionCommands.EMPTY)
+        .buildUpon()
         .apply { custom.forEach { add(it) } }
         .build()
+
+/**
+ * What a controller may do to the player. Any other app may play, pause and move within the episode and read what is
+ * playing, as a headset helper would. Only a trusted one sees the queue or changes what plays: a new media item could
+ * be any URL.
+ */
+@OptIn(UnstableApi::class)
+internal fun playerCommandsFor(trusted: Boolean): Player.Commands =
+    if (trusted) {
+        MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS
+    } else {
+        MediaSession.ConnectionResult.DEFAULT_UNTRUSTED_PLAYER_COMMANDS.buildUpon()
+            .addAll(
+                Player.COMMAND_PLAY_PAUSE,
+                Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
+                Player.COMMAND_SEEK_BACK,
+                Player.COMMAND_SEEK_FORWARD,
+                Player.COMMAND_STOP,
+            )
+            // The timeline lists the whole queue; the current episode alone is in the metadata.
+            .remove(Player.COMMAND_GET_TIMELINE)
+            .build()
+    }
 
 /** Media3's icon with the jump's number when there is one; a plain arrow otherwise. */
 private fun skipForwardIcon(seconds: Int): Int = when (seconds) {
