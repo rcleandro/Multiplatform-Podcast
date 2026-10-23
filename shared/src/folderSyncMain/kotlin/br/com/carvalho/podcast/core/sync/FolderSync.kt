@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.core.sync
 
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
 import br.com.carvalho.podcast.domain.usecase.LibrarySyncUseCase
@@ -11,6 +12,7 @@ import io.github.vinceglb.filekit.isRegularFile
 import io.github.vinceglb.filekit.list
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readString
+import io.github.vinceglb.filekit.size
 import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -76,7 +78,9 @@ internal class FolderFiles(bookmark: String) : SyncFiles {
     private val folder by lazy { PlatformFile.fromBookmarkData(Base64.decode(bookmark)) }
 
     override suspend fun read(): Map<String, String> = folder.list()
+        // Whoever can write to the folder controls these files (T12 of ADR 0014): one too big is skipped, not read.
         .filter { it.isRegularFile() && FolderSyncUseCase.isSnapshotFile(it.name) }
+        .filter { it.size() <= AppConfig.MAX_TEXT_BYTES }
         .associate { it.name to it.readString() }
 
     override suspend fun write(name: String, text: String) = (folder / name).writeString(text)

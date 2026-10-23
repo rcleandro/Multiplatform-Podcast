@@ -37,7 +37,7 @@ object RssXmlParser {
         AppLogger.d(TAG, "Starting XML parse (length: ${xml.length})")
         // The reader expands entities a DOCTYPE declares, without bound: a few KB of nested ones fill the memory (the
         // billion laughs, T3 of ADR 0014). No real feed declares any, so such a feed is refused before it is read.
-        if ("<!ENTITY" in xml.substringBefore("<channel")) throw AppError.InvalidFeed
+        if (declaresEntities(xml, root = "<channel")) throw AppError.InvalidFeed
         val channel = readTree(xml).find("channel") ?: Node("channel")
         val channelImage = channel.child("itunes:image")?.attributes?.get("href").webUrl()
             ?: channel.child("image")?.text("url").webUrl()
@@ -159,6 +159,13 @@ object RssXmlParser {
         fun find(name: String): Node? = child(name) ?: children.firstNotNullOfOrNull { it.find(name) }
     }
 }
+
+/**
+ * Whether [xml] declares entities before its [root] element, where a DOCTYPE lives. The reader expands declared
+ * entities without bound, so a few KB of nested ones fill the memory (the billion laughs, 22.3); feeds and OPML files
+ * never declare any.
+ */
+internal fun declaresEntities(xml: String, root: String): Boolean = "<!ENTITY" in xml.substringBefore(root)
 
 /**
  * Only a web address, trimmed: the player, the image loader and iOS's URLSession would also open `file:`, `content:`

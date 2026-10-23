@@ -49,4 +49,35 @@ class XmlOpmlFormatTest {
         id = feed, title = title, description = "", imageUrl = null, author = null, language = null,
         categories = emptyList(), feedUrl = feed, siteUrl = site, lastUpdated = 0, isSubscribed = true,
     )
+
+    @Test
+    fun anOpmlFileThatDeclaresEntitiesImportsNothing() {
+        // The same billion laughs as a feed (22.3): before the fix, reading it filled the memory.
+        val laughs = (1..LAUGH_LEVELS).joinToString("\n") { level ->
+            val previous = if (level == 1) "lol" else "&lol${level - 1};".repeat(LAUGHS_PER_LEVEL)
+            """<!ENTITY lol$level "$previous">"""
+        }
+        val opml = "<?xml version=\"1.0\"?>\n<!DOCTYPE opml [\n$laughs\n]>\n" +
+            """<opml version="2.0"><body><outline xmlUrl="https://feed.example/&lol$LAUGH_LEVELS;"/></body></opml>"""
+
+        assertEquals(emptyList(), XmlOpmlFormat.read(opml))
+    }
+
+    @Test
+    fun onlyWebAddressesAreImported() {
+        val opml = """
+            <opml version="2.0"><body>
+            <outline xmlUrl="file:///data/data/br.com.carvalho.podcast/databases/podcast.db"/>
+            <outline xmlUrl="content://contacts/people"/>
+            <outline xmlUrl=" https://feed.example/rss "/>
+            </body></opml>
+        """.trimIndent()
+
+        assertEquals(listOf("https://feed.example/rss"), XmlOpmlFormat.read(opml))
+    }
+
+    private companion object {
+        const val LAUGH_LEVELS = 9
+        const val LAUGHS_PER_LEVEL = 10
+    }
 }

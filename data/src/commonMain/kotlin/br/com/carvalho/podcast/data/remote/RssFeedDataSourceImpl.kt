@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.remote
 
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -24,9 +25,6 @@ import kotlinx.coroutines.withContext
 private const val TAG = "RssFeedDataSource"
 private const val CHANNEL_TAG = "<channel"
 
-// ponytail: one fixed cap, decompressed; the biggest real feeds are a few MB, and the watch refreshes feeds too.
-internal const val MAX_FEED_BYTES = 30L * 1024 * 1024
-
 // A feed request follows redirects itself to tell permanent ones (the feed moved) from temporary ones.
 private const val MAX_REDIRECTS = 5
 private val PERMANENT_REDIRECTS = setOf(HttpStatusCode.MovedPermanently, HttpStatusCode.PermanentRedirect)
@@ -35,7 +33,7 @@ private val TEMPORARY_REDIRECTS = setOf(HttpStatusCode.Found, HttpStatusCode.See
 class RssFeedDataSourceImpl(
     client: HttpClient,
     private val dispatchers: CoroutineDispatchers,
-    private val maxFeedBytes: Long = MAX_FEED_BYTES,
+    private val maxFeedBytes: Long = AppConfig.MAX_TEXT_BYTES,
 ) : RssFeedDataSource {
     // Same engine and plugins; only feeds stop following redirects automatically (downloads still do).
     private val client = client.config { followRedirects = false }
