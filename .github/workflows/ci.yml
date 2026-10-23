@@ -158,6 +158,10 @@ jobs:
             - name: Build Android debug APKs (phone and watch)
               run: ./gradlew :androidApp:assembleDebug :wearApp:assembleDebug
 
+            # R8 on every PR: a library that loses its keep rules fails here, not on a user's phone.
+            - name: Build Android release (phone and watch, unsigned)
+              run: ./gradlew :androidApp:assembleRelease :wearApp:assembleRelease
+
             - name: Upload Android debug APK
               uses: actions/upload-artifact@v7
               with:

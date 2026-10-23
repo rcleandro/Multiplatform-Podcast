@@ -17,9 +17,24 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    signingConfigs {
+        // The release key comes from CI secrets; without them the release build comes out unsigned.
+        System.getenv("ANDROID_KEYSTORE_FILE")?.let { keystore ->
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            // Ktor, serialization, Room, Koin and Firebase ship their own keep rules; R8 needed nothing extra.
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
         // Release code, signed with the debug key so it installs anywhere; only the Macrobenchmark (:benchmark) uses it.
         create("benchmark") {
