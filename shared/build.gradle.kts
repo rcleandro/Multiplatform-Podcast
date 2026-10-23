@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.podcast.kmp.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.cocoapods)
+    alias(libs.plugins.podcast.app.version)
 }
 
 kotlin {
@@ -12,7 +13,7 @@ kotlin {
     }
 
     cocoapods {
-        version = "1.0"
+        version = appVersion.name
         summary = "Shared module for Podcast app"
         homepage = "https://github.com/rcleandro/Multiplatform-Podcast"
         ios.deploymentTarget = "18.2"

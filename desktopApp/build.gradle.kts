@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.podcast.app.version)
 }
 
 kotlin {
@@ -29,7 +30,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "br.com.carvalho.podcast"
-            packageVersion = "1.0.0"
+            packageVersion = appVersion.name
             macOS { iconFile.set(project.file("icons/icon.icns")) }
             windows { iconFile.set(project.file("icons/icon.ico")) }
             linux { iconFile.set(project.file("icons/icon.png")) }

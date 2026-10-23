@@ -230,6 +230,7 @@ androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", versi
 podcast-kmp-library = { id = "podcast.kmp.library" }
 podcast-kmp-compose = { id = "podcast.kmp.compose" }
 podcast-feature = { id = "podcast.feature" }
+podcast-app-version = { id = "podcast.app.version" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

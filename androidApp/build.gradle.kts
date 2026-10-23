@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.podcast.app.version)
 }
 
 android {
@@ -14,8 +15,8 @@ android {
         applicationId = "br.com.carvalho.podcast"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersion.code
+        versionName = appVersion.name
     }
     signingConfigs {
         // The release key comes from CI secrets; without them the release build comes out unsigned.

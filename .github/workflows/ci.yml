@@ -63,7 +63,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Run tests
-              run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest :wearApp:testDebugUnitTest
+              run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest :wearApp:testDebugUnitTest :build-logic:convention:test
 
             - name: Verify coverage floors
               run: ./gradlew koverVerify
