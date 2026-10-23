@@ -222,6 +222,7 @@
     <string name="error_server">Сервер ленты ответил ошибкой. Повторите позже.</string>
     <string name="error_invalid_feed">Этот адрес не является лентой подкаста. Используйте ссылку RSS.</string>
     <string name="error_invalid_url">Неверный адрес. Проверьте его и вставьте ссылку на ленту ещё раз.</string>
+    <string name="error_browser_blocked">Браузер не смог прочитать эту ленту: многие сайты подкастов разрешают это только приложениям. Используйте приложение на телефоне или компьютере или проверьте подключение.</string>
     <string name="error_storage_full">Недостаточно места. Освободите место и повторите попытку.</string>
     <string name="download_deleted">Загрузка удалена</string>
     <string name="time_just_now">Только что</string>

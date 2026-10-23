@@ -229,6 +229,7 @@
     <string name="error_server">El servidor del feed respondió con un error. Inténtalo más tarde.</string>
     <string name="error_invalid_feed">Esta dirección no es un feed de podcast. Usa el enlace RSS.</string>
     <string name="error_invalid_url">Esta dirección no es válida. Revísala y pega el enlace del feed de nuevo.</string>
+    <string name="error_browser_blocked">El navegador no pudo leer este feed: muchos sitios de pódcast solo dejan que lo lean las apps. Usa la app en el móvil o en la computadora, o revisa tu conexión.</string>
     <string name="error_storage_full">No hay espacio de almacenamiento. Libera espacio e inténtalo de nuevo.</string>
     <string name="download_deleted">Descarga eliminada</string>
     <string name="time_just_now">Ahora</string>

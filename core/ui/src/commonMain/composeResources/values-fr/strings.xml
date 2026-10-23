@@ -222,6 +222,7 @@
     <string name="error_server">Le serveur du flux a renvoyé une erreur. Réessayez plus tard.</string>
     <string name="error_invalid_feed">Cette adresse n'est pas un flux de podcast. Utilisez le lien RSS.</string>
     <string name="error_invalid_url">Cette adresse n'est pas valide. Vérifiez-la et collez à nouveau le lien du flux.</string>
+    <string name="error_browser_blocked">Le navigateur n'a pas pu lire ce flux : beaucoup de sites de podcasts ne l'autorisent qu'aux applis. Utilisez l'appli sur votre téléphone ou votre ordinateur, ou vérifiez votre connexion.</string>
     <string name="error_storage_full">Pas assez d'espace. Libérez de la place et réessayez.</string>
     <string name="download_deleted">Téléchargement supprimé</string>
     <string name="time_just_now">À l'instant</string>

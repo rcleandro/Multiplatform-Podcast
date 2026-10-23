@@ -124,6 +124,13 @@ class RssFeedDataSourceImplTest {
     }
 
     @Test
+    fun `a fetch the browser refused becomes AppError BrowserBlocked`() = runTest(testDispatcher) {
+        val result = dataSource(MockEngine { throw Error(BROWSER_FETCH_FAILED) }).fetchFeed(FEED_URL)
+
+        assertEquals(AppError.BrowserBlocked, result.exceptionOrNull())
+    }
+
+    @Test
     fun `a full disk becomes AppError StorageFull and anything else AppError Unknown`() {
         assertEquals(AppError.StorageFull, kotlinx.io.IOException("write failed: ENOSPC").toAppError())
         assertIs<AppError.Unknown>(IllegalStateException("bug").toAppError())

@@ -222,6 +222,7 @@
     <string name="error_server">Server feed membalas dengan galat. Coba lagi nanti.</string>
     <string name="error_invalid_feed">Alamat ini bukan feed podcast. Gunakan tautan RSS.</string>
     <string name="error_invalid_url">Alamat ini tidak valid. Periksa lalu tempel lagi tautan feed.</string>
+    <string name="error_browser_blocked">Browser tidak dapat membaca feed ini: banyak situs podcast hanya mengizinkan aplikasi membacanya. Gunakan aplikasi di ponsel atau komputer, atau periksa koneksi Anda.</string>
     <string name="error_storage_full">Ruang penyimpanan tidak cukup. Kosongkan ruang dan coba lagi.</string>
     <string name="download_deleted">Unduhan dihapus</string>
     <string name="time_just_now">Baru saja</string>
