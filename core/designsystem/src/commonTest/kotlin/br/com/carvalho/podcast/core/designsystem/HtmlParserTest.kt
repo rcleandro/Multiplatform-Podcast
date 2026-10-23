@@ -59,6 +59,26 @@ class HtmlParserTest {
     }
 
     @Test
+    fun onlyWebAndMailLinksAreClickable() {
+        // A feed writes the description (22.4, T4 of ADR 0014): the text stays, a dangerous target is not a link.
+        val hrefs = listOf(
+            "javascript:alert(1)", "intent://scan#Intent;scheme=zxing;end", "file:///etc/passwd",
+            "content://contacts/people", " JavaScript:alert(2)", "data:text/html,hi", "tel:+5521999999999",
+        )
+        hrefs.forEach { href ->
+            val text = parseHtml("<a href=\"$href\">abrir</a>")
+            assertEquals("abrir", text.text)
+            assertEquals(emptyList(), text.getLinkAnnotations(0, text.length), href)
+        }
+
+        val allowed = listOf("https://example.com", "HTTP://example.com", "mailto:host@example.com")
+        assertEquals(allowed, allowed.map { href ->
+            val text = parseHtml("<a href=\"$href\">abrir</a>")
+            (text.getLinkAnnotations(0, text.length).single().item as LinkAnnotation.Url).url
+        })
+    }
+
+    @Test
     fun readsADescriptionShapedLikeARealOne() {
         // Shaped like the Hipsters Ponto Tech descriptions (data/src/commonTest/resources/feeds/hipsters.xml).
         val html = "<p>Neste episódio, conversamos sobre <strong>liderança</strong> &#8211; com " +
