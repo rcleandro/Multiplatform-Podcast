@@ -3,8 +3,8 @@ package br.com.carvalho.podcast.wear
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.Speed
-import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -87,7 +87,7 @@ fun EpisodeInfoPage(
                 val speed = stringResource(Res.string.playback_speed)
                 OptionButton(Icons.Rounded.Speed, speed, formatSpeed(state.speed), onSpeed)
             }
-            item { OptionButton(Icons.Rounded.Timer, stringResource(Res.string.sleep_timer), timerLabel, onTimer) }
+            item { OptionButton(Icons.Rounded.Bedtime, stringResource(Res.string.sleep_timer), timerLabel, onTimer) }
             soundSwitches(effects, onEffects)
             episode?.description?.let { description ->
                 item {

@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -37,6 +38,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
 import br.com.carvalho.podcast.core.ui.generated.resources.downloads_storage_used
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_break_reminder
 import br.com.carvalho.podcast.core.ui.generated.resources.language_arabic
 import br.com.carvalho.podcast.core.ui.generated.resources.language_chinese
 import br.com.carvalho.podcast.core.ui.generated.resources.language_english
@@ -56,6 +58,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_appearance
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_content
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_continuous_playback
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_continuous_playback_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all_confirmation
@@ -68,9 +72,12 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language_ios
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_playback
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_policy
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_policy_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_description
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_locked
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_backward
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_forward
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_skip_silence
@@ -90,6 +97,7 @@ import br.com.carvalho.podcast.core.util.canLimitDownloadsToWifi
 import br.com.carvalho.podcast.core.util.canRefreshInBackground
 import br.com.carvalho.podcast.core.util.openSystemLanguageSettings
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloads
@@ -184,28 +192,28 @@ fun SettingsContent(
             playbackSettings(state, onIntent)
             state.usedBytes?.let { downloadSettings(it, state, onIntent) { picking = Picker.DELETE_AFTER } }
             contentAndPrivacySettings(state, onIntent)
+            guardianSettings(state, onIntent, onOpenStats, onPickBreak = { picking = Picker.BREAK })
         }
     }
 
     picking?.let { PickerDialog(it, state, onDone = { picking = null }, onIntent = onIntent) }
+    state.guardian.pinStep?.let { GuardianPinDialog(it, state.guardian.pinError, onIntent) }
 
-    if (state.isConfirmingDeleteAll) {
-        ConfirmDialog(
-            title = stringResource(Res.string.settings_delete_all),
-            message = stringResource(
-                Res.string.settings_delete_all_confirmation,
-                storageSize(state.usedBytes ?: 0).text()
-            ),
-            confirmLabel = stringResource(Res.string.delete),
-            dismissLabel = stringResource(Res.string.cancel),
-            onConfirm = { onIntent(SettingsIntent.ConfirmDeleteAll) },
-            onDismiss = { onIntent(SettingsIntent.DismissDeleteAll) },
-        )
-    }
+    if (state.isConfirmingDeleteAll) DeleteAllDialog(state.usedBytes ?: 0, onIntent)
 }
 
+@Composable
+private fun DeleteAllDialog(usedBytes: Long, onIntent: (SettingsIntent) -> Unit) = ConfirmDialog(
+    title = stringResource(Res.string.settings_delete_all),
+    message = stringResource(Res.string.settings_delete_all_confirmation, storageSize(usedBytes).text()),
+    confirmLabel = stringResource(Res.string.delete),
+    dismissLabel = stringResource(Res.string.cancel),
+    onConfirm = { onIntent(SettingsIntent.ConfirmDeleteAll) },
+    onDismiss = { onIntent(SettingsIntent.DismissDeleteAll) },
+)
+
 /** Settings whose choices open in a dialog, so the screen stays short as they grow (18.5). */
-private enum class Picker { THEME, LANGUAGE, REFRESH, DELETE_AFTER }
+private enum class Picker { THEME, LANGUAGE, REFRESH, DELETE_AFTER, BREAK }
 
 /** The choices of [picker]; [onDone] closes it, whether one was picked or not. */
 @Composable
@@ -223,6 +231,16 @@ private fun PickerDialog(
             onSelect = {
                 onDone()
                 onIntent(SettingsIntent.SetTheme(it))
+            },
+            onDismiss = onDone,
+        )
+        Picker.BREAK -> ChoiceDialog(
+            title = stringResource(Res.string.guardian_break_reminder),
+            options = GuardianControls.BREAK_CHOICES.map { it to breakLabel(it) },
+            selected = state.guardian.controls.breakReminderMinutes,
+            onSelect = {
+                onDone()
+                onIntent(GuardianIntent.SetControls(state.guardian.controls.copy(breakReminderMinutes = it)))
             },
             onDismiss = onDone,
         )
@@ -278,12 +296,22 @@ private fun LazyListScope.contentAndPrivacySettings(state: SettingsUiState, onIn
     item {
         SwitchRow(
             title = stringResource(Res.string.settings_show_explicit),
-            description = stringResource(Res.string.settings_show_explicit_description),
+            description = stringResource(
+                if (state.explicitLocked) {
+                    Res.string.settings_show_explicit_locked
+                } else {
+                    Res.string.settings_show_explicit_description
+                }
+            ),
             checked = state.showExplicit,
             onChange = { onIntent(SettingsIntent.SetShowExplicit(it)) },
+            enabled = !state.explicitLocked,
         )
     }
     item { Section(stringResource(Res.string.settings_privacy)) }
+    item { PrivacyPolicyRow() }
+    // A minor in Brazil has telemetry off for good (26.4): nothing to choose, so no row.
+    if (state.isMinor) return
     item {
         SwitchRow(
             title = stringResource(Res.string.settings_telemetry),
@@ -317,6 +345,17 @@ private fun LazyListScope.playbackSettings(state: SettingsUiState, onIntent: (Se
         SkipChoice(stringResource(Res.string.settings_skip_forward), skips.forwardSeconds) {
             onIntent(SettingsIntent.SetSkipIntervals(skips.copy(forwardSeconds = it)))
         }
+    }
+    // A minor in Brazil, unless the guardians allow it (26.5, 26.6).
+    val locked = state.isMinor && !state.guardian.controls.allowContinuousPlayback
+    item {
+        SwitchRow(
+            title = stringResource(Res.string.settings_continuous_playback),
+            description = lockedForMinors(locked, Res.string.settings_continuous_playback_description),
+            checked = state.continuousPlayback && !locked,
+            onChange = { onIntent(SettingsIntent.SetContinuousPlayback(it)) },
+            enabled = !locked,
+        )
     }
     if (canEnhanceSpeech) {
         item {
@@ -397,4 +436,19 @@ private fun LazyListScope.downloadSettings(
             }
         }
     }
+}
+
+// Public, so it can be read before installing too (ECA Digital art. 16), and linked from the stores (26.8).
+private const val PRIVACY_POLICY_URL =
+    "https://github.com/rcleandro/Multiplatform-Podcast/blob/main/docs/PRIVACIDADE.md"
+
+@Composable
+private fun PrivacyPolicyRow() {
+    val uriHandler = LocalUriHandler.current
+    PickerRow(
+        title = stringResource(Res.string.settings_privacy_policy),
+        value = stringResource(Res.string.settings_privacy_policy_description),
+        // No browser to open it: nothing else to do.
+        onClick = { runCatching { uriHandler.openUri(PRIVACY_POLICY_URL) } },
+    )
 }

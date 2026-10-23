@@ -1,11 +1,14 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.domain.model.AgeGroup
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.repository.FakeAgeSignalSource
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -31,6 +34,37 @@ class RefreshInBackgroundUseCaseTest {
 
         // "waiting" was already in New; "muted" belongs to a podcast that keeps quiet.
         assertEquals(listOf("arrived"), result.toNotify.map { it.id })
+    }
+
+    @Test
+    fun underTheEcaDigitalNothingExplicitIsToldAbout() = runTest {
+        val adult = podcast("adult").copy(explicit = true)
+        repository.podcasts.value = listOf(loud, adult)
+        feedSource.resultsByUrl[loud.feedUrl] = Result.success(
+            FetchedFeed(loud, listOf(episode("clean", loud.id), episode("swearing", loud.id).copy(explicit = true)))
+        )
+        feedSource.resultsByUrl[adult.feedUrl] = Result.success(FetchedFeed(adult, listOf(episode("late", adult.id))))
+        val hidden = RefreshInBackgroundUseCase(
+            RefreshPodcastUseCase(feedSource, repository),
+            repository,
+            preferences,
+            ExplicitContent(MutableStateFlow(ExplicitRule(hidesExplicit = true))),
+        )
+
+        assertEquals(listOf("clean"), hidden().toNotify.map { it.id })
+    }
+
+    @Test
+    fun aMinorInBrazilIsToldAboutNothing() = runTest {
+        repository.podcasts.value = listOf(loud)
+        feedSource.resultsByUrl[loud.feedUrl] = Result.success(FetchedFeed(loud, listOf(episode("arrived", loud.id))))
+        val minor = ChildSafety(FakeAgeSignalSource(countries = setOf("BR"), ageGroup = AgeGroup.MINOR))
+        minor.refresh()
+        val refresh = RefreshInBackgroundUseCase(
+            RefreshPodcastUseCase(feedSource, repository), repository, preferences, childSafety = minor,
+        )
+
+        assertTrue(refresh().toNotify.isEmpty())
     }
 
     @Test

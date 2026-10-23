@@ -20,12 +20,16 @@ import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.EpisodeAction
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
+import br.com.carvalho.podcast.domain.usecase.ExplicitRule
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
+import kotlin.test.assertNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -64,8 +68,26 @@ class PodcastDetailViewModelTest {
     private fun createViewModel() = PodcastDetailViewModel(
         podcastId, audioPlayer, PlayEpisodeUseCase(audioPlayer), EnqueueEpisodeUseCase(audioPlayer),
         ActOnEpisodesUseCase(repository, episodeDownloader, EnqueueEpisodeUseCase(audioPlayer)), refreshUseCase,
-        episodeDownloader, repository, dispatchers, FakeAnalytics()
+        episodeDownloader, repository, dispatchers, FakeAnalytics(), ExplicitContent(explicitRule)
     )
+
+    private val explicitRule = MutableStateFlow(ExplicitRule())
+
+    @Test
+    fun `under the ECA Digital an explicit podcast opens as one the library does not have`() = runTest(testDispatcher) {
+        repository.podcasts.value = listOf(samplePodcast.copy(explicit = true))
+        repository.episodes.value = listOf(sampleEpisode, sampleEpisode.copy(id = "e2", explicit = true, publishDate = 1))
+        explicitRule.value = ExplicitRule(hidesExplicit = true, explicitPodcasts = setOf(podcastId))
+        val viewModel = createViewModel()
+
+        assertNull(viewModel.uiState.value.podcast)
+        assertFalse(viewModel.uiState.value.isLoading)
+        assertNull(viewModel.uiState.value.latestUnplayed)
+
+        explicitRule.value = ExplicitRule()
+        assertEquals(podcastId, viewModel.uiState.value.podcast?.id)
+        assertEquals("e2", viewModel.uiState.value.latestUnplayed?.id)
+    }
 
     @Test
     fun `the header counts the episodes and finds the newest unplayed one`() = runTest(testDispatcher) {

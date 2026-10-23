@@ -15,6 +15,7 @@ import br.com.carvalho.podcast.domain.player.ChapterSource
 import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ExplicitRule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -57,6 +58,10 @@ class PlaybackController(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + dispatchers.main),
     /** The clock listening time is measured with (19.5); tests pass their virtual one. */
     private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic,
+    /** What may play under Brazil's ECA Digital (26.3): nothing explicit for a minor or without a signal. */
+    private val explicitRule: StateFlow<ExplicitRule> = MutableStateFlow(ExplicitRule()),
+    /** Whether the queue moves on by itself when an episode ends (26.5): never for a minor in Brazil. */
+    private val continuousPlayback: StateFlow<Boolean> = MutableStateFlow(true),
 ) : AudioPlayer {
     private val _playerState = MutableStateFlow(PlayerState())
     override val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
@@ -100,9 +105,20 @@ class PlaybackController(
             engine.awaitReady()
             restoreSession()
         }
+        // A signal that arrives while something explicit plays stops it.
+        scope.launch {
+            explicitRule.collect { rule ->
+                val current = _playerState.value.currentEpisode
+                if (current != null && !rule.allows(current) && _playerState.value.isPlaying) pause()
+            }
+        }
     }
 
     override suspend fun play(episode: Episode) {
+        if (!explicitRule.value.allows(episode)) {
+            AppLogger.i(TAG, "Not playing ${episode.id}: explicit, hidden by the age signal")
+            return
+        }
         // The time heard of the episode leaving goes to its own podcast.
         _playerState.value.currentEpisode?.let { withContext(dispatchers.io) { saveListening(it) } }
         val requested = TimeSource.Monotonic.markNow()
@@ -140,7 +156,8 @@ class PlaybackController(
     }
 
     override fun resume() {
-        if (_playerState.value.currentEpisode == null) return
+        val current = _playerState.value.currentEpisode ?: return
+        if (!explicitRule.value.allows(current)) return
         _playerState.update { it.copy(isPlaying = true) }
         onMain {
             engine.setSpeed(_playerState.value.speed)
@@ -184,7 +201,7 @@ class PlaybackController(
     }
 
     override fun playNext() {
-        val next = _playerState.value.queue.firstOrNull()
+        val next = _playerState.value.queue.firstOrNull { explicitRule.value.allows(it) }
         if (next == null) {
             pause()
             return
@@ -275,8 +292,9 @@ class PlaybackController(
             podcastRepository.markEpisodeAsPlayed(finished.id)
             onFinished(finished, _playerState.value.queue)
         }
-        if (_playerState.value.sleepTimer == SleepTimer.EndOfEpisode) {
-            _playerState.update { it.copy(isPlaying = false, sleepTimer = null) }
+        val timerEnds = _playerState.value.sleepTimer == SleepTimer.EndOfEpisode
+        if (timerEnds || !continuousPlayback.value) {
+            _playerState.update { it.copy(isPlaying = false, sleepTimer = if (timerEnds) null else it.sleepTimer) }
             return
         }
         playNext()

@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.SkipIntervals
@@ -54,6 +55,11 @@ interface PreferencesRepository {
 
     fun setNotifyNewEpisodes(enabled: Boolean)
 
+    /** When an episode ends, the next in the queue starts by itself (26.5); off in Brazil until chosen. */
+    val continuousPlayback: StateFlow<Boolean>
+
+    fun setContinuousPlayback(enabled: Boolean)
+
     /** Hours between looks for new episodes while the app is closed (18.18); 0 never looks. */
     val refreshIntervalHours: StateFlow<Int>
 
@@ -94,4 +100,22 @@ interface PreferencesRepository {
     val syncFolder: StateFlow<SyncFolder?>
 
     fun setSyncFolder(folder: SyncFolder?)
+
+    /** The guardians' PIN as [GuardianPin.hash] keeps it (26.6); null for none. Not backed up nor synced. */
+    val guardianPin: StateFlow<String?>
+
+    fun setGuardianPin(hash: String?)
+
+    /** What the guardians allow a minor in Brazil (26.6). */
+    val guardianControls: StateFlow<GuardianControls>
+
+    fun setGuardianControls(controls: GuardianControls)
+
+    /** Podcasts (by id) and episodes (by id) hidden after a report (26.7): out of every list, and they do not play. */
+    val hiddenPodcasts: StateFlow<Set<String>>
+    val hiddenEpisodes: StateFlow<Set<String>>
+
+    fun hidePodcast(id: String)
+
+    fun hideEpisode(id: String)
 }

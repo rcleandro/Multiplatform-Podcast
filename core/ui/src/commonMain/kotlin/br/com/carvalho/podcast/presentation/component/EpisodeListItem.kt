@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.rounded.Archive
 import androidx.compose.material.icons.rounded.BookmarkAdd
 import androidx.compose.material.icons.rounded.BookmarkRemove
 import androidx.compose.material.icons.rounded.CheckCircleOutline
@@ -19,10 +20,8 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material.icons.rounded.QueuePlayNext
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.RemoveFromQueue
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
@@ -39,6 +38,7 @@ import br.com.carvalho.podcast.core.designsystem.component.DownloadState
 import br.com.carvalho.podcast.core.designsystem.component.EpisodePlayback
 import br.com.carvalho.podcast.core.designsystem.component.EpisodeRow
 import br.com.carvalho.podcast.core.designsystem.component.ItemAction
+import br.com.carvalho.podcast.core.designsystem.icon.PodcastIcons
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
@@ -66,7 +66,6 @@ import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.presentation.format.episodeTypeLabel
-import br.com.carvalho.podcast.presentation.format.explicitLabel
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import br.com.carvalho.podcast.presentation.format.text
 import kotlinx.coroutines.launch
@@ -116,7 +115,6 @@ fun EpisodeListItem(
     val published = relativeTime(episode.publishDate, getCurrentTimestamp())?.text()
     val metadata = listOfNotNull(
         episodeTypeLabel(episode.type),
-        explicitLabel(episode.explicit),
         podcastTitle,
         published,
         remaining ?: episode.duration.toDuration(),
@@ -137,7 +135,7 @@ fun EpisodeListItem(
         optionalAction(Res.string.mark_as_played, Icons.Rounded.Done, onMarkPlayed.takeIf { !episode.isPlayed }),
         optionalAction(
             Res.string.mark_as_unplayed,
-            Icons.Rounded.RemoveCircleOutline,
+            PodcastIcons.MarkUnplayed,
             onMarkUnplayed.takeIf { episode.isPlayed },
         ),
         if (episode.isSaved) {
@@ -147,7 +145,7 @@ fun EpisodeListItem(
         },
         optionalAction(Res.string.mark_older_as_played, Icons.Rounded.DoneAll, onMarkOlderPlayed),
         optionalAction(Res.string.mark_older_as_unplayed, Icons.Rounded.RemoveDone, onMarkOlderUnplayed),
-        optionalAction(Res.string.dismiss_new, Icons.Rounded.VisibilityOff, onDismissNew),
+        optionalAction(Res.string.dismiss_new, Icons.Rounded.Archive, onDismissNew),
         optionalAction(Res.string.go_to_podcast, Icons.Rounded.Podcasts, onGoToPodcast),
         optionalAction(Res.string.remove_from_queue, Icons.Rounded.RemoveFromQueue, onRemoveFromQueue),
         optionalAction(Res.string.select, Icons.Rounded.CheckCircleOutline, onSelect),
@@ -156,7 +154,7 @@ fun EpisodeListItem(
     SwipeActions(
         onSwipeRight = onAddToQueue.takeIf { !selecting },
         onSwipeLeft = (if (episode.isPlayed) onMarkUnplayed else onMarkPlayed).takeIf { !selecting },
-        leftIcon = if (episode.isPlayed) Icons.Rounded.RemoveCircleOutline else Icons.Rounded.Done,
+        leftIcon = if (episode.isPlayed) PodcastIcons.MarkUnplayed else Icons.Rounded.Done,
         modifier = modifier,
     ) {
         EpisodeRow(
@@ -177,6 +175,7 @@ fun EpisodeListItem(
             selected = selected.takeIf { selecting },
             onLongClick = onSelect,
             longClickLabel = stringResource(if (onSelect != null) Res.string.select else Res.string.episode_options),
+            explicit = episode.explicit,
         )
     }
 }

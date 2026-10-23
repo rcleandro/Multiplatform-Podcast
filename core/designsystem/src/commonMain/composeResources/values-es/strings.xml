@@ -23,4 +23,5 @@
     </plurals>
     <string name="ds_open_player">Abrir reproductor</string>
     <string name="ds_open_queue">Abrir cola</string>
+    <string name="ds_explicit">Explícito</string>
 </resources>

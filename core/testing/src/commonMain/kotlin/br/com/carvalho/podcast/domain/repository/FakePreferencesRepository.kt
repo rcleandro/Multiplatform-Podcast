@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.domain.repository
 
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
 import br.com.carvalho.podcast.domain.model.RefreshInterval
@@ -64,6 +65,12 @@ class FakePreferencesRepository : PreferencesRepository {
         notifyNewEpisodes.value = enabled
     }
 
+    override val continuousPlayback = MutableStateFlow(true)
+
+    override fun setContinuousPlayback(enabled: Boolean) {
+        continuousPlayback.value = enabled
+    }
+
     override val refreshIntervalHours = MutableStateFlow(RefreshInterval.DEFAULT_HOURS)
 
     override fun setRefreshIntervalHours(hours: Int) {
@@ -116,5 +123,28 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override fun setSyncFolder(folder: SyncFolder?) {
         syncFolder.value = folder
+    }
+
+    override val guardianPin = MutableStateFlow<String?>(null)
+
+    override fun setGuardianPin(hash: String?) {
+        guardianPin.value = hash
+    }
+
+    override val guardianControls = MutableStateFlow(GuardianControls())
+
+    override fun setGuardianControls(controls: GuardianControls) {
+        guardianControls.value = controls
+    }
+
+    override val hiddenPodcasts = MutableStateFlow<Set<String>>(emptySet())
+    override val hiddenEpisodes = MutableStateFlow<Set<String>>(emptySet())
+
+    override fun hidePodcast(id: String) {
+        hiddenPodcasts.value += id
+    }
+
+    override fun hideEpisode(id: String) {
+        hiddenEpisodes.value += id
     }
 }

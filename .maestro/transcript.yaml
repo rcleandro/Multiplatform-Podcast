@@ -27,7 +27,7 @@ appId: br.com.carvalho.podcast
     timeout: 30000
 - tapOn: "Transcrição"
 - extendedWaitUntil:
-    visible: ".*Podcasting 2.0.*"
+    visible: "Buscar na transcrição"
     timeout: 30000
 - tapOn: "Buscar na transcrição"
 - inputText: "podcasting"

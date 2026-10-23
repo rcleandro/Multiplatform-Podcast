@@ -19,4 +19,5 @@
     <plurals name="ds_unplayed_count"><item quantity="one">%1$d непрослушанный выпуск</item><item quantity="few">%1$d непрослушанных выпуска</item><item quantity="many">%1$d непрослушанных выпусков</item><item quantity="other">%1$d непрослушанных выпуска</item></plurals>
     <string name="ds_open_player">Открыть плеер</string>
     <string name="ds_open_queue">Открыть очередь</string>
+    <string name="ds_explicit">Откровенное содержание</string>
 </resources>

@@ -4,12 +4,14 @@ import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.LogAnalytics
 import br.com.carvalho.podcast.core.player.DesktopPlatformPlayer
 import br.com.carvalho.podcast.core.player.PlatformPlayer
+import br.com.carvalho.podcast.core.safety.NoAgeSignalSource
 import br.com.carvalho.podcast.core.util.AlwaysOnline
 import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.data.download.KtorEpisodeDownloader
 import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
+import br.com.carvalho.podcast.domain.repository.AgeSignalSource
 import com.russhwolf.settings.PreferencesSettings
 import com.russhwolf.settings.Settings
 import okio.FileSystem
@@ -27,6 +29,7 @@ actual val platformModule = module {
     single<Analytics> { LogAnalytics() }
     single<EpisodeDownloader> { get<KtorEpisodeDownloader>() }
     single<NetworkMonitor> { AlwaysOnline }
+    single<AgeSignalSource> { NoAgeSignalSource }
 }
 
 private const val PREFERENCES_NODE = "br/com/carvalho/podcast"

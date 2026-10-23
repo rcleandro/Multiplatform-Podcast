@@ -42,6 +42,7 @@ fun PodcastCard(
     unplayedCount: Int = 0,
     actions: List<ItemAction> = emptyList(),
     actionsLabel: String? = null,
+    explicit: Boolean = false,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val openMenu = { menuOpen = true }.takeIf { actions.isNotEmpty() }
@@ -76,6 +77,7 @@ fun PodcastCard(
         }
         Row(verticalAlignment = Alignment.Top) {
             CardCaption(title, author, Modifier.weight(1f))
+            if (explicit) ExplicitBadge(Modifier.padding(top = Spacing.xxs))
             if (actions.isNotEmpty()) {
                 ItemActionsButton(
                     actions,

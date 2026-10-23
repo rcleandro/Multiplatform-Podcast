@@ -8,11 +8,13 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
@@ -24,22 +26,42 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
 import br.com.carvalho.podcast.core.ui.generated.resources.backup_not_valid
+import br.com.carvalho.podcast.core.ui.generated.resources.cancel
 import br.com.carvalho.podcast.core.ui.generated.resources.delete
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_allow_continuous
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_allow_notifications
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_break_every
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_break_reminder
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_change_pin
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_create_pin
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_lock
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_notice
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_open
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_create
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_ok
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_pin_wrong
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_remove_pin
+import br.com.carvalho.podcast.core.ui.generated.resources.guardian_title
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_importing
 import br.com.carvalho.podcast.core.ui.generated.resources.opml_nothing_to_import
 import br.com.carvalho.podcast.core.ui.generated.resources.seconds_short
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_continuous_playback
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_after_days
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_locked_for_minors
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_policy
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_locked
 import br.com.carvalho.podcast.core.ui.generated.resources.stats_title
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
@@ -61,6 +83,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_wifi_only
 import br.com.carvalho.podcast.core.ui.generated.resources.size_gigabytes
 import br.com.carvalho.podcast.core.util.DiskSpace
 import br.com.carvalho.podcast.domain.model.AppLanguage
+import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.FolderSyncStatus
@@ -170,6 +193,111 @@ class SettingsContentTest {
         onNodeWithText(text(Res.string.settings_show_explicit)).assertIsOn().performClick()
 
         assertEquals(false, shown)
+    }
+
+    @Test
+    fun underTheEcaDigitalTheExplicitSwitchIsOffLockedAndSaysWhy() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        setContent {
+            PodcastTheme {
+                SettingsContent(
+                    SettingsUiState(showExplicit = false, explicitLocked = true),
+                    onBack = {},
+                    onIntent = { intents += it },
+                )
+            }
+        }
+
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_show_explicit)))
+        onNodeWithText(text(Res.string.settings_show_explicit_locked)).assertExists()
+        onNodeWithText(text(Res.string.settings_show_explicit)).assertIsOff().assertIsNotEnabled().performClick()
+
+        assertEquals(emptyList(), intents)
+    }
+
+    @Test
+    fun theQueueMovingOnIsASwitchAMinorInBrazilCannotTurnOn() = runComposeUiTest {
+        var state by mutableStateOf(SettingsUiState())
+        val intents = mutableListOf<SettingsIntent>()
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        val row = hasText(text(Res.string.settings_continuous_playback))
+        onNode(hasScrollToNodeAction()).performScrollToNode(row)
+
+        onNode(row).assertIsOn().performClick()
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.SetContinuousPlayback(false)), intents)
+
+        state = SettingsUiState(isMinor = true)
+        onNodeWithText(text(Res.string.settings_locked_for_minors)).assertExists()
+        onNode(row).assertIsOff().assertIsNotEnabled()
+    }
+
+    @Test
+    fun inBrazilTheGuardiansSectionSaysWhatIsInEffectAndAsksForThePin() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        var state by mutableStateOf(SettingsUiState())
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        onAllNodesWithText(text(Res.string.guardian_title), ignoreCase = true).assertCountEquals(0)
+
+        state = SettingsUiState(isMinor = true, guardian = GuardianState(inBrazil = true))
+        val list = onNode(hasScrollToNodeAction())
+        list.performScrollToNode(hasText(text(Res.string.guardian_notice)))
+        list.performScrollToNode(hasText(text(Res.string.guardian_create_pin)))
+        onNodeWithText(text(Res.string.guardian_create_pin)).performClick()
+        assertEquals(listOf<SettingsIntent>(GuardianIntent.Open), intents)
+
+        state = state.copy(guardian = state.guardian.copy(pinStep = PinStep.UNLOCK, pinError = PinError.WRONG))
+        onNodeWithText(text(Res.string.guardian_pin_wrong)).assertExists()
+        onNode(hasSetTextAction()).performTextInput("12a34")
+        onNodeWithText(text(Res.string.guardian_pin_ok)).performClick()
+        assertEquals(GuardianIntent.EnterPin("1234"), intents.last())
+    }
+
+    @Test
+    fun withThePinTheGuardiansAllowChooseTheBreakAndLockAgain() = runComposeUiTest {
+        val intents = mutableListOf<SettingsIntent>()
+        var state by mutableStateOf(SettingsUiState(guardian = GuardianState(inBrazil = true, hasPin = true)))
+        setContent { PodcastTheme { SettingsContent(state, onBack = {}, onIntent = { intents += it }) } }
+        val list = onNode(hasScrollToNodeAction())
+        list.performScrollToNode(hasText(text(Res.string.guardian_open)))
+        onNodeWithText(text(Res.string.guardian_open)).performClick()
+        assertEquals(GuardianIntent.Open, intents.last())
+
+        state = state.copy(guardian = state.guardian.copy(unlocked = true))
+        list.performScrollToNode(hasText(text(Res.string.guardian_allow_continuous)))
+        onNodeWithText(text(Res.string.guardian_allow_continuous)).performClick()
+        assertEquals(GuardianIntent.SetControls(GuardianControls(allowContinuousPlayback = true)), intents.last())
+        list.performScrollToNode(hasText(text(Res.string.guardian_allow_notifications)))
+        onNodeWithText(text(Res.string.guardian_allow_notifications)).performClick()
+        assertEquals(GuardianIntent.SetControls(GuardianControls(allowNewEpisodeNotifications = true)), intents.last())
+
+        list.performScrollToNode(hasText(text(Res.string.guardian_break_reminder)))
+        onNodeWithText(text(Res.string.guardian_break_reminder)).performClick()
+        onNodeWithText(runBlocking { getString(Res.string.guardian_break_every, 30) }).performClick()
+        assertEquals(GuardianIntent.SetControls(GuardianControls(breakReminderMinutes = 30)), intents.last())
+
+        for ((row, intent) in listOf(
+            Res.string.guardian_change_pin to GuardianIntent.ChangePin,
+            Res.string.guardian_remove_pin to GuardianIntent.RemovePin,
+            Res.string.guardian_lock to GuardianIntent.Lock,
+        )) {
+            list.performScrollToNode(hasText(text(row)))
+            onNodeWithText(text(row)).performClick()
+            assertEquals(intent, intents.last())
+        }
+
+        state = state.copy(guardian = state.guardian.copy(pinStep = PinStep.CREATE))
+        onNodeWithText(text(Res.string.guardian_pin_create)).assertExists()
+        onNodeWithText(text(Res.string.cancel)).performClick()
+        assertEquals(GuardianIntent.DismissPin, intents.last())
+    }
+
+    @Test
+    fun aMinorInBrazilSeesNoTelemetryRow() = runComposeUiTest {
+        setContent { PodcastTheme { SettingsContent(SettingsUiState(isMinor = true), onBack = {}, onIntent = {}) } }
+
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_privacy_policy)))
+        onNodeWithText(text(Res.string.settings_privacy_policy)).assertExists()
+        onAllNodesWithText(text(Res.string.settings_telemetry)).assertCountEquals(0)
     }
 
     @Test

@@ -16,12 +16,14 @@ private const val RECOMMENDATIONS = 10
  * The directory of "Add podcast": search (18.1) and charts per category (18.2). A term shorter than two letters does
  * not reach the network, and each result says whether the library already has it, by the same feed key that adding by
  * address uses; the same feed listed twice comes once. With "Show explicit content" off, explicit shows stay out
- * (18.5).
+ * (18.5), and so they do under Brazil's ECA Digital (26.3).
  */
 class SearchPodcastsUseCase(
     private val directory: PodcastDirectory,
     private val podcastRepository: PodcastRepository,
     private val preferences: PreferencesRepository,
+    private val explicitContent: ExplicitContent = ExplicitContent(),
+    private val childSafety: ChildSafety = ChildSafety(),
 ) {
     suspend operator fun invoke(term: String): Result<List<DirectoryResult>> {
         val trimmed = term.trim()
@@ -50,9 +52,13 @@ class SearchPodcastsUseCase(
         return Similar(podcast.title, recommending(listOf(byAuthor, byCategory)) { it + feedUrlKey(podcast.feedUrl) })
     }
 
-    /** For the library (19.6): the charts of its two most common categories, taking turns. Empty for an empty one. */
+    /**
+     * For the library (19.6): the charts of its two most common categories, taking turns. Empty for an empty one, and
+     * for a minor in Brazil, since it follows what they subscribe to (26.4).
+     */
     suspend fun forLibrary(): Result<List<DirectoryResult>> {
-        val categories = podcastRepository.getPodcasts().first()
+        val library = podcastRepository.getPodcasts().first().takeUnless { childSafety.state.value.isMinor }.orEmpty()
+        val categories = library
             .flatMap { it.topCategories }
             .groupingBy { it }.eachCount()
             .entries.sortedByDescending { it.value }
@@ -79,12 +85,14 @@ class SearchPodcastsUseCase(
         }
     }
 
+    private fun showsExplicit() = preferences.showExplicit.value && !explicitContent.rule.value.hidesExplicit
+
     private suspend fun Result<List<DirectoryPodcast>>.markingSubscribed(): Result<List<DirectoryResult>> {
         val saved = podcastRepository.getPodcasts().first().map { feedUrlKey(it.feedUrl) }.toSet()
         // Apple sometimes lists one feed under two entries: one row each, or the list would show it twice.
         return map { found ->
             found.distinctBy { feedUrlKey(it.feedUrl) }
-                .filter { preferences.showExplicit.value || !it.explicit }
+                .filter { (showsExplicit() || !it.explicit) && !explicitContent.rule.value.hides(it.feedUrl) }
                 .map { DirectoryResult(it, isSubscribed = feedUrlKey(it.feedUrl) in saved) }
         }
     }

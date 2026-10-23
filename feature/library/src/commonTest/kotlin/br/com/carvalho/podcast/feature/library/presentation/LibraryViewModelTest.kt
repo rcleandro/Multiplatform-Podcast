@@ -18,12 +18,15 @@ import br.com.carvalho.podcast.domain.model.PodcastCategory
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
+import br.com.carvalho.podcast.domain.usecase.ExplicitRule
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.usecase.RefreshPodcastUseCase
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -59,12 +62,39 @@ class LibraryViewModelTest {
 
     private val preferences = FakePreferencesRepository()
 
+    private val explicitRule = MutableStateFlow(ExplicitRule())
+
     private fun createViewModel(): LibraryViewModel {
         return LibraryViewModel(
             repository, refreshPodcastUseCase, deletePodcastUseCase, preferences,
-            PlayEpisodeUseCase(audioPlayer), dispatchers, analytics
+            PlayEpisodeUseCase(audioPlayer), dispatchers, analytics, ExplicitContent(explicitRule)
         )
     }
+
+    @Test
+    fun `under the ECA Digital explicit podcasts and episodes leave the library and come back for an adult`() =
+        runTest(testDispatcher) {
+            fun podcast(id: String) = Podcast(
+                id = id, title = id, description = "", imageUrl = null, author = null, language = null,
+                categories = emptyList(), feedUrl = id, siteUrl = null, lastUpdated = 0, isSubscribed = true,
+            )
+            val started = Episode(
+                id = "e1", podcastId = "clean", title = "Started", description = null, audioUrl = "a",
+                imageUrl = null, duration = 600, publishDate = 0, isPlayed = false, playbackPosition = 120_000,
+                isDownloaded = false, fileSize = null,
+            )
+            repository.podcasts.value = listOf(podcast("clean"), podcast("adult").copy(explicit = true))
+            repository.episodes.value = listOf(started, started.copy(id = "e2", explicit = true))
+            explicitRule.value = ExplicitRule(hidesExplicit = true, explicitPodcasts = setOf("adult"))
+            val viewModel = createViewModel()
+
+            assertEquals(listOf("clean"), viewModel.uiState.value.podcasts.map { it.podcast.id })
+            assertEquals(listOf("e1"), viewModel.uiState.value.inProgress.map { it.id })
+
+            explicitRule.value = ExplicitRule()
+            assertEquals(listOf("adult", "clean"), viewModel.uiState.value.podcasts.map { it.podcast.id })
+            assertEquals(listOf("e1", "e2"), viewModel.uiState.value.inProgress.map { it.id })
+        }
 
     @Test
     fun `continue listening shows the started episodes and plays the tapped one`() = runTest(testDispatcher) {

@@ -132,6 +132,8 @@ kotlin {
             implementation(project.dependencies.platform(libs.firebase.bom))
             // The player's video (19.10).
             implementation(libs.media3.ui.compose)
+            // Brazil's age signal for the ECA Digital (26.2, ADR 0012).
+            implementation(libs.play.age.signals)
         }
 
         // Firebase implementations shared by Android and iOS; Desktop and Web only log.

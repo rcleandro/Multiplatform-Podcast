@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
@@ -21,6 +22,7 @@ import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.ActOnEpisodesUseCase
 import br.com.carvalho.podcast.domain.usecase.EnqueueEpisodeUseCase
 import br.com.carvalho.podcast.domain.usecase.EpisodeAction
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import br.com.carvalho.podcast.presentation.UiMessage
 import br.com.carvalho.podcast.presentation.component.OlderMark
@@ -62,7 +64,9 @@ class SearchViewModel(
     private val actOnEpisodes: ActOnEpisodesUseCase,
     networkMonitor: NetworkMonitor,
     private val dispatchers: CoroutineDispatchers,
-    private val analytics: Analytics
+    private val analytics: Analytics,
+    /** Explicit episodes stay out under Brazil's ECA Digital (26.3). */
+    private val explicitContent: ExplicitContent = ExplicitContent(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -91,6 +95,7 @@ class SearchViewModel(
                 repository.searchEpisodesPaged(query.takeIf { it.isNotBlank() }, filter)
             }
         }
+        .combine(explicitContent.rule) { episodes, rule -> episodes.filter { rule.allows(it) } }
         .cachedIn(viewModelScope)
 
     init {
@@ -165,7 +170,8 @@ class SearchViewModel(
     private fun playPlaylist() {
         val playlist = _uiState.value.playlist ?: return
         viewModelScope.launch(dispatchers.io) {
-            val episodes = repository.getSmartPlaylistEpisodes(playlist)
+            val rule = explicitContent.rule.value
+            val episodes = repository.getSmartPlaylistEpisodes(playlist).filter { rule.allows(it) }
             val first = episodes.firstOrNull() ?: return@launch
             analytics.logEvent(AnalyticsEvent.PlaySmartPlaylist(episodes.size))
             audioPlayer.play(first)

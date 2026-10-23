@@ -78,6 +78,7 @@ fun EpisodeRow(
     selected: Boolean? = null,
     onLongClick: (() -> Unit)? = null,
     longClickLabel: String = actionsLabel,
+    explicit: Boolean = false,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val selecting = selected != null
@@ -98,7 +99,7 @@ fun EpisodeRow(
     ) {
         Leading(selected == true, imageUrl, dimmed = playback.isPlayed)
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
-            MetadataLine(metadata = metadata, marker = marker(playback, downloadState, isNew))
+            MetadataLine(metadata = metadata, marker = marker(playback, downloadState, isNew), explicit = explicit)
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium.let {
@@ -166,7 +167,7 @@ private fun marker(playback: EpisodePlayback, download: DownloadState?, isNew: B
 }
 
 @Composable
-private fun MetadataLine(metadata: String, marker: Marker) {
+private fun MetadataLine(metadata: String, marker: Marker, explicit: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         val style = MaterialTheme.typography.labelMedium
         val muted = MaterialTheme.colorScheme.onSurfaceVariant
@@ -192,6 +193,7 @@ private fun MetadataLine(metadata: String, marker: Marker) {
             Marker.New -> Text(stringResource(Res.string.ds_new), style = style, color = PodcastTheme.colors.accentText)
             Marker.None -> Unit
         }
+        if (explicit) ExplicitBadge()
         Text(
             text = metadata,
             style = style,

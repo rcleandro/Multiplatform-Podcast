@@ -99,7 +99,7 @@ internal fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
 
 /** A setting that opens its choices: its name and, below it, what is chosen now. */
 @Composable
-internal fun PickerRow(title: String, value: String, onClick: () -> Unit) {
+internal fun PickerRow(title: String, value: String?, onClick: () -> Unit) {
     Column(
         verticalArrangement = Arrangement.spacedBy(Spacing.xxs),
         modifier = Modifier
@@ -108,7 +108,9 @@ internal fun PickerRow(title: String, value: String, onClick: () -> Unit) {
             .padding(vertical = Spacing.s),
     ) {
         Text(title, style = MaterialTheme.typography.bodyLarge)
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        value?.let {
+            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 
@@ -137,13 +139,19 @@ internal fun <T> ChoiceDialog(
 }
 
 @Composable
-internal fun SwitchRow(title: String, description: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+internal fun SwitchRow(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         modifier = Modifier
             .readableWidth()
-            .toggleable(value = checked, onValueChange = onChange, role = Role.Switch)
+            .toggleable(value = checked, onValueChange = onChange, enabled = enabled, role = Role.Switch)
             .padding(vertical = Spacing.s),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs), modifier = Modifier.weight(1f)) {
@@ -154,7 +162,7 @@ internal fun SwitchRow(title: String, description: String, checked: Boolean, onC
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Switch(checked = checked, onCheckedChange = null)
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
 

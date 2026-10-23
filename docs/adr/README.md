@@ -16,6 +16,7 @@ one to "substituída por ADR NNNN" instead of deleting it.
 | [0009](0009-feeds-e-audio-em-http.md) | Feeds e áudio em `http://`: tentar `https` primeiro e cair para `http`; texto claro liberado no Android e no iOS |
 | [0010](0010-video-dos-episodios.md) | Vídeo dos episódios: slot no player preenchido por plataforma (Media3 + PiP no Android, `<video>` na Web, JavaFX no Desktop) |
 | [0011](0011-sincronizacao-por-pasta.md) | Sincronização entre aparelhos por uma pasta que o usuário já sincroniza: um arquivo por aparelho, merge da 19.9b; Android e Desktop |
+| [0012](0012-eca-digital.md) | ECA Digital: o app está no escopo; no Brasil, explícito escondido e travado para menor e sem sinal de idade; padrões protetores mudáveis só para sem sinal |
 
 ## Modelo
 

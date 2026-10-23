@@ -25,11 +25,11 @@ import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.OutlinedFlag
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.QueuePlayNext
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
@@ -46,7 +46,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -63,12 +66,14 @@ import br.com.carvalho.podcast.core.designsystem.component.ArtworkBackdrop
 import br.com.carvalho.podcast.core.designsystem.component.DownloadState
 import br.com.carvalho.podcast.core.designsystem.component.EmptyState
 import br.com.carvalho.podcast.core.designsystem.component.ErrorState
+import br.com.carvalho.podcast.core.designsystem.component.ExplicitBadge
 import br.com.carvalho.podcast.core.designsystem.component.HtmlText
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastArtwork
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
 import br.com.carvalho.podcast.core.designsystem.component.morphingShape
+import br.com.carvalho.podcast.core.designsystem.icon.PodcastIcons
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
@@ -85,6 +90,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.no_description
 import br.com.carvalho.podcast.core.ui.generated.resources.pause
 import br.com.carvalho.podcast.core.ui.generated.resources.play
 import br.com.carvalho.podcast.core.ui.generated.resources.play_next
+import br.com.carvalho.podcast.core.ui.generated.resources.report
 import br.com.carvalho.podcast.core.ui.generated.resources.resume_remaining
 import br.com.carvalho.podcast.core.ui.generated.resources.save_episode
 import br.com.carvalho.podcast.core.ui.generated.resources.share
@@ -94,8 +100,12 @@ import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.model.Bookmark
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.presentation.MessageEffect
 import br.com.carvalho.podcast.presentation.component.BookmarkRow
+import br.com.carvalho.podcast.presentation.component.ReportFlow
+import br.com.carvalho.podcast.presentation.component.ReportTarget
 import br.com.carvalho.podcast.presentation.component.downloadAction
 import br.com.carvalho.podcast.presentation.component.remainingDuration
 import br.com.carvalho.podcast.presentation.component.toDownloadState
@@ -104,6 +114,7 @@ import br.com.carvalho.podcast.presentation.format.text
 import br.com.carvalho.podcast.presentation.share.episodeShareText
 import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -111,12 +122,17 @@ import org.koin.core.parameter.parametersOf
 fun EpisodeDetailScreen(
     episodeId: String,
     viewModel: EpisodeDetailViewModel = koinViewModel(key = episodeId) { parametersOf(episodeId) },
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    // Reporting is a duty under Brazil's ECA Digital (26.7): offered there only, hiding through the preferences.
+    childSafety: ChildSafety = koinInject(),
+    preferences: PreferencesRepository = koinInject(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val share = rememberShare(snackbarHostState)
     MessageEffect(viewModel.messages, snackbarHostState)
+    val inBrazil = childSafety.state.collectAsState().value.inBrazil
+    var reporting by rememberSaveable { mutableStateOf(false) }
 
     EpisodeDetailContent(
         state = uiState,
@@ -124,6 +140,7 @@ fun EpisodeDetailScreen(
         actions = EpisodeDetailActions(
             onBack = onBackClick,
             onShare = { uiState.episode?.let { share(episodeShareText(it)) } },
+            onReport = if (inBrazil) ({ reporting = true }) else null,
             onPlayPause = { viewModel.onIntent(EpisodeDetailIntent.PlayPause) },
             onRetry = { viewModel.onIntent(EpisodeDetailIntent.Retry) },
             onEnqueue = { viewModel.onIntent(EpisodeDetailIntent.Enqueue(next = it)) },
@@ -137,11 +154,25 @@ fun EpisodeDetailScreen(
             onDeleteBookmark = { viewModel.onIntent(EpisodeDetailIntent.DeleteBookmark(it)) },
         ),
     )
+
+    // A library podcast's id is its feed address.
+    if (reporting) {
+        ReportFlow(
+            target = uiState.episode?.let { ReportTarget(it.podcastTitle.orEmpty(), it.podcastId, it.title) },
+            onHide = {
+                preferences.hideEpisode(episodeId)
+                onBackClick()
+            },
+            onClose = { reporting = false },
+        )
+    }
 }
 
 data class EpisodeDetailActions(
     val onBack: () -> Unit = {},
     val onShare: () -> Unit = {},
+    /** Opens the report (26.7); null hides the button, outside Brazil. */
+    val onReport: (() -> Unit)? = null,
     val onPlayPause: () -> Unit = {},
     val onRetry: () -> Unit = {},
     /** "Play next" when true, else "Add to queue" (18.6). */
@@ -182,6 +213,11 @@ fun EpisodeDetailContent(
                     if (state.episode != null) {
                         IconButton(onClick = actions.onShare) {
                             Icon(Icons.Rounded.Share, contentDescription = stringResource(Res.string.share))
+                        }
+                        actions.onReport?.let { report ->
+                            IconButton(onClick = report) {
+                                Icon(Icons.Rounded.OutlinedFlag, contentDescription = stringResource(Res.string.report))
+                            }
                         }
                     }
                 },
@@ -256,6 +292,7 @@ private fun EpisodeDetailBody(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.semantics { heading() },
                     )
+                    if (episode.explicit) ExplicitBadge()
                     EpisodeFacts(episode)
                 }
                 PlayPauseButton(episode, state, actions.onPlayPause)
@@ -348,7 +385,7 @@ private fun EpisodeActionButtons(episode: Episode, state: EpisodeDetailUiState, 
         }
         if (episode.isPlayed) {
             IconLabelButton(
-                Icons.Rounded.RemoveDone,
+                PodcastIcons.MarkUnplayed,
                 stringResource(Res.string.mark_as_unplayed),
                 actions.onMarkUnplayed,
             )

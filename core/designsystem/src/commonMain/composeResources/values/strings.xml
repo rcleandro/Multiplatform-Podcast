@@ -24,4 +24,5 @@
     </plurals>
     <string name="ds_open_player">Open player</string>
     <string name="ds_open_queue">Open queue</string>
+    <string name="ds_explicit">Explicit</string>
 </resources>

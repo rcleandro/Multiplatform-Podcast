@@ -1,0 +1,49 @@
+# 26.9: a minor in Brazil, faked through the debug build's launch arguments (no minor's Play account needed).
+# Explicit content locked, no telemetry row, the guardians' PIN opening their controls, and the report on a podcast.
+# Needs the debug app installed, a device in Portuguese and internet (the feed is real):
+#   ./gradlew :androidApp:installDebug && maestro test .maestro/eca-digital-minor.yaml
+appId: br.com.carvalho.podcast
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+    arguments:
+      debug_country: BR
+      debug_age_group: MINOR
+- tapOn: "Configurações"
+- scrollUntilVisible:
+    element: "Travado no Brasil pelo ECA Digital.*"
+- assertNotVisible: "Enviar relatórios de uso e de falhas"
+- scrollUntilVisible:
+    element: "Criar PIN dos responsáveis"
+- assertVisible: "Valendo para menores no Brasil.*"
+- tapOn: "Criar PIN dos responsáveis"
+- inputText: "1234"
+- tapOn: "OK"
+- inputText: "1234"
+- tapOn: "OK"
+- scrollUntilVisible:
+    element: "Permitir a fila em sequência"
+- tapOn: "Permitir a fila em sequência"
+- scrollUntilVisible:
+    element: "Bloquear"
+- tapOn: "Bloquear"
+- scrollUntilVisible:
+    element: "Abrir com o PIN"
+- back
+- openLink: "pcast://feeds.npr.org/510289/podcast.xml"
+- extendedWaitUntil:
+    visible: "Assinar Planet Money"
+    timeout: 30000
+- tapOn: "Assinar Planet Money"
+- extendedWaitUntil:
+    visible: "Assinado"
+    timeout: 30000
+- back
+- tapOn: "Planet Money"
+- tapOn: "Denunciar"
+- assertVisible: "Denunciar podcast"
+- assertVisible: "Se for crime, denuncie também.*"
+- tapOn: "Cancelar"
+- assertNotVisible: "Denunciar podcast"

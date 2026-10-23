@@ -13,6 +13,7 @@ import br.com.carvalho.podcast.domain.player.SleepTimer
 import br.com.carvalho.podcast.domain.repository.FakePlayerRepository
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.PlaybackState
+import br.com.carvalho.podcast.domain.usecase.ExplicitRule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -39,6 +40,8 @@ class PlaybackControllerTest {
     private val finishedWith = mutableListOf<Pair<String, List<String>>>()
     private val skips = MutableStateFlow(SkipIntervals())
     private val chapters = mutableMapOf<String, List<Chapter>>()
+    private val explicitRule = MutableStateFlow(ExplicitRule())
+    private val continuous = MutableStateFlow(true)
 
     @Test
     fun theJumpsChosenInSettingsReachTheStateThePlatformAndTheRemoteButtons() = runTest(dispatcher) {
@@ -65,7 +68,60 @@ class PlaybackControllerTest {
         chapterSource = { chapters[it.id].orEmpty() },
         scope = backgroundScope,
         timeSource = testScheduler.timeSource,
+        explicitRule = explicitRule,
+        continuousPlayback = continuous,
     ).also { runCurrent() }
+
+    @Test
+    fun withoutContinuousPlaybackTheQueueWaitsAtTheEndOfAnEpisode() = runTest(dispatcher) {
+        continuous.value = false
+        val controller = controller()
+        controller.setQueue(listOf(second))
+        controller.play(first)
+        runCurrent()
+
+        engine.raise(PlatformEvent.Ended)
+        runCurrent()
+
+        assertEquals("first", engine.loaded?.id)
+        assertFalse(controller.playerState.value.isPlaying)
+        assertEquals(listOf("second"), controller.playerState.value.queue.map { it.id })
+    }
+
+    @Test
+    fun underTheEcaDigitalAnExplicitEpisodeDoesNotPlayAndNextSkipsIt() = runTest(dispatcher) {
+        val explicit = first.copy(explicit = true)
+        val ofExplicitPodcast = episode("third").copy(podcastId = "adult")
+        explicitRule.value = ExplicitRule(hidesExplicit = true, explicitPodcasts = setOf("adult"))
+        val controller = controller()
+
+        controller.play(explicit)
+        controller.play(ofExplicitPodcast)
+        runCurrent()
+        assertNull(engine.loaded)
+
+        controller.setQueue(listOf(explicit, ofExplicitPodcast, second))
+        controller.playNext()
+        runCurrent()
+        assertEquals("second", engine.loaded?.id)
+    }
+
+    @Test
+    fun aMinorsSignalArrivingWhileSomethingExplicitPlaysStopsIt() = runTest(dispatcher) {
+        val controller = controller()
+        controller.play(first.copy(explicit = true))
+        engine.raise(PlatformEvent.PlayingChanged(true))
+        runCurrent()
+        assertTrue(controller.playerState.value.isPlaying)
+
+        explicitRule.value = ExplicitRule(hidesExplicit = true)
+        runCurrent()
+        assertFalse(controller.playerState.value.isPlaying)
+
+        controller.resume()
+        runCurrent()
+        assertFalse(controller.playerState.value.isPlaying)
+    }
 
     @Test
     fun theChapterPlayingFollowsThePositionAndThePlatformHearsOnlyWhenItChanges() = runTest(dispatcher) {

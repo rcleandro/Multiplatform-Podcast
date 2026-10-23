@@ -19,4 +19,5 @@
     <plurals name="ds_unplayed_count"><item quantity="one">%1$d dinlenmemiş bölüm</item><item quantity="other">%1$d dinlenmemiş bölüm</item></plurals>
     <string name="ds_open_player">Oynatıcıyı aç</string>
     <string name="ds_open_queue">Sırayı aç</string>
+    <string name="ds_explicit">Müstehcen</string>
 </resources>

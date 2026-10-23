@@ -7,6 +7,7 @@ import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastDirectory
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -42,6 +43,19 @@ class OpenPodcastLinkUseCaseTest {
         val result = useCase("https://podcasts.apple.com/us/podcast/id42")
 
         assertEquals(AppError.NotFound, result.exceptionOrNull())
+    }
+
+    @Test
+    fun underTheEcaDigitalAnExplicitPodcastsLinkIsNotFound() = runTest {
+        feedSource.result = Result.success(
+            FetchedFeed(podcast("https://example.com/rss").copy(explicit = true), episodes = emptyList())
+        )
+        val hidden = OpenPodcastLinkUseCase(
+            directory, feedSource, podcastRepo, ExplicitContent(MutableStateFlow(ExplicitRule(hidesExplicit = true)))
+        )
+
+        assertEquals(AppError.NotFound, hidden("pcast://example.com/rss").exceptionOrNull())
+        assertEquals(true, useCase("pcast://example.com/rss").getOrThrow().podcast.explicit)
     }
 
     @Test

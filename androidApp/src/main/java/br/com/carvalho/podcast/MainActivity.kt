@@ -2,6 +2,7 @@ package br.com.carvalho.podcast
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.graphics.Color
 import android.content.pm.PackageManager
 import android.os.Build
@@ -29,6 +30,9 @@ import br.com.carvalho.podcast.core.designsystem.LocalPictureInPicture
 import br.com.carvalho.podcast.core.designsystem.LocalTabletopFold
 import br.com.carvalho.podcast.core.designsystem.TabletopFold
 import br.com.carvalho.podcast.core.designsystem.tabletopFold
+import br.com.carvalho.podcast.core.safety.PlayAgeSignalSource
+import br.com.carvalho.podcast.domain.model.AgeGroup
+import br.com.carvalho.podcast.domain.repository.AgeSignalSource
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
@@ -39,13 +43,17 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.shortcut.AppShortcuts
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.presentation.isDark
 import br.com.carvalho.podcast.presentation.navigation.RootComponent
+import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import com.arkivanov.decompose.defaultComponentContext
 
 private const val TAG = "MainActivity"
 private val RESTORE_TIMEOUT = 5.seconds
+private const val DEBUG_COUNTRY = "debug_country"
+private const val DEBUG_AGE_GROUP = "debug_age_group"
 
 class MainActivity : AppCompatActivity() {
 
@@ -61,9 +69,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val childSafety: ChildSafety by inject()
+
+    /**
+     * Debug builds only: `debug_country` and `debug_age_group` extras (Maestro's launch arguments) stand in for the
+     * store, so the ECA Digital flows run without a minor's account (26.9). A release build ignores them.
+     */
+    private fun overrideAgeSignalForTests() {
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) return
+        val country = intent.getStringExtra(DEBUG_COUNTRY) ?: return
+        val ageGroup = intent.getStringExtra(DEBUG_AGE_GROUP)?.let { AgeGroup.valueOf(it) } ?: AgeGroup.UNKNOWN
+        (get<AgeSignalSource>() as? PlayAgeSignalSource)?.debugOverride = country to ageGroup
+    }
+
+    // Brazil's age signal (26.2): read on opening and each time the app comes back to the front.
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch { childSafety.refresh() }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        overrideAgeSignalForTests()
 
         requestNotificationPermission()
 

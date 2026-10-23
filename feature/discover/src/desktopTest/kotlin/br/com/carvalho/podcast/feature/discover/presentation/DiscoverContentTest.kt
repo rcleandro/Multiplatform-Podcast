@@ -22,6 +22,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
@@ -33,13 +34,13 @@ import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.text.AnnotatedString
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
 import br.com.carvalho.podcast.core.designsystem.Sizes
+import br.com.carvalho.podcast.core.designsystem.component.EXPLICIT_BADGE_TAG
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_by_url
 import br.com.carvalho.podcast.core.ui.generated.resources.add_podcast
 import br.com.carvalho.podcast.core.ui.generated.resources.category_news
 import br.com.carvalho.podcast.core.ui.generated.resources.category_technology
 import br.com.carvalho.podcast.core.ui.generated.resources.error_search_directory
-import br.com.carvalho.podcast.core.ui.generated.resources.explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.for_you
 import br.com.carvalho.podcast.core.ui.generated.resources.more_options
 import br.com.carvalho.podcast.core.ui.generated.resources.opened_link
@@ -193,7 +194,9 @@ class DiscoverContentTest {
         val explicit = hipsters.copy(podcast = hipsters.podcast.copy(explicit = true))
         setContent { PodcastTheme { DiscoverContent(DiscoverUiState(query = "x", results = listOf(explicit)), DiscoverActions()) } }
 
-        onNodeWithText("${text(Res.string.explicit)} · Tecnologia", substring = true).assertExists()
+        // The "E" badge, read aloud as the word; the line under the title keeps only the category.
+        onNodeWithTag(EXPLICIT_BADGE_TAG, useUnmergedTree = true).assertExists()
+        onNodeWithText("Tecnologia", substring = true).assertExists()
     }
 
     @Test

@@ -15,6 +15,8 @@ import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.FolderSyncStatus
@@ -47,6 +49,10 @@ class SettingsViewModel(
     private val exportBackup: ExportBackupUseCase,
     private val restoreBackup: RestoreBackupUseCase,
     private val folderSync: FolderSyncUseCase,
+    /** Locks "Show explicit content" off under Brazil's ECA Digital (26.3). */
+    private val explicitContent: ExplicitContent = ExplicitContent(),
+    /** A minor in Brazil has no telemetry to turn on (26.4). */
+    private val childSafety: ChildSafety = ChildSafety(),
 ) : ViewModel() {
     private val usedBytes = MutableStateFlow<Long?>(null)
     private val disk = MutableStateFlow<DiskSpace?>(null)
@@ -58,7 +64,7 @@ class SettingsViewModel(
         combine(preferences.themeMode, preferences.skipIntervals, preferences.appLanguage, ::Triple),
         combine(
             preferences.telemetryEnabled,
-            preferences.showExplicit,
+            combine(preferences.showExplicit, explicitContent.rule) { show, rule -> show to rule.hidesExplicit },
             combine(preferences.skipSilence, preferences.boostVoice, ::Pair),
             ::Triple,
         ),
@@ -83,7 +89,8 @@ class SettingsViewModel(
             themeMode = theme,
             language = language,
             telemetryEnabled = telemetry,
-            showExplicit = explicit,
+            showExplicit = explicit.first && !explicit.second,
+            explicitLocked = explicit.second,
             skipSilence = speech.first,
             boostVoice = speech.second,
             usedBytes = measured.bytes,
@@ -104,11 +111,23 @@ class SettingsViewModel(
         )
     }
 
+    private val guardian = GuardianSession(preferences)
+
     val uiState: StateFlow<SettingsUiState> = combine(
         choices,
         preferences.syncFolder,
         folderSync.status,
-    ) { state, folder, sync -> state.copy(syncFolderName = folder?.name, folderSync = sync) }
+        childSafety.state,
+        preferences.continuousPlayback,
+    ) { state, folder, sync, safety, continuous ->
+        state.copy(
+            syncFolderName = folder?.name,
+            folderSync = sync,
+            isMinor = safety.isMinor,
+            continuousPlayback = continuous,
+        )
+    }
+        .combine(guardian.state(childSafety.state)) { state, guardian -> state.copy(guardian = guardian) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     init {
@@ -172,6 +191,7 @@ class SettingsViewModel(
     @Suppress("CyclomaticComplexMethod") // one branch per intent
     fun onIntent(intent: SettingsIntent) {
         when (intent) {
+            is GuardianIntent -> guardian.onIntent(intent)
             is SettingsIntent.SetTheme -> preferences.setThemeMode(intent.mode)
             is SettingsIntent.SetLanguage -> preferences.setAppLanguage(intent.language)
             is SettingsIntent.SetTelemetry -> preferences.setTelemetryEnabled(intent.enabled)
@@ -179,6 +199,7 @@ class SettingsViewModel(
             is SettingsIntent.SetSkipSilence -> preferences.setSkipSilence(intent.enabled)
             is SettingsIntent.SetRefreshInterval -> preferences.setRefreshIntervalHours(intent.hours)
             is SettingsIntent.SetNotifyNewEpisodes -> preferences.setNotifyNewEpisodes(intent.enabled)
+            is SettingsIntent.SetContinuousPlayback -> preferences.setContinuousPlayback(intent.enabled)
             is SettingsIntent.SetBoostVoice -> preferences.setBoostVoice(intent.enabled)
             is SettingsIntent.SetWifiOnly -> preferences.setWifiOnlyDownloads(intent.enabled)
             is SettingsIntent.SetDownloadLimit -> preferences.setDownloadLimitBytes(intent.bytes)
@@ -215,6 +236,16 @@ data class SettingsUiState(
     val language: AppLanguage = AppLanguage.SYSTEM,
     val telemetryEnabled: Boolean = true,
     val showExplicit: Boolean = true,
+    /** Off and not to be turned on: a minor's signal or none, in Brazil (26.3). */
+    val explicitLocked: Boolean = false,
+    /**
+     * A minor in Brazil (26.4, 26.5): no telemetry row, since it stays off, and new-episode notifications and the
+     * queue moving on show off and locked.
+     */
+    val isMinor: Boolean = false,
+    val continuousPlayback: Boolean = true,
+    /** The guardians' section (26.6). */
+    val guardian: GuardianState = GuardianState(),
     val skipSilence: Boolean = false,
     val boostVoice: Boolean = false,
     /** Disk space the downloads take; null while it is measured, and where there are no downloads (Web). */
@@ -287,6 +318,7 @@ sealed interface SettingsIntent {
     data class SetSkipSilence(val enabled: Boolean) : SettingsIntent
     data class SetRefreshInterval(val hours: Int) : SettingsIntent
     data class SetNotifyNewEpisodes(val enabled: Boolean) : SettingsIntent
+    data class SetContinuousPlayback(val enabled: Boolean) : SettingsIntent
     data class SetBoostVoice(val enabled: Boolean) : SettingsIntent
     data class SetWifiOnly(val enabled: Boolean) : SettingsIntent
     data class SetDownloadLimit(val bytes: Long?) : SettingsIntent

@@ -13,6 +13,7 @@ import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
@@ -21,6 +22,7 @@ import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import br.com.carvalho.podcast.core.designsystem.PodcastTheme
+import br.com.carvalho.podcast.core.designsystem.component.EXPLICIT_BADGE_TAG
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
@@ -28,7 +30,6 @@ import br.com.carvalho.podcast.core.ui.generated.resources.close_selection
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_options
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_trailer
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_oldest_first
-import br.com.carvalho.podcast.core.ui.generated.resources.explicit
 import br.com.carvalho.podcast.core.ui.generated.resources.library_sort
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_played
 import br.com.carvalho.podcast.core.ui.generated.resources.mark_as_unplayed
@@ -320,7 +321,7 @@ class PodcastDetailContentTest {
         }
         waitUntilExactlyOneExists(hasText("Episode 1"))
 
-        onNodeWithText(text(Res.string.explicit), substring = true).assertExists()
+        onNodeWithTag(EXPLICIT_BADGE_TAG, useUnmergedTree = true).assertExists()
     }
 
     @Test

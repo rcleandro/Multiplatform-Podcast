@@ -4,11 +4,15 @@ import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
+import br.com.carvalho.podcast.domain.model.AgeGroup
 import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.GuardianControls
+import br.com.carvalho.podcast.domain.model.GuardianPin
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
+import br.com.carvalho.podcast.domain.repository.FakeAgeSignalSource
 import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.player.FakeAudioPlayer
 import br.com.carvalho.podcast.domain.repository.FakeOpmlFormat
@@ -17,7 +21,10 @@ import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import br.com.carvalho.podcast.domain.usecase.AddPodcastFromUrlUseCase
+import br.com.carvalho.podcast.domain.usecase.ChildSafety
 import br.com.carvalho.podcast.domain.usecase.DeletePodcastUseCase
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
+import br.com.carvalho.podcast.domain.usecase.ExplicitRule
 import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
 import br.com.carvalho.podcast.domain.usecase.LibrarySyncUseCase
 import br.com.carvalho.podcast.domain.usecase.ExportBackupUseCase
@@ -25,8 +32,10 @@ import br.com.carvalho.podcast.domain.usecase.ExportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
+import kotlin.test.assertNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -75,7 +84,73 @@ class SettingsViewModelTest {
                     DeletePodcastUseCase(repository, downloader),
                 ),
             ),
+            ExplicitContent(explicitRule),
+            childSafety,
         )
+
+    private val ageSignal = FakeAgeSignalSource(countries = setOf("BR"), ageGroup = AgeGroup.ADULT)
+    private val childSafety = ChildSafety(ageSignal)
+
+    @Test
+    fun theGuardiansCreateTheirPinAndOnlyItOpensTheControls() = runTest(dispatcher) {
+        childSafety.refresh()
+        val viewModel = viewModel()
+        assertTrue(viewModel.uiState.value.guardian.inBrazil)
+
+        viewModel.onIntent(GuardianIntent.Open)
+        assertEquals(PinStep.CREATE, viewModel.uiState.value.guardian.pinStep)
+        viewModel.onIntent(GuardianIntent.EnterPin("1234"))
+        viewModel.onIntent(GuardianIntent.EnterPin("9999"))
+        assertEquals(PinError.MISMATCH, viewModel.uiState.value.guardian.pinError)
+        viewModel.onIntent(GuardianIntent.EnterPin("1234"))
+        viewModel.onIntent(GuardianIntent.EnterPin("1234"))
+        assertTrue(viewModel.uiState.value.guardian.unlocked)
+        assertTrue(preferences.guardianPin.value?.let { GuardianPin.matches("1234", it) } == true)
+
+        viewModel.onIntent(GuardianIntent.SetControls(GuardianControls(allowContinuousPlayback = true)))
+        viewModel.onIntent(GuardianIntent.Lock)
+        // Locked, nothing changes without the PIN.
+        viewModel.onIntent(GuardianIntent.SetControls(GuardianControls(breakReminderMinutes = 0)))
+        assertEquals(GuardianControls(allowContinuousPlayback = true), preferences.guardianControls.value)
+
+        viewModel.onIntent(GuardianIntent.Open)
+        viewModel.onIntent(GuardianIntent.EnterPin("0000"))
+        assertEquals(PinError.WRONG, viewModel.uiState.value.guardian.pinError)
+        viewModel.onIntent(GuardianIntent.EnterPin("1234"))
+        viewModel.onIntent(GuardianIntent.RemovePin)
+
+        assertNull(preferences.guardianPin.value)
+        assertEquals(GuardianControls(), preferences.guardianControls.value)
+        assertFalse(viewModel.uiState.value.guardian.unlocked)
+    }
+
+    @Test
+    fun aMinorInBrazilHasNoTelemetryToChoose() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        childSafety.refresh()
+        assertFalse(viewModel.uiState.value.isMinor)
+
+        ageSignal.ageGroup = AgeGroup.MINOR
+        childSafety.refresh()
+
+        assertTrue(viewModel.uiState.value.isMinor)
+    }
+
+    private val explicitRule = MutableStateFlow(ExplicitRule())
+
+    @Test
+    fun underTheEcaDigitalExplicitContentIsOffAndLockedWhateverWasChosen() = runTest(dispatcher) {
+        explicitRule.value = ExplicitRule(hidesExplicit = true)
+        val viewModel = viewModel()
+
+        assertFalse(viewModel.uiState.value.showExplicit)
+        assertTrue(viewModel.uiState.value.explicitLocked)
+        assertTrue(preferences.showExplicit.value)
+
+        explicitRule.value = ExplicitRule()
+        assertTrue(viewModel.uiState.value.showExplicit)
+        assertFalse(viewModel.uiState.value.explicitLocked)
+    }
 
     @Test
     fun aSyncFolderChosenAgainKeepsThisDevicesFileAndStoppingForgetsIt() = runTest(dispatcher) {

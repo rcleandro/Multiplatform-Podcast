@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.EditNote
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.MoreTime
@@ -25,7 +26,6 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Subtitles
-import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -283,7 +283,7 @@ private fun PlayerAuxRow(state: PlayerState, actions: PlayerActions) {
         // While minutes run down, the button shows what is left and "+5 min" sits beside it (18.15).
         val remaining = state.sleepTimerMillis?.takeIf { state.sleepTimer is SleepTimer.Minutes }
         AuxButton(
-            icon = Icons.Rounded.Timer,
+            icon = Icons.Rounded.Bedtime,
             label = remaining?.let(::formatRemainingTime) ?: stringResource(Res.string.sleep_timer_short),
             description = stringResource(Res.string.sleep_timer),
             active = state.sleepTimer != null,
