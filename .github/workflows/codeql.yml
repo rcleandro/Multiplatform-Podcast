@@ -1,0 +1,72 @@
+name: CodeQL
+
+# 22.10 (T10 of ADR 0014): GitHub's static analysis, free on public repositories. Kotlin is read while it compiles,
+# so the JVM targets are built here (Desktop for the common code, the Android apps for theirs); `actions` checks
+# these workflows themselves for injection, now that release.yml handles the signing secrets.
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
+    schedule:
+        # Weekly, for new queries against code that did not change.
+        - cron: '23 6 * * 1'
+
+concurrency:
+    group: codeql-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx8192M -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true"
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+    analyze:
+        name: Analyze (${{ matrix.language }})
+        runs-on: ubuntu-latest
+        permissions:
+            security-events: write
+            contents: read
+            actions: read
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - language: java-kotlin
+                      build-mode: manual
+                    - language: actions
+                      build-mode: none
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Create google-services.json
+              if: matrix.language == 'java-kotlin'
+              uses: ./.github/actions/secret-file
+              with:
+                  content: ${{ secrets.GOOGLE_SERVICES_JSON }}
+                  path: androidApp/google-services.json
+                  placeholder: .github/ci/google-services.json
+
+            - name: Gradle setup
+              if: matrix.language == 'java-kotlin'
+              uses: ./.github/actions/gradle-setup
+
+            - name: Initialize CodeQL
+              uses: github/codeql-action/init@v4
+              with:
+                  languages: ${{ matrix.language }}
+                  build-mode: ${{ matrix.build-mode }}
+
+            # CodeQL sees only what the compiler runs, so neither the build cache nor the configuration cache may
+            # skip a compilation.
+            - name: Build the JVM targets
+              if: matrix.language == 'java-kotlin'
+              run: >
+                  ./gradlew --no-build-cache --no-configuration-cache
+                  :desktopApp:compileKotlinJvm :androidApp:compileDebugKotlin :wearApp:compileDebugKotlin
+
+            - name: Analyze
+              uses: github/codeql-action/analyze@v4
+              with:
+                  category: "/language:${{ matrix.language }}"
