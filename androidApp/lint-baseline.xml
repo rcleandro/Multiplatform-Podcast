@@ -1,16 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <issues format="6" by="lint 9.2.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.2.1)" variant="all" version="9.2.1">
 
-    <issue
-        id="MissingIntentFilterForMediaSearch"
-        message="Missing `intent-filter` for action `android.media.action.MEDIA_PLAY_FROM_SEARCH`."
-        errorLine1="    &lt;application"
-        errorLine2="    ^">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="9"
-            column="5"/>
-    </issue>
 
     <issue
         id="UnusedAttribute"

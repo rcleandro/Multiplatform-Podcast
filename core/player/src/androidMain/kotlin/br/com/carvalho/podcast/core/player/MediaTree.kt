@@ -37,8 +37,27 @@ internal class MediaTree(private val repository: PodcastRepository, private val 
         mediaId.startsWith(PODCAST_PREFIX) ->
             repository.getPodcastById(mediaId.removePrefix(PODCAST_PREFIX))
                 ?.let { podcastItem(it, contentStyle = null) }
-        else -> repository.getEpisodeById(mediaId)?.let { episodeItem(it, repository.getPodcastById(it.podcastId)) }
+        else -> repository.getEpisodeById(mediaId)?.let { episodeItem(it, podcastOf(it)) }
     }
+
+    /**
+     * What a voice search ("play X on Podcast", 20.7) plays, first item first: with no words, what was left halfway;
+     * a podcast's name, its newest unheard episode; anything else, the saved episodes whose title has the words.
+     */
+    suspend fun search(query: String): List<MediaItem> {
+        val words = query.trim()
+        val podcast = repository.getPodcasts().first()
+            .firstOrNull { words.isNotEmpty() && it.title.contains(words, ignoreCase = true) }
+        val newest = podcast?.let { repository.getLatestUnplayedEpisode(it.id).first() }
+        val episodes = when {
+            words.isEmpty() -> repository.getInProgressEpisodes().first()
+            newest != null -> listOf(newest)
+            else -> repository.searchEpisodes(words).first()
+        }
+        return episodes.map { episodeItem(it, podcastOf(it)) }
+    }
+
+    private suspend fun podcastOf(episode: Episode): Podcast? = repository.getPodcastById(episode.podcastId)
 
     private fun libraryNode(contentStyle: Int?): MediaItem = MediaItem.Builder()
         .setMediaId(LIBRARY_ID)

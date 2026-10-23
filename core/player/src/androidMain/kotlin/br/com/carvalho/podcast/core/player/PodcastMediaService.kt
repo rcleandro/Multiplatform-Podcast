@@ -279,6 +279,10 @@ class PodcastMediaService : MediaLibraryService() {
         ): ListenableFuture<MutableList<MediaItem>> {
             AppLogger.d(TAG, "onAddMediaItems count = ${mediaItems.size}")
             return serviceScope.future {
+                // A voice search comes as one item with only the words the user said.
+                mediaItems.singleOrNull()?.requestMetadata?.searchQuery?.let { query ->
+                    return@future withContext(Dispatchers.IO) { tree.search(query) }.toMutableList()
+                }
                 mediaItems.map { item ->
                     if (item.localConfiguration?.uri != null) {
                         item

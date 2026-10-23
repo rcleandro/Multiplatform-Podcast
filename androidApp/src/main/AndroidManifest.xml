@@ -83,6 +83,12 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Tells Android Auto the app takes voice searches (20.7); the words reach PodcastMediaService. -->
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
             <!-- Podcast links (18.4): podcast apps' schemes for a feed, a feed itself and Apple Podcasts shows. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
