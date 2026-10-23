@@ -70,6 +70,22 @@ class MediaTreeTest {
         assertNull(tree.item("missing"))
     }
 
+    @Test
+    fun aVoiceSearchPlaysWhatWasAskedFor() = runTest {
+        repository.episodes.value = listOf(
+            episode("a1", "a", publishDate = 1),
+            episode("a2", "a", publishDate = 2, isPlayed = true),
+            episode("a3", "a", publishDate = 3, position = 60),
+            episode("b1", "b", title = "Pix explained"),
+        )
+
+        assertEquals(listOf("a3"), tree.search("  ").map { it.mediaId })
+        assertEquals(listOf("a3"), tree.search("alpha").map { it.mediaId })
+        assertEquals(listOf("b1"), tree.search("pix").map { it.mediaId })
+        assertEquals("Beta", tree.search("pix").single().mediaMetadata.artist.toString())
+        assertEquals(emptyList<MediaItem>(), tree.search("nothing like it"))
+    }
+
     private fun MediaItem.contentStyle(): Int? =
         mediaMetadata.extras?.getInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE)
 
@@ -79,9 +95,17 @@ class MediaTreeTest {
         isSubscribed = true,
     )
 
-    private fun episode(id: String, podcastId: String) = Episode(
-        id = id, podcastId = podcastId, title = id, description = null, audioUrl = "https://cdn.example.com/$id.mp3",
-        imageUrl = null, duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false,
+    private fun episode(
+        id: String,
+        podcastId: String,
+        title: String = id,
+        publishDate: Long = 0,
+        isPlayed: Boolean = false,
+        position: Long = 0,
+    ) = Episode(
+        id = id, podcastId = podcastId, title = title, description = null, audioUrl = "https://cdn.example.com/$id.mp3",
+        imageUrl = null, duration = 0, publishDate = publishDate, isPlayed = isPlayed, playbackPosition = position,
+        isDownloaded = false,
         fileSize = null,
     )
 }

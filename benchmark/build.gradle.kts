@@ -20,6 +20,10 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             matchingFallbacks += listOf("release")
         }
+        // Runs BaselineProfileGenerator against the app's build of the same name, which has no R8 (20.1).
+        create("baselineProfile") {
+            initWith(getByName("benchmark"))
+        }
     }
 
     targetProjectPath = ":androidApp"
@@ -38,5 +42,5 @@ dependencies {
 }
 
 androidComponents {
-    beforeVariants(selector().all()) { it.enable = it.buildType == "benchmark" }
+    beforeVariants(selector().all()) { it.enable = it.buildType in setOf("benchmark", "baselineProfile") }
 }

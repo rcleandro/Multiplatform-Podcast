@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.podcast.app.version)
 }
 
 android {
@@ -14,18 +15,40 @@ android {
         applicationId = "br.com.carvalho.podcast"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersion.code
+        versionName = appVersion.name
+    }
+    signingConfigs {
+        // The release key comes from CI secrets; without them the release build comes out unsigned.
+        System.getenv("ANDROID_KEYSTORE_FILE")?.let { keystore ->
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            // Ktor, serialization, Room, Koin and Firebase ship their own keep rules; R8 needed nothing extra.
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
         // Release code, signed with the debug key so it installs anywhere; only the Macrobenchmark (:benchmark) uses it.
         create("benchmark") {
             initWith(getByName("release"))
             signingConfig = signingConfigs.getByName("debug")
             matchingFallbacks += listOf("release")
+        }
+        // The benchmark build without R8, only for recording the baseline profile (20.1): R8 merges and moves classes,
+        // so a profile recorded on the shrunk code would not name the source's classes. R8 maps it when the release builds.
+        create("baselineProfile") {
+            initWith(getByName("benchmark"))
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
     sourceSets["main"].manifest.srcFile("src/main/AndroidManifest.xml")

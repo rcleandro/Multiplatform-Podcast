@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.podcast.app.version)
 }
 
 // The watch app (19.9a): the phone app's view models, repositories, player and downloads, with screens of its own.
@@ -17,12 +18,27 @@ android {
         // Wear OS 3, the first with Compose for Wear OS and standalone apps from the store.
         minSdk = WEAR_MIN_SDK
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersion.watchCode
+        versionName = appVersion.name
+    }
+    signingConfigs {
+        // The release key comes from CI secrets; without them the release build comes out unsigned.
+        System.getenv("ANDROID_KEYSTORE_FILE")?.let { keystore ->
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            // Ktor, serialization, Room, Koin and Firebase ship their own keep rules; R8 needed nothing extra.
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
     }
     testOptions {

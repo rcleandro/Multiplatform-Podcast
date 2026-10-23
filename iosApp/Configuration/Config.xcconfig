@@ -3,5 +3,7 @@ TEAM_ID=
 PRODUCT_NAME=Podcast
 PRODUCT_BUNDLE_IDENTIFIER=br.com.carvalho.podcast$(TEAM_ID)
 
-CURRENT_PROJECT_VERSION=1
-MARKETING_VERSION=1.0
+// APP_VERSION, the version of every platform (20.2).
+#include "../../version.properties"
+CURRENT_PROJECT_VERSION=$(APP_VERSION)
+MARKETING_VERSION=$(APP_VERSION)

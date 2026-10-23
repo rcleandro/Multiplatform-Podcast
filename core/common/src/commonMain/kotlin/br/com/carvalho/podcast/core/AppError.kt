@@ -17,6 +17,12 @@ sealed class AppError(cause: Throwable? = null) : Exception(cause) {
     data object NotFound : AppError()
     data object StorageFull : AppError()
 
+    /**
+     * The browser would not hand the feed to the Web app: most podcast hosts send no CORS header (20.4, ADR 0013).
+     * The browser reports a lost connection the same way, so the message covers both.
+     */
+    data object BrowserBlocked : AppError()
+
     /** The downloads already take the space the user allowed them in Settings (18.5). */
     data object StorageLimit : AppError()
     class Unknown(cause: Throwable?) : AppError(cause)

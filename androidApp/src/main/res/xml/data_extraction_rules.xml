@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: downloaded episodes stay out of the cloud backup and of device transfers; they come back
+     from the feed. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="downloads/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="downloads/" />
+    </device-transfer>
+</data-extraction-rules>

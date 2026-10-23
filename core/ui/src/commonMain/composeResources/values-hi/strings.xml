@@ -222,6 +222,7 @@
     <string name="error_server">फ़ीड के सर्वर ने गड़बड़ी लौटाई। बाद में फिर कोशिश करें।</string>
     <string name="error_invalid_feed">यह पता पॉडकास्ट फ़ीड नहीं है। RSS लिंक इस्तेमाल करें।</string>
     <string name="error_invalid_url">यह सही पता नहीं है। इसे जांचें और फ़ीड का लिंक फिर से चिपकाएं।</string>
+    <string name="error_browser_blocked">ब्राउज़र यह फ़ीड नहीं पढ़ सका: कई पॉडकास्ट साइटें केवल ऐप को पढ़ने देती हैं। फ़ोन या कंप्यूटर पर ऐप इस्तेमाल करें, या अपना कनेक्शन जाँचें।</string>
     <string name="error_storage_full">जगह कम है। जगह खाली करें और फिर कोशिश करें।</string>
     <string name="download_deleted">डाउनलोड हटाया गया</string>
     <string name="time_just_now">अभी</string>

@@ -44,3 +44,7 @@ package-lock.json
 
 # Logs
 *.log
+
+# Signing keys live outside the repository (~/keys); never commit one by accident.
+*.jks
+*.keystore

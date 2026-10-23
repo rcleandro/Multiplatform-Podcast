@@ -63,7 +63,7 @@ jobs:
               uses: ./.github/actions/gradle-setup
 
             - name: Run tests
-              run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest :wearApp:testDebugUnitTest
+              run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest :wearApp:testDebugUnitTest :build-logic:convention:test :core:network:wasmJsBrowserTest
 
             - name: Verify coverage floors
               run: ./gradlew koverVerify
@@ -157,6 +157,43 @@ jobs:
 
             - name: Build Android debug APKs (phone and watch)
               run: ./gradlew :androidApp:assembleDebug :wearApp:assembleDebug
+
+            # R8 on every PR: a library that loses its keep rules fails here, not on a user's phone.
+            - name: Build Android release (phone and watch, unsigned)
+              if: github.ref != 'refs/heads/main'
+              run: ./gradlew :androidApp:assembleRelease :wearApp:assembleRelease
+
+            # On main (a merged PR), the release is signed and kept: APK to install, AAB for the Play Store.
+            - name: Release keystore
+              if: github.ref == 'refs/heads/main'
+              env:
+                  KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+              run: |
+                  if [ -z "$KEYSTORE" ]; then
+                      echo "::warning::ANDROID_KEYSTORE_BASE64 is empty; the release comes out unsigned."
+                      exit 0
+                  fi
+                  printf '%s' "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/release.jks"
+                  echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+            - name: Build signed Android release (phone and watch)
+              if: github.ref == 'refs/heads/main'
+              env:
+                  ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+                  ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+                  ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+              run: ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease :wearApp:assembleRelease :wearApp:bundleRelease
+
+            - name: Upload Android release (APK and AAB)
+              if: github.ref == 'refs/heads/main'
+              uses: actions/upload-artifact@v7
+              with:
+                  name: android-release
+                  path: |
+                      androidApp/build/outputs/apk/release/*.apk
+                      androidApp/build/outputs/bundle/release/*.aab
+                      wearApp/build/outputs/apk/release/*.apk
+                      wearApp/build/outputs/bundle/release/*.aab
 
             - name: Upload Android debug APK
               uses: actions/upload-artifact@v7
