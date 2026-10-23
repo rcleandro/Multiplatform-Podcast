@@ -36,8 +36,20 @@ conectado e fica fora do CI:
 | Data | Aparelho | Sem compilação (mediana) | Parcialmente compilado (mediana) |
 |---|---|---|---|
 | 08/10/2026 | Razr 60, Android 16 | 843 ms (804–877) | 741 ms (701–915) |
+| 23/10/2026 | Razr 60, Android 16 (R8 e baseline profile, 20.1) | 548 ms (528–644) | 450 ms (427–534) |
 
-A diferença entre os dois cenários, de cerca de 100 ms, é o que o baseline profile da 20.1 pode recuperar. Orçamento:
+O R8 da 20.1 cortou cerca de 300 ms dos dois cenários. O baseline profile (`androidApp/src/main/baseline-prof.txt`)
+é o que o aparelho compila na instalação; o cenário parcialmente compilado mede o app com ele. Para gerá-lo de novo
+depois de mudar o caminho até a biblioteca, com o Razr conectado:
+
+```
+./gradlew :benchmark:connectedBaselineProfileAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=br.com.carvalho.podcast.benchmark.BaselineProfileGenerator
+```
+
+e copiar o `…-startup-prof.txt` de `benchmark/build/outputs/connected_android_test_additional_output/` para
+`androidApp/src/main/baseline-prof.txt`. Ele roda no build `baselineProfile`, que é o `benchmark` sem R8: o R8 junta e
+move classes, e um profile gravado no código encolhido não nomearia as classes do código-fonte. Orçamento:
 ≤ 1 000 ms sem compilação neste aparelho. Uma mudança que passe disso é regressão.
 
 Limites conhecidos:

@@ -43,6 +43,13 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             matchingFallbacks += listOf("release")
         }
+        // The benchmark build without R8, only for recording the baseline profile (20.1): R8 merges and moves classes,
+        // so a profile recorded on the shrunk code would not name the source's classes. R8 maps it when the release builds.
+        create("baselineProfile") {
+            initWith(getByName("benchmark"))
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
     }
     sourceSets["main"].manifest.srcFile("src/main/AndroidManifest.xml")
     sourceSets["main"].res.directories.add("src/main/res")
