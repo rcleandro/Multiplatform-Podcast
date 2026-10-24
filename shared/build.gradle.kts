@@ -71,7 +71,6 @@ kotlin {
             implementation(libs.foundation)
             implementation(libs.material3)
             implementation(libs.components.resources)
-            implementation(libs.composeIconsExtended)
             implementation(libs.compose.ui)
             implementation(libs.compose.uiToolingPreview)
 

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,6 +40,7 @@ import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_new
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_played
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_playing
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_queued_label
+import br.com.carvalho.podcast.core.designsystem.icons.DownloadDone
 import org.jetbrains.compose.resources.stringResource
 
 /** What the row knows about playback of its episode. */

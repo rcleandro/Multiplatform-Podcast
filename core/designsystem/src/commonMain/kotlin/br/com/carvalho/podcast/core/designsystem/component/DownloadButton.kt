@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -25,6 +24,7 @@ import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_download
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_download_queued
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_downloaded
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_downloading
+import br.com.carvalho.podcast.core.designsystem.icons.Download
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 

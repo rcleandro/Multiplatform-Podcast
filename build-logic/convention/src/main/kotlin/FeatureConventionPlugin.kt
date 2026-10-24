@@ -33,7 +33,7 @@ class FeatureConventionPlugin : Plugin<Project> {
                 implementation(project(":core:designsystem"))
                 implementation(project(":core:ui"))
                 listOf(
-                    "material3-adaptive", "material3-adaptive-layout", "composeIconsExtended", "compose-uiToolingPreview",
+                    "material3-adaptive", "material3-adaptive-layout", "compose-uiToolingPreview",
                     "components-resources", "koin-compose", "koin-compose-viewmodel", "androidx-lifecycle-viewmodel",
                     "paging-common", "paging-compose"
                 ).forEach { implementation(lib(it)) }

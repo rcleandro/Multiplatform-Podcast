@@ -15,13 +15,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.BookmarkBorder
-import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.DownloadDone
-import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Timelapse
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +53,12 @@ import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
 import br.com.carvalho.podcast.core.designsystem.component.FilterOption
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
+import br.com.carvalho.podcast.core.designsystem.icons.BookmarkBorder
+import br.com.carvalho.podcast.core.designsystem.icons.CloudOff
+import br.com.carvalho.podcast.core.designsystem.icons.DownloadDone
+import br.com.carvalho.podcast.core.designsystem.icons.History
+import br.com.carvalho.podcast.core.designsystem.icons.Inbox
+import br.com.carvalho.podcast.core.designsystem.icons.Timelapse
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel

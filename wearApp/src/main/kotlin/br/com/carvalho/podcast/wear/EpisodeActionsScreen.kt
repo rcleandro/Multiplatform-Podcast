@@ -2,14 +2,10 @@ package br.com.carvalho.podcast.wear
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.QueuePlayNext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,6 +21,10 @@ import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import br.com.carvalho.podcast.core.designsystem.icon.PodcastIcons
+import br.com.carvalho.podcast.core.designsystem.icons.Download
+import br.com.carvalho.podcast.core.designsystem.icons.Pause
+import br.com.carvalho.podcast.core.designsystem.icons.QueuePlayNext
+import br.com.carvalho.podcast.core.designsystem.icons.automirrored.PlaylistAdd
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.add_to_queue
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel_download

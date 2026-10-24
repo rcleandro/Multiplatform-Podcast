@@ -16,7 +16,6 @@ kotlin {
             implementation(project(":core:common"))
             api(libs.components.resources)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.composeIconsExtended)
             implementation(libs.compose.ui.backhandler)
             implementation(libs.filekit.dialogs.compose)
         }

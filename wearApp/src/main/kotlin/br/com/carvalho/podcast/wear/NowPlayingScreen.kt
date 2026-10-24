@@ -11,10 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.automirrored.rounded.VolumeUp
-import androidx.compose.material.icons.rounded.BluetoothAudio
-import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +53,10 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.VerticalPagerScaffold
 import br.com.carvalho.podcast.core.designsystem.Spacing
+import br.com.carvalho.podcast.core.designsystem.icons.BluetoothAudio
+import br.com.carvalho.podcast.core.designsystem.icons.Pause
+import br.com.carvalho.podcast.core.designsystem.icons.automirrored.QueueMusic
+import br.com.carvalho.podcast.core.designsystem.icons.automirrored.VolumeUp
 import br.com.carvalho.podcast.core.extensions.toTime
 import br.com.carvalho.podcast.core.player.WatchVolume
 import br.com.carvalho.podcast.core.player.chooseAudioOutput

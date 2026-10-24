@@ -23,7 +23,8 @@ kotlin {
             api(libs.compose.ui)
             api(libs.material3.adaptive)
             implementation(libs.components.resources)
-            implementation(libs.composeIconsExtended)
+            // The Icons object and the few icons it holds; the others the app uses are copied into `icons` (23.9).
+            api(libs.material.icons.core)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.coil.compose)
         }

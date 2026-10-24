@@ -1,12 +1,12 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.FastForward
-import androidx.compose.material.icons.rounded.FastRewind
-import androidx.compose.material.icons.rounded.Forward5
-import androidx.compose.material.icons.rounded.Forward10
-import androidx.compose.material.icons.rounded.Replay30
-import androidx.compose.material.icons.rounded.Replay5
+import br.com.carvalho.podcast.core.designsystem.icons.FastForward
+import br.com.carvalho.podcast.core.designsystem.icons.FastRewind
+import br.com.carvalho.podcast.core.designsystem.icons.Forward10
+import br.com.carvalho.podcast.core.designsystem.icons.Forward5
+import br.com.carvalho.podcast.core.designsystem.icons.Replay30
+import br.com.carvalho.podcast.core.designsystem.icons.Replay5
 import kotlin.test.Test
 import kotlin.test.assertSame
 
