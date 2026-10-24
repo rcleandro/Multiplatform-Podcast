@@ -16,7 +16,7 @@ kotlin {
         version = appVersion.name
         summary = "Shared module for Podcast app"
         homepage = "https://github.com/rcleandro/Multiplatform-Podcast"
-        ios.deploymentTarget = "18.2"
+        ios.deploymentTarget = "18.0"
         framework {
             baseName = "Shared"
             isStatic = true
