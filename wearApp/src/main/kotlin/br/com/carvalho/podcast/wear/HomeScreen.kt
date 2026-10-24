@@ -31,6 +31,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
+import br.com.carvalho.podcast.presentation.selectAsState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -46,8 +47,8 @@ fun HomeScreen(
     playerViewModel: PlayerViewModel = koinViewModel(),
 ) {
     val library by libraryViewModel.uiState.collectAsState()
-    val player by playerViewModel.playerState.collectAsState()
-    HomeContent(library.podcasts, player.currentEpisode, onPlayer, onPopular, onPodcast, onDownloads, onPlaylists)
+    val playing by playerViewModel.playerState.selectAsState { it.currentEpisode }
+    HomeContent(library.podcasts, playing, onPlayer, onPopular, onPodcast, onDownloads, onPlaylists)
 }
 
 @Composable

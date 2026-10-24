@@ -29,6 +29,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailIntent
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewModel
 import br.com.carvalho.podcast.presentation.component.remainingDuration
+import br.com.carvalho.podcast.presentation.selectAsState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -45,12 +46,12 @@ fun PodcastScreen(
     viewModel: PodcastDetailViewModel = koinViewModel(key = podcastId) { parametersOf(podcastId) },
 ) {
     val state by viewModel.uiState.collectAsState()
-    val player by viewModel.playerState.collectAsState()
+    val playingId by viewModel.playerState.selectAsState { it.currentEpisode?.id.takeIf { _ -> it.isPlaying } }
     val downloads by viewModel.activeDownloads.collectAsState()
     EpisodeList(
         title = state.podcast?.title.orEmpty(),
         episodes = viewModel.pagedEpisodes.collectAsLazyPagingItems(),
-        player = player,
+        playingId = playingId,
         downloads = downloads,
         onPlay = {
             viewModel.onIntent(PodcastDetailIntent.Play(it))

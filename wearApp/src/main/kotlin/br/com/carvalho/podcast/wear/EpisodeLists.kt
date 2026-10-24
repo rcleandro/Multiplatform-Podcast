@@ -35,10 +35,10 @@ import br.com.carvalho.podcast.core.ui.generated.resources.smart_playlists
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeListFilter
-import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import br.com.carvalho.podcast.feature.search.presentation.SearchIntent
 import br.com.carvalho.podcast.feature.search.presentation.SearchViewModel
+import br.com.carvalho.podcast.presentation.selectAsState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -50,7 +50,8 @@ import org.koin.compose.viewmodel.koinViewModel
 internal fun EpisodeList(
     title: String,
     episodes: LazyPagingItems<Episode>,
-    player: PlayerState,
+    /** The episode playing now, if any: its row shows the playing state. */
+    playingId: String?,
     downloads: Map<String, DownloadStatus>,
     onPlay: (Episode) -> Unit,
     onActions: (Episode) -> Unit,
@@ -67,7 +68,7 @@ internal fun EpisodeList(
                 episodes[index]?.let { episode ->
                     EpisodeButton(
                         episode,
-                        isPlaying = player.isPlaying && player.currentEpisode?.id == episode.id,
+                        isPlaying = episode.id == playingId,
                         download = downloads[episode.id],
                         onPlay = { onPlay(episode) },
                         onActions = { onActions(episode) },
@@ -86,12 +87,12 @@ fun DownloadsScreen(
     viewModel: SearchViewModel = koinViewModel(key = DOWNLOADS_KEY),
 ) {
     LaunchedEffect(viewModel) { viewModel.onIntent(SearchIntent.ChangeFilter(EpisodeListFilter.DOWNLOADED)) }
-    val player by viewModel.playerState.collectAsState()
+    val playingId by viewModel.playerState.selectAsState { it.currentEpisode?.id.takeIf { _ -> it.isPlaying } }
     val downloads by viewModel.activeDownloads.collectAsState()
     EpisodeList(
         title = stringResource(Res.string.filter_downloaded),
         episodes = viewModel.pagedResults.collectAsLazyPagingItems(),
-        player = player,
+        playingId = playingId,
         downloads = downloads,
         onPlay = {
             viewModel.onIntent(SearchIntent.Play(it))
@@ -175,7 +176,7 @@ fun PlaylistScreen(
     viewModel: SearchViewModel = koinViewModel(key = "$PLAYLISTS_KEY-$playlistId"),
 ) {
     val state by viewModel.uiState.collectAsState()
-    val player by viewModel.playerState.collectAsState()
+    val playingId by viewModel.playerState.selectAsState { it.currentEpisode?.id.takeIf { _ -> it.isPlaying } }
     val downloads by viewModel.activeDownloads.collectAsState()
     val playlist = state.playlists.find { it.id == playlistId }
     LaunchedEffect(playlist) { playlist?.let { viewModel.onIntent(SearchIntent.SelectPlaylist(it)) } }
@@ -183,7 +184,7 @@ fun PlaylistScreen(
     EpisodeList(
         title = playlist?.name.orEmpty(),
         episodes = episodes,
-        player = player,
+        playingId = playingId,
         downloads = downloads,
         onPlay = {
             viewModel.onIntent(SearchIntent.Play(it))

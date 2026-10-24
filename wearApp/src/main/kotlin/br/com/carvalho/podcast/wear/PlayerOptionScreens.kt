@@ -38,6 +38,7 @@ import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.player.presentation.QueueIntent
 import br.com.carvalho.podcast.feature.player.presentation.QueueViewModel
 import br.com.carvalho.podcast.presentation.format.formatSpeed
+import br.com.carvalho.podcast.presentation.selectAsState
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -45,10 +46,10 @@ import org.koin.compose.viewmodel.koinViewModel
 /** The speeds of the phone's player (19.9h); picking one goes back to the player. */
 @Composable
 fun SpeedScreen(onDone: () -> Unit, viewModel: PlayerViewModel = koinViewModel()) {
-    val state by viewModel.playerState.collectAsState()
+    val speed by viewModel.playerState.selectAsState { it.speed }
     ChoiceList(
         title = stringResource(Res.string.playback_speed),
-        choices = AppConfig.PLAYBACK_SPEEDS.map { formatSpeed(it) to (it == state.speed) },
+        choices = AppConfig.PLAYBACK_SPEEDS.map { formatSpeed(it) to (it == speed) },
         onChoose = { index ->
             viewModel.onIntent(PlayerIntent.SetSpeed(AppConfig.PLAYBACK_SPEEDS[index]))
             onDone()
@@ -70,10 +71,10 @@ internal val SLEEP_TIMER_CHOICES: List<Pair<SleepTimer?, StringResource>> = list
 
 @Composable
 fun SleepTimerScreen(onDone: () -> Unit, viewModel: PlayerViewModel = koinViewModel()) {
-    val state by viewModel.playerState.collectAsState()
+    val sleepTimer by viewModel.playerState.selectAsState { it.sleepTimer }
     ChoiceList(
         title = stringResource(Res.string.sleep_timer),
-        choices = SLEEP_TIMER_CHOICES.map { (timer, label) -> stringResource(label) to (timer == state.sleepTimer) },
+        choices = SLEEP_TIMER_CHOICES.map { (timer, label) -> stringResource(label) to (timer == sleepTimer) },
         onChoose = { index ->
             viewModel.onIntent(PlayerIntent.SetSleepTimer(SLEEP_TIMER_CHOICES[index].first))
             onDone()
