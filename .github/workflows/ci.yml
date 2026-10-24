@@ -37,8 +37,8 @@ jobs:
             - name: Gradle setup
               uses: ./.github/actions/gradle-setup
 
-            - name: Detekt, module rules and Android lint
-              run: ./gradlew detekt checkModuleDependencies :androidApp:lintDebug :wearApp:lintDebug
+            - name: Detekt, module rules, iOS texts and Android lint
+              run: ./gradlew detekt checkModuleDependencies checkIosStrings :androidApp:lintDebug :wearApp:lintDebug
 
             - name: Upload reports
               if: always()

@@ -236,3 +236,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.PodGenTask>().co
         )
     }
 }
+
+// The iOS app's texts, generated from the composeResources (ADR 0015): `generateIosStrings` after changing a text;
+// `checkIosStrings` (run by `check` and the pre-commit hook) fails when the catalog was not generated again.
+iosStrings(
+    resources = listOf("core/ui", "core/designsystem").map { rootProject.file("$it/src/commonMain/composeResources") },
+    catalog = rootProject.file("iosApp/iosApp/Localizable.xcstrings"),
+)
