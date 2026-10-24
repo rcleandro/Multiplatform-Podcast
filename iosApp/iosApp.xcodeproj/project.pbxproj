@@ -12,6 +12,7 @@
 		66F9246AF4F9F1391DF9A3BA /* TextsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABABC073E9BD082963F9F9C7 /* TextsTests.swift */; };
 		8597F884EE90788DF11FB411 /* BridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14349915568A1B6821B266D /* BridgeTests.swift */; };
 		87D2F96AC2FBCC7516553C1A /* Pods_iosApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 501E77425744A1AB65DACBAC /* Pods_iosApp.framework */; };
+		DC42693F9CFDB64CE3911E10 /* ThemeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,6 +29,7 @@
 		1C8D58DE4C1014C7ED7C11E4 /* Pods-iosAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosAppTests.debug.xcconfig"; path = "Target Support Files/Pods-iosAppTests/Pods-iosAppTests.debug.xcconfig"; sourceTree = "<group>"; };
 		501E77425744A1AB65DACBAC /* Pods_iosApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iosApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		56A6E21646F3BA7538A7CA37 /* Pods-iosApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.release.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.release.xcconfig"; sourceTree = "<group>"; };
+		76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeTests.swift; sourceTree = "<group>"; };
 		7D9214E407EFB9669DFC0F4A /* iosAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4957A1FB86F7C156DEAEAC2 /* Pods-iosApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.debug.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.debug.xcconfig"; sourceTree = "<group>"; };
 		AAEF60D234671F4859EAC064 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -131,6 +133,7 @@
 			children = (
 				D14349915568A1B6821B266D /* BridgeTests.swift */,
 				ABABC073E9BD082963F9F9C7 /* TextsTests.swift */,
+				76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */,
 			);
 			name = iosAppTests;
 			path = iosAppTests;
@@ -360,6 +363,7 @@
 			files = (
 				8597F884EE90788DF11FB411 /* BridgeTests.swift in Sources */,
 				66F9246AF4F9F1391DF9A3BA /* TextsTests.swift in Sources */,
+				DC42693F9CFDB64CE3911E10 /* ThemeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

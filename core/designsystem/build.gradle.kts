@@ -59,3 +59,8 @@ compose.resources {
 roborazzi {
     outputDir.set(file("snapshots"))
 }
+
+// IosTokensTest writes the iOS app's copy of the theme with -Pios.tokens.write=true (ADR 0015) and checks it otherwise.
+tasks.withType<Test>().configureEach {
+    systemProperty("ios.tokens.write", providers.gradleProperty("ios.tokens.write").getOrElse("false"))
+}
