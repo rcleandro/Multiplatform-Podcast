@@ -43,4 +43,19 @@ class ShareTextTest {
             episodeShareText(episode.copy(link = "https://hipsters.tech/kotlin"), "From 12:34", 754_900),
         )
     }
+
+    @Test
+    fun aPrivateFeedIsSharedByNameAloneNeverByItsAddresses() {
+        // Whoever gets the message would hear the paid feed (22.6): the feed and its audio carry the token.
+        val private = "https://feeds.supercast.com/episodes/2c9f8b7a6d5e4f3a2b1c0d9e8f7a6b5c.rss"
+
+        assertEquals("Hipsters", podcastShareText(podcast.copy(siteUrl = null, feedUrl = private)))
+        assertEquals("Hipsters\nhttps://hipsters.tech", podcastShareText(podcast.copy(feedUrl = private)))
+        assertEquals("Kotlin · Hipsters", episodeShareText(episode.copy(podcastId = private)))
+        assertEquals("Kotlin · Hipsters", episodeShareText(episode.copy(audioUrl = "https://cdn.example.com/e1.mp3?token=abc")))
+        assertEquals(
+            "Kotlin · Hipsters\nhttps://hipsters.tech/kotlin",
+            episodeShareText(episode.copy(podcastId = private, link = "https://hipsters.tech/kotlin")),
+        )
+    }
 }

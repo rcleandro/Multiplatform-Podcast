@@ -53,7 +53,7 @@ sistema (Family Link, Tempo de Uso); o do app é uma camada a mais.
 | T3 | Bomba de entidades ou entidade externa no XML | 1 | A conferir: o `KtXmlReader` não busca entidades externas e deixa as desconhecidas como texto; falta um fixture que prove que entidades declaradas no DTD não se expandem | 22.3 |
 | T4 | URL de esquema perigoso (`file:`, `content:`, `javascript:`, `intent:`) no áudio, na capa, no link ou numa descrição | 1 | Aberto: as URLs são usadas como vêm; o `HtmlText` vira qualquer `href` em link | 22.3, 22.4 |
 | T5 | Travessia de diretório ou arquivo enganoso no download | 1 | Fechado em parte: nome por hash (14.3); cota de disco (14.8); falta conferir tipo e tamanho declarados | 22.5 |
-| T6 | Token de feed pago lido de uma cópia dos dados | 4 | Aberto: a URL completa vai para o banco, o backup do Android, o JSON de backup, a pasta sincronizada e o relógio | 22.6, 22.7 |
+| T6 | Token de feed pago lido de uma cópia dos dados ou de uma mensagem compartilhada | 4 | Mitigado (22.6): o compartilhar não manda o endereço de um feed privado nem o áudio dele; backup e pasta sincronizada avisam; backup do Android cifrado ponta a ponta; no aparelho, área privada do app | 22.6, 22.7 |
 | T7 | Token de feed pago em log, telemetria ou denúncia | 4 | Fechado: URLs cortadas no host em log, Crashlytics e Analytics (16.1) e na denúncia (26) | — |
 | T8 | Rede lê ou altera feed e áudio em `http` | 2 | Aceito em parte: `https` primeiro e `http` só se ele falhar (ADR 0009); sem pinning, porque os hosts são arbitrários | 22.8 |
 | T9 | Release depurável, com logs de debug ou componente exportado à toa | 3 | Fechado em parte: R8 com ofuscação (20.1); logs a partir de info na release no Android e no iOS (16.2). Falta revisar cada componente exportado, e o Desktop e a Web logam debug sempre (`isDebugBuild = true`), inclusive nos pacotes da 20.6 | 22.9 |
@@ -69,9 +69,16 @@ sistema (Family Link, Tempo de Uso); o do app é uma camada a mais.
   podcasts antigos, mas não proíbe o texto claro.
 - **O PIN não vira senha forte:** quatro dígitos são o que um responsável lembra. A defesa é o limite de tentativas
   com espera crescente (22.11), não um PIN maior.
-- **Segredo fora do banco** (22.6): o token sai da URL guardada e vai para o Keystore (Android) e o Keychain (iOS). O
-  banco, o backup, a sincronização e o relógio levam só a URL sem o segredo e uma referência; restaurar num aparelho
-  novo pede o token de novo.
+- **Segredo protegido onde sai do aparelho, não no banco** (22.6, revista em 23/10/2026 por decisão do usuário). A
+  ideia inicial era levar o token para o Keystore e o Keychain, com o banco guardando só uma referência. Ela não cabe:
+  o id do podcast é a própria URL do feed (`RssMapper`) e entra no id de cada episódio, que é chave da fila, do
+  histórico, dos favoritos e dos downloads; o token muitas vezes está no caminho da URL, e não num trecho separável; e
+  as URLs de áudio de um feed privado também o levam. Cifrar o banco inteiro (SQLCipher) perderia a biblioteca ao
+  restaurar o backup num aparelho novo, porque a chave do Keystore não vai junto. No aparelho, o banco fica na área
+  privada do app, e root está fora do escopo. Fora dele: o compartilhar nunca manda o endereço de um feed que pode ser
+  privado (`mayCarrySecret`), nem o áudio dele; o backup JSON e a pasta sincronizada avisam, nas Configurações, que
+  levam esses endereços; o backup do Android é cifrado ponta a ponta com o bloqueio de tela, e o Data Layer do relógio
+  só fala com o aparelho pareado.
 
 ## Consequências
 

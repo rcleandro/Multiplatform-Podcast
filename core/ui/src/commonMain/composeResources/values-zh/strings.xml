@@ -143,6 +143,7 @@
     <string name="settings_export_backup">导出备份</string>
     <string name="settings_export_backup_description">将节目库、进度、队列、书签和设置保存到一个文件</string>
     <string name="settings_sync_folder">通过文件夹同步</string>
+    <string name="settings_private_feeds_note">备份和同步文件夹包含每个私有订阅源的地址及其访问密钥。请像保管密码一样保管它们。</string>
     <string name="settings_sync_folder_description">通过 iCloud Drive、Google Drive、Dropbox 或 Syncthing 文件夹，让各设备上的节目库、进度和队列保持一致</string>
     <string name="settings_sync_folder_waiting">%1$s · 尚未同步</string>
     <string name="settings_sync_folder_failed">%1$s · 无法访问文件夹。点按以重新选择</string>

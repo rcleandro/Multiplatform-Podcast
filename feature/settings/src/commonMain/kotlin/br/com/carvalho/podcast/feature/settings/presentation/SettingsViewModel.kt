@@ -25,6 +25,7 @@ import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
+import br.com.carvalho.podcast.domain.usecase.mayCarrySecret
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -131,6 +132,10 @@ class SettingsViewModel(
         )
     }
         .combine(guardian.state(childSafety.state)) { state, guardian -> state.copy(guardian = guardian) }
+        // The backup and the sync folder hold the feeds' addresses, so they warn when a private one is in (22.6).
+        .combine(repository.getPodcasts()) { state, podcasts ->
+            state.copy(hasPrivateFeeds = podcasts.any { mayCarrySecret(it.feedUrl) })
+        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     init {
@@ -235,6 +240,8 @@ class SettingsViewModel(
 }
 
 data class SettingsUiState(
+    /** A feed in the library looks private (22.6): the backup and the sync folder carry its token. */
+    val hasPrivateFeeds: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val language: AppLanguage = AppLanguage.SYSTEM,
     val telemetryEnabled: Boolean = true,

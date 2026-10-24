@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Esporta backup</string>
     <string name="settings_export_backup_description">Salva libreria, progressi, coda, segnalibri e impostazioni in un file</string>
     <string name="settings_sync_folder">Sincronizza tramite una cartella</string>
+    <string name="settings_private_feeds_note">I backup e la cartella di sincronizzazione includono l'indirizzo di ogni feed privato, con la sua chiave di accesso. Conservali come una password.</string>
     <string name="settings_sync_folder_description">Mantieni libreria, progressi e coda uguali sui tuoi dispositivi con una cartella di iCloud Drive, Google Drive, Dropbox o Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · non ancora sincronizzata</string>
     <string name="settings_sync_folder_failed">%1$s · cartella non raggiungibile. Tocca per sceglierla di nuovo</string>

@@ -143,6 +143,7 @@
     <string name="settings_export_backup">تصدير نسخة احتياطية</string>
     <string name="settings_export_backup_description">احفظ المكتبة والتقدم وقائمة الانتظار والعلامات والإعدادات في ملف واحد</string>
     <string name="settings_sync_folder">المزامنة عبر مجلد</string>
+    <string name="settings_private_feeds_note">تتضمن النسخ الاحتياطية ومجلد المزامنة عنوان كل خلاصة خاصة مع مفتاح الوصول. احفظها كما تحفظ كلمة المرور.</string>
     <string name="settings_sync_folder_description">حافظ على تطابق المكتبة والتقدم وقائمة الانتظار على أجهزتك عبر مجلد في iCloud Drive أو Google Drive أو Dropbox أو Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · لم تتم المزامنة بعد</string>
     <string name="settings_sync_folder_failed">%1$s · تعذّر الوصول إلى المجلد. انقر لاختياره مرة أخرى</string>

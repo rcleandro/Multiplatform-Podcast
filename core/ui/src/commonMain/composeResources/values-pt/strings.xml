@@ -148,6 +148,7 @@
     <string name="settings_export_backup">Exportar backup</string>
     <string name="settings_export_backup_description">Salve biblioteca, progresso, fila, marcadores e configurações num arquivo</string>
     <string name="settings_sync_folder">Sincronizar por pasta</string>
+    <string name="settings_private_feeds_note">Os backups e a pasta de sincronização incluem o endereço de cada feed privado, com a chave de acesso. Guarde-os como guardaria uma senha.</string>
     <string name="settings_sync_folder_description">Mantenha biblioteca, progresso e fila iguais nos seus aparelhos por uma pasta do iCloud Drive, Google Drive, Dropbox ou Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · ainda não sincronizada</string>
     <string name="settings_sync_folder_failed">%1$s · não foi possível acessar a pasta. Toque para escolhê-la de novo</string>

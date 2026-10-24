@@ -150,6 +150,7 @@
     <string name="settings_export_backup">Export backup</string>
     <string name="settings_export_backup_description">Save library, progress, queue, bookmarks and settings in one file</string>
     <string name="settings_sync_folder">Sync through a folder</string>
+    <string name="settings_private_feeds_note">Your backups and the sync folder include the address of each private feed, with its access key. Keep them as you would a password.</string>
     <string name="settings_sync_folder_description">Keep library, progress and queue alike on your devices through an iCloud Drive, Google Drive, Dropbox or Syncthing folder</string>
     <string name="settings_sync_folder_waiting">%1$s · not synced yet</string>
     <string name="settings_sync_folder_failed">%1$s · can't reach the folder. Tap to choose it again</string>

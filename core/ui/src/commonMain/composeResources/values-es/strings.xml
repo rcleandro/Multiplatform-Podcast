@@ -148,6 +148,7 @@
     <string name="settings_export_backup">Exportar copia de seguridad</string>
     <string name="settings_export_backup_description">Guarda biblioteca, progreso, cola, marcadores y ajustes en un archivo</string>
     <string name="settings_sync_folder">Sincronizar por carpeta</string>
+    <string name="settings_private_feeds_note">Las copias de seguridad y la carpeta de sincronización incluyen la dirección de cada feed privado, con su clave de acceso. Guárdalas como guardarías una contraseña.</string>
     <string name="settings_sync_folder_description">Mantén biblioteca, progreso y cola iguales en tus dispositivos con una carpeta de iCloud Drive, Google Drive, Dropbox o Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · aún sin sincronizar</string>
     <string name="settings_sync_folder_failed">%1$s · no se puede acceder a la carpeta. Toca para elegirla de nuevo</string>

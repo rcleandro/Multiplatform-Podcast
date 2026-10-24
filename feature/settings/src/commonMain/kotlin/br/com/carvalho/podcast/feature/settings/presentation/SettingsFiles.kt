@@ -16,6 +16,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_opml_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_import_opml
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_import_opml_description
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_private_feeds_note
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_restore_backup
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_restore_backup_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_subscriptions
@@ -92,6 +93,8 @@ internal fun LazyListScope.subscriptionSettings(
         onExport = { onIntent(SettingsIntent.ExportBackup) },
     )
     if (pickSyncFolder != null) syncFolderRows(state, pickSyncFolder, onIntent)
+    // Those files hold each feed's address, a private one's token included, wherever they are kept (22.6).
+    if (state.hasPrivateFeeds) item { Note(stringResource(Res.string.settings_private_feeds_note)) }
 }
 
 /** The folder to sync through and how the last exchange went; once chosen, a row to stop. */

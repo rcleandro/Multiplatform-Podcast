@@ -143,6 +143,7 @@
     <string name="settings_export_backup">बैकअप निर्यात करें</string>
     <string name="settings_export_backup_description">लाइब्रेरी, प्रगति, कतार, बुकमार्क और सेटिंग्स एक फ़ाइल में सहेजें</string>
     <string name="settings_sync_folder">फ़ोल्डर से सिंक करें</string>
+    <string name="settings_private_feeds_note">बैकअप और सिंक फ़ोल्डर में हर निजी फ़ीड का पता और उसकी एक्सेस कुंजी होती है। इन्हें पासवर्ड की तरह सुरक्षित रखें।</string>
     <string name="settings_sync_folder_description">iCloud Drive, Google Drive, Dropbox या Syncthing फ़ोल्डर से अपने सभी डिवाइस पर लाइब्रेरी, प्रगति और कतार एक जैसी रखें</string>
     <string name="settings_sync_folder_waiting">%1$s · अभी तक सिंक नहीं हुआ</string>
     <string name="settings_sync_folder_failed">%1$s · फ़ोल्डर तक नहीं पहुँच सके। फिर से चुनने के लिए टैप करें</string>

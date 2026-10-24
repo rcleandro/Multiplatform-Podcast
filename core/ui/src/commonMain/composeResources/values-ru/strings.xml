@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Экспорт резервной копии</string>
     <string name="settings_export_backup_description">Сохраните медиатеку, прогресс, очередь, закладки и настройки в одном файле</string>
     <string name="settings_sync_folder">Синхронизация через папку</string>
+    <string name="settings_private_feeds_note">Резервные копии и папка синхронизации содержат адрес каждой частной ленты вместе с ключом доступа. Храните их как пароль.</string>
     <string name="settings_sync_folder_description">Медиатека, прогресс и очередь одинаковы на всех ваших устройствах через папку iCloud Drive, Google Drive, Dropbox или Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · ещё не синхронизировано</string>
     <string name="settings_sync_folder_failed">%1$s · нет доступа к папке. Нажмите, чтобы выбрать её снова</string>

@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Yedeği dışa aktar</string>
     <string name="settings_export_backup_description">Kitaplığı, ilerlemeyi, sırayı, yer imlerini ve ayarları tek bir dosyaya kaydedin</string>
     <string name="settings_sync_folder">Bir klasörle eşitle</string>
+    <string name="settings_private_feeds_note">Yedekler ve eşitleme klasörü, her özel akışın adresini erişim anahtarıyla birlikte içerir. Bunları bir parola gibi saklayın.</string>
     <string name="settings_sync_folder_description">Kitaplığı, ilerlemeyi ve sırayı cihazlarınızda bir iCloud Drive, Google Drive, Dropbox veya Syncthing klasörüyle aynı tutun</string>
     <string name="settings_sync_folder_waiting">%1$s · henüz eşitlenmedi</string>
     <string name="settings_sync_folder_failed">%1$s · klasöre erişilemiyor. Yeniden seçmek için dokunun</string>

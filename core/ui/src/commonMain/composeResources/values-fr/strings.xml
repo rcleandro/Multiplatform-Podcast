@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Exporter une sauvegarde</string>
     <string name="settings_export_backup_description">Enregistrez bibliothèque, progression, file, signets et réglages dans un fichier</string>
     <string name="settings_sync_folder">Synchroniser via un dossier</string>
+    <string name="settings_private_feeds_note">Les sauvegardes et le dossier de synchronisation contiennent l'adresse de chaque flux privé, avec sa clé d'accès. Conservez-les comme un mot de passe.</string>
     <string name="settings_sync_folder_description">Gardez bibliothèque, progression et file identiques sur vos appareils grâce à un dossier iCloud Drive, Google Drive, Dropbox ou Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · pas encore synchronisé</string>
     <string name="settings_sync_folder_failed">%1$s · dossier inaccessible. Touchez pour le choisir à nouveau</string>

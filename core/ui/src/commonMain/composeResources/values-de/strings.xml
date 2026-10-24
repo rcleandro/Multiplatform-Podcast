@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Sicherung exportieren</string>
     <string name="settings_export_backup_description">Mediathek, Fortschritt, Warteschlange, Lesezeichen und Einstellungen in einer Datei speichern</string>
     <string name="settings_sync_folder">Über einen Ordner synchronisieren</string>
+    <string name="settings_private_feeds_note">Backups und der Synchronisierungsordner enthalten die Adresse jedes privaten Feeds samt Zugangsschlüssel. Bewahre sie wie ein Passwort auf.</string>
     <string name="settings_sync_folder_description">Mediathek, Fortschritt und Warteschlange auf deinen Geräten gleich halten – über einen Ordner in iCloud Drive, Google Drive, Dropbox oder Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · noch nicht synchronisiert</string>
     <string name="settings_sync_folder_failed">%1$s · Ordner nicht erreichbar. Tippen, um ihn neu zu wählen</string>

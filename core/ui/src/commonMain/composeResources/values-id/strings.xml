@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Ekspor cadangan</string>
     <string name="settings_export_backup_description">Simpan pustaka, kemajuan, antrean, penanda, dan setelan dalam satu file</string>
     <string name="settings_sync_folder">Sinkronkan lewat folder</string>
+    <string name="settings_private_feeds_note">Cadangan dan folder sinkronisasi menyertakan alamat setiap feed pribadi beserta kunci aksesnya. Simpan seperti Anda menyimpan kata sandi.</string>
     <string name="settings_sync_folder_description">Jaga pustaka, kemajuan, dan antrean tetap sama di perangkat Anda lewat folder iCloud Drive, Google Drive, Dropbox, atau Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · belum disinkronkan</string>
     <string name="settings_sync_folder_failed">%1$s · folder tidak dapat diakses. Ketuk untuk memilihnya lagi</string>

@@ -124,8 +124,9 @@ private fun LazyListScope.unlockedGuardianSettings(
     item { PickerRow(stringResource(Res.string.guardian_lock), value = null) { onIntent(GuardianIntent.Lock) } }
 }
 
+/** An explanation between the Settings rows. */
 @Composable
-private fun Note(text: String) = Text(
+internal fun Note(text: String) = Text(
     text,
     style = MaterialTheme.typography.bodyMedium,
     color = MaterialTheme.colorScheme.onSurfaceVariant,

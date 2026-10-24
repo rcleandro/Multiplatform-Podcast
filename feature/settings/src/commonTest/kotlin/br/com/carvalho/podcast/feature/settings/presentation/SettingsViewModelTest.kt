@@ -98,6 +98,17 @@ class SettingsViewModelTest {
     private val childSafety = ChildSafety(ageSignal)
 
     @Test
+    fun theBackupWarnsOnlyWhenTheLibraryHasAPrivateFeed() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        repository.podcasts.value = listOf(podcast("https://feeds.npr.org/510289/podcast.xml"))
+        assertFalse(viewModel.uiState.value.hasPrivateFeeds)
+
+        repository.podcasts.value += podcast("https://www.patreon.com/rss/creator?auth=Xy12abCD34")
+
+        assertTrue(viewModel.uiState.value.hasPrivateFeeds)
+    }
+
+    @Test
     fun wrongPinsMakeTheNextTryWaitEvenForTheRightOneAndAcrossRestarts() = runTest(dispatcher) {
         childSafety.refresh()
         preferences.setGuardianPin(GuardianPin.hash("1234"))

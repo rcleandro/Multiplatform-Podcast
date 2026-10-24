@@ -42,3 +42,23 @@ fun feedUrlKey(url: String): String {
  */
 fun movedFeedUrl(current: String, declared: String?): String? =
     declared?.let(::validFeedUrl)?.takeIf { feedUrlKey(it) != feedUrlKey(current) }
+
+/**
+ * Whether [url] may carry an access secret (22.6, ADR 0014). A private feed keeps its token in the user info, the query
+ * or a long random part of the path (Supercast, Memberful), and its audio addresses often carry it too. It errs on the
+ * safe side: a public feed with a query or a UUID in its path counts as private, which only keeps it out of a share.
+ */
+fun mayCarrySecret(url: String): Boolean {
+    val rest = url.substringAfter("://").substringBefore('#')
+    val authority = rest.takeWhile { it !in "/?" }
+    val path = rest.drop(authority.length).substringBefore('?')
+    return '@' in authority || '?' in rest || path.split('/').any { it.looksRandom() }
+}
+
+private const val RANDOM_SEGMENT_LENGTH = 20
+
+// A token mixes letters and digits; a readable slug (an episode title) has no digits or is broken by dashes.
+private fun String.looksRandom(): Boolean = substringBeforeLast('.').let { segment ->
+    segment.length >= RANDOM_SEGMENT_LENGTH && segment.all { it.isLetterOrDigit() } &&
+        segment.any { it.isDigit() } && segment.any { it.isLetter() }
+}
