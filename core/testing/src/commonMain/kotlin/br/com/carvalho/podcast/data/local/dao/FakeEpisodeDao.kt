@@ -141,7 +141,12 @@ class FakeEpisodeDao : EpisodeDao {
     override suspend fun updatePlayback(id: String, played: Boolean, position: Long, updatedAt: Long) {
         episodes.value = episodes.value.map {
             if (it.id == id) {
-                it.copy(isPlayed = played, playbackPosition = position, isNew = it.isNew && !played, updatedAt = updatedAt)
+                it.copy(
+                    isPlayed = played,
+                    playbackPosition = position,
+                    isNew = it.isNew && !played,
+                    updatedAt = updatedAt,
+                )
             } else {
                 it
             }
@@ -187,7 +192,11 @@ class FakeEpisodeDao : EpisodeDao {
 
     override suspend fun updateDownloadFile(id: String, fileName: String?, downloadedAt: Long?) {
         episodes.value = episodes.value.map {
-            if (it.id == id) it.copy(downloadFile = fileName, isDownloaded = fileName != null, downloadedAt = downloadedAt) else it
+            if (it.id == id) {
+                it.copy(downloadFile = fileName, isDownloaded = fileName != null, downloadedAt = downloadedAt)
+            } else {
+                it
+            }
         }
     }
 
