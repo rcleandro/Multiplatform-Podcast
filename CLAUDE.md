@@ -22,6 +22,19 @@ violations unless the user explicitly allows it. After touching platform code, a
 (`:androidApp:assembleDebug`, `:wearApp:assembleDebug`, `:desktopApp:compileKotlinJvm`, `:webApp:wasmJsBrowserDistribution`,
 `:shared:iosSimulatorArm64Test`).
 
+## The user's phone and watch
+
+The Razr and the Galaxy Watch are the user's own devices, in daily use, with their real library.
+
+- Never leave anything on them that ends up in Android's hidden apps folder: only the Podcast app itself stays
+  installed. No test or benchmark APK left behind (`br.com.carvalho.podcast.benchmark` is removed with
+  `adb uninstall` right after a device test run) and no extra launcher icon, such as LeakCanary's "Leaks".
+- Before installing or running anything, check the foreground app (`dumpsys activity activities | grep
+  topResumedActivity`); if the user is in Podcast or anything else, ask first. Installing closes the app.
+- Before any Gradle device test (Macrobenchmark, baseline profile, connected tests), copy the database out
+  (`run-as br.com.carvalho.podcast cat databases/podcast.db`): Gradle uninstalled the app once and wiped the library.
+  `run-as` only works on the debug build; put it back on the phone after a benchmark run.
+
 ## Code rules
 
 - New tests go in `commonTest` with hand-written fakes (no MockK there), so they run on Native and Wasm.
