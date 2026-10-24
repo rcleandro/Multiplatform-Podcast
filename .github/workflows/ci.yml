@@ -274,6 +274,19 @@ jobs:
                     ARCHS=arm64 \
                     CODE_SIGNING_ALLOWED=NO
 
+            # The SwiftUI side (25.2): bridge, texts and theme, inside the app on the first iPhone simulator the
+            # image has, since the names change with each Xcode.
+            - name: Run iOS app tests (XCTest)
+              run: |
+                  device=$(xcrun simctl list devices available | grep -m1 -oE 'iPhone[^(]*' | sed 's/ *$//')
+                  echo "Testing on $device"
+                  xcodebuild test \
+                    -workspace iosApp/iosApp.xcworkspace \
+                    -scheme iosApp \
+                    -destination "platform=iOS Simulator,name=$device" \
+                    -derivedDataPath ./build-tests \
+                    CODE_SIGNING_ALLOWED=NO
+
             - name: Upload app folder
               uses: actions/upload-artifact@v7
               with:
