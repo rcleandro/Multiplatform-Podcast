@@ -52,7 +52,7 @@ interface EpisodeDao {
     @Query(
         """
         SELECT * FROM episodes
-        WHERE (:query = '' OR title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%')
+        WHERE (:match = '' OR rowid IN (SELECT rowid FROM episodes_fts WHERE episodes_fts MATCH :match))
         AND (:onlyInProgress = 0 OR (playbackPosition > 0 AND isPlayed = 0))
         AND (:onlyDownloaded = 0 OR isDownloaded = 1)
         AND (:onlyNew = 0 OR (isNew = 1 AND isPlayed = 0))
@@ -61,9 +61,10 @@ interface EpisodeDao {
         ORDER BY CASE WHEN :history THEN lastPlayedAt END DESC, publishDate DESC
     """
     )
+    /** [match] comes from [br.com.carvalho.podcast.data.local.searchMatch]; empty lists every episode (23.4). */
     @Suppress("LongParameterList") // one flag per filter of the Episodes tab
     fun searchPagingSource(
-        query: String,
+        match: String,
         onlyInProgress: Boolean = false,
         onlyDownloaded: Boolean = false,
         onlyNew: Boolean = false,
@@ -86,15 +87,15 @@ interface EpisodeDao {
     )
     fun getInProgress(limit: Int): Flow<List<EpisodeEntity>>
 
+    /** [match] comes from [br.com.carvalho.podcast.data.local.searchMatch] and is never empty (23.4). */
     @Query(
         """
         SELECT * FROM episodes
-        WHERE title LIKE '%' || :query || '%'
-        OR description LIKE '%' || :query || '%'
+        WHERE rowid IN (SELECT rowid FROM episodes_fts WHERE episodes_fts MATCH :match)
         ORDER BY publishDate DESC
     """
     )
-    fun search(query: String): Flow<List<EpisodeEntity>>
+    fun search(match: String): Flow<List<EpisodeEntity>>
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
