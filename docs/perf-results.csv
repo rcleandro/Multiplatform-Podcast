@@ -1,0 +1,22 @@
+date,commit,version,device,benchmark,metric,value
+2026-10-08,47aeef19,1.0.0,desktopTest,LargeFeedParsingTest,ms,180
+2026-10-08,47aeef19,1.0.0,iosSimulatorArm64Test,LargeFeedParsingTest,ms,126
+2026-10-08,47aeef19,1.0.0,wasmJsBrowserTest,LargeFeedParsingTest,ms,75
+2026-10-08,6284edaf,1.0.0,motorola razr 60,StartupBenchmark.coldStartWithoutCompilation,timeToInitialDisplayMs.median,843
+2026-10-08,6284edaf,1.0.0,motorola razr 60,StartupBenchmark.coldStartPartiallyCompiled,timeToInitialDisplayMs.median,741
+2026-10-23,fd7eab81,1.0.0,motorola razr 60,StartupBenchmark.coldStartWithoutCompilation,timeToInitialDisplayMs.median,548
+2026-10-23,fd7eab81,1.0.0,motorola razr 60,StartupBenchmark.coldStartPartiallyCompiled,timeToInitialDisplayMs.median,450
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.scrollTheEpisodes,frameOverrunMs.P50,-9.0
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.scrollTheEpisodes,frameOverrunMs.P90,-3.0
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.scrollTheEpisodes,frameOverrunMs.P99,6.7
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.scrollTheEpisodes,frameDurationCpuMs.P50,4.7
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.scrollTheEpisodes,frameDurationCpuMs.P90,8.0
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.scrollTheEpisodes,frameDurationCpuMs.P99,16.3
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.scrollTheEpisodes,memoryHeapSizeMaxKb.median,74752
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.scrollTheEpisodes,memoryRssAnonMaxKb.median,163840
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.openThePlayer,frameOverrunMs.P50,-8.1
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.openThePlayer,frameOverrunMs.P90,-5.9
+2026-10-24,5837c015,1.0.0,motorola razr 60,UsageBenchmark.openThePlayer,frameOverrunMs.P99,10.8
+2026-10-24,b3eefdc1,1.0.0,motorola razr 60,StartupBenchmark.coldStartPartiallyCompiled,timeToInitialDisplayMs.median,647.3
+2026-10-24,b3eefdc1,1.0.0,motorola razr 60,StartupBenchmark.coldStartWithoutCompilation,timeToInitialDisplayMs.median,764.6
+2026-10-24,b3eefdc1,1.0.0,desktopTest,LargeFeedParsingTest,ms,32

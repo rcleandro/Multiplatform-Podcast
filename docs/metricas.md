@@ -84,6 +84,26 @@ agora mediria o que vai sair.
 Cuidado ao rodar: o Gradle desinstalava o app depois dos testes no aparelho, apagando a biblioteca;
 `android.injected.androidTest.leaveApksInstalledAfterRun=true` no `gradle.properties` impede isso desde 24/10/2026.
 
+## Resultados por versão (23.11)
+
+Cada medição fica em [perf-results.csv](perf-results.csv), uma linha por métrica, com a data, o commit medido
+(`-dirty` se havia mudança não commitada), a versão do app e o aparelho (ou o alvo, no teste de parsing). Logo depois
+de rodar um Macrobenchmark no aparelho, ou os testes do `:data`:
+
+```
+python3 .github/scripts/perf_results.py record
+```
+
+e commitar a linha nova junto. O script lê o JSON do Macrobenchmark em `benchmark/build/outputs/…` e os relatórios do
+`LargeFeedParsingTest` em `data/build/test-results/`; ele grava o que estiver lá, então rode logo depois do teste,
+para não gravar um relatório velho com o commit novo. Os orçamentos das tabelas acima estão no próprio script
+(`BUDGETS`).
+
+No CI, o job de testes JVM roda `perf_results.py check`: avisa (`::warning::`, sem falhar o build) quando o último
+resultado de uma série passa do orçamento, e põe no resumo do job o tempo de parsing daquela execução. O
+Macrobenchmark não roda no CI, então o aviso só vê o que foi gravado do aparelho. Para achar o commit de uma piora,
+compare as linhas da série no CSV e meça os commits do meio.
+
 Limites conhecidos:
 - No Android, o `app_start` começa no `initKoin` (no `Application.onCreate`), e não no início do processo. As
   centenas de milissegundos antes disso ficam de fora: o Macrobenchmark da 17.6 mede o início completo.

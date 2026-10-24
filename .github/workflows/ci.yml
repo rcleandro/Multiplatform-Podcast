@@ -69,6 +69,12 @@ jobs:
             - name: Run tests
               run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest :wearApp:testDebugUnitTest :build-logic:convention:test :core:network:wasmJsBrowserTest
 
+            # Warns, never fails: the latest recorded Macrobenchmark results and this run's parsing times (23.11).
+            - name: Check performance budgets
+              run: |
+                  python3 -m unittest discover -s .github/scripts
+                  python3 .github/scripts/perf_results.py check | tee -a "$GITHUB_STEP_SUMMARY"
+
             - name: Verify coverage floors
               run: ./gradlew koverVerify
 
