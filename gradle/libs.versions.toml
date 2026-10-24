@@ -35,7 +35,7 @@ kotlinxBrowser = "0.5.0"
 
 # Rede e serialização
 ktor = "3.6.0"
-kotlinx-serialization = "1.11.0"
+kotlinx-serialization = "1.12.0"
 kotlinx-coroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
 okio = "3.18.2"
@@ -45,7 +45,7 @@ multiplatform-settings = "1.3.0"
 reorderable = "3.1.0"
 
 # DI
-koin = "4.2.1"
+koin = "4.2.2"
 
 # Navegação
 decompose = "3.5.0"
@@ -83,7 +83,7 @@ uiautomator = "2.4.0"
 
 # Media
 media3 = "1.11.1"
-javafx = "27"
+javafx = "27.0.1"
 
 [libraries]
 # Gradle plugins, for the convention plugins in build-logic
