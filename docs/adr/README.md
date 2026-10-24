@@ -12,13 +12,14 @@ one to "substituída por ADR NNNN" instead of deleting it.
 | [0005](0005-navegacao.md) | Navegação: abas Biblioteca e Episódios; Downloads vira filtro, Player só pelo mini player, descoberta no "+" |
 | [0006](0006-preferencias.md) | Preferências do usuário: multiplatform-settings atrás de `PreferencesRepository` |
 | [0007](0007-reordenar-listas.md) | Reordenar listas arrastando: Reorderable, com alça e ações de acessibilidade |
-| [0008](0008-liquid-glass-no-ios.md) | Liquid Glass no iOS: `UITabBar` nativo por cima do Compose, só no iOS 26+ (a ser substituída pela fase 25, iOS em SwiftUI) |
+| [0008](0008-liquid-glass-no-ios.md) | Liquid Glass no iOS: `UITabBar` nativo por cima do Compose, só no iOS 26+ (substituída pela ADR 0015) |
 | [0009](0009-feeds-e-audio-em-http.md) | Feeds e áudio em `http://`: tentar `https` primeiro e cair para `http`; texto claro liberado no Android e no iOS |
 | [0010](0010-video-dos-episodios.md) | Vídeo dos episódios: slot no player preenchido por plataforma (Media3 + PiP no Android, `<video>` na Web, JavaFX no Desktop) |
 | [0011](0011-sincronizacao-por-pasta.md) | Sincronização entre aparelhos por uma pasta que o usuário já sincroniza: um arquivo por aparelho, merge da 19.9b; Android e Desktop |
 | [0012](0012-eca-digital.md) | ECA Digital: o app está no escopo; no Brasil, explícito escondido e travado para menor e sem sinal de idade; padrões protetores mudáveis só para sem sinal |
 | [0013](0013-web-como-demonstracao.md) | A Web como demonstração: sem proxy; feed recusado pelo navegador (CORS) vira `BrowserBlocked` com explicação; COOP/COEP na hospedagem |
 | [0014](0014-modelo-de-ameacas.md) | Modelo de ameaças: ativos (tokens de feed, biblioteca, downloads, PIN, chave), atacantes e 12 ameaças, cada uma ligada a um item da fase 22; sem pinning |
+| [0015](0015-ios-em-swiftui.md) | iOS em SwiftUI: adaptadores à mão para os ViewModels, `RootComponent` desenhado pelo Swift, textos e tokens gerados do Kotlin, iOS 18, Compose fora do iOS na 25.8 |
 
 ## Modelo
 
