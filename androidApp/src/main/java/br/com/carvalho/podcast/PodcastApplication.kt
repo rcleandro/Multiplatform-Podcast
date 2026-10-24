@@ -1,6 +1,8 @@
 package br.com.carvalho.podcast
 
 import android.app.Application
+import android.content.pm.ApplicationInfo
+import android.os.StrictMode
 import androidx.annotation.OptIn
 import androidx.media3.cast.Cast
 import androidx.media3.common.util.UnstableApi
@@ -24,6 +26,7 @@ class PodcastApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        if (isDebuggable()) watchTheMainThread()
         initKoin {
             androidLogger()
             androidContext(this@PodcastApplication)
@@ -34,5 +37,16 @@ class PodcastApplication : Application() {
         FolderSync.keepInSync(scope)
         // Before the Cast button or the media service need it (18.17); it loads in the background.
         Cast.getSingletonInstance(this).initialize()
+    }
+
+    private fun isDebuggable() = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+
+    /**
+     * Debug builds log every disk and network access made on the main thread, with its stack (23.5): the kind of work
+     * that slows the start and drops frames. Only logged, so a violation never crashes the app being tested.
+     */
+    private fun watchTheMainThread() {
+        StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder().detectDiskReads().detectDiskWrites().detectNetwork().penaltyLog().build())
+        StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().detectLeakedClosableObjects().detectLeakedSqlLiteObjects().penaltyLog().build())
     }
 }

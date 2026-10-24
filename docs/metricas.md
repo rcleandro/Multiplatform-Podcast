@@ -37,6 +37,7 @@ conectado e fica fora do CI:
 |---|---|---|---|
 | 08/10/2026 | Razr 60, Android 16 | 843 ms (804–877) | 741 ms (701–915) |
 | 23/10/2026 | Razr 60, Android 16 (R8 e baseline profile, 20.1) | 548 ms (528–644) | 450 ms (427–534) |
+| 24/10/2026 | Razr 60, Android 16, pelo cabo USB (profile gravado de novo, 23.5) | 765 ms (750–883) | 647 ms (568–774) |
 
 O R8 da 20.1 cortou cerca de 300 ms dos dois cenários. O baseline profile (`androidApp/src/main/baseline-prof.txt`)
 é o que o aparelho compila na instalação; o cenário parcialmente compilado mede o app com ele. Para gerá-lo de novo
