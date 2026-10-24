@@ -22,7 +22,7 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-        val desktopTest by getting {
+        val desktopTest = getByName("desktopTest") {
             dependencies {
                 implementation(libs.ui.test)
                 implementation(compose.desktop.currentOs)

@@ -25,12 +25,12 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.sqlite.bundled)
         }
-        val desktopMain by getting {
+        val desktopMain = getByName("desktopMain") {
             dependencies {
                 implementation(libs.sqlite.bundled)
             }
         }
-        val desktopTest by getting {
+        val desktopTest = getByName("desktopTest") {
             dependencies {
                 implementation(libs.room3.testing)
                 implementation(libs.okio.fakefilesystem)

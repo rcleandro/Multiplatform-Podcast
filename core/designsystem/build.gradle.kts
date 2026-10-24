@@ -11,10 +11,10 @@ kotlin {
     }
 
     sourceSets {
-        val nonAndroidMain by creating { dependsOn(commonMain.get()) }
+        val nonAndroidMain = create("nonAndroidMain") { dependsOn(commonMain.get()) }
         iosMain.get().dependsOn(nonAndroidMain)
         wasmJsMain.get().dependsOn(nonAndroidMain)
-        val desktopMain by getting { dependsOn(nonAndroidMain) }
+        val desktopMain = getByName("desktopMain") { dependsOn(nonAndroidMain) }
 
         commonMain.dependencies {
             api(libs.runtime)
@@ -32,7 +32,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.ui.test)
         }
-        val androidHostTest by getting {
+        val androidHostTest = getByName("androidHostTest") {
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.robolectric)
@@ -42,7 +42,7 @@ kotlin {
                 implementation(libs.androidx.compose.ui.test.manifest)
             }
         }
-        val desktopTest by getting {
+        val desktopTest = getByName("desktopTest") {
             dependencies {
                 implementation(compose.desktop.currentOs)
             }

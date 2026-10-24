@@ -40,7 +40,7 @@ kotlin {
 // Real feeds for the parser tests (15.2). Wasm tests cannot read files, so each XML becomes a string in generated
 // common test code: `FeedFixtures.all["hipsters"]`.
 val feedFixturesDir = layout.projectDirectory.dir("src/commonTest/resources/feeds")
-val generateFeedFixtures by tasks.registering {
+val generateFeedFixtures = tasks.register("generateFeedFixtures") {
     val input = feedFixturesDir
     val output = layout.buildDirectory.dir("generated/feedFixtures/kotlin")
     inputs.dir(input)

@@ -137,7 +137,7 @@ kotlin {
         }
 
         // Firebase implementations shared by Android and iOS; Desktop and Web only log.
-        val firebaseMain by creating {
+        val firebaseMain = create("firebaseMain") {
             dependsOn(commonMain.get())
             dependencies {
                 implementation(libs.firebase.common)
@@ -149,7 +149,7 @@ kotlin {
         iosMain.get().dependsOn(firebaseMain)
 
         // Library sync through a folder (19.12) where the platform keeps one: Android and Desktop.
-        val folderSyncMain by creating {
+        val folderSyncMain = create("folderSyncMain") {
             dependsOn(commonMain.get())
             dependencies {
                 implementation(libs.filekit.core)
@@ -157,7 +157,7 @@ kotlin {
         }
         androidMain.get().dependsOn(folderSyncMain)
 
-        val desktopMain by getting {
+        val desktopMain = getByName("desktopMain") {
             dependsOn(folderSyncMain)
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
@@ -179,7 +179,7 @@ kotlin {
             implementation(libs.okio.fakefilesystem)
         }
 
-        val jvmCommonTest by creating {
+        val jvmCommonTest = create("jvmCommonTest") {
             dependsOn(commonTest.get())
             dependencies {
                 implementation(libs.mockk)
@@ -188,7 +188,7 @@ kotlin {
             }
         }
 
-        val androidHostTest by getting {
+        val androidHostTest = getByName("androidHostTest") {
             dependsOn(jvmCommonTest)
             dependencies {
                 implementation(libs.junit)
@@ -197,7 +197,7 @@ kotlin {
             }
         }
 
-        val desktopTest by getting {
+        val desktopTest = getByName("desktopTest") {
             dependsOn(jvmCommonTest)
         }
     }
