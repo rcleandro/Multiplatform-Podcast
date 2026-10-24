@@ -31,10 +31,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -82,7 +84,11 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
     val playerViewModel: PlayerViewModel = koinViewModel()
-    val playerState by playerViewModel.playerState.collectAsState()
+    // The position moves every 500 ms while playing (23.2): the tabs only follow what the mini player shows, and the
+    // position itself is read where the progress line is drawn, so nothing recomposes as it moves.
+    val playerState = playerViewModel.playerState.collectAsState()
+    val nowPlaying by remember { derivedStateOf(structuralEqualityPolicy()) { NowPlaying.of(playerState.value) } }
+    val progress = remember { { playerState.value.progressFraction } }
     val state by component.state.subscribeAsState()
     val networkMonitor: NetworkMonitor = koinInject()
     LaunchedEffect(component) {
@@ -118,7 +124,8 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
             TabContent(
                 component = component,
                 state = state,
-                playerState = playerState,
+                nowPlaying = nowPlaying,
+                progress = progress,
                 onPlayPause = { playerViewModel.onIntent(PlayerIntent.PlayPause) },
                 sharedCover = sharedCover,
             )
@@ -192,7 +199,8 @@ private fun appShortcuts(component: RootComponent, playerViewModel: PlayerViewMo
 private fun TabContent(
     component: RootComponent,
     state: NavigationState,
-    playerState: PlayerState,
+    nowPlaying: NowPlaying?,
+    progress: () -> Float,
     onPlayPause: () -> Unit,
     sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier,
 ) {
@@ -218,7 +226,7 @@ private fun TabContent(
         isMiniPlayerShown = true
         navigator.navigateTo(pane)
     }
-    val showMiniPlayer = playerState.currentEpisode != null && isMiniPlayerShown && !state.isPlayerOpen
+    val showMiniPlayer = nowPlaying != null && isMiniPlayerShown && !state.isPlayerOpen
 
     Scaffold(
         contentWindowInsets = WindowInsets(),
@@ -247,7 +255,8 @@ private fun TabContent(
                 modifier = Modifier.align(Alignment.BottomCenter)
             ) {
                 MiniPlayerBar(
-                    playerState,
+                    nowPlaying,
+                    progress,
                     onPlayPause = onPlayPause,
                     onClick = component::onPlayerClicked,
                     onQueueClick = component::onQueueClicked,
@@ -294,27 +303,48 @@ private fun DetailPane(component: RootComponent, podcast: Detail.Podcast?) {
 
 @Composable
 private fun MiniPlayerBar(
-    playerState: PlayerState,
+    nowPlaying: NowPlaying?,
+    progress: () -> Float,
     onPlayPause: () -> Unit,
     onClick: () -> Unit,
     onQueueClick: () -> Unit,
     artworkModifier: Modifier,
 ) {
-    val episode = playerState.currentEpisode ?: return
-    val duration = playerState.duration
+    val playing = nowPlaying ?: return
     MiniPlayer(
-        title = episode.title,
-        subtitle = episode.podcastTitle,
-        imageUrl = episode.imageUrl,
-        isPlaying = playerState.isPlaying,
-        isLoading = playerState.isBuffering,
-        progress = if (duration != null && duration > 0) playerState.position.toFloat() / duration else 0f,
+        title = playing.title,
+        subtitle = playing.podcastTitle,
+        imageUrl = playing.imageUrl,
+        isPlaying = playing.isPlaying,
+        isLoading = playing.isLoading,
+        progress = progress,
         onPlayPause = onPlayPause,
         onClick = onClick,
         onQueueClick = onQueueClick,
         artworkModifier = artworkModifier,
     )
 }
+
+/**
+ * What the mini player shows of the player, without the position: the episode's fields, not the episode, whose saved
+ * progress changes every few seconds too.
+ */
+private data class NowPlaying(
+    val title: String,
+    val podcastTitle: String?,
+    val imageUrl: String?,
+    val isPlaying: Boolean,
+    val isLoading: Boolean,
+) {
+    companion object {
+        fun of(state: PlayerState): NowPlaying? = state.currentEpisode?.let {
+            NowPlaying(it.title, it.podcastTitle, it.imageUrl, state.isPlaying, state.isBuffering)
+        }
+    }
+}
+
+private val PlayerState.progressFraction: Float
+    get() = duration?.takeIf { it > 0 }?.let { position.toFloat() / it } ?: 0f
 
 private const val SHARED_COVER_KEY = "player-cover"
 

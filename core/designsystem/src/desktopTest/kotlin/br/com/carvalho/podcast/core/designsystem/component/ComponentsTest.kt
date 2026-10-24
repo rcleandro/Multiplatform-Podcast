@@ -261,7 +261,7 @@ class ComponentsTest {
                     imageUrl = null,
                     isPlaying = true,
                     isLoading = false,
-                    progress = 0.3f,
+                    progress = { 0.3f },
                     onPlayPause = { toggles++ },
                     onClick = { opened++ },
                 )
@@ -310,12 +310,33 @@ class ComponentsTest {
         setContent {
             PodcastTheme {
                 MiniPlayer(title = "Ep", subtitle = null, imageUrl = null, isPlaying = false, isLoading = false,
-                    progress = 0f, onPlayPause = {}, onClick = {})
+                    progress = { 0f }, onPlayPause = {}, onClick = {})
             }
         }
         val label = text(Res.string.ds_open_player)
         onNode(SemanticsMatcher("click label is '$label'") { it.config.getOrNull(SemanticsActions.OnClick)?.label == label })
             .assertExists()
+    }
+
+    @Test
+    fun theMiniPlayersProgressMovesWithoutRecomposingWhatHoldsIt() = runComposeUiTest {
+        // The position moves every 500 ms while playing (23.2): only the bar's drawing may follow it.
+        var position by mutableStateOf(0f)
+        var compositions = 0
+        setContent {
+            PodcastTheme {
+                // Counted in the scope that hands the progress over: the one a moving position would recompose.
+                compositions++
+                MiniPlayer(title = "Ep", subtitle = null, imageUrl = null, isPlaying = true, isLoading = false,
+                    progress = { position }, onPlayPause = {}, onClick = {})
+            }
+        }
+        repeat(PROGRESS_STEPS) {
+            position += 1f / PROGRESS_STEPS
+            waitForIdle()
+        }
+
+        assertEquals(1, compositions)
     }
 
     @Test
@@ -326,7 +347,7 @@ class ComponentsTest {
             PodcastTheme {
                 MiniPlayer(
                     title = "Ep", subtitle = null, imageUrl = null, isPlaying = false, isLoading = false,
-                    progress = 0f, onPlayPause = {}, onClick = {},
+                    progress = { 0f }, onPlayPause = {}, onClick = {},
                     onQueueClick = if (offersQueue) ({ queueOpened++ }) else null,
                 )
             }
@@ -386,7 +407,7 @@ class ComponentsTest {
             PodcastTheme {
                 MiniPlayer(
                     title = "Episode", subtitle = null, imageUrl = null, isPlaying = false, isLoading = false,
-                    progress = 0f, onPlayPause = {}, onClick = {}, artworkModifier = Modifier.testTag("cover"),
+                    progress = { 0f }, onPlayPause = {}, onClick = {}, artworkModifier = Modifier.testTag("cover"),
                 )
             }
         }
@@ -399,3 +420,5 @@ class ComponentsTest {
         const val CHIPS = 12
     }
 }
+
+private const val PROGRESS_STEPS = 10

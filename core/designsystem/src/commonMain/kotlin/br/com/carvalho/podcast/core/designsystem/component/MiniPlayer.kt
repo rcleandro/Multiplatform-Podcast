@@ -38,7 +38,8 @@ fun MiniPlayer(
     imageUrl: String?,
     isPlaying: Boolean,
     isLoading: Boolean,
-    progress: Float,
+    /** Read while drawing (23.2): the position moves every 500 ms and must not recompose the bar's holder. */
+    progress: () -> Float,
     onPlayPause: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

@@ -95,7 +95,7 @@ internal fun PlayerPartsSample() {
         imageUrl = null,
         isPlaying = true,
         isLoading = false,
-        progress = 0.26f,
+        progress = { 0.26f },
         onPlayPause = {},
         onClick = {},
     )

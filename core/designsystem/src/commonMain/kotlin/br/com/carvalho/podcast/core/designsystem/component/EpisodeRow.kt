@@ -114,7 +114,7 @@ fun EpisodeRow(
                 overflow = TextOverflow.Ellipsis,
             )
             if (playback.progress > 0f && !playback.isPlayed) {
-                EpisodeProgressBar(progress = playback.progress, modifier = Modifier.padding(top = Spacing.xs))
+                EpisodeProgressBar(progress = { playback.progress }, modifier = Modifier.padding(top = Spacing.xs))
             }
         }
         if (!selecting) MoreOptionsButton(actionsLabel, onClick = { menuOpen = true })
