@@ -97,6 +97,9 @@ class UrlSessionEpisodeDownloader(
     }
 
     private inner class SessionDelegate : NSObject(), NSURLSessionDownloadDelegateProtocol {
+        // The room each running download may fill (22.5), worked out on its first bytes. URLSession calls the
+        // delegate on a serial queue of its own (none is given above), so a plain map is enough.
+        private val rooms = mutableMapOf<String, KtorEpisodeDownloader.Room>()
 
         override fun URLSession(
             session: NSURLSession,
@@ -106,12 +109,19 @@ class UrlSessionEpisodeDownloader(
             totalBytesExpectedToWrite: Long,
         ) {
             val episodeId = downloadTask.taskDescription ?: return
-            if (totalBytesExpectedToWrite <= 0) return
-            val progress = totalBytesWritten.toFloat() / totalBytesExpectedToWrite.toFloat()
-            downloader.updateStatus(
-                episodeId,
-                DownloadStatus.Downloading(progress, totalBytesWritten, totalBytesExpectedToWrite)
-            )
+            val room = rooms.getOrPut(episodeId) { runBlocking { downloader.room() } }
+            if (totalBytesWritten > room.bytes || totalBytesExpectedToWrite > room.bytes) {
+                // Cancelled tasks are ignored in didCompleteWithError, so the failure shown is this one.
+                rooms.remove(episodeId)
+                downloadTask.cancel()
+                downloader.updateStatus(episodeId, DownloadStatus.Failed(room.error))
+            } else if (totalBytesExpectedToWrite > 0) {
+                val progress = totalBytesWritten.toFloat() / totalBytesExpectedToWrite.toFloat()
+                downloader.updateStatus(
+                    episodeId,
+                    DownloadStatus.Downloading(progress, totalBytesWritten, totalBytesExpectedToWrite)
+                )
+            }
         }
 
         override fun URLSession(
@@ -120,9 +130,14 @@ class UrlSessionEpisodeDownloader(
             didFinishDownloadingToURL: NSURL,
         ) {
             val episodeId = downloadTask.taskDescription ?: return
+            rooms.remove(episodeId)
             val response = downloadTask.response as? NSHTTPURLResponse
             val status = response?.statusCode?.toInt() ?: 0
-            if (HttpStatusCode.fromValue(status).isSuccess()) {
+            val contentType = response?.MIMEType?.let { runCatching { ContentType.parse(it) }.getOrNull() }
+            if (HttpStatusCode.fromValue(status).isSuccess() && contentType.isPage()) {
+                // A login or paywall page answered with 200 is not the episode (22.5); iOS deletes the file itself.
+                downloader.updateStatus(episodeId, DownloadStatus.Failed(AppError.Unknown(null)))
+            } else if (HttpStatusCode.fromValue(status).isSuccess()) {
                 keep(episodeId, downloadTask, response, didFinishDownloadingToURL)
             } else {
                 downloader.updateStatus(episodeId, DownloadStatus.Failed(AppError.Http(status)))

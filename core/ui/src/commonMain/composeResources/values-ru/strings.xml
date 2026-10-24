@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Экспорт резервной копии</string>
     <string name="settings_export_backup_description">Сохраните медиатеку, прогресс, очередь, закладки и настройки в одном файле</string>
     <string name="settings_sync_folder">Синхронизация через папку</string>
+    <string name="settings_private_feeds_note">Резервные копии и папка синхронизации содержат адрес каждой частной ленты вместе с ключом доступа. Храните их как пароль.</string>
     <string name="settings_sync_folder_description">Медиатека, прогресс и очередь одинаковы на всех ваших устройствах через папку iCloud Drive, Google Drive, Dropbox или Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · ещё не синхронизировано</string>
     <string name="settings_sync_folder_failed">%1$s · нет доступа к папке. Нажмите, чтобы выбрать её снова</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">Нет подключения к интернету. Проверьте сеть и повторите попытку.</string>
     <string name="error_server">Сервер ленты ответил ошибкой. Повторите позже.</string>
     <string name="error_invalid_feed">Этот адрес не является лентой подкаста. Используйте ссылку RSS.</string>
+    <string name="error_feed_too_large">Эта лента слишком большая для чтения. Проверьте, что это RSS-ссылка подкаста.</string>
     <string name="error_invalid_url">Неверный адрес. Проверьте его и вставьте ссылку на ленту ещё раз.</string>
     <string name="error_browser_blocked">Браузер не смог прочитать эту ленту: многие сайты подкастов разрешают это только приложениям. Используйте приложение на телефоне или компьютере или проверьте подключение.</string>
     <string name="error_storage_full">Недостаточно места. Освободите место и повторите попытку.</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">Повторите PIN-код</string>
     <string name="guardian_pin_unlock">Родительский PIN-код</string>
     <string name="guardian_pin_wrong">Неверный PIN-код</string>
+    <string name="guardian_pin_wait_seconds">Слишком много неверных PIN-кодов. Повторите через %1$d с</string>
+    <string name="guardian_pin_wait_minutes">Слишком много неверных PIN-кодов. Повторите через %1$d мин</string>
     <string name="guardian_pin_mismatch">PIN-коды не совпадают</string>
     <string name="guardian_pin_ok">ОК</string>
     <string name="guardian_allow_continuous">Разрешить воспроизведение очереди подряд</string>

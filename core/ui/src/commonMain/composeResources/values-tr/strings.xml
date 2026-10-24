@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Yedeği dışa aktar</string>
     <string name="settings_export_backup_description">Kitaplığı, ilerlemeyi, sırayı, yer imlerini ve ayarları tek bir dosyaya kaydedin</string>
     <string name="settings_sync_folder">Bir klasörle eşitle</string>
+    <string name="settings_private_feeds_note">Yedekler ve eşitleme klasörü, her özel akışın adresini erişim anahtarıyla birlikte içerir. Bunları bir parola gibi saklayın.</string>
     <string name="settings_sync_folder_description">Kitaplığı, ilerlemeyi ve sırayı cihazlarınızda bir iCloud Drive, Google Drive, Dropbox veya Syncthing klasörüyle aynı tutun</string>
     <string name="settings_sync_folder_waiting">%1$s · henüz eşitlenmedi</string>
     <string name="settings_sync_folder_failed">%1$s · klasöre erişilemiyor. Yeniden seçmek için dokunun</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">İnternet bağlantısı yok. Ağınızı kontrol edip tekrar deneyin.</string>
     <string name="error_server">Akışın sunucusu hata döndürdü. Daha sonra tekrar deneyin.</string>
     <string name="error_invalid_feed">Bu adres bir podcast akışı değil. RSS bağlantısını kullanın.</string>
+    <string name="error_feed_too_large">Bu akış okunamayacak kadar büyük. Podcast'in RSS bağlantısı olduğundan emin olun.</string>
     <string name="error_invalid_url">Bu geçerli bir adres değil. Kontrol edip akış bağlantısını tekrar yapıştırın.</string>
     <string name="error_browser_blocked">Tarayıcı bu akışı okuyamadı: birçok podcast sitesi yalnızca uygulamaların okumasına izin veriyor. Uygulamayı telefonunuzda veya bilgisayarınızda kullanın ya da bağlantınızı kontrol edin.</string>
     <string name="error_storage_full">Yeterli alan yok. Yer açıp tekrar deneyin.</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">PIN'i tekrar gir</string>
     <string name="guardian_pin_unlock">Ebeveyn PIN'i</string>
     <string name="guardian_pin_wrong">Yanlış PIN</string>
+    <string name="guardian_pin_wait_seconds">Çok fazla yanlış PIN. %1$d sn sonra tekrar deneyin</string>
+    <string name="guardian_pin_wait_minutes">Çok fazla yanlış PIN. %1$d dk sonra tekrar deneyin</string>
     <string name="guardian_pin_mismatch">PIN'ler eşleşmiyor</string>
     <string name="guardian_pin_ok">Tamam</string>
     <string name="guardian_allow_continuous">Sıranın arka arkaya çalınmasına izin ver</string>

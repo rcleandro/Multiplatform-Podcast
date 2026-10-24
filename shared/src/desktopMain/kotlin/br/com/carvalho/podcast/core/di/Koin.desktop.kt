@@ -15,11 +15,14 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
         return
     }
     isKoinInitialized = true
-    // No build types here and no crash reporter: everything stays on the local console.
-    AppLogger.isDebugBuild = true
+    // No build types on Desktop: the installers (20.6) run through jpackage, `./gradlew run` does not (22.9).
+    AppLogger.isDebugBuild = isUnpackaged()
     AppLogger.i(TAG, "Initializing Koin for Desktop...")
     startKoin {
         appDeclaration()
         modules(commonModules + platformModule)
     }
 }
+
+/** Whether the app runs from Gradle, not from an installer: jpackage's launcher sets this property, Gradle does not. */
+internal fun isUnpackaged(): Boolean = System.getProperty("jpackage.app-version") == null

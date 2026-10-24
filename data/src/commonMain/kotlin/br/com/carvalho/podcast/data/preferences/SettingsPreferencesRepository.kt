@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.PinAttempts
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.SyncFolder
@@ -39,6 +40,8 @@ private const val SYNC_FOLDER_BOOKMARK = "sync_folder_bookmark"
 private const val SYNC_FOLDER_NAME = "sync_folder_name"
 private const val SYNC_FOLDER_FILE = "sync_folder_file"
 private const val GUARDIAN_PIN = "guardian_pin"
+private const val GUARDIAN_PIN_FAILURES = "guardian_pin_failures"
+private const val GUARDIAN_PIN_LOCKED_UNTIL = "guardian_pin_locked_until"
 private const val HIDDEN_PODCASTS = "hidden_podcasts"
 private const val HIDDEN_EPISODES = "hidden_episodes"
 private const val GUARDIAN_CONTINUOUS = "guardian_allow_continuous"
@@ -245,6 +248,17 @@ class SettingsPreferencesRepository(
     override fun setGuardianPin(hash: String?) {
         if (hash == null) settings.remove(GUARDIAN_PIN) else settings.putString(GUARDIAN_PIN, hash)
         pin.value = hash
+    }
+
+    private val pinAttempts = MutableStateFlow(
+        PinAttempts(settings.getInt(GUARDIAN_PIN_FAILURES, 0), settings.getLong(GUARDIAN_PIN_LOCKED_UNTIL, 0))
+    )
+    override val guardianPinAttempts: StateFlow<PinAttempts> = pinAttempts.asStateFlow()
+
+    override fun setGuardianPinAttempts(attempts: PinAttempts) {
+        settings.putInt(GUARDIAN_PIN_FAILURES, attempts.failures)
+        settings.putLong(GUARDIAN_PIN_LOCKED_UNTIL, attempts.lockedUntil)
+        pinAttempts.value = attempts
     }
 
     private val guardian = MutableStateFlow(

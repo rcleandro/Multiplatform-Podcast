@@ -143,6 +143,7 @@
     <string name="settings_export_backup">تصدير نسخة احتياطية</string>
     <string name="settings_export_backup_description">احفظ المكتبة والتقدم وقائمة الانتظار والعلامات والإعدادات في ملف واحد</string>
     <string name="settings_sync_folder">المزامنة عبر مجلد</string>
+    <string name="settings_private_feeds_note">تتضمن النسخ الاحتياطية ومجلد المزامنة عنوان كل خلاصة خاصة مع مفتاح الوصول. احفظها كما تحفظ كلمة المرور.</string>
     <string name="settings_sync_folder_description">حافظ على تطابق المكتبة والتقدم وقائمة الانتظار على أجهزتك عبر مجلد في iCloud Drive أو Google Drive أو Dropbox أو Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · لم تتم المزامنة بعد</string>
     <string name="settings_sync_folder_failed">%1$s · تعذّر الوصول إلى المجلد. انقر لاختياره مرة أخرى</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">لا يوجد اتصال بالإنترنت. تحقّق من شبكتك وأعد المحاولة.</string>
     <string name="error_server">ردّ خادم الخلاصة بخطأ. أعد المحاولة لاحقًا.</string>
     <string name="error_invalid_feed">هذا العنوان ليس خلاصة بودكاست. استخدم رابط RSS.</string>
+    <string name="error_feed_too_large">هذه الخلاصة أكبر من أن تُقرأ. تحقّق من أنها رابط RSS الخاص بالبودكاست.</string>
     <string name="error_invalid_url">هذا العنوان غير صالح. تحقّق منه والصق رابط الخلاصة مرة أخرى.</string>
     <string name="error_browser_blocked">تعذّر على المتصفح قراءة هذه الخلاصة: كثير من مواقع البودكاست لا تسمح بقراءتها إلا للتطبيقات. استخدم التطبيق على هاتفك أو حاسوبك، أو تحقّق من اتصالك.</string>
     <string name="error_storage_full">لا توجد مساحة كافية. أفرغ بعض المساحة وأعد المحاولة.</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">أعد إدخال رمز PIN</string>
     <string name="guardian_pin_unlock">رمز PIN لأولياء الأمور</string>
     <string name="guardian_pin_wrong">رمز PIN غير صحيح</string>
+    <string name="guardian_pin_wait_seconds">عدد كبير جدًا من أرقام PIN الخاطئة. حاول مرة أخرى بعد %1$d ث</string>
+    <string name="guardian_pin_wait_minutes">عدد كبير جدًا من أرقام PIN الخاطئة. حاول مرة أخرى بعد %1$d د</string>
     <string name="guardian_pin_mismatch">رمزا PIN غير متطابقين</string>
     <string name="guardian_pin_ok">موافق</string>
     <string name="guardian_allow_continuous">السماح بتشغيل قائمة الانتظار بالتتابع</string>

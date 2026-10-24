@@ -3,6 +3,8 @@ package br.com.carvalho.podcast.feature.settings.presentation
 import br.com.carvalho.podcast.domain.model.ChildSafetyState
 import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.GuardianPin
+import br.com.carvalho.podcast.domain.model.PinAttempts
+import br.com.carvalho.podcast.domain.model.PinLockout
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,11 +20,13 @@ data class GuardianState(
     /** The PIN dialog open, if any. */
     val pinStep: PinStep? = null,
     val pinError: PinError? = null,
+    /** With [PinError.WAIT]: the seconds left before the PIN can be tried again (22.11). */
+    val pinWaitSeconds: Long = 0,
 )
 
 enum class PinStep { CREATE, CONFIRM, UNLOCK }
 
-enum class PinError { WRONG, MISMATCH }
+enum class PinError { WRONG, MISMATCH, WAIT }
 
 sealed interface GuardianIntent : SettingsIntent {
     /** Creates the PIN when there is none, asks for it otherwise. */
@@ -39,11 +43,16 @@ sealed interface GuardianIntent : SettingsIntent {
  * The PIN's steps and the unlocked controls. Unlocking lasts while Settings is open; removing the PIN puts the
  * controls back to their protective defaults, so no one is left with what the guardians had allowed.
  */
-internal class GuardianSession(private val preferences: PreferencesRepository) {
+internal class GuardianSession(private val preferences: PreferencesRepository, private val now: () -> Long) {
     private val dialog = MutableStateFlow(Dialog())
     private val unlocked = MutableStateFlow(false)
 
-    private data class Dialog(val step: PinStep? = null, val error: PinError? = null, val firstPin: String? = null)
+    private data class Dialog(
+        val step: PinStep? = null,
+        val error: PinError? = null,
+        val firstPin: String? = null,
+        val waitSeconds: Long = 0,
+    )
 
     fun state(childSafety: Flow<ChildSafetyState>): Flow<GuardianState> = combine(
         childSafety,
@@ -52,7 +61,15 @@ internal class GuardianSession(private val preferences: PreferencesRepository) {
         unlocked,
         dialog,
     ) { safety, pin, controls, open, shown ->
-        GuardianState(safety.inBrazil, pin != null, open && pin != null, controls, shown.step, shown.error)
+        GuardianState(
+            inBrazil = safety.inBrazil,
+            hasPin = pin != null,
+            unlocked = open && pin != null,
+            controls = controls,
+            pinStep = shown.step,
+            pinError = shown.error,
+            pinWaitSeconds = shown.waitSeconds,
+        )
     }
 
     fun onIntent(intent: GuardianIntent) {
@@ -83,13 +100,34 @@ internal class GuardianSession(private val preferences: PreferencesRepository) {
             } else {
                 dialog.value = Dialog(PinStep.CREATE, PinError.MISMATCH)
             }
-            PinStep.UNLOCK -> if (preferences.guardianPin.value?.let { GuardianPin.matches(pin, it) } == true) {
-                unlocked.value = true
-                dialog.value = Dialog()
-            } else {
-                dialog.update { it.copy(error = PinError.WRONG) }
-            }
+            PinStep.UNLOCK -> unlock(pin)
             null -> Unit
         }
     }
+
+    /** Checks [pin] unless a wait from earlier wrong ones is still running (22.11); the wait is checked first. */
+    private fun unlock(pin: String) {
+        val attempts = preferences.guardianPinAttempts.value
+        if (PinLockout.remainingMs(attempts, now()) > 0) return showWait(attempts)
+        if (preferences.guardianPin.value?.let { GuardianPin.matches(pin, it) } == true) {
+            preferences.setGuardianPinAttempts(PinAttempts())
+            unlocked.value = true
+            dialog.value = Dialog()
+        } else {
+            val failed = PinLockout.failed(attempts, now())
+            preferences.setGuardianPinAttempts(failed)
+            if (PinLockout.remainingMs(failed, now()) > 0) {
+                showWait(failed)
+            } else {
+                dialog.update { it.copy(error = PinError.WRONG) }
+            }
+        }
+    }
+
+    private fun showWait(attempts: PinAttempts) {
+        val seconds = (PinLockout.remainingMs(attempts, now()) + MILLIS_PER_SECOND - 1) / MILLIS_PER_SECOND
+        dialog.update { it.copy(error = PinError.WAIT, waitSeconds = seconds) }
+    }
 }
+
+private const val MILLIS_PER_SECOND = 1000L

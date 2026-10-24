@@ -4,6 +4,7 @@ import br.com.carvalho.podcast.domain.model.AppLanguage
 import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.LibraryLayout
 import br.com.carvalho.podcast.domain.model.LibrarySort
+import br.com.carvalho.podcast.domain.model.PinAttempts
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.SyncFolder
 import br.com.carvalho.podcast.domain.model.ThemeMode
@@ -105,6 +106,11 @@ interface PreferencesRepository {
     val guardianPin: StateFlow<String?>
 
     fun setGuardianPin(hash: String?)
+
+    /** Wrong PINs in a row and the wait they set (22.11); not backed up nor synced, like the PIN. */
+    val guardianPinAttempts: StateFlow<PinAttempts>
+
+    fun setGuardianPinAttempts(attempts: PinAttempts)
 
     /** What the guardians allow a minor in Brazil (26.6). */
     val guardianControls: StateFlow<GuardianControls>

@@ -44,6 +44,12 @@ private val ENTITY = Regex("""&(#x[0-9a-fA-F]+|#[0-9]+|[a-zA-Z]+);""")
 private val WHITESPACE = Regex("""\s+""")
 private const val HEX = 16
 
+/**
+ * The links a description may open (22.4, T4 of ADR 0014): the feed writes it, and the system would also open
+ * `javascript:`, `intent:`, `file:` or `content:`. Any other link keeps its text, unclickable.
+ */
+private val LINK_SCHEMES = listOf("https://", "http://", "mailto:")
+
 // The entities feeds use (counted in the 15.2 fixtures), beyond the five XML ones.
 private val NAMED_ENTITIES = mapOf(
     "amp" to "&", "lt" to "<", "gt" to ">", "quot" to "\"", "apos" to "'", "nbsp" to "\u00a0",
@@ -95,8 +101,9 @@ private class HtmlWriter(private val linkStyles: TextLinkStyles?) {
             "b", "strong" -> push(name) { builder.pushStyle(SpanStyle(fontWeight = FontWeight.Bold)) }
             "i", "em" -> push(name) { builder.pushStyle(SpanStyle(fontStyle = FontStyle.Italic)) }
             "a" -> HREF.find(attributes)?.destructured?.let { (double, single) -> double.ifEmpty { single } }
-                ?.takeIf { it.isNotBlank() }
-                ?.let { href -> push(name) { builder.pushLink(LinkAnnotation.Url(decodeEntities(href), linkStyles)) } }
+                ?.let { decodeEntities(it).trim() }
+                ?.takeIf { href -> LINK_SCHEMES.any { href.startsWith(it, ignoreCase = true) } }
+                ?.let { href -> push(name) { builder.pushLink(LinkAnnotation.Url(href, linkStyles)) } }
             "br" -> lineBreaks(trailingLineBreaks() + 1)
             "li" -> {
                 lineBreaks(1)

@@ -11,6 +11,7 @@ import io.ktor.client.engine.mock.respondError
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLProtocol
 import io.ktor.http.headersOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -111,6 +112,25 @@ class RssFeedDataSourceImplTest {
 
         assertEquals(AppError.Http(HttpStatusCode.MovedPermanently.value), result.exceptionOrNull())
         assertEquals(6, requests)
+    }
+
+    @Test
+    fun `a secure feed is never sent on in clear text`() = runTest(testDispatcher) {
+        // A private feed's token rides in its address (22.8, T8 of ADR 0014): a redirect from https to http would
+        // put the next request where the network reads it. Ktor's own redirects refuse it; the feed's must too.
+        val clearText = mutableListOf<String>()
+        val engine = MockEngine { request ->
+            if (request.url.protocol == URLProtocol.HTTP) clearText += request.url.toString()
+            when (request.url.toString()) {
+                "https://feed.example/rss?token=secret" -> respondRedirect(HttpStatusCode.Found, "http://mirror.example/rss")
+                else -> respond(FEED)
+            }
+        }
+
+        val result = dataSource(engine).fetchFeed("https://feed.example/rss?token=secret")
+
+        assertEquals(AppError.Http(HttpStatusCode.Found.value), result.exceptionOrNull())
+        assertEquals(emptyList(), clearText)
     }
 
     private fun MockRequestHandleScope.respondRedirect(status: HttpStatusCode, location: String) =

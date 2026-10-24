@@ -143,6 +143,7 @@
     <string name="settings_export_backup">बैकअप निर्यात करें</string>
     <string name="settings_export_backup_description">लाइब्रेरी, प्रगति, कतार, बुकमार्क और सेटिंग्स एक फ़ाइल में सहेजें</string>
     <string name="settings_sync_folder">फ़ोल्डर से सिंक करें</string>
+    <string name="settings_private_feeds_note">बैकअप और सिंक फ़ोल्डर में हर निजी फ़ीड का पता और उसकी एक्सेस कुंजी होती है। इन्हें पासवर्ड की तरह सुरक्षित रखें।</string>
     <string name="settings_sync_folder_description">iCloud Drive, Google Drive, Dropbox या Syncthing फ़ोल्डर से अपने सभी डिवाइस पर लाइब्रेरी, प्रगति और कतार एक जैसी रखें</string>
     <string name="settings_sync_folder_waiting">%1$s · अभी तक सिंक नहीं हुआ</string>
     <string name="settings_sync_folder_failed">%1$s · फ़ोल्डर तक नहीं पहुँच सके। फिर से चुनने के लिए टैप करें</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">इंटरनेट कनेक्शन नहीं है। अपना नेटवर्क जांचें और फिर कोशिश करें।</string>
     <string name="error_server">फ़ीड के सर्वर ने गड़बड़ी लौटाई। बाद में फिर कोशिश करें।</string>
     <string name="error_invalid_feed">यह पता पॉडकास्ट फ़ीड नहीं है। RSS लिंक इस्तेमाल करें।</string>
+    <string name="error_feed_too_large">यह फ़ीड पढ़ने के लिए बहुत बड़ी है। जाँचें कि यह पॉडकास्ट का RSS लिंक है।</string>
     <string name="error_invalid_url">यह सही पता नहीं है। इसे जांचें और फ़ीड का लिंक फिर से चिपकाएं।</string>
     <string name="error_browser_blocked">ब्राउज़र यह फ़ीड नहीं पढ़ सका: कई पॉडकास्ट साइटें केवल ऐप को पढ़ने देती हैं। फ़ोन या कंप्यूटर पर ऐप इस्तेमाल करें, या अपना कनेक्शन जाँचें।</string>
     <string name="error_storage_full">जगह कम है। जगह खाली करें और फिर कोशिश करें।</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">PIN दोबारा डालें</string>
     <string name="guardian_pin_unlock">अभिभावक PIN</string>
     <string name="guardian_pin_wrong">गलत PIN</string>
+    <string name="guardian_pin_wait_seconds">बहुत सारे गलत PIN। %1$d सेकंड बाद फिर कोशिश करें</string>
+    <string name="guardian_pin_wait_minutes">बहुत सारे गलत PIN। %1$d मिनट बाद फिर कोशिश करें</string>
     <string name="guardian_pin_mismatch">PIN मेल नहीं खाते</string>
     <string name="guardian_pin_ok">ठीक है</string>
     <string name="guardian_allow_continuous">कतार लगातार चलाने दें</string>

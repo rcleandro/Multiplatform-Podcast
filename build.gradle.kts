@@ -16,6 +16,12 @@ plugins {
     alias(libs.plugins.firebase.crashlytics) apply false
 }
 
+// The Web build's npm packages (kotlin-js-store/wasm/yarn.lock) come from Kotlin and Ktor; a fixed version here
+// overrides one with a security alert until they ship it. ws: Ktor's Node WebSocket, never in the browser bundle.
+plugins.withType<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin> {
+    the<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootExtension>().resolution("ws", "8.21.0")
+}
+
 subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 

@@ -143,6 +143,7 @@
     <string name="settings_export_backup">バックアップを書き出す</string>
     <string name="settings_export_backup_description">ライブラリ、再生位置、キュー、ブックマーク、設定を1つのファイルに保存します</string>
     <string name="settings_sync_folder">フォルダで同期</string>
+    <string name="settings_private_feeds_note">バックアップと同期フォルダには、各非公開フィードのアドレスとアクセスキーが含まれます。パスワードと同じように保管してください。</string>
     <string name="settings_sync_folder_description">iCloud Drive、Google Drive、Dropbox、Syncthing のフォルダを通じて、ライブラリ、再生位置、キューをすべてのデバイスでそろえます</string>
     <string name="settings_sync_folder_waiting">%1$s · まだ同期していません</string>
     <string name="settings_sync_folder_failed">%1$s · フォルダにアクセスできません。タップして選び直してください</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">インターネットに接続されていません。ネットワークを確認して再試行してください。</string>
     <string name="error_server">フィードのサーバーがエラーを返しました。あとで再試行してください。</string>
     <string name="error_invalid_feed">このアドレスはポッドキャストのフィードではありません。RSS のリンクを使ってください。</string>
+    <string name="error_feed_too_large">このフィードは大きすぎて読み込めません。ポッドキャストの RSS リンクか確認してください。</string>
     <string name="error_invalid_url">有効なアドレスではありません。確認してフィードのリンクを貼り直してください。</string>
     <string name="error_browser_blocked">ブラウザーでこのフィードを読み込めませんでした。多くのポッドキャストサイトはアプリからの読み込みのみ許可しています。スマートフォンかパソコンのアプリを使うか、接続を確認してください。</string>
     <string name="error_storage_full">空き容量が足りません。空きを作って再試行してください。</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">PIN をもう一度入力</string>
     <string name="guardian_pin_unlock">保護者用 PIN</string>
     <string name="guardian_pin_wrong">PIN が違います</string>
+    <string name="guardian_pin_wait_seconds">PIN の誤りが多すぎます。%1$d 秒後にもう一度お試しください</string>
+    <string name="guardian_pin_wait_minutes">PIN の誤りが多すぎます。%1$d 分後にもう一度お試しください</string>
     <string name="guardian_pin_mismatch">PIN が一致しません</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">キューの連続再生を許可</string>

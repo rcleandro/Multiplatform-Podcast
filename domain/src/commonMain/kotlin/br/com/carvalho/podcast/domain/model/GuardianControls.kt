@@ -38,3 +38,37 @@ object GuardianPin {
     @OptIn(ExperimentalStdlibApi::class)
     private fun newSalt() = Random.nextBytes(SALT_BYTES).toHexString()
 }
+
+/**
+ * Wrong PINs in a row and when the next try may come (22.11, T11 of ADR 0014). Kept in the preferences, so closing the
+ * app does not start the count over.
+ */
+data class PinAttempts(val failures: Int = 0, val lockedUntil: Long = 0)
+
+/**
+ * Four digits are what a guardian remembers, and 10,000 tries fit in an afternoon. The first [FREE_FAILURES] wrong
+ * PINs cost nothing, a typo is common; after that each one waits 30 s, doubling up to an hour, so the whole range
+ * would take years.
+ */
+object PinLockout {
+    const val FREE_FAILURES = 5
+    private const val FIRST_WAIT_MS = 30_000L
+    private const val MAX_WAIT_MS = 3_600_000L
+
+    // 30 s shifted 7 times is already past the hour.
+    private const val MAX_DOUBLINGS = 7
+
+    /** How long the next try waits after [failures] wrong PINs in a row. */
+    fun waitAfter(failures: Int): Long = if (failures < FREE_FAILURES) {
+        0
+    } else {
+        (FIRST_WAIT_MS shl (failures - FREE_FAILURES).coerceAtMost(MAX_DOUBLINGS)).coerceAtMost(MAX_WAIT_MS)
+    }
+
+    fun failed(attempts: PinAttempts, now: Long): PinAttempts =
+        (attempts.failures + 1).let { failures -> PinAttempts(failures, now + waitAfter(failures)) }
+
+    // ponytail: the wall clock, so a wait outlives a restart; a minor who sets the clock forward skips it. The
+    // system's parental controls are the boundary that holds (ADR 0014).
+    fun remainingMs(attempts: PinAttempts, now: Long): Long = (attempts.lockedUntil - now).coerceAtLeast(0)
+}

@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Ekspor cadangan</string>
     <string name="settings_export_backup_description">Simpan pustaka, kemajuan, antrean, penanda, dan setelan dalam satu file</string>
     <string name="settings_sync_folder">Sinkronkan lewat folder</string>
+    <string name="settings_private_feeds_note">Cadangan dan folder sinkronisasi menyertakan alamat setiap feed pribadi beserta kunci aksesnya. Simpan seperti Anda menyimpan kata sandi.</string>
     <string name="settings_sync_folder_description">Jaga pustaka, kemajuan, dan antrean tetap sama di perangkat Anda lewat folder iCloud Drive, Google Drive, Dropbox, atau Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · belum disinkronkan</string>
     <string name="settings_sync_folder_failed">%1$s · folder tidak dapat diakses. Ketuk untuk memilihnya lagi</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">Tidak ada koneksi internet. Periksa jaringan Anda dan coba lagi.</string>
     <string name="error_server">Server feed membalas dengan galat. Coba lagi nanti.</string>
     <string name="error_invalid_feed">Alamat ini bukan feed podcast. Gunakan tautan RSS.</string>
+    <string name="error_feed_too_large">Feed ini terlalu besar untuk dibaca. Pastikan ini tautan RSS podcast.</string>
     <string name="error_invalid_url">Alamat ini tidak valid. Periksa lalu tempel lagi tautan feed.</string>
     <string name="error_browser_blocked">Browser tidak dapat membaca feed ini: banyak situs podcast hanya mengizinkan aplikasi membacanya. Gunakan aplikasi di ponsel atau komputer, atau periksa koneksi Anda.</string>
     <string name="error_storage_full">Ruang penyimpanan tidak cukup. Kosongkan ruang dan coba lagi.</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">Ulangi PIN</string>
     <string name="guardian_pin_unlock">PIN orang tua</string>
     <string name="guardian_pin_wrong">PIN salah</string>
+    <string name="guardian_pin_wait_seconds">Terlalu banyak PIN salah. Coba lagi dalam %1$d dtk</string>
+    <string name="guardian_pin_wait_minutes">Terlalu banyak PIN salah. Coba lagi dalam %1$d mnt</string>
     <string name="guardian_pin_mismatch">PIN tidak cocok</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">Izinkan antrean berurutan</string>

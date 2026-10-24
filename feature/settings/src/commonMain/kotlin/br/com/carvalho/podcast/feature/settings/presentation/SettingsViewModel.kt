@@ -6,6 +6,7 @@ import br.com.carvalho.podcast.core.util.AppDirectories
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.util.DiskSpace
 import br.com.carvalho.podcast.core.util.diskSpace
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.core.util.supportsDownloads
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.AppLanguage
@@ -24,6 +25,7 @@ import br.com.carvalho.podcast.domain.usecase.FolderSyncUseCase
 import br.com.carvalho.podcast.domain.usecase.ImportOpmlUseCase
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
 import br.com.carvalho.podcast.domain.usecase.RestoreBackupUseCase
+import br.com.carvalho.podcast.domain.usecase.mayCarrySecret
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -53,6 +55,8 @@ class SettingsViewModel(
     private val explicitContent: ExplicitContent = ExplicitContent(),
     /** A minor in Brazil has no telemetry to turn on (26.4). */
     private val childSafety: ChildSafety = ChildSafety(),
+    /** The clock the PIN's wait runs on (22.11). */
+    now: () -> Long = ::getCurrentTimestamp,
 ) : ViewModel() {
     private val usedBytes = MutableStateFlow<Long?>(null)
     private val disk = MutableStateFlow<DiskSpace?>(null)
@@ -111,7 +115,7 @@ class SettingsViewModel(
         )
     }
 
-    private val guardian = GuardianSession(preferences)
+    private val guardian = GuardianSession(preferences, now)
 
     val uiState: StateFlow<SettingsUiState> = combine(
         choices,
@@ -128,6 +132,10 @@ class SettingsViewModel(
         )
     }
         .combine(guardian.state(childSafety.state)) { state, guardian -> state.copy(guardian = guardian) }
+        // The backup and the sync folder hold the feeds' addresses, so they warn when a private one is in (22.6).
+        .combine(repository.getPodcasts()) { state, podcasts ->
+            state.copy(hasPrivateFeeds = podcasts.any { mayCarrySecret(it.feedUrl) })
+        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     init {
@@ -232,6 +240,8 @@ class SettingsViewModel(
 }
 
 data class SettingsUiState(
+    /** A feed in the library looks private (22.6): the backup and the sync folder carry its token. */
+    val hasPrivateFeeds: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val language: AppLanguage = AppLanguage.SYSTEM,
     val telemetryEnabled: Boolean = true,

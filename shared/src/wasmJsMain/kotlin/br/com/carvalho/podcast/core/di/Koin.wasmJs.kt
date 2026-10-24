@@ -15,11 +15,15 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
         return
     }
     isKoinInitialized = true
-    // No build types here and no crash reporter: everything stays on the local console.
-    AppLogger.isDebugBuild = true
+    // No build types on the Web: the development server runs on this machine, a published bundle does not (22.9).
+    AppLogger.isDebugBuild = pageHost() in LOCAL_HOSTS
     AppLogger.i(TAG, "Initializing Koin for Wasm...")
     startKoin {
         appDeclaration()
         modules(commonModules + platformModule)
     }
 }
+
+private val LOCAL_HOSTS = setOf("localhost", "127.0.0.1", "[::1]")
+
+private fun pageHost(): String = js("window.location.hostname")

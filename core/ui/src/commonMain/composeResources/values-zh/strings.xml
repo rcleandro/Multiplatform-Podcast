@@ -143,6 +143,7 @@
     <string name="settings_export_backup">导出备份</string>
     <string name="settings_export_backup_description">将节目库、进度、队列、书签和设置保存到一个文件</string>
     <string name="settings_sync_folder">通过文件夹同步</string>
+    <string name="settings_private_feeds_note">备份和同步文件夹包含每个私有订阅源的地址及其访问密钥。请像保管密码一样保管它们。</string>
     <string name="settings_sync_folder_description">通过 iCloud Drive、Google Drive、Dropbox 或 Syncthing 文件夹，让各设备上的节目库、进度和队列保持一致</string>
     <string name="settings_sync_folder_waiting">%1$s · 尚未同步</string>
     <string name="settings_sync_folder_failed">%1$s · 无法访问文件夹。点按以重新选择</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">没有网络连接。请检查网络后重试。</string>
     <string name="error_server">订阅源服务器返回了错误。请稍后重试。</string>
     <string name="error_invalid_feed">这个地址不是播客订阅源。请使用 RSS 链接。</string>
+    <string name="error_feed_too_large">此订阅源太大，无法读取。请确认这是播客的 RSS 链接。</string>
     <string name="error_invalid_url">这不是有效的地址。请检查后重新粘贴订阅源链接。</string>
     <string name="error_browser_blocked">浏览器无法读取此订阅源：许多播客网站只允许应用读取。请在手机或电脑上使用本应用，或检查网络连接。</string>
     <string name="error_storage_full">存储空间不足。请释放空间后重试。</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">再次输入 PIN</string>
     <string name="guardian_pin_unlock">监护人 PIN</string>
     <string name="guardian_pin_wrong">PIN 错误</string>
+    <string name="guardian_pin_wait_seconds">PIN 错误次数过多。请在 %1$d 秒后重试</string>
+    <string name="guardian_pin_wait_minutes">PIN 错误次数过多。请在 %1$d 分钟后重试</string>
     <string name="guardian_pin_mismatch">两次 PIN 不一致</string>
     <string name="guardian_pin_ok">确定</string>
     <string name="guardian_allow_continuous">允许连续播放队列</string>

@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.remote
 
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
@@ -9,12 +10,16 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
+import io.ktor.http.charset
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
+import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.charsets.decode
+import io.ktor.utils.io.readBuffer
 import kotlinx.coroutines.withContext
 
 private const val TAG = "RssFeedDataSource"
@@ -27,7 +32,8 @@ private val TEMPORARY_REDIRECTS = setOf(HttpStatusCode.Found, HttpStatusCode.See
 
 class RssFeedDataSourceImpl(
     client: HttpClient,
-    private val dispatchers: CoroutineDispatchers
+    private val dispatchers: CoroutineDispatchers,
+    private val maxFeedBytes: Long = AppConfig.MAX_TEXT_BYTES,
 ) : RssFeedDataSource {
     // Same engine and plugins; only feeds stop following redirects automatically (downloads still do).
     private val client = client.config { followRedirects = false }
@@ -42,7 +48,13 @@ class RssFeedDataSourceImpl(
             val location = response.headers[HttpHeaders.Location]
             val permanent = response.status in PERMANENT_REDIRECTS
             if (location == null || !permanent && response.status !in TEMPORARY_REDIRECTS) return@repeat
-            target = URLBuilder(target).takeFrom(location).buildString()
+            val next = URLBuilder(target).takeFrom(location).buildString()
+            // From https to http the next request, and a private feed's token, would travel in clear text (22.8);
+            // Ktor's own redirects refuse it, so the feed stops here as an error, as with too many redirects.
+            if (target.startsWith("https://", ignoreCase = true) && !next.startsWith("https://", ignoreCase = true)) {
+                return@repeat
+            }
+            target = next
             allPermanent = allPermanent && permanent
             permanentRedirect = target.takeIf { allPermanent }
             response = get(target, version)
@@ -52,7 +64,7 @@ class RssFeedDataSourceImpl(
             AppLogger.e(TAG, "Server returned error: ${response.status} for URL: $target")
             throw AppError.Http(response.status.value)
         }
-        val xmlContent = response.bodyAsText()
+        val xmlContent = response.feedText()
         if (CHANNEL_TAG !in xmlContent) throw AppError.InvalidFeed
 
         val etag = response.headers[HttpHeaders.ETag]
@@ -61,6 +73,16 @@ class RssFeedDataSourceImpl(
         withContext(dispatchers.default) {
             RssXmlParser.parse(xmlContent).copy(version = received, permanentRedirect = permanentRedirect)
         }
+    }
+
+    /**
+     * The body as text, at most [maxFeedBytes] of it (22.3, T2 of ADR 0014). The length the server declares can be
+     * missing or false, and a gzip body grows when unpacked, so the cap counts what arrives, already decompressed.
+     */
+    private suspend fun HttpResponse.feedText(): String {
+        val body = bodyAsChannel().readBuffer(maxFeedBytes + 1)
+        if (body.size > maxFeedBytes) throw AppError.FeedTooLarge
+        return (charset() ?: Charsets.UTF_8).newDecoder().decode(body)
     }
 
     private suspend fun get(url: String, version: FeedVersion?): HttpResponse = client.get(url) {

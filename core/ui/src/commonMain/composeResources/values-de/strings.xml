@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Sicherung exportieren</string>
     <string name="settings_export_backup_description">Mediathek, Fortschritt, Warteschlange, Lesezeichen und Einstellungen in einer Datei speichern</string>
     <string name="settings_sync_folder">Über einen Ordner synchronisieren</string>
+    <string name="settings_private_feeds_note">Backups und der Synchronisierungsordner enthalten die Adresse jedes privaten Feeds samt Zugangsschlüssel. Bewahre sie wie ein Passwort auf.</string>
     <string name="settings_sync_folder_description">Mediathek, Fortschritt und Warteschlange auf deinen Geräten gleich halten – über einen Ordner in iCloud Drive, Google Drive, Dropbox oder Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · noch nicht synchronisiert</string>
     <string name="settings_sync_folder_failed">%1$s · Ordner nicht erreichbar. Tippen, um ihn neu zu wählen</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">Keine Internetverbindung. Prüfe dein Netzwerk und versuche es erneut.</string>
     <string name="error_server">Der Server des Feeds hat mit einem Fehler geantwortet. Versuche es später erneut.</string>
     <string name="error_invalid_feed">Diese Adresse ist kein Podcast-Feed. Verwende den RSS-Link.</string>
+    <string name="error_feed_too_large">Dieser Feed ist zu groß zum Lesen. Prüfe, ob es der RSS-Link des Podcasts ist.</string>
     <string name="error_invalid_url">Diese Adresse ist ungültig. Prüfe sie und füge den Link des Feeds erneut ein.</string>
     <string name="error_browser_blocked">Der Browser konnte diesen Feed nicht lesen: Viele Podcast-Seiten erlauben das nur Apps. Nutze die App auf dem Handy oder Computer oder prüfe deine Verbindung.</string>
     <string name="error_storage_full">Nicht genug Speicherplatz. Gib Speicher frei und versuche es erneut.</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">PIN wiederholen</string>
     <string name="guardian_pin_unlock">Eltern-PIN</string>
     <string name="guardian_pin_wrong">Falsche PIN</string>
+    <string name="guardian_pin_wait_seconds">Zu viele falsche PINs. Versuche es in %1$d s erneut</string>
+    <string name="guardian_pin_wait_minutes">Zu viele falsche PINs. Versuche es in %1$d Min. erneut</string>
     <string name="guardian_pin_mismatch">Die PINs stimmen nicht überein</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">Wiedergabe am Stück erlauben</string>

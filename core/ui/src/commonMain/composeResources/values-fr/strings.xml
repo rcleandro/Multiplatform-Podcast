@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Exporter une sauvegarde</string>
     <string name="settings_export_backup_description">Enregistrez bibliothèque, progression, file, signets et réglages dans un fichier</string>
     <string name="settings_sync_folder">Synchroniser via un dossier</string>
+    <string name="settings_private_feeds_note">Les sauvegardes et le dossier de synchronisation contiennent l'adresse de chaque flux privé, avec sa clé d'accès. Conservez-les comme un mot de passe.</string>
     <string name="settings_sync_folder_description">Gardez bibliothèque, progression et file identiques sur vos appareils grâce à un dossier iCloud Drive, Google Drive, Dropbox ou Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · pas encore synchronisé</string>
     <string name="settings_sync_folder_failed">%1$s · dossier inaccessible. Touchez pour le choisir à nouveau</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">Pas de connexion Internet. Vérifiez votre réseau et réessayez.</string>
     <string name="error_server">Le serveur du flux a renvoyé une erreur. Réessayez plus tard.</string>
     <string name="error_invalid_feed">Cette adresse n'est pas un flux de podcast. Utilisez le lien RSS.</string>
+    <string name="error_feed_too_large">Ce flux est trop volumineux pour être lu. Vérifiez qu'il s'agit bien du lien RSS du podcast.</string>
     <string name="error_invalid_url">Cette adresse n'est pas valide. Vérifiez-la et collez à nouveau le lien du flux.</string>
     <string name="error_browser_blocked">Le navigateur n'a pas pu lire ce flux : beaucoup de sites de podcasts ne l'autorisent qu'aux applis. Utilisez l'appli sur votre téléphone ou votre ordinateur, ou vérifiez votre connexion.</string>
     <string name="error_storage_full">Pas assez d'espace. Libérez de la place et réessayez.</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">Répétez le code</string>
     <string name="guardian_pin_unlock">Code parental</string>
     <string name="guardian_pin_wrong">Code incorrect</string>
+    <string name="guardian_pin_wait_seconds">Trop de codes PIN erronés. Réessayez dans %1$d s</string>
+    <string name="guardian_pin_wait_minutes">Trop de codes PIN erronés. Réessayez dans %1$d min</string>
     <string name="guardian_pin_mismatch">Les codes ne correspondent pas</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">Autoriser la lecture de la file à la suite</string>

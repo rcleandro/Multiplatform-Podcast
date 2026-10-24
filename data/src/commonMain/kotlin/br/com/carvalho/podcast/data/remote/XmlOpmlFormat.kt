@@ -11,6 +11,7 @@ import nl.adaptivity.xmlutil.core.KtXmlReader
  */
 object XmlOpmlFormat : OpmlFormat {
     override fun read(opml: String): List<String> {
+        if (declaresEntities(opml, root = "<opml")) return emptyList()
         val reader = KtXmlReader(opml, relaxed = true)
         val feeds = mutableListOf<String>()
         // ponytail: a file that is not XML ends the reading where it breaks, keeping what came before.
@@ -19,8 +20,8 @@ object XmlOpmlFormat : OpmlFormat {
                 if (reader.next() == EventType.START_ELEMENT && reader.localName == "outline") {
                     val url = (0 until reader.attributeCount)
                         .firstOrNull { reader.getAttributeLocalName(it).equals("xmlUrl", ignoreCase = true) }
-                        ?.let { reader.getAttributeValue(it).trim() }
-                    if (!url.isNullOrEmpty()) feeds += url
+                        ?.let { reader.getAttributeValue(it).webUrl() }
+                    if (url != null) feeds += url
                 }
             }
         }

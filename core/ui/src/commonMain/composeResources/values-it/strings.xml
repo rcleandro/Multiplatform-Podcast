@@ -143,6 +143,7 @@
     <string name="settings_export_backup">Esporta backup</string>
     <string name="settings_export_backup_description">Salva libreria, progressi, coda, segnalibri e impostazioni in un file</string>
     <string name="settings_sync_folder">Sincronizza tramite una cartella</string>
+    <string name="settings_private_feeds_note">I backup e la cartella di sincronizzazione includono l'indirizzo di ogni feed privato, con la sua chiave di accesso. Conservali come una password.</string>
     <string name="settings_sync_folder_description">Mantieni libreria, progressi e coda uguali sui tuoi dispositivi con una cartella di iCloud Drive, Google Drive, Dropbox o Syncthing</string>
     <string name="settings_sync_folder_waiting">%1$s · non ancora sincronizzata</string>
     <string name="settings_sync_folder_failed">%1$s · cartella non raggiungibile. Tocca per sceglierla di nuovo</string>
@@ -221,6 +222,7 @@
     <string name="error_no_connection">Nessuna connessione a Internet. Controlla la rete e riprova.</string>
     <string name="error_server">Il server del feed ha risposto con un errore. Riprova più tardi.</string>
     <string name="error_invalid_feed">Questo indirizzo non è un feed di podcast. Usa il link RSS.</string>
+    <string name="error_feed_too_large">Questo feed è troppo grande da leggere. Controlla che sia il link RSS del podcast.</string>
     <string name="error_invalid_url">Questo indirizzo non è valido. Controllalo e incolla di nuovo il link del feed.</string>
     <string name="error_browser_blocked">Il browser non è riuscito a leggere questo feed: molti siti di podcast lo consentono solo alle app. Usa l'app sul telefono o sul computer, oppure controlla la connessione.</string>
     <string name="error_storage_full">Spazio insufficiente. Libera spazio e riprova.</string>
@@ -375,6 +377,8 @@
     <string name="guardian_pin_repeat">Ripeti il PIN</string>
     <string name="guardian_pin_unlock">PIN dei genitori</string>
     <string name="guardian_pin_wrong">PIN errato</string>
+    <string name="guardian_pin_wait_seconds">Troppi PIN errati. Riprova tra %1$d s</string>
+    <string name="guardian_pin_wait_minutes">Troppi PIN errati. Riprova tra %1$d min</string>
     <string name="guardian_pin_mismatch">I PIN non coincidono</string>
     <string name="guardian_pin_ok">OK</string>
     <string name="guardian_allow_continuous">Consenti la coda di seguito</string>
