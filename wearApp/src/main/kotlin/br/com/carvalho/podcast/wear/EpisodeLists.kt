@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
@@ -64,7 +65,8 @@ internal fun EpisodeList(
             item { ListHeader { Text(title, maxLines = 2, overflow = TextOverflow.Ellipsis) } }
             top()
             if (episodes.itemCount == 0 && empty != null) item { Text(empty) }
-            items(episodes.itemCount) { index ->
+            // Keyed by episode, so a row keeps its place and state as pages load or the playing one changes.
+            items(episodes.itemCount, key = episodes.itemKey { it.id }) { index ->
                 episodes[index]?.let { episode ->
                     EpisodeButton(
                         episode,

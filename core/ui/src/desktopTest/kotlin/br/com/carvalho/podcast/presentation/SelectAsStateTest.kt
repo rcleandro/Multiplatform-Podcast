@@ -4,6 +4,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.v2.runComposeUiTest
+import br.com.carvalho.podcast.domain.model.PlayerState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -31,6 +32,14 @@ class SelectAsStateTest {
         state.value = state.value.copy(episode = "e2")
         waitForIdle()
         assertEquals(2, compositions)
+    }
+
+    @Test
+    fun anEpisodeListSeesTheSamePlayerWhateverThePosition() {
+        val playing = PlayerState(isPlaying = true, position = 1_000, duration = 60_000, speed = 1.5f)
+
+        assertEquals(playing.forRows(), playing.copy(position = 31_000).forRows())
+        assertEquals(true, playing.forRows().isPlaying)
     }
 
     private companion object {

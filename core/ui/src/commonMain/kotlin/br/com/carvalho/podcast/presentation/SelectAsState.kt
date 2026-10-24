@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.structuralEqualityPolicy
+import br.com.carvalho.podcast.domain.model.PlayerState
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -17,3 +18,10 @@ fun <T, R> StateFlow<T>.selectAsState(pick: (T) -> R): State<R> {
     val whole = collectAsState()
     return remember(whole) { derivedStateOf(structuralEqualityPolicy()) { pick(whole.value) } }
 }
+
+/**
+ * The player as an episode list needs it, to mark the row that plays: the position, which moves twice a second, and
+ * everything else the rows never show are left at their defaults (23.3).
+ */
+fun PlayerState.forRows(): PlayerState =
+    PlayerState(currentEpisode = currentEpisode, isPlaying = isPlaying, isBuffering = isBuffering)
