@@ -7,6 +7,10 @@ on:
     push:
         tags: [ 'v*.*.*' ]
 
+# Read-only by default (22.10, CodeQL actions/missing-workflow-permissions); a job that writes asks for it itself.
+permissions:
+    contents: read
+
 concurrency:
     group: release-${{ github.ref }}
 
