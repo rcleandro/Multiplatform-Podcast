@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LeakCanary reports through its notification; no second launcher icon on the user's phone (CLAUDE.md). -->
+    <bool name="leak_canary_add_launcher_icon">false</bool>
+</resources>

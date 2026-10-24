@@ -86,6 +86,8 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(project(":core:common"))
     implementation(project(":core:ui"))
+    // Watches the debug build for activities, view models and fragments kept after they are gone (23.10).
+    debugImplementation(libs.leakcanary)
     testImplementation(libs.junit)
     testImplementation(libs.glance.appwidget.testing)
     testImplementation(libs.robolectric)

@@ -55,12 +55,10 @@ import br.com.carvalho.podcast.core.designsystem.icons.automirrored.FeaturedPlay
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
-import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.feature.discover.presentation.DiscoverScreen
 import br.com.carvalho.podcast.feature.discover.presentation.PodcastSuggestions
-import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
@@ -68,7 +66,6 @@ import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.player.presentation.QueueScreen
 import br.com.carvalho.podcast.feature.player.presentation.TranscriptScreen
-import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
 import br.com.carvalho.podcast.feature.settings.presentation.ListeningStatsScreen
 import br.com.carvalho.podcast.feature.settings.presentation.SettingsScreen
@@ -227,6 +224,9 @@ private fun TabContent(
         navigator.navigateTo(pane)
     }
     val showMiniPlayer = nowPlaying != null && isMiniPlayerShown && !state.isPlayerOpen
+    // The pages' view models live while their podcast or episode is selected, not until the app closes (23.10).
+    val (podcastScope, episodeScope) =
+        rememberViewModelScope(state.podcast?.podcastId) to rememberViewModelScope(state.episode?.episodeId)
 
     Scaffold(
         contentWindowInsets = WindowInsets(),
@@ -240,12 +240,8 @@ private fun TabContent(
                     directive = navigator.scaffoldDirective,
                     value = navigator.scaffoldValue,
                     listPane = { ListPane(component, state.selectedTab) },
-                    detailPane = { DetailPane(component, state.podcast) },
-                    extraPane = {
-                        state.episode?.let {
-                            EpisodeDetailScreen(episodeId = it.episodeId, onBackClick = component::onBackClicked)
-                        }
-                    }
+                    detailPane = { PodcastPane(component, state.podcast, podcastScope) },
+                    extraPane = { EpisodePane(component, state.episode, episodeScope) }
                 )
             }
             AnimatedVisibility(
@@ -283,22 +279,6 @@ private fun ListPane(component: RootComponent, tab: Tab) {
             onPodcastClick = component::onPodcastSelected,
         )
     }
-}
-
-@Composable
-private fun DetailPane(component: RootComponent, podcast: Detail.Podcast?) {
-    if (podcast == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(Res.string.select_podcast), style = MaterialTheme.typography.bodyLarge)
-        }
-        return
-    }
-    PodcastDetailScreen(
-        podcastId = podcast.podcastId,
-        onBackClick = component::onBackClicked,
-        onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcast.podcastId) },
-        onSimilarClick = component::onShowSimilar,
-    )
 }
 
 @Composable
