@@ -48,7 +48,13 @@ class RssFeedDataSourceImpl(
             val location = response.headers[HttpHeaders.Location]
             val permanent = response.status in PERMANENT_REDIRECTS
             if (location == null || !permanent && response.status !in TEMPORARY_REDIRECTS) return@repeat
-            target = URLBuilder(target).takeFrom(location).buildString()
+            val next = URLBuilder(target).takeFrom(location).buildString()
+            // From https to http the next request, and a private feed's token, would travel in clear text (22.8);
+            // Ktor's own redirects refuse it, so the feed stops here as an error, as with too many redirects.
+            if (target.startsWith("https://", ignoreCase = true) && !next.startsWith("https://", ignoreCase = true)) {
+                return@repeat
+            }
+            target = next
             allPermanent = allPermanent && permanent
             permanentRedirect = target.takeIf { allPermanent }
             response = get(target, version)
