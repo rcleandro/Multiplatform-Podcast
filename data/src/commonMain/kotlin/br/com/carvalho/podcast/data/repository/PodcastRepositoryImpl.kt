@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.data.local.dao.EpisodeDao
 import br.com.carvalho.podcast.data.local.dao.PodcastDao
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
 import br.com.carvalho.podcast.data.local.entity.SmartPlaylistEntity
+import br.com.carvalho.podcast.data.local.searchMatch
 import br.com.carvalho.podcast.data.mapper.toDomain
 import br.com.carvalho.podcast.data.mapper.toEntity
 import br.com.carvalho.podcast.domain.model.Episode
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 private const val PAGE_SIZE = 20
@@ -172,7 +174,9 @@ class PodcastRepositoryImpl(
         podcastDao.setOldestFirst(podcastId, oldestFirst)
 
     override fun searchEpisodes(query: String): Flow<List<Episode>> {
-        return episodeDao.search(query).map { entities ->
+        val match = searchMatch(query)
+        if (match.isEmpty()) return flowOf(emptyList())
+        return episodeDao.search(match).map { entities ->
             entities.map { it.toDomain() }
         }
     }
@@ -180,7 +184,7 @@ class PodcastRepositoryImpl(
     override fun searchEpisodesPaged(query: String?, filter: EpisodeListFilter): Flow<PagingData<Episode>> =
         pagedEpisodes {
             episodeDao.searchPagingSource(
-                query.orEmpty(),
+                searchMatch(query.orEmpty()),
                 onlyInProgress = filter == EpisodeListFilter.IN_PROGRESS,
                 onlyDownloaded = filter == EpisodeListFilter.DOWNLOADED,
                 onlyNew = filter == EpisodeListFilter.NEW,

@@ -15,13 +15,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.BookmarkBorder
-import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.DownloadDone
-import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Timelapse
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +53,12 @@ import br.com.carvalho.podcast.core.designsystem.component.FilterChipRow
 import br.com.carvalho.podcast.core.designsystem.component.FilterOption
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
 import br.com.carvalho.podcast.core.designsystem.component.SectionTitle
+import br.com.carvalho.podcast.core.designsystem.icons.BookmarkBorder
+import br.com.carvalho.podcast.core.designsystem.icons.CloudOff
+import br.com.carvalho.podcast.core.designsystem.icons.DownloadDone
+import br.com.carvalho.podcast.core.designsystem.icons.History
+import br.com.carvalho.podcast.core.designsystem.icons.Inbox
+import br.com.carvalho.podcast.core.designsystem.icons.Timelapse
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.cancel
@@ -107,10 +107,12 @@ import br.com.carvalho.podcast.presentation.component.EpisodeSelectionBar
 import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
 import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.presentation.component.SearchField
+import br.com.carvalho.podcast.presentation.forRows
 import br.com.carvalho.podcast.presentation.format.DateGroup
 import br.com.carvalho.podcast.presentation.format.dateGroup
 import br.com.carvalho.podcast.presentation.format.storageSize
 import br.com.carvalho.podcast.presentation.format.text
+import br.com.carvalho.podcast.presentation.selectAsState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.first
@@ -128,7 +130,8 @@ fun SearchScreen(
     val uiState by viewModel.uiState.collectAsState()
     val pagedResults = viewModel.pagedResults.collectAsLazyPagingItems()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
-    val playerState by viewModel.playerState.collectAsState()
+    // The rows only mark the episode playing (23.3); the position moving would rebuild the whole list.
+    val playerState by viewModel.playerState.selectAsState { it.forRows() }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) { viewModel.onIntent(SearchIntent.Refresh) }

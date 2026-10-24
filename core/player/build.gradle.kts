@@ -22,7 +22,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.guava)
             implementation(libs.koin.android)
         }
-        val desktopMain by getting {
+        val desktopMain = getByName("desktopMain") {
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
                 val javafxVersion = libs.versions.javafx.get()
@@ -46,7 +46,7 @@ kotlin {
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
         }
-        val androidHostTest by getting {
+        val androidHostTest = getByName("androidHostTest") {
             dependencies {
                 implementation(project(":core:testing"))
                 implementation(libs.junit)

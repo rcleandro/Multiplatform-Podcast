@@ -37,6 +37,7 @@ conectado e fica fora do CI:
 |---|---|---|---|
 | 08/10/2026 | Razr 60, Android 16 | 843 ms (804–877) | 741 ms (701–915) |
 | 23/10/2026 | Razr 60, Android 16 (R8 e baseline profile, 20.1) | 548 ms (528–644) | 450 ms (427–534) |
+| 24/10/2026 | Razr 60, Android 16, pelo cabo USB (profile gravado de novo, 23.5) | 765 ms (750–883) | 647 ms (568–774) |
 
 O R8 da 20.1 cortou cerca de 300 ms dos dois cenários. O baseline profile (`androidApp/src/main/baseline-prof.txt`)
 é o que o aparelho compila na instalação; o cenário parcialmente compilado mede o app com ele. Para gerá-lo de novo
@@ -51,6 +52,57 @@ e copiar o `…-startup-prof.txt` de `benchmark/build/outputs/connected_android_
 `androidApp/src/main/baseline-prof.txt`. Ele roda no build `baselineProfile`, que é o `benchmark` sem R8: o R8 junta e
 move classes, e um profile gravado no código encolhido não nomearia as classes do código-fonte. Orçamento:
 ≤ 1 000 ms sem compilação neste aparelho. Uma mudança que passe disso é regressão.
+
+## Uso do app no Android (Macrobenchmark, 23.1)
+
+`UsageBenchmark` (módulo `:benchmark`) mede o que vem depois da abertura, no build `benchmark` (R8 e baseline
+profile): a rolagem da aba Episódios (5 arremessos para baixo) e a abertura do player a partir do mini player, com
+`FrameTimingMetric`, e a memória do processo depois da rolagem, com `MemoryUsageMetric`. Roda na biblioteca do próprio
+aparelho, com o app em português e um episódio no mini player:
+
+```
+./gradlew :benchmark:connectedBenchmarkAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=br.com.carvalho.podcast.benchmark.UsageBenchmark
+```
+
+`frameOverrunMs` é quanto um quadro passa do prazo da tela: negativo é folga. O P99 varia de uma execução para outra
+(+1,1 e +6,7 ms na rolagem, no mesmo dia), daí a folga nos orçamentos.
+
+| Medição | Orçamento (Razr 60) | 24/10/2026: 7 podcasts, 13.077 episódios |
+|---|---|---|
+| Rolagem: `frameOverrunMs` | P90 ≤ 0 ms, P99 ≤ 16 ms | P50 −9,0 · P90 −3,0 · P99 +6,7 ms |
+| Rolagem: `frameDurationCpuMs` | P99 ≤ 24 ms | P50 4,7 · P90 8,0 · P99 16,3 ms |
+| Abertura do player: `frameOverrunMs` | P90 ≤ 0 ms, P99 ≤ 16 ms | P50 −8,1 · P90 −5,9 · P99 +10,8 ms |
+| Memória depois de rolar: heap Java | ≤ 100 MB | 73 MB |
+| Memória depois de rolar: RSS anônima | ≤ 220 MB | 160 MB |
+
+A memória é medida na biblioteca real do aparelho, não nos 50 podcasts que a 23.1 previa: assinar 50 feeds no
+celular do usuário só para medir mudaria os dados dele. O número de episódios (13.077) é o que mais pesa na lista e
+na busca. Ainda sem medição no iPhone: a interface do iOS será reescrita em SwiftUI na fase 25, e medir o Compose dele
+agora mediria o que vai sair.
+
+Cuidado ao rodar: o Gradle desinstalava o app depois dos testes no aparelho, apagando a biblioteca;
+`android.injected.androidTest.leaveApksInstalledAfterRun=true` no `gradle.properties` impede isso desde 24/10/2026.
+
+## Resultados por versão (23.11)
+
+Cada medição fica em [perf-results.csv](perf-results.csv), uma linha por métrica, com a data, o commit medido
+(`-dirty` se havia mudança não commitada), a versão do app e o aparelho (ou o alvo, no teste de parsing). Logo depois
+de rodar um Macrobenchmark no aparelho, ou os testes do `:data`:
+
+```
+python3 .github/scripts/perf_results.py record
+```
+
+e commitar a linha nova junto. O script lê o JSON do Macrobenchmark em `benchmark/build/outputs/…` e os relatórios do
+`LargeFeedParsingTest` em `data/build/test-results/`; ele grava o que estiver lá, então rode logo depois do teste,
+para não gravar um relatório velho com o commit novo. Os orçamentos das tabelas acima estão no próprio script
+(`BUDGETS`).
+
+No CI, o job de testes JVM roda `perf_results.py check`: avisa (`::warning::`, sem falhar o build) quando o último
+resultado de uma série passa do orçamento, e põe no resumo do job o tempo de parsing daquela execução. O
+Macrobenchmark não roda no CI, então o aviso só vê o que foi gravado do aparelho. Para achar o commit de uma piora,
+compare as linhas da série no CSV e meça os commits do meio.
 
 Limites conhecidos:
 - No Android, o `app_start` começa no `initKoin` (no `Application.onCreate`), e não no início do processo. As

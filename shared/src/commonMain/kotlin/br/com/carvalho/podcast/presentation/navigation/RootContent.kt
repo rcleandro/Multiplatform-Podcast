@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.FeaturedPlayList
-import androidx.compose.material.icons.rounded.VideoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -31,10 +29,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -50,15 +50,15 @@ import br.com.carvalho.podcast.core.designsystem.Sizes
 import br.com.carvalho.podcast.core.designsystem.component.MiniPlayer
 import br.com.carvalho.podcast.core.designsystem.currentPaneLayout
 import br.com.carvalho.podcast.core.designsystem.currentWindowIsShort
+import br.com.carvalho.podcast.core.designsystem.icons.VideoLibrary
+import br.com.carvalho.podcast.core.designsystem.icons.automirrored.FeaturedPlayList
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.episodes_tab
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
-import br.com.carvalho.podcast.core.ui.generated.resources.select_podcast
 import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.feature.discover.presentation.DiscoverScreen
 import br.com.carvalho.podcast.feature.discover.presentation.PodcastSuggestions
-import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderScreen
 import br.com.carvalho.podcast.feature.library.presentation.LibraryScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerIntent
@@ -66,7 +66,6 @@ import br.com.carvalho.podcast.feature.player.presentation.PlayerScreen
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.player.presentation.QueueScreen
 import br.com.carvalho.podcast.feature.player.presentation.TranscriptScreen
-import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailScreen
 import br.com.carvalho.podcast.feature.search.presentation.SearchScreen
 import br.com.carvalho.podcast.feature.settings.presentation.ListeningStatsScreen
 import br.com.carvalho.podcast.feature.settings.presentation.SettingsScreen
@@ -82,7 +81,11 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
     val playerViewModel: PlayerViewModel = koinViewModel()
-    val playerState by playerViewModel.playerState.collectAsState()
+    // The position moves every 500 ms while playing (23.2): the tabs only follow what the mini player shows, and the
+    // position itself is read where the progress line is drawn, so nothing recomposes as it moves.
+    val playerState = playerViewModel.playerState.collectAsState()
+    val nowPlaying by remember { derivedStateOf(structuralEqualityPolicy()) { NowPlaying.of(playerState.value) } }
+    val progress = remember { { playerState.value.progressFraction } }
     val state by component.state.subscribeAsState()
     val networkMonitor: NetworkMonitor = koinInject()
     LaunchedEffect(component) {
@@ -118,7 +121,8 @@ fun RootContent(component: RootComponent, keyboardShortcuts: Boolean = false) {
             TabContent(
                 component = component,
                 state = state,
-                playerState = playerState,
+                nowPlaying = nowPlaying,
+                progress = progress,
                 onPlayPause = { playerViewModel.onIntent(PlayerIntent.PlayPause) },
                 sharedCover = sharedCover,
             )
@@ -192,7 +196,8 @@ private fun appShortcuts(component: RootComponent, playerViewModel: PlayerViewMo
 private fun TabContent(
     component: RootComponent,
     state: NavigationState,
-    playerState: PlayerState,
+    nowPlaying: NowPlaying?,
+    progress: () -> Float,
     onPlayPause: () -> Unit,
     sharedCover: @Composable (AnimatedVisibilityScope) -> Modifier,
 ) {
@@ -218,7 +223,10 @@ private fun TabContent(
         isMiniPlayerShown = true
         navigator.navigateTo(pane)
     }
-    val showMiniPlayer = playerState.currentEpisode != null && isMiniPlayerShown && !state.isPlayerOpen
+    val showMiniPlayer = nowPlaying != null && isMiniPlayerShown && !state.isPlayerOpen
+    // The pages' view models live while their podcast or episode is selected, not until the app closes (23.10).
+    val (podcastScope, episodeScope) =
+        rememberViewModelScope(state.podcast?.podcastId) to rememberViewModelScope(state.episode?.episodeId)
 
     Scaffold(
         contentWindowInsets = WindowInsets(),
@@ -232,12 +240,8 @@ private fun TabContent(
                     directive = navigator.scaffoldDirective,
                     value = navigator.scaffoldValue,
                     listPane = { ListPane(component, state.selectedTab) },
-                    detailPane = { DetailPane(component, state.podcast) },
-                    extraPane = {
-                        state.episode?.let {
-                            EpisodeDetailScreen(episodeId = it.episodeId, onBackClick = component::onBackClicked)
-                        }
-                    }
+                    detailPane = { PodcastPane(component, state.podcast, podcastScope) },
+                    extraPane = { EpisodePane(component, state.episode, episodeScope) }
                 )
             }
             AnimatedVisibility(
@@ -247,7 +251,8 @@ private fun TabContent(
                 modifier = Modifier.align(Alignment.BottomCenter)
             ) {
                 MiniPlayerBar(
-                    playerState,
+                    nowPlaying,
+                    progress,
                     onPlayPause = onPlayPause,
                     onClick = component::onPlayerClicked,
                     onQueueClick = component::onQueueClicked,
@@ -277,44 +282,49 @@ private fun ListPane(component: RootComponent, tab: Tab) {
 }
 
 @Composable
-private fun DetailPane(component: RootComponent, podcast: Detail.Podcast?) {
-    if (podcast == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(Res.string.select_podcast), style = MaterialTheme.typography.bodyLarge)
-        }
-        return
-    }
-    PodcastDetailScreen(
-        podcastId = podcast.podcastId,
-        onBackClick = component::onBackClicked,
-        onEpisodeClick = { id, _ -> component.onEpisodeSelected(id, podcast.podcastId) },
-        onSimilarClick = component::onShowSimilar,
-    )
-}
-
-@Composable
 private fun MiniPlayerBar(
-    playerState: PlayerState,
+    nowPlaying: NowPlaying?,
+    progress: () -> Float,
     onPlayPause: () -> Unit,
     onClick: () -> Unit,
     onQueueClick: () -> Unit,
     artworkModifier: Modifier,
 ) {
-    val episode = playerState.currentEpisode ?: return
-    val duration = playerState.duration
+    val playing = nowPlaying ?: return
     MiniPlayer(
-        title = episode.title,
-        subtitle = episode.podcastTitle,
-        imageUrl = episode.imageUrl,
-        isPlaying = playerState.isPlaying,
-        isLoading = playerState.isBuffering,
-        progress = if (duration != null && duration > 0) playerState.position.toFloat() / duration else 0f,
+        title = playing.title,
+        subtitle = playing.podcastTitle,
+        imageUrl = playing.imageUrl,
+        isPlaying = playing.isPlaying,
+        isLoading = playing.isLoading,
+        progress = progress,
         onPlayPause = onPlayPause,
         onClick = onClick,
         onQueueClick = onQueueClick,
         artworkModifier = artworkModifier,
     )
 }
+
+/**
+ * What the mini player shows of the player, without the position: the episode's fields, not the episode, whose saved
+ * progress changes every few seconds too.
+ */
+private data class NowPlaying(
+    val title: String,
+    val podcastTitle: String?,
+    val imageUrl: String?,
+    val isPlaying: Boolean,
+    val isLoading: Boolean,
+) {
+    companion object {
+        fun of(state: PlayerState): NowPlaying? = state.currentEpisode?.let {
+            NowPlaying(it.title, it.podcastTitle, it.imageUrl, state.isPlaying, state.isBuffering)
+        }
+    }
+}
+
+private val PlayerState.progressFraction: Float
+    get() = duration?.takeIf { it > 0 }?.let { position.toFloat() / it } ?: 0f
 
 private const val SHARED_COVER_KEY = "player-cover"
 

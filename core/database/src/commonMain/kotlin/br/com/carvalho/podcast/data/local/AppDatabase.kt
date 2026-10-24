@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.data.local.dao.PlaybackStateDao
 import br.com.carvalho.podcast.data.local.dao.PodcastDao
 import br.com.carvalho.podcast.data.local.entity.BookmarkEntity
 import br.com.carvalho.podcast.data.local.entity.EpisodeEntity
+import br.com.carvalho.podcast.data.local.entity.EpisodeFtsEntity
 import br.com.carvalho.podcast.data.local.entity.ListeningEntity
 import br.com.carvalho.podcast.data.local.entity.PlaybackStateEntity
 import br.com.carvalho.podcast.data.local.entity.PodcastEntity
@@ -28,8 +29,9 @@ import br.com.carvalho.podcast.data.local.entity.SmartPlaylistEntity
         SmartPlaylistEntity::class,
         ListeningEntity::class,
         RemovedPodcastEntity::class,
+        EpisodeFtsEntity::class,
     ],
-    version = 27,
+    version = 28,
     // Every schema change ships a migration and a MigrationTest case; there is no destructive fallback.
     // 3 → 4, 4 → 5, 5 → 6, 7 → 8 and 8 → 9 are manual (EpisodeIdMigration, QueueItemsMigration,
     // DownloadFileMigration, SubscribedAtMigration, PositionMigration), added by addAppMigrations.
@@ -55,6 +57,7 @@ import br.com.carvalho.podcast.data.local.entity.SmartPlaylistEntity
         AutoMigration(from = 24, to = 25),
         AutoMigration(from = 25, to = 26),
         AutoMigration(from = 26, to = 27),
+        AutoMigration(from = 27, to = 28, spec = SearchIndexMigration::class),
     ],
 )
 @ConstructedBy(AppDatabaseConstructor::class)

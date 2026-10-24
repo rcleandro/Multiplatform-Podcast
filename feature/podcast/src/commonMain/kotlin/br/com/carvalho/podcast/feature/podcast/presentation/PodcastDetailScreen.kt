@@ -17,10 +17,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Explore
-import androidx.compose.material.icons.rounded.OutlinedFlag
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Share
@@ -75,6 +72,9 @@ import br.com.carvalho.podcast.core.designsystem.component.HtmlText
 import br.com.carvalho.podcast.core.designsystem.component.LoadingState
 import br.com.carvalho.podcast.core.designsystem.component.PodcastArtwork
 import br.com.carvalho.podcast.core.designsystem.component.PodcastSnackbarHost
+import br.com.carvalho.podcast.core.designsystem.icons.Explore
+import br.com.carvalho.podcast.core.designsystem.icons.OutlinedFlag
+import br.com.carvalho.podcast.core.designsystem.icons.automirrored.Sort
 import br.com.carvalho.podcast.core.designsystem.readableWidth
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.back
@@ -114,6 +114,8 @@ import br.com.carvalho.podcast.presentation.component.MarkOlderDialog
 import br.com.carvalho.podcast.presentation.component.OlderMark
 import br.com.carvalho.podcast.presentation.component.ReportFlow
 import br.com.carvalho.podcast.presentation.component.ReportTarget
+import br.com.carvalho.podcast.presentation.forRows
+import br.com.carvalho.podcast.presentation.selectAsState
 import br.com.carvalho.podcast.presentation.share.podcastShareText
 import br.com.carvalho.podcast.presentation.share.rememberShare
 import org.jetbrains.compose.resources.pluralStringResource
@@ -135,7 +137,8 @@ fun PodcastDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagedEpisodes = viewModel.pagedEpisodes.collectAsLazyPagingItems()
-    val playerState by viewModel.playerState.collectAsState()
+    // The rows only mark the episode playing (23.3); the position moving would rebuild the whole list.
+    val playerState by viewModel.playerState.selectAsState { it.forRows() }
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 

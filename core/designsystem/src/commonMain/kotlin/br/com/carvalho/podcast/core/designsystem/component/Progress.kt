@@ -38,12 +38,15 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.math.PI
 import kotlin.math.sin
 
-/** Thin progress line for rows and the mini player. [progress] is 0..1. */
+/**
+ * Thin progress line for rows and the mini player. [progress] is 0..1, read while drawing: a position that moves every
+ * 500 ms (23.2) redraws the line without recomposing whoever passes it.
+ */
 @Composable
-fun EpisodeProgressBar(progress: Float, modifier: Modifier = Modifier) {
+fun EpisodeProgressBar(progress: () -> Float, modifier: Modifier = Modifier) {
     val height = 3.dp
     LinearProgressIndicator(
-        progress = { progress.coerceIn(0f, 1f) },
+        progress = { progress().coerceIn(0f, 1f) },
         modifier = modifier.fillMaxWidth().height(height),
         color = MaterialTheme.colorScheme.primary,
         trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,

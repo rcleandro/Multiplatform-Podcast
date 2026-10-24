@@ -3,7 +3,6 @@ package br.com.carvalho.podcast.wear
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -16,6 +15,7 @@ import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.Text
+import br.com.carvalho.podcast.core.designsystem.icons.GraphicEq
 import br.com.carvalho.podcast.core.extensions.toDuration
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.episode_downloading
@@ -29,6 +29,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailIntent
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewModel
 import br.com.carvalho.podcast.presentation.component.remainingDuration
+import br.com.carvalho.podcast.presentation.selectAsState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -45,12 +46,12 @@ fun PodcastScreen(
     viewModel: PodcastDetailViewModel = koinViewModel(key = podcastId) { parametersOf(podcastId) },
 ) {
     val state by viewModel.uiState.collectAsState()
-    val player by viewModel.playerState.collectAsState()
+    val playingId by viewModel.playerState.selectAsState { it.currentEpisode?.id.takeIf { _ -> it.isPlaying } }
     val downloads by viewModel.activeDownloads.collectAsState()
     EpisodeList(
         title = state.podcast?.title.orEmpty(),
         episodes = viewModel.pagedEpisodes.collectAsLazyPagingItems(),
-        player = player,
+        playingId = playingId,
         downloads = downloads,
         onPlay = {
             viewModel.onIntent(PodcastDetailIntent.Play(it))

@@ -16,14 +16,13 @@ kotlin {
             implementation(project(":core:common"))
             api(libs.components.resources)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.composeIconsExtended)
             implementation(libs.compose.ui.backhandler)
             implementation(libs.filekit.dialogs.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-        val desktopTest by getting {
+        val desktopTest = getByName("desktopTest") {
             dependencies {
                 implementation(libs.ui.test)
                 implementation(compose.desktop.currentOs)

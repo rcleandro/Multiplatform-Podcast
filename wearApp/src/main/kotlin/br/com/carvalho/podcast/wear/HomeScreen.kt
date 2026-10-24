@@ -2,9 +2,6 @@ package br.com.carvalho.podcast.wear
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
-import androidx.compose.material.icons.rounded.DownloadDone
-import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,6 +18,9 @@ import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
+import br.com.carvalho.podcast.core.designsystem.icons.DownloadDone
+import br.com.carvalho.podcast.core.designsystem.icons.TrendingUp
+import br.com.carvalho.podcast.core.designsystem.icons.automirrored.PlaylistPlay
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.filter_downloaded
 import br.com.carvalho.podcast.core.ui.generated.resources.library_title
@@ -31,6 +31,7 @@ import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.LibraryEntry
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
+import br.com.carvalho.podcast.presentation.selectAsState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -46,8 +47,8 @@ fun HomeScreen(
     playerViewModel: PlayerViewModel = koinViewModel(),
 ) {
     val library by libraryViewModel.uiState.collectAsState()
-    val player by playerViewModel.playerState.collectAsState()
-    HomeContent(library.podcasts, player.currentEpisode, onPlayer, onPopular, onPodcast, onDownloads, onPlaylists)
+    val playing by playerViewModel.playerState.selectAsState { it.currentEpisode }
+    HomeContent(library.podcasts, playing, onPlayer, onPopular, onPodcast, onDownloads, onPlaylists)
 }
 
 @Composable

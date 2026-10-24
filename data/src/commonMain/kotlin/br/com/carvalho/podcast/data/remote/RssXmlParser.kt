@@ -29,8 +29,9 @@ private val EXPLICIT_VALUES = setOf("yes", "true", "explicit")
 private val TRANSCRIPT_TYPES = listOf("vtt", "srt", "subrip", "json")
 
 /**
- * Reads RSS 2.0 with the iTunes tags (ADR 0004). The XML becomes a small tree first: feeds are read whole anyway,
- * and looking fields up by name is simpler than a streaming state machine.
+ * Reads RSS 2.0 with the iTunes tags (ADR 0004). Each item becomes a small tree, read into an episode as soon as it
+ * closes and then dropped: looking fields up by name is simpler than a streaming state machine, and the tree of a
+ * whole 4,000-episode feed held as much memory again as its text (23.6).
  */
 object RssXmlParser {
     fun parse(xml: String): RssFeed {
@@ -38,10 +39,12 @@ object RssXmlParser {
         // The reader expands entities a DOCTYPE declares, without bound: a few KB of nested ones fill the memory (the
         // billion laughs, T3 of ADR 0014). No real feed declares any, so such a feed is refused before it is read.
         if (declaresEntities(xml, root = "<channel")) throw AppError.InvalidFeed
-        val channel = readTree(xml).find("channel") ?: Node("channel")
+        val items = mutableListOf<RssEpisode>()
+        val channel = readTree(xml) { item -> item.toEpisode()?.let(items::add) }.find("channel") ?: Node("channel")
+        // The feed's cover can come after the items, so it fills in the episodes without their own at the end.
         val channelImage = channel.child("itunes:image")?.attributes?.get("href").webUrl()
             ?: channel.child("image")?.text("url").webUrl()
-        val episodes = channel.children("item").mapNotNull { it.toEpisode(channelImage) }
+        val episodes = items.map { if (it.imageUrl == null) it.copy(imageUrl = channelImage) else it }
         AppLogger.d(TAG, "Finished XML parse. Total episodes: ${episodes.size}")
 
         return RssFeed(
@@ -63,7 +66,7 @@ object RssXmlParser {
     }
 
     // An item without audio (a blog post in the same feed) is not an episode.
-    private fun Node.toEpisode(defaultImage: String?): RssEpisode? {
+    private fun Node.toEpisode(): RssEpisode? {
         val enclosure = child("enclosure")?.attributes
         val enclosureUrl = enclosure?.get("url").webUrl() ?: return null
         val description = text("description") ?: text("content:encoded") ?: text("itunes:summary")
@@ -80,7 +83,7 @@ object RssXmlParser {
             enclosureType = enclosure?.get("type"),
             duration = text("itunes:duration"),
             publishDate = text("pubDate").orEmpty(),
-            imageUrl = child("itunes:image")?.attributes?.get("href").webUrl() ?: defaultImage,
+            imageUrl = child("itunes:image")?.attributes?.get("href").webUrl(),
             explicit = text("itunes:explicit")?.lowercase() in EXPLICIT_VALUES,
             season = text("itunes:season")?.toIntOrNull(),
             episode = text("itunes:episode")?.toIntOrNull(),
@@ -112,7 +115,8 @@ object RssXmlParser {
         listOfNotNull(category.attributes["text"]) + category.categories()
     }.distinct()
 
-    private fun readTree(xml: String): Node {
+    /** The document's tree, without the channel's items: each one goes to [onItem] when it closes. */
+    private fun readTree(xml: String, onItem: (Node) -> Unit): Node {
         // relaxed: real feeds have undeclared prefixes and stray characters that a strict reader rejects.
         val reader = KtXmlReader(xml, relaxed = true)
         val root = Node("")
@@ -128,7 +132,13 @@ object RssXmlParser {
                     stack.last().children += node
                     stack.addLast(node)
                 }
-                EventType.END_ELEMENT -> stack.removeLast()
+                EventType.END_ELEMENT -> {
+                    val node = stack.removeLast()
+                    if (node.name == "item" && stack.last().name == "channel") {
+                        stack.last().children.removeLast()
+                        onItem(node)
+                    }
+                }
                 EventType.TEXT, EventType.CDSECT, EventType.IGNORABLE_WHITESPACE ->
                     stack.last().text.append(reader.text)
                 // Known XML entities come with their text; HTML ones (&nbsp;) are undeclared and stay as written.

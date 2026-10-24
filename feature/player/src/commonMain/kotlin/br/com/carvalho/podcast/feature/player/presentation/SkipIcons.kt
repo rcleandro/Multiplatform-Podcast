@@ -1,15 +1,15 @@
 package br.com.carvalho.podcast.feature.player.presentation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.FastForward
-import androidx.compose.material.icons.rounded.FastRewind
-import androidx.compose.material.icons.rounded.Forward10
-import androidx.compose.material.icons.rounded.Forward30
-import androidx.compose.material.icons.rounded.Forward5
-import androidx.compose.material.icons.rounded.Replay10
-import androidx.compose.material.icons.rounded.Replay30
-import androidx.compose.material.icons.rounded.Replay5
 import androidx.compose.ui.graphics.vector.ImageVector
+import br.com.carvalho.podcast.core.designsystem.icons.FastForward
+import br.com.carvalho.podcast.core.designsystem.icons.FastRewind
+import br.com.carvalho.podcast.core.designsystem.icons.Forward10
+import br.com.carvalho.podcast.core.designsystem.icons.Forward30
+import br.com.carvalho.podcast.core.designsystem.icons.Forward5
+import br.com.carvalho.podcast.core.designsystem.icons.Replay10
+import br.com.carvalho.podcast.core.designsystem.icons.Replay30
+import br.com.carvalho.podcast.core.designsystem.icons.Replay5
 
 /** The icon with the jump's number when Material has one (5, 10, 30 s); a plain arrow otherwise. */
 fun skipForwardIcon(seconds: Int): ImageVector = when (seconds) {

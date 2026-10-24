@@ -347,6 +347,17 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun version28IndexesTheEpisodesAlreadySavedForTheSearch() = runTest {
+        helper.createDatabase(SEARCH_INDEX_VERSION - 1).use { it.insertLibrary(queueJson = null, episodeId = E1) }
+
+        helper.runMigrationsAndValidate(SEARCH_INDEX_VERSION, migrations).use { connection ->
+            val title = connection.text("SELECT title FROM episodes")
+            val match = searchMatch(title.substringBefore(' '))
+            assertEquals("1", connection.text("SELECT COUNT(*) FROM episodes_fts WHERE episodes_fts MATCH '$match'"))
+        }
+    }
+
     private fun SQLiteConnection.text(sql: String): String = prepare(sql).use { statement ->
         statement.step()
         statement.getText(0)
@@ -378,7 +389,8 @@ class MigrationTest {
         const val TRANSCRIPTS_VERSION = 25
         const val SYNC_VERSION = 26
         const val MEDIA_TYPE_VERSION = 27
-        const val CURRENT_VERSION = 27
+        const val SEARCH_INDEX_VERSION = 28
+        const val CURRENT_VERSION = 28
 
         /** The id episode "e1" of podcast "p1" gets from version 4 on. */
         val E1 = episodeId("p1", guid = "e1", audioUrl = "https://audio")

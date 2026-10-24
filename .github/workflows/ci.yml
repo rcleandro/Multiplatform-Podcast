@@ -7,6 +7,10 @@ on:
         branches: [ main ]
     workflow_dispatch:
 
+# Read-only by default (22.10, CodeQL actions/missing-workflow-permissions); a job that writes asks for it itself.
+permissions:
+    contents: read
+
 concurrency:
     group: ci-${{ github.ref }}
     cancel-in-progress: true
@@ -64,6 +68,12 @@ jobs:
 
             - name: Run tests
               run: ./gradlew desktopTest :shared:testAndroidHostTest :core:player:testAndroidHostTest :androidApp:testDebugUnitTest :wearApp:testDebugUnitTest :build-logic:convention:test :core:network:wasmJsBrowserTest
+
+            # Warns, never fails: the latest recorded Macrobenchmark results and this run's parsing times (23.11).
+            - name: Check performance budgets
+              run: |
+                  python3 -m unittest discover -s .github/scripts
+                  python3 .github/scripts/perf_results.py check | tee -a "$GITHUB_STEP_SUMMARY"
 
             - name: Verify coverage floors
               run: ./gradlew koverVerify

@@ -36,12 +36,12 @@ interface PreferencesRepository {
 
     fun setDownloadNextOnFinish(enabled: Boolean)
 
-    /** When a downloaded episode ends, delete its file (18.5, part of 18.19); off by default. */
     /** Days a download stays before it is deleted (18.19); 0 keeps them. */
     val deleteDownloadsAfterDays: StateFlow<Int>
 
     fun setDeleteDownloadsAfterDays(days: Int)
 
+    /** When a downloaded episode ends, delete its file (18.5, part of 18.19); off by default. */
     val deleteFinishedDownloads: StateFlow<Boolean>
 
     fun setDeleteFinishedDownloads(enabled: Boolean)

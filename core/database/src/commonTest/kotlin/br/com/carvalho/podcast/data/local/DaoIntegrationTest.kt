@@ -79,13 +79,49 @@ class DaoIntegrationTest {
         val ep2 = createEpisodeEntity("e2", "p1", description = "Learn Swift UI")
         episodeDao.insertAll(listOf(ep1, ep2))
 
-        val results = episodeDao.search("Kotlin").first()
+        val results = episodeDao.search(searchMatch("Kotlin")).first()
         assertEquals(1, results.size)
         assertEquals("e1", results[0].id)
 
-        val results2 = episodeDao.search("Swift").first()
+        val results2 = episodeDao.search(searchMatch("Swift")).first()
         assertEquals(1, results2.size)
         assertEquals("e2", results2[0].id)
+    }
+
+    @Test
+    fun `the search finds words by their start and without their accents`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        podcastDao.insert("p1".createPodcastEntity())
+        episodeDao.insertAll(
+            listOf(
+                createEpisodeEntity("e1", "p1", title = "Inteligência artificial na prática"),
+                createEpisodeEntity("e2", "p1", title = "Kotlin Multiplatform", description = "<p>Ação e reação</p>"),
+                createEpisodeEntity("e3", "p1", title = "Inteligente, mas nem tanto"),
+            )
+        )
+
+        fun ids(query: String) = episodeDao.search(searchMatch(query))
+
+        assertEquals(listOf("e1"), ids("inteligencia").first().map { it.id })
+        assertEquals(setOf("e1", "e3"), ids("intelig").first().map { it.id }.toSet())
+        assertEquals(listOf("e2"), ids("kot").first().map { it.id })
+        assertEquals(listOf("e2"), ids("acao").first().map { it.id })
+        assertEquals(listOf("e1"), ids("artificial INTELIGÊNCIA").first().map { it.id })
+        assertEquals(emptyList(), ids("tlin").first().map { it.id })
+    }
+
+    @Test
+    fun `an episode is found by what it says now and not by what it said before`() = runTest {
+        if (!isDatabaseSupported) return@runTest
+        val podcast = "p1".createPodcastEntity()
+        podcastDao.insert(podcast)
+        episodeDao.saveFeed(podcast, listOf(createEpisodeEntity("e1", "p1", title = "Antigo")))
+
+        // A feed read again rewrites the title: the index must follow, or the old words would still find it.
+        episodeDao.saveFeed(podcast, listOf(createEpisodeEntity("e1", "p1", title = "Novo")))
+
+        assertEquals(emptyList(), episodeDao.search(searchMatch("antigo")).first().map { it.id })
+        assertEquals(listOf("e1"), episodeDao.search(searchMatch("novo")).first().map { it.id })
     }
 
     @Test

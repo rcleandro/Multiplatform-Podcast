@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +27,7 @@ import br.com.carvalho.podcast.core.designsystem.Spacing
 import br.com.carvalho.podcast.core.designsystem.generated.resources.Res
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_player
 import br.com.carvalho.podcast.core.designsystem.generated.resources.ds_open_queue
+import br.com.carvalho.podcast.core.designsystem.icons.automirrored.QueueMusic
 import org.jetbrains.compose.resources.stringResource
 
 /** Compact player docked above the navigation; the bottom edge is the episode progress. */
@@ -38,7 +38,8 @@ fun MiniPlayer(
     imageUrl: String?,
     isPlaying: Boolean,
     isLoading: Boolean,
-    progress: Float,
+    /** Read while drawing (23.2): the position moves every 500 ms and must not recompose the bar's holder. */
+    progress: () -> Float,
     onPlayPause: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

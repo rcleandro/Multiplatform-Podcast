@@ -11,10 +11,10 @@ kotlin {
     }
 
     sourceSets {
-        val nonAndroidMain by creating { dependsOn(commonMain.get()) }
+        val nonAndroidMain = create("nonAndroidMain") { dependsOn(commonMain.get()) }
         iosMain.get().dependsOn(nonAndroidMain)
         wasmJsMain.get().dependsOn(nonAndroidMain)
-        val desktopMain by getting { dependsOn(nonAndroidMain) }
+        val desktopMain = getByName("desktopMain") { dependsOn(nonAndroidMain) }
 
         commonMain.dependencies {
             api(libs.runtime)
@@ -23,7 +23,8 @@ kotlin {
             api(libs.compose.ui)
             api(libs.material3.adaptive)
             implementation(libs.components.resources)
-            implementation(libs.composeIconsExtended)
+            // The Icons object and the few icons it holds; the others the app uses are copied into `icons` (23.9).
+            api(libs.material.icons.core)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.coil.compose)
         }
@@ -31,7 +32,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.ui.test)
         }
-        val androidHostTest by getting {
+        val androidHostTest = getByName("androidHostTest") {
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.robolectric)
@@ -41,7 +42,7 @@ kotlin {
                 implementation(libs.androidx.compose.ui.test.manifest)
             }
         }
-        val desktopTest by getting {
+        val desktopTest = getByName("desktopTest") {
             dependencies {
                 implementation(compose.desktop.currentOs)
             }

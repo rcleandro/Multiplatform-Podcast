@@ -38,6 +38,8 @@ subprojects {
     dependencies {
         "detektPlugins"(rootProject.libs.detekt.formatting)
     }
+    // Icons copied from material-icons-extended (23.9) keep the Android sources as they were.
+    tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach { exclude("**/designsystem/icons/**") }
 }
 
 // Line coverage of the JVM tests (desktop), per module, without Compose UI: screens are checked by the snapshot and
@@ -76,7 +78,11 @@ subprojects {
                             "org.jetbrains.compose.ui.tooling.preview.Preview",
                         )
                         // Compose resources and lambdas, and the code Room and kotlinx.serialization generate.
-                        classes("*.generated.resources.*", "*ComposableSingletons*", "*_Impl", "*_Impl$*", "*\$\$serializer")
+                        classes(
+                            "*.generated.resources.*", "*ComposableSingletons*", "*_Impl", "*_Impl$*", "*\$\$serializer",
+                            // Icons copied from material-icons-extended (23.9): drawing data, not logic.
+                            "*.designsystem.icons.*",
+                        )
                     }
                 }
                 verify {
