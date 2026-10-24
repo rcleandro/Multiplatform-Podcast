@@ -7,6 +7,11 @@ target 'iosApp' do
   pod 'FirebaseCrashlytics', '~> 11.15'
 
   pod 'shared', :path => '../shared'
+
+  # The XCTest bundle runs inside the app, so it only needs to see the same frameworks (25.2).
+  target 'iosAppTests' do
+    inherit! :search_paths
+  end
 end
 
 post_install do |installer|

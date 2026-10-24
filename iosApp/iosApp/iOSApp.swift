@@ -17,6 +17,10 @@ struct iOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.scenePhase) private var scenePhase
 
+    init() {
+        SwiftBridgeKt.startShared()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

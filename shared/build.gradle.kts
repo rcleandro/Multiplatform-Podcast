@@ -6,6 +6,19 @@ plugins {
     alias(libs.plugins.podcast.app.version)
 }
 
+// The modules the SwiftUI screens use directly (ADR 0015): view models, their states and the domain models.
+val swiftModules = listOf(
+    ":domain",
+    ":core:ui",
+    ":feature:library",
+    ":feature:podcast",
+    ":feature:episode",
+    ":feature:search",
+    ":feature:player",
+    ":feature:discover",
+    ":feature:settings",
+)
+
 kotlin {
     android {
         namespace = "br.com.carvalho.podcast.shared"
@@ -21,6 +34,9 @@ kotlin {
             baseName = "Shared"
             isStatic = true
             linkerOpts("-ObjC")
+            // What the SwiftUI screens read (ADR 0015): every public type of these modules reaches Swift under its
+            // own name. Without it, a type only seen as a generic argument (a view model's UI state) is left out.
+            swiftModules.forEach { export(project(it)) }
         }
         pod("FirebaseAnalytics") {
             version = "~> 11.0"
@@ -147,6 +163,7 @@ kotlin {
         }
         androidMain.get().dependsOn(firebaseMain)
         iosMain.get().dependsOn(firebaseMain)
+        iosMain.dependencies { swiftModules.forEach { api(project(it)) } }
 
         // Library sync through a folder (19.12) where the platform keeps one: Android and Desktop.
         val folderSyncMain = create("folderSyncMain") {

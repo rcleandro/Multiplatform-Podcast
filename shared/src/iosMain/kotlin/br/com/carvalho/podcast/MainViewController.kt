@@ -3,7 +3,6 @@ package br.com.carvalho.podcast
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.ComposeUIViewController
-import br.com.carvalho.podcast.core.di.initKoin
 import br.com.carvalho.podcast.presentation.navigation.RootComponent
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
@@ -26,7 +25,7 @@ fun openPodcastLink(url: String) {
 @Suppress("FunctionNaming")
 @OptIn(FlowPreview::class, ExperimentalDecomposeApi::class)
 fun MainViewController(): UIViewController {
-    initKoin()
+    // The shared code is started by iOSApp.swift (startShared), before this.
     return ComposeUIViewController {
         val lifecycle = remember { LifecycleRegistry() }
         // iOS has no back button: a swipe from the left edge drives the same back handler the navigation registers.
