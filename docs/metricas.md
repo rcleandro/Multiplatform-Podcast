@@ -52,6 +52,37 @@ e copiar o `…-startup-prof.txt` de `benchmark/build/outputs/connected_android_
 move classes, e um profile gravado no código encolhido não nomearia as classes do código-fonte. Orçamento:
 ≤ 1 000 ms sem compilação neste aparelho. Uma mudança que passe disso é regressão.
 
+## Uso do app no Android (Macrobenchmark, 23.1)
+
+`UsageBenchmark` (módulo `:benchmark`) mede o que vem depois da abertura, no build `benchmark` (R8 e baseline
+profile): a rolagem da aba Episódios (5 arremessos para baixo) e a abertura do player a partir do mini player, com
+`FrameTimingMetric`, e a memória do processo depois da rolagem, com `MemoryUsageMetric`. Roda na biblioteca do próprio
+aparelho, com o app em português e um episódio no mini player:
+
+```
+./gradlew :benchmark:connectedBenchmarkAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=br.com.carvalho.podcast.benchmark.UsageBenchmark
+```
+
+`frameOverrunMs` é quanto um quadro passa do prazo da tela: negativo é folga. O P99 varia de uma execução para outra
+(+1,1 e +6,7 ms na rolagem, no mesmo dia), daí a folga nos orçamentos.
+
+| Medição | Orçamento (Razr 60) | 24/10/2026: 7 podcasts, 13.077 episódios |
+|---|---|---|
+| Rolagem: `frameOverrunMs` | P90 ≤ 0 ms, P99 ≤ 16 ms | P50 −9,0 · P90 −3,0 · P99 +6,7 ms |
+| Rolagem: `frameDurationCpuMs` | P99 ≤ 24 ms | P50 4,7 · P90 8,0 · P99 16,3 ms |
+| Abertura do player: `frameOverrunMs` | P90 ≤ 0 ms, P99 ≤ 16 ms | P50 −8,1 · P90 −5,9 · P99 +10,8 ms |
+| Memória depois de rolar: heap Java | ≤ 100 MB | 73 MB |
+| Memória depois de rolar: RSS anônima | ≤ 220 MB | 160 MB |
+
+A memória é medida na biblioteca real do aparelho, não nos 50 podcasts que a 23.1 previa: assinar 50 feeds no
+celular do usuário só para medir mudaria os dados dele. O número de episódios (13.077) é o que mais pesa na lista e
+na busca. Ainda sem medição no iPhone: a interface do iOS será reescrita em SwiftUI na fase 25, e medir o Compose dele
+agora mediria o que vai sair.
+
+Cuidado ao rodar: o Gradle desinstalava o app depois dos testes no aparelho, apagando a biblioteca;
+`android.injected.androidTest.leaveApksInstalledAfterRun=true` no `gradle.properties` impede isso desde 24/10/2026.
+
 Limites conhecidos:
 - No Android, o `app_start` começa no `initKoin` (no `Application.onCreate`), e não no início do processo. As
   centenas de milissegundos antes disso ficam de fora: o Macrobenchmark da 17.6 mede o início completo.
