@@ -17,6 +17,10 @@ final class LibraryUITests: XCTestCase {
 
         add.tap()
 
-        XCTAssertTrue(app.images["plus"].waitForExistence(timeout: 5), "the add podcast screen opens")
+        // The feed address sheet: nothing to add until an address is typed, and Cancel closes it.
+        XCTAssertTrue(app.textFields["Feed address"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars.buttons["Add"].isEnabled)
+        app.navigationBars.buttons["Cancel"].tap()
+        XCTAssertTrue(empty.waitForExistence(timeout: 5))
     }
 }

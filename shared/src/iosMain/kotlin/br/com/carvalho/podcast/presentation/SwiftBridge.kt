@@ -8,6 +8,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.carvalho.podcast.core.di.initKoin
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.feature.discover.presentation.DiscoverViewModel
+import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderViewModel
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.presentation.format.RelativeTime
@@ -49,6 +51,10 @@ class ScreenViewModels {
     private val store = ViewModelStore()
 
     fun library(): LibraryViewModel = get()
+
+    fun libraryOrder(): LibraryOrderViewModel = get()
+
+    fun discover(): DiscoverViewModel = get()
 
     fun player(): PlayerViewModel = get()
 

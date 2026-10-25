@@ -40,8 +40,8 @@ private struct Shell: View {
                 .sheet(isPresented: model.isOpen(\.isQueueOpen)) { StandIn(symbol: "list.number") }
                 .sheet(isPresented: model.isOpen(\.isTranscriptOpen)) { StandIn(symbol: "text.quote") }
         }
-        .sheet(isPresented: model.isOpen(\.isOrganizingLibrary)) { StandIn(symbol: "arrow.up.arrow.down") }
-        .sheet(isPresented: model.isOpen(\.isAddingPodcast)) { StandIn(symbol: "plus") }
+        .sheet(isPresented: model.isOpen(\.isOrganizingLibrary)) { LibraryOrderScreen(model: model) }
+        .sheet(isPresented: model.isOpen(\.isAddingPodcast)) { AddPodcastScreen(model: model) }
         .sheet(isPresented: model.isOpen(\.isShowingSettings)) {
             StandIn(symbol: "gearshape")
                 .sheet(isPresented: model.isOpen(\.isShowingStats)) { StandIn(symbol: "chart.bar") }
