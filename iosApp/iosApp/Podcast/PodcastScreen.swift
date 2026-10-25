@@ -50,8 +50,14 @@ struct PodcastScreen: View {
                         .accessibilityAddTraits(.isHeader)
                         .listRowSeparator(.hidden)
                 }
-                Button { model.root.onEpisodeSelected(episodeId: episode.id, podcastId: podcastId) } label: {
-                    row(episode)
+                Button {
+                    if state.selection.isEmpty {
+                        model.root.onEpisodeSelected(episodeId: episode.id, podcastId: podcastId)
+                    } else {
+                        send(PodcastDetailIntentToggleSelection(episode: episode))
+                    }
+                } label: {
+                    row(episode, selection: state.selection)
                 }
                 .buttonStyle(.plain)
                 .onAppear { pages.loadAround(index: Int32(index)) }
@@ -64,6 +70,8 @@ struct PodcastScreen: View {
         .toolbar { toolbar(state) }
         .refreshable { send(PodcastDetailIntentRefresh.shared) }
         .messages(from: viewModel.messages)
+        .episodeSelection(count: state.selection.count, onAction: { send(PodcastDetailIntentActOnSelection(action: $0)) },
+                          onClose: { send(PodcastDetailIntentClearSelection.shared) })
         .sheet(item: $reporting) { target in
             ReportSheet(target: target) {
                 SwiftSafetyKt.hidePodcast(podcastId: podcastId)
@@ -88,7 +96,7 @@ struct PodcastScreen: View {
         }
     }
 
-    private func row(_ episode: Episode) -> some View {
+    private func row(_ episode: Episode, selection: [Episode]) -> some View {
         let player = playback.value
         let isCurrent = player.currentEpisode?.id == episode.id
         let download = EpisodeDownload((downloads.value as? [String: DownloadStatus])?[episode.id], isDownloaded: episode.isDownloaded)
@@ -107,8 +115,10 @@ struct PodcastScreen: View {
                 markOlderUnplayed: { send(PodcastDetailIntentRequestMarkOlder(mark: OlderMark(episode: episode, played: false))) },
                 download: { send(PodcastDetailIntentDownload(episode: episode)) },
                 cancelDownload: { send(PodcastDetailIntentCancelDownload(episode: episode)) },
-                deleteDownload: { send(PodcastDetailIntentRequestDeleteDownload(episode: episode)) }
-            )
+                deleteDownload: { send(PodcastDetailIntentRequestDeleteDownload(episode: episode)) },
+                select: { send(PodcastDetailIntentToggleSelection(episode: episode)) }
+            ),
+            selected: selection.isEmpty ? nil : selection.contains { $0.id == episode.id }
         )
     }
 

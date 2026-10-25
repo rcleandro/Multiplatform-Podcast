@@ -33,8 +33,14 @@ struct EpisodesScreen: View {
             ForEach(sections(list, filter: state.filter), id: \.group) { section in
                 Section {
                     ForEach(section.rows, id: \.episode.id) { row in
-                        Button { model.root.onEpisodeSelected(episodeId: row.episode.id, podcastId: row.episode.podcastId) } label: {
-                            episodeRow(row.episode)
+                        Button {
+                            if state.selection.isEmpty {
+                                model.root.onEpisodeSelected(episodeId: row.episode.id, podcastId: row.episode.podcastId)
+                            } else {
+                                send(SearchIntentToggleSelection(episode: row.episode))
+                            }
+                        } label: {
+                            episodeRow(row.episode, selection: state.selection)
                         }
                         .buttonStyle(.plain)
                         .onAppear { pages.loadAround(index: Int32(row.index)) }
@@ -53,6 +59,8 @@ struct EpisodesScreen: View {
                     prompt: Res.string.shared.search_placeholder.localized())
         .refreshable { send(SearchIntentRefresh.shared) }
         .messages(from: viewModel.messages)
+        .episodeSelection(count: state.selection.count, onAction: { send(SearchIntentActOnSelection(action: $0)) },
+                          onClose: { send(SearchIntentClearSelection.shared) })
         .confirmationDialog(Res.string.shared.clear_history.localized(),
                             isPresented: isShowing(state.clearHistoryConfirmation, dismiss: SearchIntentDismissClearHistory.shared),
                             titleVisibility: .visible) {
@@ -111,7 +119,7 @@ struct EpisodesScreen: View {
         }
     }
 
-    private func episodeRow(_ episode: Episode) -> some View {
+    private func episodeRow(_ episode: Episode, selection: [Episode]) -> some View {
         let player = playback.value
         let isCurrent = player.currentEpisode?.id == episode.id
         return EpisodeRow(
@@ -132,8 +140,10 @@ struct EpisodesScreen: View {
                 cancelDownload: { send(SearchIntentCancelDownload(episode: episode)) },
                 deleteDownload: { send(SearchIntentRequestDeleteDownload(episode: episode)) },
                 dismissNew: episode.isNew ? { send(SearchIntentDismissNew(episode: episode)) } : nil,
-                goToPodcast: { model.root.onPodcastSelected(podcastId: episode.podcastId) }
-            )
+                goToPodcast: { model.root.onPodcastSelected(podcastId: episode.podcastId) },
+                select: { send(SearchIntentToggleSelection(episode: episode)) }
+            ),
+            selected: selection.isEmpty ? nil : selection.contains { $0.id == episode.id }
         )
     }
 

@@ -31,6 +31,8 @@ struct EpisodeActions {
     var deleteDownload: (() -> Void)?
     var dismissNew: (() -> Void)?
     var goToPodcast: (() -> Void)?
+    /// Starts choosing several episodes (18.11).
+    var select: (() -> Void)?
 }
 
 /// An episode in a list: "Trailer · 2 days ago · 45min" under its title, how much was heard, the play button, and the
@@ -42,9 +44,16 @@ struct EpisodeRow: View {
     let isLoading: Bool
     let download: EpisodeDownload
     let actions: EpisodeActions
+    /// Choosing several episodes (18.11): a tap marks this one instead of opening it.
+    var selected: Bool?
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.m) {
+            if let selected {
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .font(.title2).foregroundStyle(Color(.Theme.primary))
+                    .accessibilityHidden(true)
+            }
             Artwork(url: episode.imageUrl, size: Sizes.artworkS, radius: Radius.small)
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(episode.title).textStyle(Typography.titleMedium).lineLimit(2)
@@ -53,12 +62,13 @@ struct EpisodeRow: View {
                 if progress > 0 { ProgressView(value: progress).tint(Color(.Theme.primary)) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            playButton
+            if selected == nil { playButton }
         }
         .frame(maxWidth: Sizes.readableWidth, alignment: .leading)
         .contentShape(Rectangle())
         .contextMenu { EpisodeMenu(isPlaying: isPlaying, download: download, actions: actions) }
         .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(selected == true ? .isSelected : [])
         .accessibilityAction(named: Text(playLabel), actions.play)
     }
 
@@ -111,6 +121,7 @@ struct EpisodeMenu: View {
         item(Res.string.shared.mark_older_as_unplayed, "circle.dashed", actions.markOlderUnplayed)
         item(Res.string.shared.dismiss_new, "tray.and.arrow.down", actions.dismissNew)
         item(Res.string.shared.go_to_podcast, "square.stack", actions.goToPodcast)
+        item(Res.string.shared.select, "checkmark.circle", actions.select)
         Divider()
         switch download {
         case .idle: item(Res.string.shared.download_cd, "arrow.down.circle", actions.download)
