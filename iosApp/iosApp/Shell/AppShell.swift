@@ -67,8 +67,12 @@ private struct TabStack<Root: View>: View {
     var body: some View {
         NavigationStack(path: model.path(tab)) {
             root()
-                .navigationDestination(for: DetailPodcast.self) { PodcastScreen(model: model, podcastId: $0.podcastId) }
-                .navigationDestination(for: DetailEpisode.self) { EpisodeScreen(model: model, episodeId: $0.episodeId) }
+                .navigationDestination(for: Page.self) { page in
+                    switch page {
+                    case let .podcast(id): PodcastScreen(model: model, podcastId: id)
+                    case let .episode(id): EpisodeScreen(model: model, episodeId: id)
+                    }
+                }
         }
     }
 }

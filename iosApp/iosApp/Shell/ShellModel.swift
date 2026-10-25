@@ -32,7 +32,7 @@ final class ShellModel {
     }
 
     /// The pages open on [tab], as the `NavigationStack` shows them.
-    func path(_ tab: Shared.Tab) -> Binding<[AnyHashable]> {
+    func path(_ tab: Shared.Tab) -> Binding<[Page]> {
         Binding(get: { self.stack(tab) }, set: { self.setPath(tab, to: $0) })
     }
 
@@ -41,7 +41,7 @@ final class ShellModel {
      * the root, so a path as long as the root's, or longer, is the root's own and changes nothing. Without this rule
      * the path the root just set would come back as a new change, and go round.
      */
-    func setPath(_ tab: Shared.Tab, to path: [AnyHashable]) {
+    func setPath(_ tab: Shared.Tab, to path: [Page]) {
         let open = stack(tab).count
         guard tab == state.selectedTab, path.count < open else { return }
         for _ in path.count..<open { root.onBackClicked() }
@@ -54,7 +54,22 @@ final class ShellModel {
         })
     }
 
-    private func stack(_ tab: Shared.Tab) -> [AnyHashable] {
-        (state.stacks[tab] ?? []).compactMap { $0 as? NSObject }
+    private func stack(_ tab: Shared.Tab) -> [Page] {
+        (state.stacks[tab] ?? []).compactMap(Page.init)
+    }
+}
+
+/// A page on a tab's stack. A Swift value, because the Kotlin objects in a `[AnyHashable]` path never reached
+/// `navigationDestination(for:)` on iOS 27, which showed a warning sign instead of the page.
+enum Page: Hashable {
+    case podcast(String)
+    case episode(String)
+
+    init?(_ detail: Detail) {
+        switch detail {
+        case let podcast as DetailPodcast: self = .podcast(podcast.podcastId)
+        case let episode as DetailEpisode: self = .episode(episode.episodeId)
+        default: return nil
+        }
     }
 }

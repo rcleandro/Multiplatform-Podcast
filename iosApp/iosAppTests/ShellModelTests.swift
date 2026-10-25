@@ -14,6 +14,10 @@ final class ShellModelTests: XCTestCase {
         model.root.onEpisodeSelected(episodeId: "e1", podcastId: "p1")
     }
 
+    func testTheRootsPagesReachTheStackAsTheirOwnSwiftValues() {
+        XCTAssertEqual([.podcast("p1"), .episode("e1")], model.path(.library).wrappedValue)
+    }
+
     func testTheBackGestureClosesOnlyThePageItTookAway() {
         let path = model.path(.library)
 
@@ -26,7 +30,7 @@ final class ShellModelTests: XCTestCase {
         let path = model.path(.library)
 
         path.wrappedValue = path.wrappedValue
-        path.wrappedValue = path.wrappedValue + [NSObject()]
+        path.wrappedValue = path.wrappedValue + [.episode("e2")]
 
         XCTAssertEqual(2, model.path(.library).wrappedValue.count)
     }
