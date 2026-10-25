@@ -14,6 +14,7 @@
 		2D70D9C85E6D192687F8EF16 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66D9AF4B550D87EEBBA99DE /* SettingsTests.swift */; };
 		3135A0EC146EA7FE746806CE /* Pods_iosAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B8DB22335F026DBBF9025F22 /* Pods_iosAppTests.framework */; };
 		32A87C21DFBA7B38CD5C3ABD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAEF60D234671F4859EAC064 /* Foundation.framework */; };
+		503CF40924EDE63F49477F7F /* TranscriptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7DA01CDB509B4A26D81EF1 /* TranscriptTests.swift */; };
 		5E31CBCBF619229BBCF7ADC5 /* PodcastSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E925038E1B31F6754017FBA3 /* PodcastSettingsTests.swift */; };
 		66F9246AF4F9F1391DF9A3BA /* TextsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABABC073E9BD082963F9F9C7 /* TextsTests.swift */; };
 		6C280D08569D4776889B4BFE /* LibraryUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */; };
@@ -65,6 +66,7 @@
 		7375F701B2C7E4BF6A79800F /* PlayerExtrasTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerExtrasTests.swift; sourceTree = "<group>"; };
 		76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeTests.swift; sourceTree = "<group>"; };
 		7D9214E407EFB9669DFC0F4A /* iosAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8B7DA01CDB509B4A26D81EF1 /* TranscriptTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TranscriptTests.swift; sourceTree = "<group>"; };
 		95297C1DF8F98ED4DA55B949 /* GuardianTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GuardianTests.swift; sourceTree = "<group>"; };
 		987145DED21AAE42C50D7789 /* LibraryOrderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryOrderTests.swift; sourceTree = "<group>"; };
 		A2121324332E263205D5AA86 /* DiscoverTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiscoverTests.swift; sourceTree = "<group>"; };
@@ -209,6 +211,7 @@
 				5C0564BD14D8500270D84FEB /* SmartPlaylistTests.swift */,
 				E925038E1B31F6754017FBA3 /* PodcastSettingsTests.swift */,
 				7375F701B2C7E4BF6A79800F /* PlayerExtrasTests.swift */,
+				8B7DA01CDB509B4A26D81EF1 /* TranscriptTests.swift */,
 			);
 			name = iosAppTests;
 			path = iosAppTests;
@@ -488,6 +491,7 @@
 				D83FA92E4AB831BFEA1B1B07 /* SmartPlaylistTests.swift in Sources */,
 				5E31CBCBF619229BBCF7ADC5 /* PodcastSettingsTests.swift in Sources */,
 				793E2AA77EB32FD03B428CFC /* PlayerExtrasTests.swift in Sources */,
+				503CF40924EDE63F49477F7F /* TranscriptTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -47,7 +47,7 @@ private struct Shell: View {
         .fullScreenCover(isPresented: model.isOpen(\.isPlayerOpen)) {
             PlayerScreen(model: model)
                 .sheet(isPresented: model.isOpen(\.isQueueOpen)) { QueueScreen(model: model) }
-                .sheet(isPresented: model.isOpen(\.isTranscriptOpen)) { StandIn(symbol: "text.quote") }
+                .sheet(isPresented: model.isOpen(\.isTranscriptOpen)) { TranscriptScreen(model: model) }
         }
         .sheet(isPresented: model.isOpen(\.isOrganizingLibrary)) { LibraryOrderScreen(model: model) }
         .sheet(isPresented: model.isOpen(\.isAddingPodcast)) { DiscoverScreen(model: model) }

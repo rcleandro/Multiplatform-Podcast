@@ -14,6 +14,7 @@ import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderViewMode
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.player.presentation.QueueViewModel
+import br.com.carvalho.podcast.feature.player.presentation.TranscriptViewModel
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewModel
 import br.com.carvalho.podcast.feature.search.presentation.SearchViewModel
 import br.com.carvalho.podcast.feature.settings.presentation.ListeningStatsViewModel
@@ -73,6 +74,8 @@ class ScreenViewModels {
     fun player(): PlayerViewModel = get()
 
     fun queue(): QueueViewModel = get()
+
+    fun transcript(): TranscriptViewModel = get()
 
     fun clear() = store.clear()
 

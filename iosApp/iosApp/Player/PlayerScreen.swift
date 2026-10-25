@@ -68,11 +68,19 @@ struct PlayerScreen: View {
         }
     }
 
-    /// What the episode has: bookmarks (19.3) and, when the feed gives them, chapters (19.1), the one playing marked.
+    /// What the episode has: bookmarks (19.3) and, when the feed gives them, a transcript (19.2) and chapters (19.1), the
+    /// one playing marked.
     private func extras(_ state: PlayerState) -> some View {
         HStack(spacing: Spacing.l) {
             Button { bookmarksOpen = true } label: {
                 Label(Res.string.shared.bookmarks.localized(), systemImage: "bookmark")
+            }
+            .labelStyle(.iconOnly)
+            if state.currentEpisode?.transcriptUrl != nil {
+                Button { model.root.onTranscriptClicked() } label: {
+                    Label(Res.string.shared.transcript.localized(), systemImage: "text.quote")
+                }
+                .labelStyle(.iconOnly)
             }
             if !state.chapters.isEmpty {
                 Menu {
