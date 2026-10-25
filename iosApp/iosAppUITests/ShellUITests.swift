@@ -31,4 +31,22 @@ final class ShellUITests: XCTestCase {
         let condition = expectation(for: NSPredicate(format: predicate), evaluatedWith: element)
         wait(for: [condition], timeout: timeout)
     }
+
+    func testSettingsOpenOverTheTabsWithTheirStats() {
+        app.launchArguments = ["-SwiftUIShell", "YES", "-AppleLanguages", "(en)"]
+        app.launch()
+        let settings = app.buttons["Settings"]
+        waitUntil("isHittable == true", settings, timeout: 30)
+
+        settings.tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Theme"].exists || app.staticTexts["Theme"].exists)
+
+        // The row reads its title and what it shows, so it is found by how its label starts.
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Listening stats'")).firstMatch.tap()
+        XCTAssertTrue(app.navigationBars["Listening stats"].waitForExistence(timeout: 5))
+        app.navigationBars["Listening stats"].buttons["Close"].tap()
+        app.navigationBars["Settings"].buttons["Close"].tap()
+        XCTAssertTrue(app.navigationBars["Library"].waitForExistence(timeout: 5))
+    }
 }

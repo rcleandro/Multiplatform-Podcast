@@ -1,7 +1,7 @@
 import Shared
 import SwiftUI
 
-// Stand-ins for the screens 25.8 writes (settings, statistics, transcript); each goes when its screen comes. They show only data and symbols,
+// Stand-ins for the screens 25.8 still writes (the transcript); each goes when its screen comes. They show only data and symbols,
 // so they need no texts of their own.
 
 struct StandIn: View {

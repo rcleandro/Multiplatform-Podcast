@@ -10,6 +10,7 @@
 		1B51C03A18F11610E3193B2E /* ShellUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AB0DCA2D0960A0F3518F1C2 /* ShellUITests.swift */; };
 		2537ECF0512397C3A6301DD1 /* EpisodesScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63EA1DAD386341B52DFE13F /* EpisodesScreenTests.swift */; };
 		2D67E58DA2F597665452B124 /* LibraryOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987145DED21AAE42C50D7789 /* LibraryOrderTests.swift */; };
+		2D70D9C85E6D192687F8EF16 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66D9AF4B550D87EEBBA99DE /* SettingsTests.swift */; };
 		3135A0EC146EA7FE746806CE /* Pods_iosAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B8DB22335F026DBBF9025F22 /* Pods_iosAppTests.framework */; };
 		32A87C21DFBA7B38CD5C3ABD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAEF60D234671F4859EAC064 /* Foundation.framework */; };
 		66F9246AF4F9F1391DF9A3BA /* TextsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABABC073E9BD082963F9F9C7 /* TextsTests.swift */; };
@@ -59,6 +60,7 @@
 		A4957A1FB86F7C156DEAEAC2 /* Pods-iosApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.debug.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.debug.xcconfig"; sourceTree = "<group>"; };
 		AAEF60D234671F4859EAC064 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		ABABC073E9BD082963F9F9C7 /* TextsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextsTests.swift; sourceTree = "<group>"; };
+		B66D9AF4B550D87EEBBA99DE /* SettingsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
 		B8DB22335F026DBBF9025F22 /* Pods_iosAppTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iosAppTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D14349915568A1B6821B266D /* BridgeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BridgeTests.swift; sourceTree = "<group>"; };
 		D2DB22A21D9C06D9E39AFF84 /* Pods-iosAppTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosAppTests.release.xcconfig"; path = "Target Support Files/Pods-iosAppTests/Pods-iosAppTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 				D63EA1DAD386341B52DFE13F /* EpisodesScreenTests.swift */,
 				2FD0BE7484182F2CB6F09E90 /* PlayerScreenTests.swift */,
 				A2121324332E263205D5AA86 /* DiscoverTests.swift */,
+				B66D9AF4B550D87EEBBA99DE /* SettingsTests.swift */,
 			);
 			name = iosAppTests;
 			path = iosAppTests;
@@ -460,6 +463,7 @@
 				2537ECF0512397C3A6301DD1 /* EpisodesScreenTests.swift in Sources */,
 				E6312FE835C43D7B32F5CE79 /* PlayerScreenTests.swift in Sources */,
 				FB0D822CBCEC4E91F18F4D2A /* DiscoverTests.swift in Sources */,
+				2D70D9C85E6D192687F8EF16 /* SettingsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.carvalho.podcast.core.di.initKoin
+import br.com.carvalho.podcast.domain.model.ThemeMode
+import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.feature.discover.presentation.DiscoverViewModel
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailViewModel
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderViewModel
@@ -14,9 +16,12 @@ import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.player.presentation.QueueViewModel
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewModel
 import br.com.carvalho.podcast.feature.search.presentation.SearchViewModel
+import br.com.carvalho.podcast.feature.settings.presentation.ListeningStatsViewModel
+import br.com.carvalho.podcast.feature.settings.presentation.SettingsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.parameter.parametersOf
@@ -45,6 +50,7 @@ internal fun <T> Flow<T>.watch(scope: CoroutineScope, onEach: (T) -> Unit): Watc
  * The view models of one SwiftUI screen, in a store of their own that Swift clears when the screen goes: the same
  * lifetime `rememberViewModelScope` gives the Compose panes (23.10). Each screen adds its view model here as it moves.
  */
+@Suppress("TooManyFunctions") // one function per view model the SwiftUI screens use
 class ScreenViewModels {
     private val store = ViewModelStore()
 
@@ -55,6 +61,10 @@ class ScreenViewModels {
     fun discover(): DiscoverViewModel = get()
 
     fun search(): SearchViewModel = get()
+
+    fun settings(): SettingsViewModel = get()
+
+    fun listeningStats(): ListeningStatsViewModel = get()
 
     fun podcast(podcastId: String): PodcastDetailViewModel = get { parametersOf(podcastId) }
 
@@ -71,3 +81,6 @@ class ScreenViewModels {
         return ViewModelProvider.create(store, factory)[VM::class]
     }
 }
+
+/** The theme chosen in Settings, which the SwiftUI shell follows (light, dark or the system's). */
+fun themeMode(): StateFlow<ThemeMode> = KoinPlatform.getKoin().get<PreferencesRepository>().themeMode

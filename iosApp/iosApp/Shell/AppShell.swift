@@ -31,6 +31,7 @@ struct AppShell: View {
 
 private struct Shell: View {
     let model: ShellModel
+    @State private var theme = Watched<ThemeMode>(SwiftBridgeKt.themeMode())
 
     var body: some View {
         TabView(selection: model.selectedTab) {
@@ -42,6 +43,7 @@ private struct Shell: View {
             }
         }
         .miniPlayer(model: model)
+        .preferredColorScheme(theme.value.colorScheme)
         .fullScreenCover(isPresented: model.isOpen(\.isPlayerOpen)) {
             PlayerScreen(model: model)
                 .sheet(isPresented: model.isOpen(\.isQueueOpen)) { QueueScreen(model: model) }
@@ -50,8 +52,8 @@ private struct Shell: View {
         .sheet(isPresented: model.isOpen(\.isOrganizingLibrary)) { LibraryOrderScreen(model: model) }
         .sheet(isPresented: model.isOpen(\.isAddingPodcast)) { DiscoverScreen(model: model) }
         .sheet(isPresented: model.isOpen(\.isShowingSettings)) {
-            StandIn(symbol: "gearshape")
-                .sheet(isPresented: model.isOpen(\.isShowingStats)) { StandIn(symbol: "chart.bar") }
+            SettingsScreen(model: model)
+                .sheet(isPresented: model.isOpen(\.isShowingStats)) { ListeningStatsScreen(model: model) }
         }
     }
 }
@@ -81,6 +83,17 @@ private extension View {
             tabViewBottomAccessory { MiniPlayerBar(model: model) }
         } else {
             safeAreaInset(edge: .bottom) { MiniPlayerBar(model: model).background(.bar) }
+        }
+    }
+}
+
+private extension ThemeMode {
+    /// Light or dark as chosen in Settings; nil follows the system.
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .light: .light
+        case .dark: .dark
+        default: nil
         }
     }
 }
