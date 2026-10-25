@@ -1,24 +1,8 @@
 import Shared
 import SwiftUI
 
-// Stand-ins for the screens 25.4 to 25.7 write; each goes when its screen comes. They show only data and symbols,
+// Stand-ins for the screens 25.8 writes (settings, statistics, transcript); each goes when its screen comes. They show only data and symbols,
 // so they need no texts of their own.
-
-struct PlayerStandIn: View {
-    let model: ShellModel
-
-    var body: some View {
-        NavigationStack {
-            StandIn(symbol: "play.circle")
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button { model.root.onBackClicked() } label: { Image(systemName: "chevron.down") }
-                            .accessibilityLabel(Res.string.shared.minimize.localized())
-                    }
-                }
-        }
-    }
-}
 
 struct StandIn: View {
     let symbol: String

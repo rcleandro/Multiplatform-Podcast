@@ -11,6 +11,7 @@ import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailViewMod
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderViewModel
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
+import br.com.carvalho.podcast.feature.player.presentation.QueueViewModel
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewModel
 import br.com.carvalho.podcast.feature.search.presentation.SearchViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -60,6 +61,8 @@ class ScreenViewModels {
     fun episode(episodeId: String): EpisodeDetailViewModel = get { parametersOf(episodeId) }
 
     fun player(): PlayerViewModel = get()
+
+    fun queue(): QueueViewModel = get()
 
     fun clear() = store.clear()
 

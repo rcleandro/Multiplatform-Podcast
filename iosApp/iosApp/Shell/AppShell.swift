@@ -36,8 +36,8 @@ private struct Shell: View {
         }
         .miniPlayer(model: model)
         .fullScreenCover(isPresented: model.isOpen(\.isPlayerOpen)) {
-            PlayerStandIn(model: model)
-                .sheet(isPresented: model.isOpen(\.isQueueOpen)) { StandIn(symbol: "list.number") }
+            PlayerScreen(model: model)
+                .sheet(isPresented: model.isOpen(\.isQueueOpen)) { QueueScreen(model: model) }
                 .sheet(isPresented: model.isOpen(\.isTranscriptOpen)) { StandIn(symbol: "text.quote") }
         }
         .sheet(isPresented: model.isOpen(\.isOrganizingLibrary)) { LibraryOrderScreen(model: model) }
