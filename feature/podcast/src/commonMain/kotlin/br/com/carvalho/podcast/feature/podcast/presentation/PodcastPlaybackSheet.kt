@@ -58,10 +58,6 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
-/** How long a jingle or the credits can be skipped; 0 skips nothing. */
-@Suppress("MagicNumber") // the choices themselves
-private val SKIP_SECONDS = listOf(0, 10, 15, 30, 45, 60, 90, 120)
-
 /** This podcast's own speed and the seconds skipped at the start and end of its episodes (18.14). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,16 +90,16 @@ fun PodcastPlaybackSheet(
             Choice(
                 title = Res.string.skip_intro,
                 description = Res.string.skip_intro_description,
-                options = SKIP_SECONDS.map { secondsLabel(it) },
-                selected = SKIP_SECONDS.indexOf(playback.skipIntroSeconds).coerceAtLeast(0),
-                onSelected = { onChange(playback.copy(skipIntroSeconds = SKIP_SECONDS[it])) },
+                options = PodcastPlayback.SKIP_CHOICES.map { secondsLabel(it) },
+                selected = PodcastPlayback.SKIP_CHOICES.indexOf(playback.skipIntroSeconds).coerceAtLeast(0),
+                onSelected = { onChange(playback.copy(skipIntroSeconds = PodcastPlayback.SKIP_CHOICES[it])) },
             )
             Choice(
                 title = Res.string.skip_outro,
                 description = Res.string.skip_outro_description,
-                options = SKIP_SECONDS.map { secondsLabel(it) },
-                selected = SKIP_SECONDS.indexOf(playback.skipOutroSeconds).coerceAtLeast(0),
-                onSelected = { onChange(playback.copy(skipOutroSeconds = SKIP_SECONDS[it])) },
+                options = PodcastPlayback.SKIP_CHOICES.map { secondsLabel(it) },
+                selected = PodcastPlayback.SKIP_CHOICES.indexOf(playback.skipOutroSeconds).coerceAtLeast(0),
+                onSelected = { onChange(playback.copy(skipOutroSeconds = PodcastPlayback.SKIP_CHOICES[it])) },
             )
             if (supportsDownloads) {
                 Choice(

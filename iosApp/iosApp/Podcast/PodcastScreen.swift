@@ -14,6 +14,7 @@ struct PodcastScreen: View {
     @State private var pages: PagedItems<Episode>
     @State private var safety = Watched<ChildSafetyState>(SwiftSafetyKt.childSafety())
     @State private var reporting: ReportTarget?
+    @State private var settingsOpen = false
 
     init(model: ShellModel, podcastId: String) {
         self.model = model
@@ -72,6 +73,9 @@ struct PodcastScreen: View {
         .messages(from: viewModel.messages)
         .episodeSelection(count: state.selection.count, onAction: { send(PodcastDetailIntentActOnSelection(action: $0)) },
                           onClose: { send(PodcastDetailIntentClearSelection.shared) })
+        .sheet(isPresented: $settingsOpen) {
+            if let podcast = state.podcast { PodcastSettingsSheet(podcast: podcast, send: send) }
+        }
         .sheet(item: $reporting) { target in
             ReportSheet(target: target) {
                 SwiftSafetyKt.hidePodcast(podcastId: podcastId)
@@ -137,6 +141,11 @@ struct PodcastScreen: View {
     @ToolbarContentBuilder
     private func toolbar(_ state: PodcastDetailUiState) -> some ToolbarContent {
         if let podcast = state.podcast {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { settingsOpen = true } label: {
+                    Label(Res.string.shared.podcast_playback.localized(), systemImage: "slider.horizontal.3")
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 // A private feed's address is never shared (22.6): the text leaves it out.
                 ShareLink(item: ShareTextKt.podcastShareText(podcast: podcast)) {
