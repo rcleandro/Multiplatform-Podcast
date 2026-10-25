@@ -203,6 +203,7 @@ kotlin {
                 implementation(libs.mockk)
                 implementation(libs.androidx.sqlite.bundled.jvm)
                 implementation(libs.koin.test)
+                implementation(libs.multiplatform.settings.test)
             }
         }
 
