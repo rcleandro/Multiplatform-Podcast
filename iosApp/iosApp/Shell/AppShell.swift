@@ -68,7 +68,7 @@ private struct TabStack<Root: View>: View {
         NavigationStack(path: model.path(tab)) {
             root()
                 .navigationDestination(for: DetailPodcast.self) { PodcastScreen(model: model, podcastId: $0.podcastId) }
-                .navigationDestination(for: DetailEpisode.self) { EpisodeScreen(episodeId: $0.episodeId) }
+                .navigationDestination(for: DetailEpisode.self) { EpisodeScreen(model: model, episodeId: $0.episodeId) }
         }
     }
 }

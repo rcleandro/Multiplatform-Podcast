@@ -12,6 +12,8 @@ struct PodcastScreen: View {
     @State private var playback: Watched<PlayerState>
     @State private var downloads: Watched<NSDictionary>
     @State private var pages: PagedItems<Episode>
+    @State private var safety = Watched<ChildSafetyState>(SwiftSafetyKt.childSafety())
+    @State private var reporting: ReportTarget?
 
     init(model: ShellModel, podcastId: String) {
         self.model = model
@@ -62,6 +64,12 @@ struct PodcastScreen: View {
         .toolbar { toolbar(state) }
         .refreshable { send(PodcastDetailIntentRefresh.shared) }
         .messages(from: viewModel.messages)
+        .sheet(item: $reporting) { target in
+            ReportSheet(target: target) {
+                SwiftSafetyKt.hidePodcast(podcastId: podcastId)
+                model.root.onBackClicked()
+            }
+        }
         .confirmationDialog(olderTitle(state.olderMark), isPresented: isShowing(state.olderMark != nil, dismiss: PodcastDetailIntentDismissMarkOlder.shared),
                             titleVisibility: .visible, presenting: state.olderMark) { mark in
             Button(Res.string.shared.mark.localized()) { send(PodcastDetailIntentConfirmMarkOlder(mark: mark)) }
@@ -118,6 +126,22 @@ struct PodcastScreen: View {
 
     @ToolbarContentBuilder
     private func toolbar(_ state: PodcastDetailUiState) -> some ToolbarContent {
+        if let podcast = state.podcast {
+            ToolbarItem(placement: .topBarTrailing) {
+                // A private feed's address is never shared (22.6): the text leaves it out.
+                ShareLink(item: ShareTextKt.podcastShareText(podcast: podcast)) {
+                    Label(Res.string.shared.share.localized(), systemImage: "square.and.arrow.up")
+                }
+            }
+            // Reporting is a duty under Brazil's ECA Digital (26.7): offered there only.
+            if safety.value.inBrazil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { reporting = ReportTarget(podcastTitle: podcast.title, feedUrl: podcast.feedUrl, episodeTitle: nil) } label: {
+                        Label(Res.string.shared.report.localized(), systemImage: "flag")
+                    }
+                }
+            }
+        }
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 Picker(Res.string.shared.library_sort.localized(), selection: Binding(

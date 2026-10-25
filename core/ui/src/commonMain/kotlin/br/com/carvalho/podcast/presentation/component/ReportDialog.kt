@@ -157,11 +157,11 @@ fun rememberReportSender(): (ReportTarget, ReportReason) -> Unit {
     }
 }
 
-internal fun reportMailto(subject: String, body: String) =
+fun reportMailto(subject: String, body: String) =
     "mailto:$REPORT_EMAIL?subject=${subject.percentEncoded()}&body=${body.percentEncoded()}"
 
 /** Only the host: no scheme, credentials, path or query, where a private feed keeps its token. */
-internal fun feedHost(feedUrl: String): String =
+fun feedHost(feedUrl: String): String =
     feedUrl.substringAfter("://").substringBefore('/').substringBefore('?').substringAfterLast('@')
 
 private const val UNRESERVED = "-._~"

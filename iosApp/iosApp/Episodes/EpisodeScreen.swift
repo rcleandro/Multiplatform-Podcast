@@ -4,11 +4,15 @@ import SwiftUI
 /// An episode's page (25.5): its cover, when it came out and how long it is, play or resume, what can be done with it,
 /// and its description, as the Compose screen does (feature/episode).
 struct EpisodeScreen: View {
+    let model: ShellModel
     let episodeId: String
     @State private var scope: ScreenScope
     @State private var state: Watched<EpisodeDetailUiState>
+    @State private var safety = Watched<ChildSafetyState>(SwiftSafetyKt.childSafety())
+    @State private var reporting: ReportTarget?
 
-    init(episodeId: String) {
+    init(model: ShellModel, episodeId: String) {
+        self.model = model
         self.episodeId = episodeId
         let scope = ScreenScope()
         _scope = State(initialValue: scope)
@@ -35,7 +39,36 @@ struct EpisodeScreen: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar { toolbar(state.episode) }
         .messages(from: viewModel.messages)
+        .sheet(item: $reporting) { target in
+            ReportSheet(target: target) {
+                SwiftSafetyKt.hideEpisode(episodeId: episodeId)
+                model.root.onBackClicked()
+            }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private func toolbar(_ episode: Episode?) -> some ToolbarContent {
+        if let episode {
+            ToolbarItem(placement: .topBarTrailing) {
+                // A private feed's audio is never shared (22.6): the text leaves it out.
+                ShareLink(item: ShareTextKt.episodeShareText(episode: episode, startsAt: nil, positionMs: nil)) {
+                    Label(Res.string.shared.share.localized(), systemImage: "square.and.arrow.up")
+                }
+            }
+            if safety.value.inBrazil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    // A library podcast's id is its feed address.
+                    Button {
+                        reporting = ReportTarget(podcastTitle: episode.podcastTitle ?? "", feedUrl: episode.podcastId, episodeTitle: episode.title)
+                    } label: {
+                        Label(Res.string.shared.report.localized(), systemImage: "flag")
+                    }
+                }
+            }
+        }
     }
 
     private static let artworkSize: CGFloat = 200
