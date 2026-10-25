@@ -11,13 +11,20 @@ struct AppShell: View {
     @State private var model: ShellModel?
 
     var body: some View {
-        if let model {
-            Shell(model: model)
-                .onChange(of: scenePhase) { _, phase in
-                    if phase != .active { saved = model.navigation.save() }
-                }
-        } else {
-            Color.clear.onAppear { model = ShellModel(saved: saved) }
+        Group {
+            if let model {
+                Shell(model: model)
+                    .onChange(of: scenePhase) { _, phase in
+                        if phase != .active { saved = model.navigation.save() }
+                    }
+            } else {
+                Color.clear.onAppear { model = ShellModel(saved: saved) }
+            }
+        }
+        // A podcast link (pcast://, podcast://, itpc://, feed://) opens in "Add podcast" (18.4).
+        .onOpenURL { url in
+            if model == nil { model = ShellModel(saved: saved) }
+            model?.root.onPodcastLink(link: url.absoluteString)
         }
     }
 }
@@ -41,7 +48,7 @@ private struct Shell: View {
                 .sheet(isPresented: model.isOpen(\.isTranscriptOpen)) { StandIn(symbol: "text.quote") }
         }
         .sheet(isPresented: model.isOpen(\.isOrganizingLibrary)) { LibraryOrderScreen(model: model) }
-        .sheet(isPresented: model.isOpen(\.isAddingPodcast)) { AddPodcastScreen(model: model) }
+        .sheet(isPresented: model.isOpen(\.isAddingPodcast)) { DiscoverScreen(model: model) }
         .sheet(isPresented: model.isOpen(\.isShowingSettings)) {
             StandIn(symbol: "gearshape")
                 .sheet(isPresented: model.isOpen(\.isShowingStats)) { StandIn(symbol: "chart.bar") }

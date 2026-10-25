@@ -35,7 +35,8 @@ struct PodcastScreen: View {
         List {
             if let podcast = state.podcast {
                 PodcastHeader(podcast: podcast, state: state, onPlay: { send(PodcastDetailIntentPlay(episode: $0)) },
-                              onRefresh: { send(PodcastDetailIntentRefresh.shared) })
+                              onRefresh: { send(PodcastDetailIntentRefresh.shared) },
+                              onSimilar: { model.root.onShowSimilar(podcastId: podcastId) })
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
             }
@@ -156,6 +157,7 @@ private struct PodcastHeader: View {
     let state: PodcastDetailUiState
     let onPlay: (Episode) -> Void
     let onRefresh: () -> Void
+    let onSimilar: () -> Void
 
     private static let artworkSize: CGFloat = 168
 
@@ -179,6 +181,10 @@ private struct PodcastHeader: View {
                 }
                 Button(action: onRefresh) {
                     Label(Res.string.shared.refresh.localized(), systemImage: "arrow.clockwise").labelStyle(.iconOnly)
+                }
+                .buttonStyle(.bordered)
+                Button(action: onSimilar) {
+                    Label(Res.string.shared.similar_button.localized(), systemImage: "safari").labelStyle(.iconOnly)
                 }
                 .buttonStyle(.bordered)
             }

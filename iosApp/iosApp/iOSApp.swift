@@ -24,8 +24,11 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                // A podcast link (pcast://, podcast://, itpc://, feed://) opens in "Add podcast" (18.4).
-                .onOpenURL { url in MainViewControllerKt.openPodcastLink(url: url.absoluteString) }
+                // A podcast link (pcast://, podcast://, itpc://, feed://) opens in "Add podcast" (18.4); the SwiftUI
+                // shell takes its own (AppShell).
+                .onOpenURL { url in
+                    if !AppShell.isOn { MainViewControllerKt.openPodcastLink(url: url.absoluteString) }
+                }
                 // Brazil's age signal (26.2): on opening and each time the app comes back to the front.
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active { Task { await AgeSignals.read() } }

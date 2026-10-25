@@ -39,14 +39,7 @@ struct LibraryScreen: View {
         if state.isLoading {
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if state.podcasts.isEmpty {
-            ContentUnavailableView {
-                Label(Res.string.shared.no_podcasts_found.localized(), systemImage: "mic")
-            } description: {
-                Text(Res.string.shared.library_empty_message.localized())
-            } actions: {
-                Button(Res.string.shared.add_podcast.localized()) { model.root.onAddPodcast() }
-                    .buttonStyle(.borderedProminent)
-            }
+            PodcastSuggestions(model: model)
         } else if state.layout == .list {
             List {
                 header(state).listRowSeparator(.hidden)
