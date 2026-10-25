@@ -8,6 +8,7 @@ plugins {
 
 // The modules the SwiftUI screens use directly (ADR 0015): view models, their states and the domain models.
 val swiftModules = listOf(
+    ":core:common",
     ":domain",
     ":core:ui",
     ":feature:library",

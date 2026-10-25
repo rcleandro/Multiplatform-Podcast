@@ -17,6 +17,7 @@
 		8597F884EE90788DF11FB411 /* BridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14349915568A1B6821B266D /* BridgeTests.swift */; };
 		87D2F96AC2FBCC7516553C1A /* Pods_iosApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 501E77425744A1AB65DACBAC /* Pods_iosApp.framework */; };
 		8AAF7DA183444DB1672D114F /* FormatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AA5042C8DC019FCF785FDB /* FormatsTests.swift */; };
+		8DAF47B342CF04474214E002 /* PodcastScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */; };
 		D75F6F17AEB128E8896ECADB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAEF60D234671F4859EAC064 /* Foundation.framework */; };
 		DC42693F9CFDB64CE3911E10 /* ThemeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */; };
 /* End PBXBuildFile section */
@@ -45,6 +46,7 @@
 		501E77425744A1AB65DACBAC /* Pods_iosApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iosApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		50AA5042C8DC019FCF785FDB /* FormatsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FormatsTests.swift; sourceTree = "<group>"; };
 		56A6E21646F3BA7538A7CA37 /* Pods-iosApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.release.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.release.xcconfig"; sourceTree = "<group>"; };
+		584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastScreenTests.swift; sourceTree = "<group>"; };
 		6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryUITests.swift; sourceTree = "<group>"; };
 		76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeTests.swift; sourceTree = "<group>"; };
 		7D9214E407EFB9669DFC0F4A /* iosAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -60,7 +62,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		E0158AC874B4CCDB95CEF7D6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		E0158AC874B4CCDB95CEF7D6 /* Exceptions for "iosApp" folder in "iosApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -73,7 +75,7 @@
 		C0A1579B4839B45556642B66 /* iosApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				E0158AC874B4CCDB95CEF7D6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				E0158AC874B4CCDB95CEF7D6 /* Exceptions for "iosApp" folder in "iosApp" target */,
 			);
 			explicitFileTypes = {
 			};
@@ -176,6 +178,7 @@
 				00AACD205A275FC81D816081 /* ShellModelTests.swift */,
 				50AA5042C8DC019FCF785FDB /* FormatsTests.swift */,
 				987145DED21AAE42C50D7789 /* LibraryOrderTests.swift */,
+				584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */,
 			);
 			name = iosAppTests;
 			path = iosAppTests;
@@ -444,6 +447,7 @@
 				78D5927E9BA607B43F8F6912 /* ShellModelTests.swift in Sources */,
 				8AAF7DA183444DB1672D114F /* FormatsTests.swift in Sources */,
 				2D67E58DA2F597665452B124 /* LibraryOrderTests.swift in Sources */,
+				8DAF47B342CF04474214E002 /* PodcastScreenTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

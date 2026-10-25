@@ -58,8 +58,8 @@ private struct TabStack<Root: View>: View {
     var body: some View {
         NavigationStack(path: model.path(tab)) {
             root()
-                .navigationDestination(for: DetailPodcast.self) { StandIn(symbol: "square.stack", detail: $0.podcastId) }
-                .navigationDestination(for: DetailEpisode.self) { StandIn(symbol: "waveform", detail: $0.episodeId) }
+                .navigationDestination(for: DetailPodcast.self) { PodcastScreen(model: model, podcastId: $0.podcastId) }
+                .navigationDestination(for: DetailEpisode.self) { EpisodeScreen(episodeId: $0.episodeId) }
         }
     }
 }

@@ -8,10 +8,14 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.carvalho.podcast.core.di.initKoin
 import br.com.carvalho.podcast.core.util.getCurrentTimestamp
+import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.feature.discover.presentation.DiscoverViewModel
+import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailViewModel
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderViewModel
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
+import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewModel
 import br.com.carvalho.podcast.presentation.format.RelativeTime
 import br.com.carvalho.podcast.presentation.format.relativeTime
 import kotlinx.coroutines.CoroutineScope
@@ -19,9 +23,12 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.core.parameter.ParametersHolder
+import org.koin.core.parameter.parametersOf
 import org.koin.mp.KoinPlatform
 
 // What the SwiftUI screens use of the shared code (ADR 0015, decision 1): hand-written, with no SKIE or
@@ -56,12 +63,16 @@ class ScreenViewModels {
 
     fun discover(): DiscoverViewModel = get()
 
+    fun podcast(podcastId: String): PodcastDetailViewModel = get { parametersOf(podcastId) }
+
+    fun episode(episodeId: String): EpisodeDetailViewModel = get { parametersOf(episodeId) }
+
     fun player(): PlayerViewModel = get()
 
     fun clear() = store.clear()
 
-    private inline fun <reified VM : ViewModel> get(): VM {
-        val factory = viewModelFactory { initializer { KoinPlatform.getKoin().get<VM>() } }
+    private inline fun <reified VM : ViewModel> get(noinline parameters: (() -> ParametersHolder)? = null): VM {
+        val factory = viewModelFactory { initializer { KoinPlatform.getKoin().get<VM>(parameters = parameters) } }
         return ViewModelProvider.create(store, factory)[VM::class]
     }
 }
@@ -75,3 +86,15 @@ fun PlayerViewModel.hasEpisode(): StateFlow<Boolean> = playerState.map { it.curr
 
 /** How long ago [timestampMs] was, now and in the device's time zone, as the Compose screens count it. */
 fun relativeTimeNow(timestampMs: Long): RelativeTime? = relativeTime(timestampMs, getCurrentTimestamp())
+
+/** The podcast's episodes a page at a time, for the SwiftUI list; one per screen, kept while its view model lives. */
+fun PodcastDetailViewModel.episodePages(): PagedItems<Episode> = PagedItems(pagedEpisodes, viewModelScope)
+
+/**
+ * What the episode rows show of the player (which episode, playing or loading), without the position that moves every
+ * 500 ms, so the podcast's list does not redraw as it plays (23.3).
+ */
+fun PodcastDetailViewModel.rowPlayback(): StateFlow<PlayerState> = playerState
+    .map { it.forRows() }
+    .distinctUntilChanged()
+    .stateIn(viewModelScope, SharingStarted.Eagerly, playerState.value.forRows())

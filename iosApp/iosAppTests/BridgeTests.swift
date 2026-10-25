@@ -33,7 +33,7 @@ final class BridgeTests: XCTestCase {
 private final class Resource: NSObject, KotlinAutoCloseable {
     private(set) var isClosed = false
 
-    func close() {
+    func close_() {
         isClosed = true
     }
 }
