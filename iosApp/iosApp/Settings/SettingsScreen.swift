@@ -3,8 +3,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 /// Settings (25.8b), as the Compose screen has them (feature/settings): appearance, the library's files, playback,
-/// downloads, content and privacy. The language is the system's per-app setting on iOS, and new episodes are not looked
-/// for in the background yet (25.11), as on the Compose app for iOS. The guardians' section comes with its own item.
+/// downloads, content and privacy, and the guardians' section in Brazil. The language is the system's per-app setting on
+/// iOS, and new episodes are not looked for in the background yet (25.11), as on the Compose app for iOS.
 struct SettingsScreen: View {
     let model: ShellModel
     @State private var scope: ScreenScope
@@ -33,6 +33,7 @@ struct SettingsScreen: View {
                 playback(state)
                 if let used = state.usedBytes { downloads(state, used: used.int64Value) }
                 content(state)
+                GuardianSection(state: state, onOpenStats: { model.root.onOpenListeningStats() }, send: send)
             }
             .navigationTitle(Res.string.shared.settings.localized())
             .navigationBarTitleDisplayMode(.inline)
@@ -61,6 +62,13 @@ struct SettingsScreen: View {
                 let saved = (try? result.get()) != nil
                 send(exporting?.kind == .backup ? SettingsIntentBackupSaved(saved: saved) : SettingsIntentOpmlSaved(saved: saved))
                 exporting = nil
+            }
+            .sheet(isPresented: Binding(
+                get: { state.guardian.pinStep != nil }, set: { if !$0 { send(GuardianIntentDismissPin.shared) } }
+            )) {
+                if let step = state.guardian.pinStep {
+                    GuardianPinSheet(step: step, error: state.guardian.pinError, waitSeconds: state.guardian.pinWaitSeconds, send: send)
+                }
             }
             .onChange(of: state.opmlToSave) { _, text in handOver(text, kind: .opml) }
             .onChange(of: state.backupToSave) { _, text in handOver(text, kind: .backup) }

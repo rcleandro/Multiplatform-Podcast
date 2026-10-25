@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1B51C03A18F11610E3193B2E /* ShellUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AB0DCA2D0960A0F3518F1C2 /* ShellUITests.swift */; };
+		1DF285879B3D27CE14E934C6 /* GuardianTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95297C1DF8F98ED4DA55B949 /* GuardianTests.swift */; };
 		2537ECF0512397C3A6301DD1 /* EpisodesScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63EA1DAD386341B52DFE13F /* EpisodesScreenTests.swift */; };
 		2D67E58DA2F597665452B124 /* LibraryOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987145DED21AAE42C50D7789 /* LibraryOrderTests.swift */; };
 		2D70D9C85E6D192687F8EF16 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66D9AF4B550D87EEBBA99DE /* SettingsTests.swift */; };
@@ -55,6 +56,7 @@
 		6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryUITests.swift; sourceTree = "<group>"; };
 		76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeTests.swift; sourceTree = "<group>"; };
 		7D9214E407EFB9669DFC0F4A /* iosAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		95297C1DF8F98ED4DA55B949 /* GuardianTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GuardianTests.swift; sourceTree = "<group>"; };
 		987145DED21AAE42C50D7789 /* LibraryOrderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryOrderTests.swift; sourceTree = "<group>"; };
 		A2121324332E263205D5AA86 /* DiscoverTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiscoverTests.swift; sourceTree = "<group>"; };
 		A4957A1FB86F7C156DEAEAC2 /* Pods-iosApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.debug.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.debug.xcconfig"; sourceTree = "<group>"; };
@@ -191,6 +193,7 @@
 				2FD0BE7484182F2CB6F09E90 /* PlayerScreenTests.swift */,
 				A2121324332E263205D5AA86 /* DiscoverTests.swift */,
 				B66D9AF4B550D87EEBBA99DE /* SettingsTests.swift */,
+				95297C1DF8F98ED4DA55B949 /* GuardianTests.swift */,
 			);
 			name = iosAppTests;
 			path = iosAppTests;
@@ -464,6 +467,7 @@
 				E6312FE835C43D7B32F5CE79 /* PlayerScreenTests.swift in Sources */,
 				FB0D822CBCEC4E91F18F4D2A /* DiscoverTests.swift in Sources */,
 				2D70D9C85E6D192687F8EF16 /* SettingsTests.swift in Sources */,
+				1DF285879B3D27CE14E934C6 /* GuardianTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
