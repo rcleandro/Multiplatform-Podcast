@@ -28,7 +28,7 @@ struct EpisodesScreen: View {
         let state = state.value
         let list = episodes.value as? [Episode] ?? []
         List {
-            filters(state.filter).listRowSeparator(.hidden)
+            filters(state).listRowSeparator(.hidden)
             listAction(state, isEmpty: list.isEmpty).listRowSeparator(.hidden)
             ForEach(sections(list, filter: state.filter), id: \.group) { section in
                 Section {
@@ -52,6 +52,13 @@ struct EpisodesScreen: View {
         }
         .listStyle(.plain)
         .overlay { if list.isEmpty { empty(state) } }
+        .sheet(isPresented: isShowing(state.editingPlaylist != nil, dismiss: SearchIntentDismissPlaylistEditor.shared)) {
+            if let playlist = state.editingPlaylist {
+                SmartPlaylistEditor(playlist: playlist, onSave: { send(SearchIntentSavePlaylist(playlist: $0)) },
+                                    onDelete: { send(SearchIntentDeletePlaylist(playlist: $0)) },
+                                    onDismiss: { send(SearchIntentDismissPlaylistEditor.shared) })
+            }
+        }
         .navigationTitle(Res.string.shared.episodes_tab.localized())
         // Always shown: by default it hides until the list is pulled down, and an empty list cannot be pulled.
         .searchable(text: Binding(get: { state.searchQuery }, set: { send(SearchIntentChangeQuery(query: $0)) }),
@@ -87,20 +94,43 @@ struct EpisodesScreen: View {
         }
     }
 
-    private func filters(_ selected: EpisodeListFilter) -> some View {
+    /// The fixed filters, then the smart playlists (19.4), then "New playlist", which opens the editor.
+    private func filters(_ state: SearchUiState) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Spacing.s) {
                 ForEach(EpisodeListFilter.entries, id: \.self) { filter in
-                    Chip(label: filter.label, isOn: filter == selected) { send(SearchIntentChangeFilter(filter: filter)) }
+                    Chip(label: filter.label, isOn: state.playlist == nil && filter == state.filter) {
+                        send(SearchIntentChangeFilter(filter: filter))
+                    }
+                }
+                ForEach(state.playlists, id: \.id) { playlist in
+                    Chip(label: playlist.name, isOn: playlist.id == state.playlist?.id) { send(SearchIntentSelectPlaylist(playlist: playlist)) }
+                }
+                Chip(label: "+ " + Res.string.shared.smart_playlist_new.localized(), isOn: false) {
+                    send(SearchIntentEditPlaylist(playlist: nil))
                 }
             }
         }
     }
 
-    /// "Dismiss all" above New, "Clear history" above History, and the space the downloads take above Downloaded.
+    /// "Edit" and "Play all" above a smart playlist; "Dismiss all" above New, "Clear history" above History, and the
+    /// space the downloads take above Downloaded.
     @ViewBuilder
     private func listAction(_ state: SearchUiState, isEmpty: Bool) -> some View {
-        if !isEmpty {
+        if let playlist = state.playlist {
+            if !isEmpty {
+                HStack {
+                    Button { send(SearchIntentEditPlaylist(playlist: playlist)) } label: {
+                        Label(Res.string.shared.smart_playlist_edit.localized(), systemImage: "pencil")
+                    }
+                    Spacer()
+                    Button { send(SearchIntentPlayPlaylist.shared) } label: {
+                        Label(Res.string.shared.smart_playlist_play_all.localized(), systemImage: "play.circle")
+                    }
+                }
+                .buttonStyle(.borderless)
+            }
+        } else if !isEmpty {
             switch state.filter {
             case .theNew:
                 Button(Res.string.shared.dismiss_all_new.localized()) { send(SearchIntentDismissNew(episode: nil)) }
@@ -149,8 +179,18 @@ struct EpisodesScreen: View {
 
     @ViewBuilder
     private func empty(_ state: SearchUiState) -> some View {
-        let (title, message, symbol) = EpisodesEmpty.of(filter: state.filter, searching: !state.searchQuery.isEmpty)
-        ContentUnavailableView(title.localized(), systemImage: symbol, description: Text(message.localized()))
+        if let playlist = state.playlist {
+            ContentUnavailableView {
+                Label(Res.string.shared.smart_playlist_empty_title.localized(), systemImage: "music.note.list")
+            } description: {
+                Text(Res.string.shared.smart_playlist_empty_message.localized())
+            } actions: {
+                Button(Res.string.shared.smart_playlist_edit.localized()) { send(SearchIntentEditPlaylist(playlist: playlist)) }
+            }
+        } else {
+            let (title, message, symbol) = EpisodesEmpty.of(filter: state.filter, searching: !state.searchQuery.isEmpty)
+            ContentUnavailableView(title.localized(), systemImage: symbol, description: Text(message.localized()))
+        }
     }
 
     private func olderTitle(_ mark: OlderMark?) -> String {

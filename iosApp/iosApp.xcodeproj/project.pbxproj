@@ -23,6 +23,7 @@
 		8AAF7DA183444DB1672D114F /* FormatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AA5042C8DC019FCF785FDB /* FormatsTests.swift */; };
 		8DAF47B342CF04474214E002 /* PodcastScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */; };
 		D75F6F17AEB128E8896ECADB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAEF60D234671F4859EAC064 /* Foundation.framework */; };
+		D83FA92E4AB831BFEA1B1B07 /* SmartPlaylistTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0564BD14D8500270D84FEB /* SmartPlaylistTests.swift */; };
 		DC42693F9CFDB64CE3911E10 /* ThemeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */; };
 		E6312FE835C43D7B32F5CE79 /* PlayerScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD0BE7484182F2CB6F09E90 /* PlayerScreenTests.swift */; };
 		F4DEEFA187133AF1DD3FCD7F /* EpisodeSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31CB08EEDC82AA9865A0D939 /* EpisodeSelectionTests.swift */; };
@@ -57,6 +58,7 @@
 		5225D5CCB2190D6EC7F45F77 /* ReportTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReportTests.swift; sourceTree = "<group>"; };
 		56A6E21646F3BA7538A7CA37 /* Pods-iosApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.release.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.release.xcconfig"; sourceTree = "<group>"; };
 		584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastScreenTests.swift; sourceTree = "<group>"; };
+		5C0564BD14D8500270D84FEB /* SmartPlaylistTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SmartPlaylistTests.swift; sourceTree = "<group>"; };
 		6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryUITests.swift; sourceTree = "<group>"; };
 		76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeTests.swift; sourceTree = "<group>"; };
 		7D9214E407EFB9669DFC0F4A /* iosAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -200,6 +202,7 @@
 				95297C1DF8F98ED4DA55B949 /* GuardianTests.swift */,
 				5225D5CCB2190D6EC7F45F77 /* ReportTests.swift */,
 				31CB08EEDC82AA9865A0D939 /* EpisodeSelectionTests.swift */,
+				5C0564BD14D8500270D84FEB /* SmartPlaylistTests.swift */,
 			);
 			name = iosAppTests;
 			path = iosAppTests;
@@ -476,6 +479,7 @@
 				1DF285879B3D27CE14E934C6 /* GuardianTests.swift in Sources */,
 				726E74887FDF3C1403D5537D /* ReportTests.swift in Sources */,
 				F4DEEFA187133AF1DD3FCD7F /* EpisodeSelectionTests.swift in Sources */,
+				D83FA92E4AB831BFEA1B1B07 /* SmartPlaylistTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
