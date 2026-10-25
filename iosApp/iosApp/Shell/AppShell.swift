@@ -31,7 +31,7 @@ private struct Shell: View {
                 TabStack(model: model, tab: .library) { LibraryScreen(model: model) }
             }
             SwiftUI.Tab(Res.string.shared.episodes_tab.localized(), systemImage: "list.bullet.rectangle.portrait", value: Shared.Tab.episodes) {
-                TabStack(model: model, tab: .episodes) { EpisodesStandIn() }
+                TabStack(model: model, tab: .episodes) { EpisodesScreen(model: model) }
             }
         }
         .miniPlayer(model: model)

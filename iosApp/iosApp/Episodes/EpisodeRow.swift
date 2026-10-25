@@ -29,6 +29,8 @@ struct EpisodeActions {
     var download: (() -> Void)?
     var cancelDownload: (() -> Void)?
     var deleteDownload: (() -> Void)?
+    var dismissNew: (() -> Void)?
+    var goToPodcast: (() -> Void)?
 }
 
 /// An episode in a list: "Trailer · 2 days ago · 45min" under its title, how much was heard, the play button, and the
@@ -107,6 +109,8 @@ struct EpisodeMenu: View {
         item(Res.string.shared.mark_as_unplayed, "circle", actions.markUnplayed)
         item(Res.string.shared.mark_older_as_played, "checkmark.circle.badge.questionmark", actions.markOlderPlayed)
         item(Res.string.shared.mark_older_as_unplayed, "circle.dashed", actions.markOlderUnplayed)
+        item(Res.string.shared.dismiss_new, "tray.and.arrow.down", actions.dismissNew)
+        item(Res.string.shared.go_to_podcast, "square.stack", actions.goToPodcast)
         Divider()
         switch download {
         case .idle: item(Res.string.shared.download_cd, "arrow.down.circle", actions.download)

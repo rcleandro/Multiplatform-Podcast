@@ -98,25 +98,12 @@ struct CategoryChips: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Spacing.s) {
-                chip(Res.string.shared.category_all.localized(), isOn: selected == nil) { onSelect(nil) }
+                Chip(label: Res.string.shared.category_all.localized(), isOn: selected == nil) { onSelect(nil) }
                 ForEach(categories, id: \.self) { category in
-                    chip(category.localized(), isOn: selected == category) { onSelect(category) }
+                    Chip(label: category.localized(), isOn: selected == category) { onSelect(category) }
                 }
             }
         }
-    }
-
-    private func chip(_ label: String, isOn: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label).textStyle(Typography.labelLarge)
-                .padding(.horizontal, Spacing.m)
-                .padding(.vertical, Spacing.s)
-                .foregroundStyle(isOn ? Color(.Theme.onSecondaryContainer) : Color(.Theme.onSurfaceVariant))
-                .background(isOn ? Color(.Theme.secondaryContainer) : .clear, in: Capsule())
-                .overlay(Capsule().stroke(isOn ? .clear : Color(.Theme.outlineVariant)))
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 

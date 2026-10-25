@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1B51C03A18F11610E3193B2E /* ShellUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AB0DCA2D0960A0F3518F1C2 /* ShellUITests.swift */; };
+		2537ECF0512397C3A6301DD1 /* EpisodesScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63EA1DAD386341B52DFE13F /* EpisodesScreenTests.swift */; };
 		2D67E58DA2F597665452B124 /* LibraryOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987145DED21AAE42C50D7789 /* LibraryOrderTests.swift */; };
 		3135A0EC146EA7FE746806CE /* Pods_iosAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B8DB22335F026DBBF9025F22 /* Pods_iosAppTests.framework */; };
 		32A87C21DFBA7B38CD5C3ABD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAEF60D234671F4859EAC064 /* Foundation.framework */; };
@@ -57,6 +58,7 @@
 		B8DB22335F026DBBF9025F22 /* Pods_iosAppTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iosAppTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D14349915568A1B6821B266D /* BridgeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BridgeTests.swift; sourceTree = "<group>"; };
 		D2DB22A21D9C06D9E39AFF84 /* Pods-iosAppTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosAppTests.release.xcconfig"; path = "Target Support Files/Pods-iosAppTests/Pods-iosAppTests.release.xcconfig"; sourceTree = "<group>"; };
+		D63EA1DAD386341B52DFE13F /* EpisodesScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EpisodesScreenTests.swift; sourceTree = "<group>"; };
 		ED33727B91608EA0B83487FA /* iosAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F08919C83DC14C0C38A6DBCF /* Podcast.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Podcast.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -179,6 +181,7 @@
 				50AA5042C8DC019FCF785FDB /* FormatsTests.swift */,
 				987145DED21AAE42C50D7789 /* LibraryOrderTests.swift */,
 				584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */,
+				D63EA1DAD386341B52DFE13F /* EpisodesScreenTests.swift */,
 			);
 			name = iosAppTests;
 			path = iosAppTests;
@@ -448,6 +451,7 @@
 				8AAF7DA183444DB1672D114F /* FormatsTests.swift in Sources */,
 				2D67E58DA2F597665452B124 /* LibraryOrderTests.swift in Sources */,
 				8DAF47B342CF04474214E002 /* PodcastScreenTests.swift in Sources */,
+				2537ECF0512397C3A6301DD1 /* EpisodesScreenTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

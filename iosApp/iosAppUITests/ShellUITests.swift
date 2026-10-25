@@ -18,6 +18,9 @@ final class ShellUITests: XCTestCase {
         episodes.tap()
         waitUntil("isSelected == true", episodes)
         XCTAssertTrue(app.navigationBars["Episodes"].exists)
+        // The Episodes tab is the SwiftUI screen now: its search field and its filters.
+        XCTAssertTrue(app.searchFields.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["New"].exists)
 
         library.tap()
         waitUntil("isSelected == true", library)

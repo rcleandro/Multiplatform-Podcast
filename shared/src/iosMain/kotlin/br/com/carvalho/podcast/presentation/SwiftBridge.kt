@@ -3,29 +3,19 @@ package br.com.carvalho.podcast.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.carvalho.podcast.core.di.initKoin
-import br.com.carvalho.podcast.core.util.getCurrentTimestamp
-import br.com.carvalho.podcast.domain.model.Episode
-import br.com.carvalho.podcast.domain.model.PlayerState
 import br.com.carvalho.podcast.feature.discover.presentation.DiscoverViewModel
 import br.com.carvalho.podcast.feature.episode.presentation.EpisodeDetailViewModel
 import br.com.carvalho.podcast.feature.library.presentation.LibraryOrderViewModel
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import br.com.carvalho.podcast.feature.podcast.presentation.PodcastDetailViewModel
-import br.com.carvalho.podcast.presentation.format.RelativeTime
-import br.com.carvalho.podcast.presentation.format.relativeTime
+import br.com.carvalho.podcast.feature.search.presentation.SearchViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.parameter.parametersOf
@@ -63,6 +53,8 @@ class ScreenViewModels {
 
     fun discover(): DiscoverViewModel = get()
 
+    fun search(): SearchViewModel = get()
+
     fun podcast(podcastId: String): PodcastDetailViewModel = get { parametersOf(podcastId) }
 
     fun episode(episodeId: String): EpisodeDetailViewModel = get { parametersOf(episodeId) }
@@ -76,25 +68,3 @@ class ScreenViewModels {
         return ViewModelProvider.create(store, factory)[VM::class]
     }
 }
-
-/**
- * Whether an episode is in the player, for the shell to show the mini player. It changes only when that does, while
- * the player's state moves every 500 ms as it plays (23.2), so the shell does not redraw with the position.
- */
-fun PlayerViewModel.hasEpisode(): StateFlow<Boolean> = playerState.map { it.currentEpisode != null }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, playerState.value.currentEpisode != null)
-
-/** How long ago [timestampMs] was, now and in the device's time zone, as the Compose screens count it. */
-fun relativeTimeNow(timestampMs: Long): RelativeTime? = relativeTime(timestampMs, getCurrentTimestamp())
-
-/** The podcast's episodes a page at a time, for the SwiftUI list; one per screen, kept while its view model lives. */
-fun PodcastDetailViewModel.episodePages(): PagedItems<Episode> = PagedItems(pagedEpisodes, viewModelScope)
-
-/**
- * What the episode rows show of the player (which episode, playing or loading), without the position that moves every
- * 500 ms, so the podcast's list does not redraw as it plays (23.3).
- */
-fun PodcastDetailViewModel.rowPlayback(): StateFlow<PlayerState> = playerState
-    .map { it.forRows() }
-    .distinctUntilChanged()
-    .stateIn(viewModelScope, SharingStarted.Eagerly, playerState.value.forRows())

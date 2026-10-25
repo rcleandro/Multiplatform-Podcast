@@ -24,7 +24,7 @@ extension RelativeTime {
 
 /// How long ago [timestamp] (epoch ms) was, or nil when the feed gave no date.
 func relativeTime(_ timestamp: Int64) -> String? {
-    SwiftBridgeKt.relativeTimeNow(timestampMs: timestamp)?.localized()
+    SwiftListsKt.relativeTimeNow(timestampMs: timestamp)?.localized()
 }
 
 extension PodcastCategory {
