@@ -2,12 +2,14 @@ import Shared
 import SwiftUI
 
 /// The full-screen player (25.7): cover, a progress bar to drag, the skips Settings chose, previous and next, speed,
-/// sleep timer and the queue, as the Compose screen does (feature/player). The system's Now Playing stays as it is.
+/// sleep timer and the queue, as the Compose screen does (feature/player); bookmarks, chapters and sharing from the
+/// moment (25.8e). The system's Now Playing stays as it is.
 struct PlayerScreen: View {
     let model: ShellModel
     @State private var player: Watched<PlayerState>
     /// Where the thumb is while it is dragged; the player only seeks when it is let go.
     @State private var dragged: Double?
+    @State private var bookmarksOpen = false
 
     init(model: ShellModel) {
         self.model = model
@@ -32,6 +34,7 @@ struct PlayerScreen: View {
                     progress(state)
                     controls(state)
                     options(state)
+                    extras(state)
                 } else {
                     ContentUnavailableView(Res.string.shared.no_episode_selected.localized(), systemImage: "play.circle")
                 }
@@ -44,12 +47,50 @@ struct PlayerScreen: View {
                     Button { model.root.onBackClicked() } label: { Image(systemName: "chevron.down") }
                         .accessibilityLabel(Res.string.shared.minimize.localized())
                 }
+                if let episode = state.currentEpisode {
+                    ToolbarItem(placement: .topBarTrailing) { share(episode, at: state.position) }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { model.root.onQueueClicked() } label: { Image(systemName: "list.bullet") }
                         .accessibilityLabel(Res.string.shared.queue.localized())
                 }
             }
+            .sheet(isPresented: $bookmarksOpen) {
+                BookmarksSheet(viewModel: model.app.viewModels.player(), positionMs: state.position)
+            }
         }
+    }
+
+    /// The episode from the moment it is at (18.4); a private feed's audio is never shared (22.6).
+    private func share(_ episode: Episode, at position: Int64) -> some View {
+        ShareLink(item: momentShareText(episode, at: position)) {
+            Label(Res.string.shared.share.localized(), systemImage: "square.and.arrow.up")
+        }
+    }
+
+    /// What the episode has: bookmarks (19.3) and, when the feed gives them, chapters (19.1), the one playing marked.
+    private func extras(_ state: PlayerState) -> some View {
+        HStack(spacing: Spacing.l) {
+            Button { bookmarksOpen = true } label: {
+                Label(Res.string.shared.bookmarks.localized(), systemImage: "bookmark")
+            }
+            if !state.chapters.isEmpty {
+                Menu {
+                    Picker(Res.string.shared.chapters.localized(), selection: Binding(
+                        get: { state.currentChapter?.startMs }, set: { if let start = $0 { send(PlayerIntentSeekTo(positionMs: start)) } }
+                    )) {
+                        ForEach(state.chapters, id: \.startMs) { chapter in
+                            Text("\(LongExtensionsKt.toTime(chapter.startMs))  \(chapterLabel(chapter))").tag(Optional(chapter.startMs))
+                        }
+                    }
+                } label: {
+                    Label(state.currentChapter.map(chapterLabel) ?? Res.string.shared.chapters.localized(), systemImage: "list.bullet.indent")
+                        .lineLimit(1)
+                }
+                .accessibilityLabel(Res.string.shared.chapters.localized())
+            }
+        }
+        .buttonStyle(.bordered)
     }
 
     private func progress(_ state: PlayerState) -> some View {
@@ -145,6 +186,12 @@ struct PlayerScreen: View {
     private func send(_ intent: any PlayerIntent) {
         model.app.viewModels.player().onIntent(intent: intent)
     }
+}
+
+/// The episode's share text from [position], by the same builder as the Compose player.
+func momentShareText(_ episode: Episode, at position: Int64, bundle: Bundle = .main) -> String {
+    let startsAt = Res.string.shared.share_from_time.localized([LongExtensionsKt.toTime(position)], bundle: bundle)
+    return ShareTextKt.episodeShareText(episode: episode, startsAt: startsAt, positionMs: KotlinLong(value: position))
 }
 
 /// The sleep timer's choices, as the Compose dialog lists them (18.15).

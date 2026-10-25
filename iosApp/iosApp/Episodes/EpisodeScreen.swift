@@ -96,6 +96,14 @@ struct EpisodeScreen: View {
                 .disabled(state.isBuffering)
                 actions(episode, state)
                 VStack(alignment: .leading, spacing: Spacing.s) {
+                    // The episode's bookmarks (19.3): a tap plays from one.
+                    if !state.bookmarks.isEmpty {
+                        SectionTitle(Res.string.shared.bookmarks.localized())
+                        ForEach(state.bookmarks, id: \.id) { bookmark in
+                            BookmarkRow(bookmark: bookmark, onSelect: { send(EpisodeDetailIntentPlayBookmark(bookmark: bookmark)) },
+                                        onDelete: { send(EpisodeDetailIntentDeleteBookmark(bookmark: bookmark)) })
+                        }
+                    }
                     SectionTitle(Res.string.shared.description_.localized())
                     HtmlText(html: episode.description_ ?? Res.string.shared.no_description.localized(), collapsedLines: .max)
                 }

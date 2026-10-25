@@ -19,6 +19,7 @@
 		6C280D08569D4776889B4BFE /* LibraryUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */; };
 		726E74887FDF3C1403D5537D /* ReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5225D5CCB2190D6EC7F45F77 /* ReportTests.swift */; };
 		78D5927E9BA607B43F8F6912 /* ShellModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AACD205A275FC81D816081 /* ShellModelTests.swift */; };
+		793E2AA77EB32FD03B428CFC /* PlayerExtrasTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7375F701B2C7E4BF6A79800F /* PlayerExtrasTests.swift */; };
 		8597F884EE90788DF11FB411 /* BridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14349915568A1B6821B266D /* BridgeTests.swift */; };
 		87D2F96AC2FBCC7516553C1A /* Pods_iosApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 501E77425744A1AB65DACBAC /* Pods_iosApp.framework */; };
 		8AAF7DA183444DB1672D114F /* FormatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AA5042C8DC019FCF785FDB /* FormatsTests.swift */; };
@@ -61,6 +62,7 @@
 		584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastScreenTests.swift; sourceTree = "<group>"; };
 		5C0564BD14D8500270D84FEB /* SmartPlaylistTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SmartPlaylistTests.swift; sourceTree = "<group>"; };
 		6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryUITests.swift; sourceTree = "<group>"; };
+		7375F701B2C7E4BF6A79800F /* PlayerExtrasTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerExtrasTests.swift; sourceTree = "<group>"; };
 		76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeTests.swift; sourceTree = "<group>"; };
 		7D9214E407EFB9669DFC0F4A /* iosAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		95297C1DF8F98ED4DA55B949 /* GuardianTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GuardianTests.swift; sourceTree = "<group>"; };
@@ -206,6 +208,7 @@
 				31CB08EEDC82AA9865A0D939 /* EpisodeSelectionTests.swift */,
 				5C0564BD14D8500270D84FEB /* SmartPlaylistTests.swift */,
 				E925038E1B31F6754017FBA3 /* PodcastSettingsTests.swift */,
+				7375F701B2C7E4BF6A79800F /* PlayerExtrasTests.swift */,
 			);
 			name = iosAppTests;
 			path = iosAppTests;
@@ -484,6 +487,7 @@
 				F4DEEFA187133AF1DD3FCD7F /* EpisodeSelectionTests.swift in Sources */,
 				D83FA92E4AB831BFEA1B1B07 /* SmartPlaylistTests.swift in Sources */,
 				5E31CBCBF619229BBCF7ADC5 /* PodcastSettingsTests.swift in Sources */,
+				793E2AA77EB32FD03B428CFC /* PlayerExtrasTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
