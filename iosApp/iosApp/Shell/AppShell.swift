@@ -28,7 +28,7 @@ private struct Shell: View {
     var body: some View {
         TabView(selection: model.selectedTab) {
             SwiftUI.Tab(Res.string.shared.library_title.localized(), systemImage: "play.square.stack", value: Shared.Tab.library) {
-                TabStack(model: model, tab: .library) { LibraryStandIn(model: model) }
+                TabStack(model: model, tab: .library) { LibraryScreen(model: model) }
             }
             SwiftUI.Tab(Res.string.shared.episodes_tab.localized(), systemImage: "list.bullet.rectangle.portrait", value: Shared.Tab.episodes) {
                 TabStack(model: model, tab: .episodes) { EpisodesStandIn() }

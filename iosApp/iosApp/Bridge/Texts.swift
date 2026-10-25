@@ -23,11 +23,13 @@ extension UiMessage {
     }
 }
 
-/// Kotlin numbers arrive boxed and `%lld` needs the number itself; anything else goes in as its text for `%@`.
+/// Kotlin numbers arrive boxed and `%lld` needs the number itself; anything else goes in as its text for `%@`. No
+/// locale: with one, numbers get a thousands separator ("2.026" for a year in Portuguese), which the Compose screens
+/// never write; the plural form still comes from the catalog's own language.
 private func format(_ format: String, _ args: [Any]) -> String {
     guard !args.isEmpty else { return format }
     let values: [CVarArg] = args.map { arg in
         if let number = arg as? NSNumber { number.int64Value } else { "\(arg)" as NSString }
     }
-    return String(format: format, locale: .current, arguments: values)
+    return String(format: format, arguments: values)
 }

@@ -7,8 +7,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.carvalho.podcast.core.di.initKoin
+import br.com.carvalho.podcast.core.util.getCurrentTimestamp
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
 import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
+import br.com.carvalho.podcast.presentation.format.RelativeTime
+import br.com.carvalho.podcast.presentation.format.relativeTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
@@ -63,3 +66,6 @@ class ScreenViewModels {
  */
 fun PlayerViewModel.hasEpisode(): StateFlow<Boolean> = playerState.map { it.currentEpisode != null }
     .stateIn(viewModelScope, SharingStarted.Eagerly, playerState.value.currentEpisode != null)
+
+/** How long ago [timestampMs] was, now and in the device's time zone, as the Compose screens count it. */
+fun relativeTimeNow(timestampMs: Long): RelativeTime? = relativeTime(timestampMs, getCurrentTimestamp())
