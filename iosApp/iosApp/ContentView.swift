@@ -12,8 +12,12 @@ struct ComposeView: UIViewControllerRepresentable {
 
 struct ContentView: View {
     var body: some View {
-        ComposeView()
-            .ignoresSafeArea()
+        if AppShell.isOn {
+            AppShell()
+        } else {
+            ComposeView()
+                .ignoresSafeArea()
+        }
     }
 }
 

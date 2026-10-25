@@ -3,13 +3,19 @@ package br.com.carvalho.podcast.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.carvalho.podcast.core.di.initKoin
 import br.com.carvalho.podcast.feature.library.presentation.LibraryViewModel
+import br.com.carvalho.podcast.feature.player.presentation.PlayerViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.mp.KoinPlatform
 
@@ -41,6 +47,8 @@ class ScreenViewModels {
 
     fun library(): LibraryViewModel = get()
 
+    fun player(): PlayerViewModel = get()
+
     fun clear() = store.clear()
 
     private inline fun <reified VM : ViewModel> get(): VM {
@@ -48,3 +56,10 @@ class ScreenViewModels {
         return ViewModelProvider.create(store, factory)[VM::class]
     }
 }
+
+/**
+ * Whether an episode is in the player, for the shell to show the mini player. It changes only when that does, while
+ * the player's state moves every 500 ms as it plays (23.2), so the shell does not redraw with the position.
+ */
+fun PlayerViewModel.hasEpisode(): StateFlow<Boolean> = playerState.map { it.currentEpisode != null }
+    .stateIn(viewModelScope, SharingStarted.Eagerly, playerState.value.currentEpisode != null)
