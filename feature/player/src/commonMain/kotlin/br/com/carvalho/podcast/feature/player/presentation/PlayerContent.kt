@@ -191,7 +191,7 @@ internal fun PlayerInfoAndControls(state: PlayerState, actions: PlayerActions, s
 private const val MS_PER_SECOND = 1000L
 
 /** The player's duration once the audio loads; until then, the one the feed gave (seconds). 0 when neither knows. */
-private fun PlayerState.knownDurationMs(): Long =
+fun PlayerState.knownDurationMs(): Long =
     duration?.takeIf { it > 0 } ?: ((currentEpisode?.duration ?: 0L) * MS_PER_SECOND)
 
 /** The cover, or the video in its place when the episode has one and the platform shows it (19.10). */

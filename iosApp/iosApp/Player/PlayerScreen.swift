@@ -102,7 +102,8 @@ struct PlayerScreen: View {
     }
 
     private func progress(_ state: PlayerState) -> some View {
-        let duration = Double(state.duration?.int64Value ?? 0)
+        // The feed's length until the audio loads, as the Compose player does.
+        let duration = Double(state.knownDurationMs())
         let position = dragged ?? Double(state.position)
         return VStack(spacing: Spacing.xs) {
             Slider(value: Binding(get: { position }, set: { dragged = $0 }), in: 0...max(duration, 1)) { editing in
