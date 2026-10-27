@@ -36,7 +36,8 @@ private const val MILLIS = 1000
 @OptIn(ExperimentalForeignApi::class)
 @Suppress("TooManyFunctions") // the PlatformPlayer interface plus the AVPlayer and remote command plumbing
 class IosPlatformPlayer : PlatformPlayer {
-    private val player = AVPlayer()
+    /** Also drawn by the SwiftUI player, in an `AVPlayerLayer`, for a video episode (ADR 0010). */
+    val player = AVPlayer()
     private var episode: Episode? = null
     private var chapter: String? = null
     private var speed = 1f

@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The full-screen player (25.7): cover, a progress bar to drag, the skips Settings chose, previous and next, speed,
 /// sleep timer and the queue, as the Compose screen does (feature/player); bookmarks, chapters and sharing from the
-/// moment (25.8e). The system's Now Playing stays as it is.
+/// moment, the transcript and a video episode's picture (25.8e). The system's Now Playing stays as it is.
 struct PlayerScreen: View {
     let model: ShellModel
     @State private var player: Watched<PlayerState>
@@ -17,14 +17,23 @@ struct PlayerScreen: View {
     }
 
     private static let artworkSize: CGFloat = 280
+    private static let videoAspectRatio: CGFloat = 16 / 9
 
     var body: some View {
         let state = player.value
         NavigationStack {
             VStack(spacing: Spacing.l) {
                 if let episode = state.currentEpisode {
-                    Artwork(url: episode.imageUrl, size: Self.artworkSize, radius: Radius.extraLarge)
-                        .frame(maxWidth: Self.artworkSize)
+                    if episode.isVideo {
+                        // The video takes the cover's place, as in the Compose player (ADR 0010).
+                        VideoView()
+                            .aspectRatio(Self.videoAspectRatio, contentMode: .fit)
+                            .background(.black)
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.extraLarge))
+                    } else {
+                        Artwork(url: episode.imageUrl, size: Self.artworkSize, radius: Radius.extraLarge)
+                            .frame(maxWidth: Self.artworkSize)
+                    }
                     VStack(spacing: Spacing.xs) {
                         Text(episode.title).textStyle(Typography.titleLarge).multilineTextAlignment(.center).lineLimit(3)
                         if let podcast = episode.podcastTitle {
