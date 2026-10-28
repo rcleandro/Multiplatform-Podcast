@@ -18,7 +18,7 @@ struct MiniPlayerBar: View {
             VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(state.currentEpisode?.title ?? "").textStyle(Typography.titleMedium).lineLimit(1)
                 Text(state.currentEpisode?.podcastTitle ?? "").textStyle(Typography.bodyMedium).lineLimit(1)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color(.Theme.onSurfaceVariant))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Button {

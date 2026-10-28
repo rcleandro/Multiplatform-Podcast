@@ -21,8 +21,8 @@ struct PodcastSuggestions: View {
             VStack(alignment: .leading, spacing: Spacing.s) {
                 Text(Res.string.shared.suggestions_title.localized()).textStyle(Typography.titleLarge)
                     .accessibilityAddTraits(.isHeader)
-                Text(Res.string.shared.suggestions_message.localized()).textStyle(Typography.bodyMedium).foregroundStyle(.secondary)
-                Button(Res.string.shared.add_podcast.localized()) { model.root.onAddPodcast() }.buttonStyle(.bordered)
+                Text(Res.string.shared.suggestions_message.localized()).textStyle(Typography.bodyMedium).foregroundStyle(Color(.Theme.onSurfaceVariant))
+                Button(Res.string.shared.add_podcast.localized()) { model.root.onAddPodcast() }.buttonStyle(.borderedProminent)
             }
             .listRowSeparator(.hidden)
             DirectoryCategories(selected: state.category) { send(DiscoverIntentSelectCategory(category: $0)) }

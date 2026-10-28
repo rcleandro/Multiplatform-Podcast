@@ -22,7 +22,7 @@ struct GuardianSection: View {
                     unlocked(guardian.controls)
                 }
             } header: {
-                Text(Res.string.shared.guardian_title.localized())
+                Text.header(Res.string.shared.guardian_title.localized())
             } footer: {
                 VStack(alignment: .leading, spacing: Spacing.s) {
                     if state.isMinor { Text(Res.string.shared.guardian_notice.localized()) }
@@ -75,7 +75,7 @@ private struct GuardianRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xxs) {
             Text(title.localized()).foregroundStyle(Color.primary)
-            Text(detail.localized()).textStyle(Typography.bodySmall).foregroundStyle(.secondary)
+            Text(detail.localized()).textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant))
         }
     }
 }

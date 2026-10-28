@@ -17,10 +17,10 @@ struct DirectoryRow: View {
                     if podcast.explicit_ { ExplicitMark() }
                 }
                 if let author = podcast.author {
-                    Text(author).textStyle(Typography.bodyMedium).foregroundStyle(.secondary).lineLimit(1)
+                    Text(author).textStyle(Typography.bodyMedium).foregroundStyle(Color(.Theme.onSurfaceVariant)).lineLimit(1)
                 }
                 if let details {
-                    Text(details).textStyle(Typography.bodySmall).foregroundStyle(.secondary)
+                    Text(details).textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -121,7 +121,7 @@ struct DirectoryResults: View {
         if let similar = state.similar {
             SectionTitle(Res.string.shared.similar_to.localized([similar.title]))
             if similar.results.isEmpty {
-                Text(Res.string.shared.similar_none.localized()).textStyle(Typography.bodyMedium).foregroundStyle(.secondary)
+                Text(Res.string.shared.similar_none.localized()).textStyle(Typography.bodyMedium).foregroundStyle(Color(.Theme.onSurfaceVariant))
             }
             ForEach(similar.results, id: \.podcast.feedUrl) { row($0) }
         } else if state.category == nil && !state.forYou.isEmpty {

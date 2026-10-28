@@ -17,7 +17,7 @@ struct PodcastCard: View {
                 if podcast.explicit_ { ExplicitMark() }
             }
             if let author = podcast.author {
-                Text(author).textStyle(Typography.bodySmall).foregroundStyle(.secondary).lineLimit(1)
+                Text(author).textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant)).lineLimit(1)
             }
         }
         .accessibilityElement(children: .combine)
@@ -38,10 +38,10 @@ struct PodcastRow: View {
                     if podcast.explicit_ { ExplicitMark() }
                 }
                 if let author = podcast.author {
-                    Text(author).textStyle(Typography.bodyMedium).foregroundStyle(.secondary).lineLimit(1)
+                    Text(author).textStyle(Typography.bodyMedium).foregroundStyle(Color(.Theme.onSurfaceVariant)).lineLimit(1)
                 }
                 if let summary {
-                    Text(summary).textStyle(Typography.bodySmall).foregroundStyle(.secondary)
+                    Text(summary).textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant))
                 }
             }
         }
@@ -62,19 +62,26 @@ struct PodcastRow: View {
 struct ContinueCard: View {
     let episode: Episode
     let onPlay: () -> Void
+    /// Wider with the text size, up to what a phone holds, so a large title does not break inside its words.
+    @ScaledMetric(relativeTo: .subheadline) private var width = Sizes.artworkM
+    @Environment(\.dynamicTypeSize) private var textSize
+
+    private static let widest: CGFloat = 280
+    private static let titleLines = 2
 
     var body: some View {
         Button(action: onPlay) {
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Artwork(url: episode.imageUrl, size: Sizes.artworkM)
+                Artwork(url: episode.imageUrl, size: nil)
                 ProgressView(value: progress).tint(Color(.Theme.primary))
-                Text(episode.title).textStyle(Typography.labelLarge).lineLimit(2)
+                Text(episode.title).textStyle(Typography.labelLarge)
+                    .lineLimit(textSize.isAccessibilitySize ? nil : Self.titleLines)
                 if let left = episode.remainingDuration() {
                     Text(Res.string.shared.remaining_time.localized([left]))
-                        .textStyle(Typography.bodySmall).foregroundStyle(.secondary)
+                        .textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant))
                 }
             }
-            .frame(width: Sizes.artworkM)
+            .frame(width: min(width, Self.widest))
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
@@ -115,7 +122,7 @@ struct SectionTitle: View {
     }
 
     var body: some View {
-        Text(text.uppercased()).textStyle(Typography.section).foregroundStyle(.secondary)
+        Text(text.uppercased()).textStyle(Typography.section).foregroundStyle(Color(.Theme.onSurfaceVariant))
             .accessibilityAddTraits(.isHeader)
     }
 }
@@ -135,7 +142,7 @@ private struct UnplayedBadge: View {
 /// The "E" next to an explicit podcast, read out as the word.
 struct ExplicitMark: View {
     var body: some View {
-        Image(systemName: "e.square.fill").foregroundStyle(.secondary)
+        Image(systemName: "e.square.fill").foregroundStyle(Color(.Theme.onSurfaceVariant))
             .accessibilityLabel(Text("ds_explicit"))
     }
 }

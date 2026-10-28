@@ -21,3 +21,17 @@ extension View {
             .lineSpacing(token.lineHeight - token.size)
     }
 }
+
+extension Text {
+    /// A list or form section's title in the theme's muted color: the system's header gray is too light to read (25.8f).
+    static func header(_ title: String) -> Text {
+        Text(title).foregroundStyle(Color(.Theme.onSurfaceVariant))
+    }
+}
+
+extension Section where Parent == Text, Content: View, Footer == EmptyView {
+    /// A section under a [Text.header] title.
+    init(titled title: String, @ViewBuilder content: () -> Content) {
+        self.init(content: content, header: { Text.header(title) })
+    }
+}

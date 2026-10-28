@@ -37,7 +37,7 @@ struct LibraryOrderScreen: View {
                         save()
                     }
                 } header: {
-                    Text(Res.string.shared.library_organize_hint.localized()).textCase(nil)
+                    Text.header(Res.string.shared.library_organize_hint.localized()).textCase(nil)
                 }
             }
             .environment(\.editMode, .constant(.active))

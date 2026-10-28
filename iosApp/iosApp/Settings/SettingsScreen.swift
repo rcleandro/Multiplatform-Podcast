@@ -35,6 +35,7 @@ struct SettingsScreen: View {
                 content(state)
                 GuardianSection(state: state, onOpenStats: { model.root.onOpenListeningStats() }, send: send)
             }
+            .formPickers()
             .navigationTitle(Res.string.shared.settings.localized())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -78,7 +79,7 @@ struct SettingsScreen: View {
     // MARK: Sections
 
     private func appearance(_ state: SettingsUiState) -> some View {
-        Section(Res.string.shared.settings_appearance.localized()) {
+        Section(titled: Res.string.shared.settings_appearance.localized()) {
             Picker(Res.string.shared.settings_theme.localized(), selection: Binding(
                 get: { state.themeMode }, set: { send(SettingsIntentSetTheme(mode: $0)) }
             )) {
@@ -100,7 +101,7 @@ struct SettingsScreen: View {
             fileRows(state.opml, kind: .opml)
             fileRows(state.backup, kind: .backup)
         } header: {
-            Text(Res.string.shared.settings_subscriptions.localized())
+            Text.header(Res.string.shared.settings_subscriptions.localized())
         } footer: {
             // Those files hold each feed's address, a private one's token included (22.6).
             if state.hasPrivateFeeds { Text(Res.string.shared.settings_private_feeds_note.localized()) }
@@ -126,7 +127,7 @@ struct SettingsScreen: View {
         let skips = state.skipIntervals
         // A minor in Brazil, unless the guardians allow it (26.5, 26.6).
         let locked = state.isMinor && !state.guardian.controls.allowContinuousPlayback
-        return Section(Res.string.shared.settings_playback.localized()) {
+        return Section(titled: Res.string.shared.settings_playback.localized()) {
             skipPicker(Res.string.shared.settings_skip_backward, skips.backwardSeconds) {
                 send(SettingsIntentSetSkipIntervals(intervals: SkipIntervals(backwardSeconds: $0, forwardSeconds: skips.forwardSeconds)))
             }
@@ -142,7 +143,7 @@ struct SettingsScreen: View {
     }
 
     private func downloads(_ state: SettingsUiState, used: Int64) -> some View {
-        Section(Res.string.shared.settings_downloads.localized()) {
+        Section(titled: Res.string.shared.settings_downloads.localized()) {
             Text(Res.string.shared.downloads_storage_used.localized([bytes(used)]))
             LimitSlider(stops: state.limitStops.map { ($0 as? NSNumber)?.int64Value }, limit: state.downloadLimitBytes?.int64Value) {
                 send(SettingsIntentSetDownloadLimit(bytes: $0.map { KotlinLong(value: $0) }))
@@ -171,12 +172,12 @@ struct SettingsScreen: View {
 
     private func content(_ state: SettingsUiState) -> some View {
         Group {
-            Section(Res.string.shared.settings_content.localized()) {
+            Section(titled: Res.string.shared.settings_content.localized()) {
                 toggle(Res.string.shared.settings_show_explicit,
                        state.explicitLocked ? Res.string.shared.settings_show_explicit_locked : Res.string.shared.settings_show_explicit_description,
                        isOn: state.showExplicit, disabled: state.explicitLocked) { send(SettingsIntentSetShowExplicit(enabled: $0)) }
             }
-            Section(Res.string.shared.settings_privacy.localized()) {
+            Section(titled: Res.string.shared.settings_privacy.localized()) {
                 Link(destination: SettingsTexts.privacyPolicy) {
                     row(Res.string.shared.settings_privacy_policy, Res.string.shared.settings_privacy_policy_description)
                 }
@@ -198,7 +199,7 @@ struct SettingsScreen: View {
     private func row(_ title: LibraryStringResource, text: String) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xxs) {
             Text(title.localized()).foregroundStyle(Color.primary)
-            Text(text).textStyle(Typography.bodySmall).foregroundStyle(.secondary)
+            Text(text).textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant))
         }
     }
 
@@ -318,7 +319,7 @@ private struct LimitSlider: View {
             HStack {
                 Text(Res.string.shared.settings_storage_limit.localized())
                 Spacer()
-                Text(SettingsTexts.limit(stops[safe: Int(current.rounded())] ?? nil)).foregroundStyle(.secondary)
+                Text(SettingsTexts.limit(stops[safe: Int(current.rounded())] ?? nil)).foregroundStyle(Color(.Theme.onSurfaceVariant))
             }
             if stops.count > 1 {
                 Slider(value: Binding(get: { current }, set: { index = $0 }), in: 0...Double(stops.count - 1), step: 1) { editing in
@@ -332,4 +333,18 @@ private struct LimitSlider: View {
 
 private extension Array {
     subscript(safe index: Int) -> Element? { indices.contains(index) ? self[index] : nil }
+}
+
+extension View {
+    /// A form's pickers as menus, or as pages of their own at the accessibility text sizes, where a menu's value no
+    /// longer fits beside its title and is cut (25.8f).
+    func formPickers() -> some View { modifier(FormPickers()) }
+}
+
+private struct FormPickers: ViewModifier {
+    @Environment(\.dynamicTypeSize) private var textSize
+
+    func body(content: Content) -> some View {
+        if textSize.isAccessibilitySize { content.pickerStyle(.navigationLink) } else { content }
+    }
 }

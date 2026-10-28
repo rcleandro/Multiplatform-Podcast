@@ -13,7 +13,7 @@ struct BookmarkRow: View {
             Button(action: onSelect) {
                 HStack(spacing: Spacing.m) {
                     Text(LongExtensionsKt.toTime(bookmark.positionMs))
-                        .textStyle(Typography.labelLarge).foregroundStyle(.secondary)
+                        .textStyle(Typography.labelLarge).foregroundStyle(Color(.Theme.onSurfaceVariant))
                     Text(bookmark.note).textStyle(Typography.bodyLarge)
                     Spacer(minLength: 0)
                 }

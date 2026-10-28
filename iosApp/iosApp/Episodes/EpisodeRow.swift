@@ -46,6 +46,9 @@ struct EpisodeRow: View {
     let actions: EpisodeActions
     /// Choosing several episodes (18.11): a tap marks this one instead of opening it.
     var selected: Bool?
+    @Environment(\.dynamicTypeSize) private var textSize
+
+    private static let titleLines = 2
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.m) {
@@ -56,9 +59,11 @@ struct EpisodeRow: View {
             }
             Artwork(url: episode.imageUrl, size: Sizes.artworkS, radius: Radius.small)
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(episode.title).textStyle(Typography.titleMedium).lineLimit(2)
-                    .foregroundStyle(episode.isPlayed ? .secondary : .primary)
-                Text(metadata).textStyle(Typography.bodySmall).foregroundStyle(.secondary)
+                Text(episode.title).textStyle(Typography.titleMedium)
+                    // The whole title at the accessibility text sizes, where two lines hold a word or two.
+                    .lineLimit(textSize.isAccessibilitySize ? nil : Self.titleLines)
+                    .foregroundStyle(episode.isPlayed ? Color(.Theme.onSurfaceVariant) : Color(.Theme.onSurface))
+                Text(metadata).textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant))
                 if progress > 0 { ProgressView(value: progress).tint(Color(.Theme.primary)) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

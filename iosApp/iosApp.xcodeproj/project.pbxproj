@@ -18,6 +18,7 @@
 		5E31CBCBF619229BBCF7ADC5 /* PodcastSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E925038E1B31F6754017FBA3 /* PodcastSettingsTests.swift */; };
 		66F9246AF4F9F1391DF9A3BA /* TextsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABABC073E9BD082963F9F9C7 /* TextsTests.swift */; };
 		6C280D08569D4776889B4BFE /* LibraryUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */; };
+		68C3A3265B78BF4202EF6443 /* AccessibilityUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A50F3149486215D2D16EFE /* AccessibilityUITests.swift */; };
 		726E74887FDF3C1403D5537D /* ReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5225D5CCB2190D6EC7F45F77 /* ReportTests.swift */; };
 		78D5927E9BA607B43F8F6912 /* ShellModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AACD205A275FC81D816081 /* ShellModelTests.swift */; };
 		793E2AA77EB32FD03B428CFC /* PlayerExtrasTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7375F701B2C7E4BF6A79800F /* PlayerExtrasTests.swift */; };
@@ -65,6 +66,7 @@
 		584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastScreenTests.swift; sourceTree = "<group>"; };
 		5C0564BD14D8500270D84FEB /* SmartPlaylistTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SmartPlaylistTests.swift; sourceTree = "<group>"; };
 		6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryUITests.swift; sourceTree = "<group>"; };
+		11A50F3149486215D2D16EFE /* AccessibilityUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityUITests.swift; sourceTree = "<group>"; };
 		7375F701B2C7E4BF6A79800F /* PlayerExtrasTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerExtrasTests.swift; sourceTree = "<group>"; };
 		76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeTests.swift; sourceTree = "<group>"; };
 		7D9214E407EFB9669DFC0F4A /* iosAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -178,6 +180,7 @@
 			children = (
 				1AB0DCA2D0960A0F3518F1C2 /* ShellUITests.swift */,
 				6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */,
+				11A50F3149486215D2D16EFE /* AccessibilityUITests.swift */,
 			);
 			name = iosAppUITests;
 			path = iosAppUITests;
@@ -463,6 +466,7 @@
 			files = (
 				1B51C03A18F11610E3193B2E /* ShellUITests.swift in Sources */,
 				6C280D08569D4776889B4BFE /* LibraryUITests.swift in Sources */,
+				68C3A3265B78BF4202EF6443 /* AccessibilityUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -85,7 +85,7 @@ struct EpisodeScreen: View {
                         .accessibilityAddTraits(.isHeader)
                     if episode.explicit_ { ExplicitMark() }
                     if !facts(episode).isEmpty {
-                        Text(facts(episode)).textStyle(Typography.labelMedium).foregroundStyle(.secondary)
+                        Text(facts(episode)).textStyle(Typography.labelMedium).foregroundStyle(Color(.Theme.onSurfaceVariant))
                     }
                 }
                 Button { send(EpisodeDetailIntentPlayPause.shared) } label: {

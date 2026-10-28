@@ -57,6 +57,7 @@ struct PodcastSettingsSheet: View {
                     ))
                 }
             }
+            .formPickers()
             .navigationTitle(strings.podcast_settings_title.localized())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -16,41 +16,19 @@ struct PlayerScreen: View {
         _player = State(initialValue: Watched(model.app.viewModels.player().playerState))
     }
 
+    @Environment(\.dynamicTypeSize) private var textSize
+
     private static let artworkSize: CGFloat = 280
+    private static let titleLines = 3
     private static let videoAspectRatio: CGFloat = 16 / 9
 
     var body: some View {
         let state = player.value
         NavigationStack {
-            VStack(spacing: Spacing.l) {
-                if let episode = state.currentEpisode {
-                    if episode.isVideo {
-                        // The video takes the cover's place, as in the Compose player (ADR 0010).
-                        VideoView()
-                            .aspectRatio(Self.videoAspectRatio, contentMode: .fit)
-                            .background(.black)
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.extraLarge))
-                    } else {
-                        Artwork(url: episode.imageUrl, size: Self.artworkSize, radius: Radius.extraLarge)
-                            .frame(maxWidth: Self.artworkSize)
-                    }
-                    VStack(spacing: Spacing.xs) {
-                        Text(episode.title).textStyle(Typography.titleLarge).multilineTextAlignment(.center).lineLimit(3)
-                        if let podcast = episode.podcastTitle {
-                            Text(podcast).textStyle(Typography.labelLarge).foregroundStyle(Color(.Theme.accentText))
-                        }
-                    }
-                    progress(state)
-                    controls(state)
-                    options(state)
-                    extras(state)
-                } else {
-                    ContentUnavailableView(Res.string.shared.no_episode_selected.localized(), systemImage: "play.circle")
-                }
+            // At the accessibility text sizes the player no longer fits the screen, so it scrolls there.
+            Group {
+                if textSize.isAccessibilitySize { ScrollView { content(state) } } else { content(state) }
             }
-            .padding(Spacing.l)
-            .frame(maxWidth: Sizes.readableWidth)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { model.root.onBackClicked() } label: { Image(systemName: "chevron.down") }
@@ -68,6 +46,40 @@ struct PlayerScreen: View {
                 BookmarksSheet(viewModel: model.app.viewModels.player(), positionMs: state.position)
             }
         }
+    }
+
+    /// The cover or the video, the titles, the progress, the controls and the options.
+    private func content(_ state: PlayerState) -> some View {
+        VStack(spacing: Spacing.l) {
+            if let episode = state.currentEpisode {
+                if episode.isVideo {
+                    // The video takes the cover's place, as in the Compose player (ADR 0010).
+                    VideoView()
+                        .aspectRatio(Self.videoAspectRatio, contentMode: .fit)
+                        .background(.black)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.extraLarge))
+                } else {
+                    Artwork(url: episode.imageUrl, size: Self.artworkSize, radius: Radius.extraLarge)
+                        .frame(maxWidth: Self.artworkSize)
+                }
+                VStack(spacing: Spacing.xs) {
+                    Text(episode.title).textStyle(Typography.titleLarge).multilineTextAlignment(.center)
+                        .lineLimit(textSize.isAccessibilitySize ? nil : Self.titleLines)
+                    if let podcast = episode.podcastTitle {
+                        Text(podcast).textStyle(Typography.labelLarge).foregroundStyle(Color(.Theme.accentText))
+                    }
+                }
+                progress(state)
+                controls(state)
+                options(state)
+                extras(state)
+            } else {
+                ContentUnavailableView(Res.string.shared.no_episode_selected.localized(), systemImage: "play.circle")
+            }
+        }
+        .padding(Spacing.l)
+        .frame(maxWidth: Sizes.readableWidth)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     /// The episode from the moment it is at (18.4); a private feed's audio is never shared (22.6).
@@ -129,7 +141,7 @@ struct PlayerScreen: View {
                 Text(duration > 0 ? LongExtensionsKt.toTime(Int64(duration)) : "")
             }
             .textStyle(Typography.timer)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Color(.Theme.onSurfaceVariant))
         }
     }
 
@@ -164,9 +176,11 @@ struct PlayerScreen: View {
         .accessibilityLabel(label)
     }
 
-    /// Speed and the sleep timer, each a menu that shows what is chosen.
+    /// Speed and the sleep timer, each a menu that shows what is chosen; one over the other at the accessibility text
+    /// sizes, where side by side cuts them.
     private func options(_ state: PlayerState) -> some View {
-        HStack(spacing: Spacing.l) {
+        let layout = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: Spacing.s)) : AnyLayout(HStackLayout(spacing: Spacing.l))
+        return layout {
             Menu {
                 Picker(Res.string.shared.playback_speed.localized(), selection: Binding(
                     get: { state.speed }, set: { send(PlayerIntentSetSpeed(speed: $0)) }

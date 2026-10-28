@@ -201,6 +201,7 @@ private struct PodcastHeader: View {
     let onPlay: (Episode) -> Void
     let onRefresh: () -> Void
     let onSimilar: () -> Void
+    @Environment(\.dynamicTypeSize) private var textSize
 
     private static let artworkSize: CGFloat = 168
 
@@ -212,13 +213,15 @@ private struct PodcastHeader: View {
                     .accessibilityAddTraits(.isHeader)
                 if podcast.explicit_ { ExplicitMark() }
                 if !byline.isEmpty {
-                    Text(byline).textStyle(Typography.labelLarge).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    Text(byline).textStyle(Typography.labelLarge).foregroundStyle(Color(.Theme.onSurfaceVariant)).multilineTextAlignment(.center)
                 }
             }
-            HStack(spacing: Spacing.s) {
+            // At the accessibility text sizes the buttons stack, or "Latest" breaks inside the word.
+            let buttons = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: Spacing.s)) : AnyLayout(HStackLayout(spacing: Spacing.s))
+            buttons {
                 if let latest = state.latestUnplayed {
                     Button { onPlay(latest) } label: {
-                        Label(Res.string.shared.play_latest.localized(), systemImage: "play.fill")
+                        Label(Res.string.shared.play_latest.localized(), systemImage: "play.fill").labelStyle(.titleAndIcon)
                     }
                     .buttonStyle(.borderedProminent)
                 }

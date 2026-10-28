@@ -28,14 +28,14 @@ struct ListeningStatsScreen: View {
                 } else {
                     List {
                         Section { totals(stats) }
-                        Section(Res.string.shared.stats_by_week.localized()) { weeks(stats.weeks) }
-                        Section(Res.string.shared.stats_by_podcast.localized()) {
+                        Section(titled: Res.string.shared.stats_by_week.localized()) { weeks(stats.weeks) }
+                        Section(titled: Res.string.shared.stats_by_podcast.localized()) {
                             ForEach(stats.podcasts, id: \.podcast.id) { entry in
                                 HStack(spacing: Spacing.m) {
                                     Artwork(url: entry.podcast.imageUrl, size: Sizes.artworkS, radius: Radius.small)
                                     Text(entry.podcast.title).textStyle(Typography.titleMedium).lineLimit(2)
                                     Spacer()
-                                    Text(StatsTexts.heard(entry.listenedMs)).foregroundStyle(.secondary)
+                                    Text(StatsTexts.heard(entry.listenedMs)).foregroundStyle(Color(.Theme.onSurfaceVariant))
                                 }
                                 .accessibilityElement(children: .combine)
                             }

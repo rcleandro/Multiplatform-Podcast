@@ -142,7 +142,7 @@ struct EpisodesScreen: View {
                 Text(Res.string.shared.downloads_storage_used.localized([
                     ByteCountFormatter.string(fromByteCount: state.usedBytes, countStyle: .file),
                 ]))
-                .textStyle(Typography.bodySmall).foregroundStyle(.secondary)
+                .textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant))
             default:
                 EmptyView()
             }

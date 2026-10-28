@@ -20,10 +20,10 @@ struct QueueScreen: View {
         NavigationStack {
             List {
                 if let current = state.current {
-                    Section(Res.string.shared.now_playing.localized()) { row(current, state) }
+                    Section(titled: Res.string.shared.now_playing.localized()) { row(current, state) }
                 }
                 if !state.upNext.isEmpty {
-                    Section(Res.string.shared.up_next.localized()) {
+                    Section(titled: Res.string.shared.up_next.localized()) {
                         ForEach(state.upNext, id: \.id) { episode in
                             Button { send(QueueIntentPlay(episode: episode)) } label: { row(episode, state) }
                                 .buttonStyle(.plain)
@@ -37,12 +37,11 @@ struct QueueScreen: View {
                             offsets.map { state.upNext[$0] }.forEach { send(QueueIntentRemove(episode: $0)) }
                         }
                     }
-                }
-            }
-            .overlay {
-                if state.upNext.isEmpty {
+                } else {
+                    // A row under "Now playing", not over the list: large text would draw it on top of the episode.
                     ContentUnavailableView(Res.string.shared.queue_empty_title.localized(), systemImage: "list.bullet",
                                            description: Text(Res.string.shared.queue_empty_message.localized()))
+                        .listRowBackground(Color.clear)
                 }
             }
             .navigationTitle(Res.string.shared.queue.localized())
