@@ -13,6 +13,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ClosedByteChannelException
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -53,7 +54,12 @@ class HostileDownloadTest {
     fun `a body without a size stops where the room ends`() = runTest {
         // An endless radio stream as the "episode": no length, it would write until the disk is full.
         val endless = ByteChannel()
-        backgroundScope.launch(Dispatchers.Default) { repeat(ROOM) { endless.writeFully(ByteArray(CHUNK)) } }
+        backgroundScope.launch(Dispatchers.Default) {
+            // The downloader hangs up when the room ends, and Ktor 3.6.1 closes the stream under the writer.
+            try {
+                repeat(ROOM) { endless.writeFully(ByteArray(CHUNK)) }
+            } catch (_: ClosedByteChannelException) {}
+        }
 
         val status = download(MockEngine { respond(endless, HttpStatusCode.OK) }, limit = ROOM.toLong())
 
