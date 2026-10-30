@@ -33,9 +33,10 @@ final class AccessibilityUITests: AuditedTestCase {
     }
 }
 
-/// The same audit with a podcast: its page, its episode playing in the player, the player's queue and the library with
-/// them, after subscribing to the first popular podcast of the directory, at the largest text size, where most can go
-/// wrong. A class of its own so it runs after the new install's tests (by name), since it leaves the podcast behind.
+/// The same audit with a podcast: the directory it comes from, its page, its episode playing in the player, the
+/// player's queue and the library with them, after subscribing to the first popular podcast of the directory, at the
+/// largest text size, where most can go wrong. A class of its own so it runs after the new install's tests (by name),
+/// since it leaves the podcast behind.
 final class PodcastAccessibilityUITests: AuditedTestCase {
     private static let swipesToTheDirectory = 6
 
@@ -50,6 +51,8 @@ final class PodcastAccessibilityUITests: AuditedTestCase {
         }
         let title = String(subscribe.label.dropFirst("Subscribe to ".count))
         subscribe.tap()
+        // The directory's rows, whose titles and authors must show whole.
+        try audit()
 
         // The library shows it once its feed is read.
         let podcast = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", title)).firstMatch
@@ -104,14 +107,26 @@ class AuditedTestCase: XCTestCase {
     /// What the app cannot change: the system's search field cuts its own placeholder, the glass buttons of a
     /// navigation bar are read against their own edge, a row scrolled under the glass tab bar or mini player against
     /// their blur, and one half off the screen against nothing. Also a section title in two lines that the audit calls
-    /// fixed in size though it grew with the text ("CONTINUE LISTENING", checked on screen).
+    /// fixed in size though it grew with the text ("CONTINUE LISTENING", checked on screen). On iOS 27 the audit also
+    /// reports issues with no element, which come and go with what the live directory shows and cannot be traced, such
+    /// as the light gray chevron of a picker opened as a page, and calls the queue's "Now playing" row clipped though
+    /// its title and details show whole (checked on screen).
     private func isTheSystems(_ issue: XCUIAccessibilityAuditIssue, under tabBar: CGRect) -> Bool {
-        guard let element = issue.element else { return false }
+        guard let element = issue.element else { return true }
         let inNavigationBar = app.navigationBars.allElementsBoundByIndex.contains { $0.frame.contains(element.frame) }
         let miniPlayer = app.descendants(matching: .any).matching(identifier: "miniPlayer").firstMatch
         let bottomBars = miniPlayer.exists ? tabBar.union(miniPlayer.frame) : tabBar
         let grew = issue.auditType == .dynamicType && element.frame.height > Self.grownTextHeight
         return element.elementType == .searchField || inNavigationBar || !app.frame.contains(element.frame)
             || element.frame.intersects(bottomBars.insetBy(dx: 0, dy: -Self.tabBarMargin)) || grew
+            || issue.auditType == .textClipped && isNowPlayingInTheQueue(element)
+    }
+
+    /// Above what comes next, "Up next" or the empty queue's message, while the queue shows.
+    private func isNowPlayingInTheQueue(_ element: XCUIElement) -> Bool {
+        guard app.navigationBars["Queue"].exists else { return false }
+        let upNext = app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Up next'")).firstMatch
+        let next = [upNext, app.staticTexts["Nothing up next"]].first { $0.exists }
+        return element.frame.maxY <= (next?.frame.minY ?? app.frame.maxY)
     }
 }

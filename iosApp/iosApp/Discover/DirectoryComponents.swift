@@ -6,18 +6,24 @@ struct DirectoryRow: View {
     let result: DirectoryResult
     let isSubscribing: Bool
     let onSubscribe: () -> Void
+    @Environment(\.dynamicTypeSize) private var textSize
+
+    private static let titleLines = 2
 
     var body: some View {
         let podcast = result.podcast
+        // The whole title and author at the accessibility text sizes, where a line holds a word or two.
+        let isLarge = textSize.isAccessibilitySize
         HStack(spacing: Spacing.m) {
             Artwork(url: podcast.artworkUrl, size: Sizes.artworkS, radius: Radius.small)
             VStack(alignment: .leading, spacing: Spacing.xxs) {
                 HStack(spacing: Spacing.xs) {
-                    Text(podcast.title).textStyle(Typography.titleMedium).lineLimit(2)
+                    Text(podcast.title).textStyle(Typography.titleMedium).lineLimit(isLarge ? nil : Self.titleLines)
                     if podcast.explicit_ { ExplicitMark() }
                 }
                 if let author = podcast.author {
-                    Text(author).textStyle(Typography.bodyMedium).foregroundStyle(Color(.Theme.onSurfaceVariant)).lineLimit(1)
+                    Text(author).textStyle(Typography.bodyMedium).foregroundStyle(Color(.Theme.onSurfaceVariant))
+                        .lineLimit(isLarge ? nil : 1)
                 }
                 if let details {
                     Text(details).textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant))

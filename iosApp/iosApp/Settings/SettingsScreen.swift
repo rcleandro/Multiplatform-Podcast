@@ -345,6 +345,12 @@ private struct FormPickers: ViewModifier {
     @Environment(\.dynamicTypeSize) private var textSize
 
     func body(content: Content) -> some View {
-        if textSize.isAccessibilitySize { content.pickerStyle(.navigationLink) } else { content }
+        if textSize.isAccessibilitySize {
+            // The page link writes the value in the system's secondary gray, too light to read on iOS 27.
+            content.pickerStyle(.navigationLink)
+                .foregroundStyle(Color(.Theme.onSurface), Color(.Theme.onSurfaceVariant))
+        } else {
+            content
+        }
     }
 }

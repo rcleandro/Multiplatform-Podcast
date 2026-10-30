@@ -75,6 +75,7 @@ struct EpisodeRow: View {
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(selected == true ? .isSelected : [])
         .accessibilityAction(named: Text(playLabel), actions.play)
+        .accessibilityIdentifier("episodeRow")
     }
 
     private var playButton: some View {
