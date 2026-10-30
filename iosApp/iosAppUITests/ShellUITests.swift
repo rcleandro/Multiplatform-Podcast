@@ -1,11 +1,11 @@
 import XCTest
 
-/// The SwiftUI shell (25.3), opened with its launch argument: the system's tab bar moves between the two tabs.
+/// The SwiftUI shell (25.3), which the app opens (25.8h): the system's tab bar moves between the two tabs.
 final class ShellUITests: XCTestCase {
     private let app = XCUIApplication()
 
     func testTheTabBarMovesBetweenLibraryAndEpisodes() {
-        app.launchArguments = ["-SwiftUIShell", "YES", "-AppleLanguages", "(en)"]
+        app.launchArguments = ["-AppleLanguages", "(en)"]
         app.launch()
 
         // The floating tab bar of iOS 26 is not always a tabBars element, so its tabs are found as buttons.
@@ -33,7 +33,7 @@ final class ShellUITests: XCTestCase {
     }
 
     func testSettingsOpenOverTheTabsWithTheirStats() {
-        app.launchArguments = ["-SwiftUIShell", "YES", "-AppleLanguages", "(en)"]
+        app.launchArguments = ["-AppleLanguages", "(en)"]
         app.launch()
         let settings = app.buttons["Settings"]
         waitUntil("isHittable == true", settings, timeout: 30)

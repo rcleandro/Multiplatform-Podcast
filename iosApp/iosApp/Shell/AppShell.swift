@@ -1,11 +1,9 @@
 import Shared
 import SwiftUI
 
-/// The SwiftUI app (ADR 0015) while its screens are written (25.3 to 25.7). It opens only with the launch argument
-/// `-SwiftUIShell YES`; until the screens are done, the app opens the Compose one, and the shell shows stand-ins.
+/// The SwiftUI app (ADR 0015): the tabs, the navigation the shared `RootComponent` keeps, restored from the scene, and
+/// the podcast links the app is opened with.
 struct AppShell: View {
-    static var isOn: Bool { UserDefaults.standard.bool(forKey: "SwiftUIShell") }
-
     @SceneStorage("navigation") private var saved: String?
     @Environment(\.scenePhase) private var scenePhase
     @State private var model: ShellModel?

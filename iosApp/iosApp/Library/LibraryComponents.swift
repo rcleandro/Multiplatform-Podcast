@@ -4,42 +4,35 @@ import SwiftUI
 /// A podcast in the grid: cover, title, author and the unplayed count over the cover.
 struct PodcastCard: View {
     let entry: LibraryEntry
+    @Environment(\.dynamicTypeSize) private var textSize
 
     var body: some View {
         let podcast = entry.podcast
+        let unplayed = Int(entry.unplayedCount)
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Artwork(url: podcast.imageUrl, size: nil)
                 .overlay(alignment: .topTrailing) {
-                    if entry.unplayedCount > 0 { UnplayedBadge(count: Int(entry.unplayedCount)).padding(Spacing.xs) }
+                    // Read out as "1,414 unplayed" with the card, not as a bare number over the cover.
+                    if unplayed > 0 { UnplayedBadge(count: unplayed).padding(Spacing.xs).accessibilityHidden(true) }
                 }
-            HStack(spacing: Spacing.xs) {
-                Text(podcast.title).textStyle(Typography.titleMedium).lineLimit(2)
-                if podcast.explicit_ { ExplicitMark() }
-            }
-            if let author = podcast.author {
-                Text(author).textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant)).lineLimit(1)
-            }
+            TitleAndAuthor(podcast: podcast, isLarge: textSize.isAccessibilitySize, authorStyle: Typography.bodySmall)
         }
         .accessibilityElement(children: .combine)
+        .accessibilityValue(unplayed > 0 ? Res.plurals.shared.library_unplayed.localized(count: unplayed) : "")
     }
 }
 
 /// A podcast in the list: "2 days ago · 3 unplayed" under its title, each half left out when there is nothing to say.
 struct PodcastRow: View {
     let entry: LibraryEntry
+    @Environment(\.dynamicTypeSize) private var textSize
 
     var body: some View {
         let podcast = entry.podcast
         HStack(spacing: Spacing.m) {
             Artwork(url: podcast.imageUrl, size: Sizes.artworkS, radius: Radius.small)
             VStack(alignment: .leading, spacing: Spacing.xxs) {
-                HStack(spacing: Spacing.xs) {
-                    Text(podcast.title).textStyle(Typography.titleMedium).lineLimit(2)
-                    if podcast.explicit_ { ExplicitMark() }
-                }
-                if let author = podcast.author {
-                    Text(author).textStyle(Typography.bodyMedium).foregroundStyle(Color(.Theme.onSurfaceVariant)).lineLimit(1)
-                }
+                TitleAndAuthor(podcast: podcast, isLarge: textSize.isAccessibilitySize, authorStyle: Typography.bodyMedium)
                 if let summary {
                     Text(summary).textStyle(Typography.bodySmall).foregroundStyle(Color(.Theme.onSurfaceVariant))
                 }
@@ -124,6 +117,26 @@ struct SectionTitle: View {
     var body: some View {
         Text(text.uppercased()).textStyle(Typography.section).foregroundStyle(Color(.Theme.onSurfaceVariant))
             .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// A library podcast's title and author: two lines and one, or whole at the accessibility text sizes, where a line
+/// holds a word or two.
+private struct TitleAndAuthor: View {
+    let podcast: Podcast
+    let isLarge: Bool
+    let authorStyle: TextToken
+
+    private static let titleLines = 2
+
+    var body: some View {
+        HStack(spacing: Spacing.xs) {
+            Text(podcast.title).textStyle(Typography.titleMedium).lineLimit(isLarge ? nil : Self.titleLines)
+            if podcast.explicit_ { ExplicitMark() }
+        }
+        if let author = podcast.author {
+            Text(author).textStyle(authorStyle).foregroundStyle(Color(.Theme.onSurfaceVariant)).lineLimit(isLarge ? nil : 1)
+        }
     }
 }
 

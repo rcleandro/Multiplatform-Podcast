@@ -10,7 +10,7 @@ final class ScreensUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        app.launchArguments = ["-SwiftUIShell", "YES", "-AppleLanguages", "(en)"]
+        app.launchArguments = ["-AppleLanguages", "(en)"]
         app.launch()
         waitUntil("isHittable == true", app.buttons["Episodes"], timeout: 30)
     }

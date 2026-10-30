@@ -4,7 +4,7 @@ import XCTest
 final class LibraryUITests: XCTestCase {
     func testAnEmptyLibraryOffersToAddAPodcast() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-SwiftUIShell", "YES", "-AppleLanguages", "(en)"]
+        app.launchArguments = ["-AppleLanguages", "(en)"]
         app.launch()
 
         let suggestions = app.staticTexts["What do you like to listen to?"]

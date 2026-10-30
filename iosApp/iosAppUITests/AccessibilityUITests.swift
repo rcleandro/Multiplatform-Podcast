@@ -93,7 +93,7 @@ class AuditedTestCase: XCTestCase {
 
     /// Opens the app at [textSize] and waits for its tabs; the result audits the screen showing.
     func launch(textSize: String?, checks: XCUIAccessibilityAuditType) -> () throws -> Void {
-        app.launchArguments = ["-SwiftUIShell", "YES", "-AppleLanguages", "(en)"]
+        app.launchArguments = ["-AppleLanguages", "(en)"]
             + (textSize.map { ["-UIPreferredContentSizeCategoryName", $0] } ?? [])
         app.launch()
         let library = app.buttons["Library"]
