@@ -3,7 +3,7 @@
 componentsResources = "1.12.2"
 foundation = "1.12.2"
 kotlin = "2.4.21"
-agp = "9.4.1"
+agp = "9.5.0"
 ksp = "2.3.12"
 android-compileSdk = "37"
 android-minSdk = "26"
