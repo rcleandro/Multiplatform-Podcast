@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The phone's Onest fonts (ADR 0001), shared from iosApp/iosApp/Fonts. -->
+	<key>UIAppFonts</key>
+	<array>
+		<string>onest_regular.ttf</string>
+		<string>onest_medium.ttf</string>
+		<string>onest_semibold.ttf</string>
+		<string>onest_bold.ttf</string>
+	</array>
+</dict>
+</plist>

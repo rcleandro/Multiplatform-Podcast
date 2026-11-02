@@ -12,10 +12,9 @@ import br.com.carvalho.podcast.core.util.NetworkMonitor
 import br.com.carvalho.podcast.data.download.UrlSessionEpisodeDownloader
 import br.com.carvalho.podcast.data.local.createAppDatabase
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
-import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.AgeSignalSource
-import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.SearchPodcastsUseCase
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
@@ -69,8 +68,23 @@ fun <T> Flow<T>.watch(onEach: (T) -> Unit): Watching {
     return Watching { job.cancel() }
 }
 
-/** The library's podcasts, in the order the phone keeps. */
-fun watchPodcasts(): Flow<List<Podcast>> = KoinPlatform.getKoin().get<PodcastRepository>().getPodcasts()
+// The screens' facades (25.14b), made for each screen that opens.
+
+fun watchLibrary(): WatchLibrary {
+    val koin = KoinPlatform.getKoin()
+    return WatchLibrary(koin.get(), koin.get(), koin.get())
+}
+
+fun watchPodcast(podcastId: String): WatchPodcast {
+    val koin = KoinPlatform.getKoin()
+    return WatchPodcast(podcastId, koin.get(), koin.get(), koin.get(), koin.get())
+}
+
+fun watchPopular(): WatchPopular {
+    val koin = KoinPlatform.getKoin()
+    val search = SearchPodcastsUseCase(koin.get(), koin.get(), koin.get(), koin.get(), koin.get())
+    return WatchPopular(search, koin.get())
+}
 
 private fun documentsDirectory() =
     (NSFileManager.defaultManager.URLsForDirectory(NSDocumentDirectory, NSUserDomainMask).first() as NSURL)

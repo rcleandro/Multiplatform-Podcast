@@ -31,7 +31,7 @@ class IosTokensTest {
         val roles = colors(LightColorScheme).keys + colors(LightPodcastColors).keys
         val light = colors(LightColorScheme) + colors(LightPodcastColors)
         val dark = colors(DarkColorScheme) + colors(DarkPodcastColors)
-        val theme = ios.resolve("Assets.xcassets/Theme")
+        val theme = ios.resolve("Theme.xcassets/Theme")
         check(theme.resolve("Contents.json"), FOLDER)
         roles.forEach { role -> check(theme.resolve("$role.colorset/Contents.json"), colorSet(light.getValue(role), dark.getValue(role))) }
         if (!write) assertEquals(roles.map { "$it.colorset" }.toSet(), theme.list().orEmpty().filter { it.endsWith(".colorset") }.toSet())
@@ -86,7 +86,10 @@ class IosTokensTest {
                 "        }",
                 "      ],",
             ) + color(dark, "      ") +
-            listOf("      \"idiom\" : \"universal\"", "    }", "  ],", "  \"info\" : {", "    \"author\" : \"xcode\",", "    \"version\" : 1", "  }", "}")
+            // The Apple Watch (ADR 0016) has no light and dark appearances and draws everything on black: the dark
+            // colors, as the watch's own entry.
+            listOf("      \"idiom\" : \"universal\"", "    },", "    {") + color(dark, "      ") +
+            listOf("      \"idiom\" : \"watch\"", "    }", "  ],", "  \"info\" : {", "    \"author\" : \"xcode\",", "    \"version\" : 1", "  }", "}")
         return lines.joinToString("\n", postfix = "\n")
     }
 
