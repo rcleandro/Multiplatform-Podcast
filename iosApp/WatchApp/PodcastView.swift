@@ -1,11 +1,12 @@
 import SwiftUI
 import WatchShared
 
-/// A podcast's episodes, newest first unless the podcast says otherwise; a tap plays one (19.9a). Each row says where
+/// A podcast's episodes, newest first unless the podcast says otherwise; a tap plays one and opens the player (19.9a). Each row says where
 /// the episode stands, as the Wear OS rows do (19.9g), and a heard one is drawn dimmer.
 struct PodcastView: View {
     private let page: WatchPodcast
     @State private var state: WatchedFlow<WatchPodcastState?>
+    @Environment(\.openPlayer) private var openPlayer
 
     init(podcastId: String) {
         let page = WatchBridgeKt.watchPodcast(podcastId: podcastId)
@@ -17,7 +18,12 @@ struct PodcastView: View {
         Group {
             if let state = state.value {
                 List(state.episodes, id: \.episode.id) { row in
-                    Button { Task { try? await page.play(episode: row.episode) } } label: { EpisodeRow(row: row) }
+                    Button {
+                        Task { try? await page.play(episode: row.episode) }
+                        openPlayer()
+                    } label: {
+                        EpisodeRow(row: row)
+                    }
                 }
                 .navigationTitle(state.title)
             } else {

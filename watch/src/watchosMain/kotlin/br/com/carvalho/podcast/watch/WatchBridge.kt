@@ -80,6 +80,9 @@ fun watchPodcast(podcastId: String): WatchPodcast {
     return WatchPodcast(podcastId, koin.get(), koin.get(), koin.get(), koin.get())
 }
 
+/** The one player of the watch app, as long as it runs. */
+fun watchPlayer(): WatchPlayer = WatchPlayer(KoinPlatform.getKoin().get())
+
 fun watchPopular(): WatchPopular {
     val koin = KoinPlatform.getKoin()
     val search = SearchPodcastsUseCase(koin.get(), koin.get(), koin.get(), koin.get(), koin.get())

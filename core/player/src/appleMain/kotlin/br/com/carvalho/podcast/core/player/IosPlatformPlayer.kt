@@ -27,6 +27,7 @@ import platform.MediaPlayer.MPNowPlayingInfoCenter
 import platform.MediaPlayer.MPNowPlayingInfoPropertyElapsedPlaybackTime
 import platform.MediaPlayer.MPNowPlayingInfoPropertyPlaybackRate
 import platform.MediaPlayer.MPRemoteCommandCenter
+import platform.MediaPlayer.MPRemoteCommandEvent
 import platform.MediaPlayer.MPRemoteCommandHandlerStatusSuccess
 
 private const val TAG = "IosPlatformPlayer"
@@ -49,7 +50,7 @@ class IosPlatformPlayer : PlatformPlayer {
         get() = player.currentItem?.duration?.let { CMTimeGetSeconds(it) }?.takeUnless { it.isNaN() }?.let(::seconds)
 
     init {
-        setupIosAudioSession()
+        setUpAudioSession()
         NSNotificationCenter.defaultCenter.addObserverForName(
             name = AVPlayerItemDidPlayToEndTimeNotification,
             `object` = null,
@@ -76,8 +77,10 @@ class IosPlatformPlayer : PlatformPlayer {
     }
 
     override fun play() {
-        player.setRate(speed)
-        setPlaying(true)
+        whenAudioCanPlay {
+            player.setRate(speed)
+            setPlaying(true)
+        }
     }
 
     override fun pause() {
@@ -125,7 +128,8 @@ class IosPlatformPlayer : PlatformPlayer {
 
     private fun setUpRemoteCommands() {
         val center = MPRemoteCommandCenter.sharedCommandCenter()
-        fun forward(command: RemoteCommand): (Any?) -> Long = {
+        // The handler's status is a Long on 64-bit Apple targets and an Int on the watch's arm64_32: let it be inferred.
+        fun forward(command: RemoteCommand) = { _: MPRemoteCommandEvent? ->
             listener(PlatformEvent.Remote(command))
             MPRemoteCommandHandlerStatusSuccess
         }

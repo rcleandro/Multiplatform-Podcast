@@ -1,13 +1,10 @@
 package br.com.carvalho.podcast.core.player
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import platform.AVFAudio.AVAudioSession
-import platform.AVFAudio.AVAudioSessionCategoryPlayback
-import platform.AVFAudio.setActive
+/** Sets the app's audio session up once, when the player is made. */
+internal expect fun setUpAudioSession()
 
-@OptIn(ExperimentalForeignApi::class)
-fun setupIosAudioSession() {
-    val session = AVAudioSession.sharedInstance()
-    session.setCategory(AVAudioSessionCategoryPlayback, error = null)
-    session.setActive(true, error = null)
-}
+/**
+ * Runs [start] once the session can play. At once on the iPhone; on the Apple Watch (ADR 0016), after the system
+ * activated the long-form audio session, which shows its output picker when no headphones are connected.
+ */
+internal expect fun whenAudioCanPlay(start: () -> Unit)
