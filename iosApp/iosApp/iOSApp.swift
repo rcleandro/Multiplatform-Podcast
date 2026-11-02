@@ -19,6 +19,7 @@ struct iOSApp: App {
 
     init() {
         SwiftBridgeKt.startShared()
+        WidgetSync.start()
     }
 
     var body: some Scene {
