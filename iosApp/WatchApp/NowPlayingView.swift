@@ -140,6 +140,13 @@ enum WatchPlayerHolder {
     static let shared = WatchBridgeKt.watchPlayer()
 }
 
+extension WatchPlayer {
+    /// Plays [episode], or pauses and resumes it when it is the one playing.
+    func playNow(_ episode: Episode) {
+        Task { try? await play(episode: episode) }
+    }
+}
+
 /// The system's volume control, which the Digital Crown turns while the player shows (the Wear OS bezel, 19.9e).
 struct CrownVolume: WKInterfaceObjectRepresentable {
     func makeWKInterfaceObject(context: Context) -> WKInterfaceVolumeControl {

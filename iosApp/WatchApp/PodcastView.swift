@@ -1,12 +1,11 @@
 import SwiftUI
 import WatchShared
 
-/// A podcast's episodes, newest first unless the podcast says otherwise; a tap plays one and opens the player (19.9a). Each row says where
+/// A podcast's episodes, newest first unless the podcast says otherwise; a tap plays one and opens the player (19.9a), a long press opens its actions (19.9f). Each row says where
 /// the episode stands, as the Wear OS rows do (19.9g), and a heard one is drawn dimmer.
 struct PodcastView: View {
     private let page: WatchPodcast
     @State private var state: WatchedFlow<WatchPodcastState?>
-    @Environment(\.openPlayer) private var openPlayer
 
     init(podcastId: String) {
         let page = WatchBridgeKt.watchPodcast(podcastId: podcastId)
@@ -18,18 +17,34 @@ struct PodcastView: View {
         Group {
             if let state = state.value {
                 List(state.episodes, id: \.episode.id) { row in
-                    Button {
-                        Task { try? await page.play(episode: row.episode) }
-                        openPlayer()
-                    } label: {
-                        EpisodeRow(row: row)
-                    }
+                    EpisodeButton(row: row) { Task { try? await page.play(episode: row.episode) } }
                 }
                 .navigationTitle(state.title)
             } else {
                 ProgressView()
             }
         }
+    }
+}
+
+/// A row that plays its episode and opens the player on a tap, and opens its actions on a long press (19.9f).
+struct EpisodeButton: View {
+    let row: WatchEpisode
+    let play: () -> Void
+    @Environment(\.navigate) private var navigate
+    private static let longPress = 0.5
+
+    var body: some View {
+        EpisodeRow(row: row)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                play()
+                navigate(.player)
+            }
+            .onLongPressGesture(minimumDuration: Self.longPress) { navigate(.actions(row.episode.id)) }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction(named: text("episode_options")) { navigate(.actions(row.episode.id)) }
     }
 }
 

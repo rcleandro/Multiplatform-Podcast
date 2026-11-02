@@ -1,7 +1,8 @@
 import SwiftUI
 import WatchShared
 
-/// The watch's home (19.9a): what plays now, the popular podcasts to subscribe to and the library's podcasts.
+/// The watch's home (19.9a): what plays now, the popular podcasts to subscribe to, what is on the watch (19.9f) and
+/// the library's podcasts.
 struct HomeView: View {
     @State private var path: [Route] = []
     @State private var podcasts: WatchedFlow<[Podcast]>
@@ -30,6 +31,9 @@ struct HomeView: View {
                 NavigationLink(value: Route.popular) {
                     Label(text("popular"), systemImage: "chart.line.uptrend.xyaxis").textStyle(Typography.titleMedium)
                 }
+                NavigationLink(value: Route.downloads) {
+                    Label(text("filter_downloaded"), systemImage: "arrow.down.circle").textStyle(Typography.titleMedium)
+                }
                 ForEach(podcasts.value, id: \.id) { podcast in
                     NavigationLink(value: Route.podcast(podcast.id)) {
                         HStack(spacing: Spacing.s) {
@@ -45,11 +49,13 @@ struct HomeView: View {
                 case .popular: PopularView()
                 case let .podcast(id): PodcastView(podcastId: id)
                 case .player: NowPlayingView()
+                case .downloads: DownloadsView()
+                case let .actions(id): EpisodeActionsView(episodeId: id) { path.removeLast() }
                 }
             }
         }
-        // Playing an episode from a list opens the player, as on Wear OS.
-        .environment(\.openPlayer) { path.append(.player) }
+        // A list opens the player when it plays an episode, and the actions on a long press, as on Wear OS.
+        .environment(\.navigate) { path.append($0) }
     }
 }
 
@@ -57,8 +63,10 @@ enum Route: Hashable {
     case popular
     case podcast(String)
     case player
+    case downloads
+    case actions(String)
 }
 
 extension EnvironmentValues {
-    @Entry var openPlayer: () -> Void = {}
+    @Entry var navigate: (Route) -> Void = { _ in }
 }

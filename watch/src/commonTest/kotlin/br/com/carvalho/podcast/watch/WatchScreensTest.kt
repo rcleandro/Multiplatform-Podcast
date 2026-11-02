@@ -64,6 +64,35 @@ class WatchScreensTest {
         assertTrue(popular.state.value.subscribing.isEmpty())
     }
 
+    @Test
+    fun theDownloadButtonCancelsDeletesOrDownloads() {
+        val episode = episode("e", published = 0)
+        assertEquals(DownloadAction.CANCEL, downloadAction(episode, DownloadStatus.Downloading(0.5f, 1, 2)))
+        assertEquals(DownloadAction.DELETE, downloadAction(episode.copy(isDownloaded = true), null))
+        assertEquals(DownloadAction.DOWNLOAD, downloadAction(episode, null))
+    }
+
+    @Test
+    fun theDownloadsListShowsWhatIsOnTheWatch() = runTest {
+        repository.episodes.value = listOf(episode("here", 1).copy(isDownloaded = true), episode("there", 2))
+        val library = WatchLibrary(repository, player, downloader)
+
+        assertEquals(listOf("here"), library.downloads.first().map { it.episode.id })
+    }
+
+    @Test
+    fun anEpisodesActionsDownloadAndMarkItHeard() = runTest {
+        repository.episodes.value = listOf(episode("e", 1))
+        val actions = WatchEpisodeActions("e", repository, player, downloader)
+
+        assertEquals(DownloadAction.DOWNLOAD, actions.load()?.download)
+        actions.download(DownloadAction.DOWNLOAD)
+        actions.markPlayed(true)
+
+        assertEquals("e", downloader.downloadCalledWith?.id)
+        assertTrue(repository.episodes.value.single().isPlayed)
+    }
+
     private fun podcast(id: String) = Podcast(
         id = id, title = id, description = "", imageUrl = null, author = null, language = null,
         categories = emptyList(), feedUrl = id, siteUrl = null, lastUpdated = 0, isSubscribed = true,

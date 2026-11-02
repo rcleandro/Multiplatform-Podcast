@@ -1,10 +1,13 @@
 import SwiftUI
+import WatchKit
 import WatchShared
 
 /// The Apple Watch app (ADR 0016), over the same database, network and player as the phone through WatchShared, and
 /// with the phone's look: the dark theme, Onest and amber (as the Wear OS app, 19.9d).
 @main
 struct PodcastWatchApp: App {
+    @WKApplicationDelegateAdaptor private var delegate: WatchDelegate
+
     init() {
         WatchBridgeKt.startWatch()
         LibrarySync.shared.start()
@@ -14,6 +17,19 @@ struct PodcastWatchApp: App {
         WindowGroup {
             // The theme's colors have a watch entry with their dark values (IosTokensTest): the watch draws on black.
             HomeView().tint(Color(.Theme.primary))
+        }
+    }
+}
+
+/// Hands finished background downloads to the shared code; watchOS wakes the app to deliver them (19.9f).
+final class WatchDelegate: NSObject, WKApplicationDelegate {
+    func handle(_ backgroundTasks: Set<WKRefreshBackgroundTask>) {
+        for task in backgroundTasks {
+            if let downloads = task as? WKURLSessionRefreshBackgroundTask {
+                WatchBridgeKt.handleBackgroundDownloadEvents { downloads.setTaskCompletedWithSnapshot(false) }
+            } else {
+                task.setTaskCompletedWithSnapshot(false)
+            }
         }
     }
 }

@@ -72,12 +72,26 @@ fun <T> Flow<T>.watch(onEach: (T) -> Unit): Watching {
 
 fun watchLibrary(): WatchLibrary {
     val koin = KoinPlatform.getKoin()
-    return WatchLibrary(koin.get(), koin.get(), koin.get())
+    return WatchLibrary(koin.get(), koin.get(), koin.get(), koin.get())
 }
 
 fun watchPodcast(podcastId: String): WatchPodcast {
     val koin = KoinPlatform.getKoin()
     return WatchPodcast(podcastId, koin.get(), koin.get(), koin.get(), koin.get())
+}
+
+fun watchEpisodeActions(episodeId: String): WatchEpisodeActions {
+    val koin = KoinPlatform.getKoin()
+    return WatchEpisodeActions(episodeId, koin.get(), koin.get(), koin.get())
+}
+
+/**
+ * Called when watchOS wakes the app to deliver finished background downloads; the app may not have built its screen
+ * yet, so the shared code is started here too, as on the iPhone.
+ */
+fun handleBackgroundDownloadEvents(completionHandler: () -> Unit) {
+    startWatch()
+    KoinPlatform.getKoin().get<UrlSessionEpisodeDownloader>().onBackgroundEvents(completionHandler)
 }
 
 /** The one player of the watch app, as long as it runs. */
