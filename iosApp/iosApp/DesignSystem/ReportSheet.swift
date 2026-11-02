@@ -74,9 +74,9 @@ enum ReportTexts {
         let subject = strings.report_email_subject.localized([target.episodeTitle ?? target.podcastTitle], bundle: bundle)
         let body = strings.report_email_body.localized(
             [Self.reason(reason, bundle: bundle), target.podcastTitle, target.episodeTitle ?? "",
-             ReportDialogKt.feedHost(feedUrl: target.feedUrl)],
+             ReportMailKt.feedHost(feedUrl: target.feedUrl)],
             bundle: bundle
         )
-        return URL(string: ReportDialogKt.reportMailto(subject: subject, body: body))
+        return URL(string: ReportMailKt.reportMailto(subject: subject, body: body))
     }
 }

@@ -8,7 +8,7 @@ kotlin {
     }
 
     sourceSets {
-        commonMain.dependencies {
+        getByName("composeMain").dependencies {
             // Dragging to reorder the queue (18.6, ADR 0007).
             implementation(libs.reorderable)
         }

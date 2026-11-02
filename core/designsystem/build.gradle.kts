@@ -11,18 +11,23 @@ kotlin {
     }
 
     sourceSets {
-        val nonAndroidMain = create("nonAndroidMain") { dependsOn(commonMain.get()) }
-        iosMain.get().dependsOn(nonAndroidMain)
+        val nonAndroidMain = create("nonAndroidMain") { dependsOn(getByName("composeMain")) }
         wasmJsMain.get().dependsOn(nonAndroidMain)
         val desktopMain = getByName("desktopMain") { dependsOn(nonAndroidMain) }
 
+        // ponytail: the feed HTML parser (iOS reads it too) builds Compose's AnnotatedString; a neutral span model
+        // would drop this when the iOS framework stops linking Compose altogether (ADR 0015).
         commonMain.dependencies {
+            implementation(libs.compose.ui)
+            // Res is generated in commonMain; core:ui brings the library to iOS for its own texts anyway.
+            implementation(libs.components.resources)
+        }
+        getByName("composeMain").dependencies {
             api(libs.runtime)
             api(libs.foundation)
             api(libs.material3)
             api(libs.compose.ui)
             api(libs.material3.adaptive)
-            implementation(libs.components.resources)
             // The Icons object and the few icons it holds; the others the app uses are copied into `icons` (23.9).
             api(libs.material.icons.core)
             implementation(libs.compose.uiToolingPreview)
@@ -30,6 +35,8 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+        getByName("composeTest").dependencies {
             implementation(libs.ui.test)
         }
         val androidHostTest = getByName("androidHostTest") {

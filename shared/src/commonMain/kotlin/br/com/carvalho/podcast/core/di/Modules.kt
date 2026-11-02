@@ -1,6 +1,5 @@
 package br.com.carvalho.podcast.core.di
 
-import br.com.carvalho.podcast.core.image.createImageLoader
 import br.com.carvalho.podcast.core.network.commonJson
 import br.com.carvalho.podcast.core.network.createHttpClient
 import br.com.carvalho.podcast.core.player.PlaybackController
@@ -75,7 +74,6 @@ val dispatcherModule = module {
 val networkModule = module {
     single { commonJson }
     single { createHttpClient() }
-    single { createImageLoader(get()) }
     single<RssFeedDataSource> { RssFeedDataSourceImpl(get(), get()) }
     single<FeedSource> { RssFeedSource(get()) }
     single<OpmlFormat> { XmlOpmlFormat }

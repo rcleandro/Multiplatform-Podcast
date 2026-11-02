@@ -30,7 +30,8 @@ final class ScreensUITests: XCTestCase {
         let word = Array(words).split { !($0.isASCII && $0.isLetter) }.map { String($0) }
             .max { $0.count < $1.count } ?? words
 
-        search(word)
+        // Lowercase: typing capitals taps Shift for each letter, and the simulator dropped most of "PERDOADAS".
+        search(word.lowercased())
         XCTAssertTrue(row(containing: word).waitForExistence(timeout: 10))
         search("zzqx nothing matches this")
         XCTAssertTrue(app.staticTexts["No episodes found"].waitForExistence(timeout: 10))

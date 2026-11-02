@@ -88,20 +88,6 @@ kotlin {
             implementation(libs.multiplatform.settings.no.arg)
             implementation(project(":core:observability"))
 
-            // Compose
-            implementation(libs.runtime)
-            implementation(libs.foundation)
-            implementation(libs.material3)
-            implementation(libs.components.resources)
-            implementation(libs.compose.ui)
-            implementation(libs.compose.uiToolingPreview)
-
-            // Adaptive
-            implementation(libs.material3.adaptive)
-            implementation(libs.material3.adaptive.layout)
-            implementation(libs.material3.adaptive.navigation)
-            implementation(libs.material3.adaptive.navigation.suite)
-
             // Room 3
             implementation(libs.room3.runtime)
             api(libs.room3.paging)
@@ -109,7 +95,6 @@ kotlin {
 
             // Paging
             implementation(libs.paging.common)
-            implementation(libs.paging.compose)
 
             // Ktor 3
             implementation(libs.ktor.client.core)
@@ -120,8 +105,6 @@ kotlin {
 
             // Koin 4
             api(libs.koin.core)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
 
             // Kotlinx
             implementation(libs.kotlinx.serialization)
@@ -133,17 +116,33 @@ kotlin {
 
             // Decompose
             implementation(libs.decompose)
-            implementation(libs.decompose.compose)
 
             // Lifecycle
             implementation(libs.androidx.lifecycle.viewmodel)
-
-            // Imagem
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.ktor)
+            implementation(libs.koin.core.viewmodel)
 
             // Logging
             implementation(libs.kermit)
+        }
+
+        // The Compose app; iOS draws its screens in SwiftUI (ADR 0015).
+        getByName("composeMain").dependencies {
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material3)
+            implementation(libs.components.resources)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.material3.adaptive)
+            implementation(libs.material3.adaptive.layout)
+            implementation(libs.material3.adaptive.navigation)
+            implementation(libs.material3.adaptive.navigation.suite)
+            implementation(libs.paging.compose)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.decompose.compose)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
         }
 
         androidMain.dependencies {
@@ -188,6 +187,8 @@ kotlin {
             }
         }
 
+        // The web entry point starts the Compose app.
+        getByName("webMain").dependsOn(getByName("composeMain"))
         wasmJsMain.dependencies {
             implementation(libs.okio.fakefilesystem)
         }
@@ -198,8 +199,11 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)
             implementation(libs.ktor.client.mock)
-            implementation(libs.ui.test)
             implementation(libs.okio.fakefilesystem)
+        }
+
+        getByName("composeTest").dependencies {
+            implementation(libs.ui.test)
         }
 
         val jvmCommonTest = create("jvmCommonTest") {
