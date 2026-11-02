@@ -30,6 +30,22 @@ final class PlayerExtrasTests: XCTestCase {
         XCTAssertEqual(saved, try JSONDecoder().decode(WidgetSnapshot.self, from: JSONEncoder().encode(saved)))
     }
 
+    /// The watch's complications (25.14f) are redrawn when the episode jumps, not while it plays on as expected.
+    func testTheComplicationsRedrawOnASeekButNotWhilePlaying() {
+        let texts = WidgetSnapshot.Texts(nothingPlaying: "", play: "", pause: "", skipBackward: "", skipForward: "")
+        let item = WidgetSnapshot.Item(id: "e", title: "Ep", podcastTitle: nil, cover: nil)
+        let start = Date(timeIntervalSince1970: 0)
+        func snapshot(at positionMs: Int64, after seconds: Double) -> WidgetSnapshot {
+            WidgetSnapshot(episode: item, isPlaying: true, continueListening: [], texts: texts,
+                           progress: .init(positionMs: positionMs, durationMs: 600_000, speed: 1, savedAt: start.addingTimeInterval(seconds)))
+        }
+        let first = snapshot(at: 0, after: 0)
+
+        XCTAssertFalse(snapshot(at: 10_000, after: 10).needsRedraw(after: first, toleranceMs: 5_000))
+        XCTAssertTrue(snapshot(at: 40_000, after: 10).needsRedraw(after: first, toleranceMs: 5_000))
+        XCTAssertEqual(0.5, snapshot(at: 300_000, after: 0).progress?.fraction)
+    }
+
     /// CarPlay's rows (25.13): the episode's and podcast's names, and a tap hands the episode back.
     func testCarPlayRowsNameTheEpisodeAndPlayItWhenTapped() {
         var tapped: String?
