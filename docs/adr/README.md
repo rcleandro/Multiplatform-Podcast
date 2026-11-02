@@ -20,6 +20,7 @@ one to "substituída por ADR NNNN" instead of deleting it.
 | [0013](0013-web-como-demonstracao.md) | A Web como demonstração: sem proxy; feed recusado pelo navegador (CORS) vira `BrowserBlocked` com explicação; COOP/COEP na hospedagem |
 | [0014](0014-modelo-de-ameacas.md) | Modelo de ameaças: ativos (tokens de feed, biblioteca, downloads, PIN, chave), atacantes e 12 ameaças, cada uma ligada a um item da fase 22; sem pinning |
 | [0015](0015-ios-em-swiftui.md) | iOS em SwiftUI: adaptadores à mão para os ViewModels, `RootComponent` desenhado pelo Swift, textos e tokens gerados do Kotlin, iOS 18, Compose fora do iOS na 25.8 |
+| [0016](0016-apple-watch.md) | Apple Watch: o Room e os módulos de dados no watchOS, fachadas num `:watch` porque o Compose Resources não tem watchOS, app em SwiftUI e sincronização pelo WatchConnectivity |
 
 ## Modelo
 
