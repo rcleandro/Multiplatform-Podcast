@@ -39,6 +39,9 @@ struct PlayerScreen: View {
                         .accessibilityLabel(Res.string.shared.minimize.localized())
                 }
                 if let episode = state.currentEpisode {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        AirPlayButton(prefersVideo: episode.isVideo).frame(width: Sizes.iconXl, height: Sizes.iconXl)
+                    }
                     ToolbarItem(placement: .topBarTrailing) { share(episode, at: state.position) }
                 }
                 ToolbarItem(placement: .topBarTrailing) {

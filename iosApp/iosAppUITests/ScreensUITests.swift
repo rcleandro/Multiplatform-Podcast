@@ -141,6 +141,20 @@ final class ScreensUITests: XCTestCase {
         app.buttons["Minimize"].tap()
     }
 
+    /// The player offers AirPlay (25.10) through the system's picker, beside sharing.
+    func testThePlayerOffersAirPlay() throws {
+        _ = try openAllEpisodes()
+        XCTAssertTrue(menu(of: rows.firstMatch, has: "Play"))
+        app.buttons["Play"].firstMatch.tap()
+        let miniPlayer = app.descendants(matching: .any).matching(identifier: "miniPlayer").firstMatch
+        XCTAssertTrue(miniPlayer.waitForExistence(timeout: 10))
+        miniPlayer.tap()
+
+        XCTAssertTrue(app.buttons["AirPlay"].waitForExistence(timeout: 5))
+        app.buttons["Pause"].firstMatch.tap()
+        app.buttons["Minimize"].tap()
+    }
+
     /// Subscribes to the first popular podcast not yet in the library and goes back to it; the result is its title.
     @discardableResult
     private func subscribeFromTheDirectory() throws -> String {
