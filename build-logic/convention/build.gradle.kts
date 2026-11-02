@@ -20,6 +20,10 @@ gradlePlugin {
             id = "podcast.kmp.compose"
             implementationClass = "KmpComposeConventionPlugin"
         }
+        register("kmpWatch") {
+            id = "podcast.kmp.watch"
+            implementationClass = "KmpWatchConventionPlugin"
+        }
         register("appVersion") {
             id = "podcast.app.version"
             implementationClass = "AppVersionConventionPlugin"

@@ -71,6 +71,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core:common"))
+            api(project(":core:di"))
             implementation(project(":domain"))
             implementation(project(":data"))
             implementation(project(":feature:library"))

@@ -232,6 +232,7 @@ androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", versi
 [plugins]
 podcast-kmp-library = { id = "podcast.kmp.library" }
 podcast-kmp-compose = { id = "podcast.kmp.compose" }
+podcast-kmp-watch = { id = "podcast.kmp.watch" }
 podcast-feature = { id = "podcast.feature" }
 podcast-app-version = { id = "podcast.app.version" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

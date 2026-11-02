@@ -63,8 +63,10 @@ plugins {
 }
 
 include(":shared")
+include(":watch")
 include(":core:common")
 include(":core:database")
+include(":core:di")
 include(":core:designsystem")
 include(":core:network")
 include(":core:observability")
