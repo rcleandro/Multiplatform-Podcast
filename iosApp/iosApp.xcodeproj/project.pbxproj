@@ -143,6 +143,7 @@
 				Fonts/onest_regular.ttf,
 				Fonts/onest_semibold.ttf,
 				Localizable.xcstrings,
+				Sync/LibrarySync.swift,
 				Theme.xcassets,
 			);
 			target = 7E88494B77DDD90CF9AA3209 /* PodcastWatch */;

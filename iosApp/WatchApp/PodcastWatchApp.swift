@@ -7,6 +7,7 @@ import WatchShared
 struct PodcastWatchApp: App {
     init() {
         WatchBridgeKt.startWatch()
+        LibrarySync.shared.start()
     }
 
     var body: some Scene {
