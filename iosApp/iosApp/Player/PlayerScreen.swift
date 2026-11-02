@@ -29,6 +29,7 @@ struct PlayerScreen: View {
             Group {
                 if textSize.isAccessibilitySize { ScrollView { content(state) } } else { content(state) }
             }
+            .artworkBackdrop(url: state.currentEpisode?.imageUrl)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { model.root.onBackClicked() } label: { Image(systemName: "chevron.down") }

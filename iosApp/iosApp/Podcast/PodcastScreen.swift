@@ -42,14 +42,16 @@ struct PodcastScreen: View {
                               onSimilar: { model.root.onShowSimilar(podcastId: podcastId) })
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
             }
-            filters(state.filter).listRowSeparator(.hidden)
+            filters(state.filter).listRowSeparator(.hidden).listRowBackground(Color.clear)
             ForEach(Array(list.enumerated()), id: \.element.id) { index, episode in
                 if let season = season(at: index, in: list) {
                     Text(Res.string.shared.season_number.localized([KotlinInt(int: season)]))
                         .textStyle(Typography.titleSmall).foregroundStyle(Color(.Theme.primary))
                         .accessibilityAddTraits(.isHeader)
                         .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                 }
                 Button {
                     if state.selection.isEmpty {
@@ -61,10 +63,12 @@ struct PodcastScreen: View {
                     row(episode, selection: state.selection)
                 }
                 .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
                 .onAppear { pages.loadAround(index: Int32(index)) }
             }
         }
         .listStyle(.plain)
+        .artworkBackdrop(url: state.podcast?.imageUrl)
         .overlay { if state.isLoading { ProgressView() } }
         .navigationTitle(state.podcast?.title ?? "")
         .navigationBarTitleDisplayMode(.inline)
@@ -239,10 +243,6 @@ private struct PodcastHeader: View {
         .padding(Spacing.l)
         .frame(maxWidth: Sizes.readableWidth)
         .frame(maxWidth: .infinity)
-        .background {
-            Artwork(url: podcast.imageUrl, size: nil, radius: 0).blur(radius: Spacing.xxxl).opacity(Opacity.scrim)
-                .clipped()
-        }
     }
 
     private var byline: String {

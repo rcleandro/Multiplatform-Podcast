@@ -113,6 +113,7 @@ struct EpisodeScreen: View {
             .frame(maxWidth: Sizes.readableWidth)
             .frame(maxWidth: .infinity)
         }
+        .artworkBackdrop(url: episode.imageUrl)
     }
 
     /// Queue, download, played and saved, as icon buttons with their names for VoiceOver.
