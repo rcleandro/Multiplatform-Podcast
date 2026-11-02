@@ -120,6 +120,27 @@ final class ScreensUITests: XCTestCase {
         app.buttons["Minimize"].tap()
     }
 
+    /// A phone on its side (21.2, 25.9): the player puts the cover beside the controls, so play shows without scrolling.
+    func testThePlayerFitsAPhoneOnItsSide() throws {
+        _ = try openAllEpisodes()
+        XCTAssertTrue(menu(of: rows.firstMatch, has: "Play"))
+        app.buttons["Play"].firstMatch.tap()
+        let miniPlayer = app.descendants(matching: .any).matching(identifier: "miniPlayer").firstMatch
+        XCTAssertTrue(miniPlayer.waitForExistence(timeout: 10))
+        miniPlayer.tap()
+        XCUIDevice.shared.orientation = .landscapeLeft
+        defer { XCUIDevice.shared.orientation = .portrait }
+
+        let pause = app.buttons["Pause"].firstMatch
+        XCTAssertTrue(pause.waitForExistence(timeout: 10))
+        XCTAssertTrue(pause.isHittable)
+        let screen = app.windows.firstMatch.frame
+        XCTAssertLessThanOrEqual(pause.frame.maxY, screen.maxY)
+        XCTAssertLessThanOrEqual(app.buttons["Playback speed"].frame.maxY, screen.maxY)
+        pause.tap()
+        app.buttons["Minimize"].tap()
+    }
+
     /// Subscribes to the first popular podcast not yet in the library and goes back to it; the result is its title.
     @discardableResult
     private func subscribeFromTheDirectory() throws -> String {

@@ -36,6 +36,15 @@ final class ShellModel {
         Binding(get: { self.stack(tab) }, set: { self.setPath(tab, to: $0) })
     }
 
+    /// The pages open on [tab] past the first, which a wide window shows as the root of its detail column.
+    func detailPath(_ tab: Shared.Tab) -> Binding<[Page]> {
+        Binding(get: { Array(self.stack(tab).dropFirst()) },
+                set: { self.setPath(tab, to: Array(self.stack(tab).prefix(1)) + $0) })
+    }
+
+    /// The pages open on [tab].
+    func pages(_ tab: Shared.Tab) -> [Page] { stack(tab) }
+
     /**
      * SwiftUI only shortens a path (the back gesture, the back button, tapping the selected tab); pages are pushed by
      * the root, so a path as long as the root's, or longer, is the root's own and changes nothing. Without this rule

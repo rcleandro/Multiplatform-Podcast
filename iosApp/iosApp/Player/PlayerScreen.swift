@@ -10,6 +10,7 @@ struct PlayerScreen: View {
     /// Where the thumb is while it is dragged; the player only seeks when it is let go.
     @State private var dragged: Double?
     @State private var bookmarksOpen = false
+    @State private var size: CGSize = .zero
 
     init(model: ShellModel) {
         self.model = model
@@ -21,6 +22,8 @@ struct PlayerScreen: View {
     private static let artworkSize: CGFloat = 280
     private static let titleLines = 3
     private static let videoAspectRatio: CGFloat = 16 / 9
+    /// Cover beside the rest: as wide as two readable columns.
+    private static let twoColumnsWidth = Sizes.readableWidth * 2
 
     var body: some View {
         let state = player.value
@@ -47,11 +50,21 @@ struct PlayerScreen: View {
                 BookmarksSheet(viewModel: model.app.viewModels.player(), positionMs: state.position)
             }
         }
+        // The screen's size, not the content's, which grows past a low screen when it is in one column.
+        .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
     }
 
-    /// The cover or the video, the titles, the progress, the controls and the options.
+    /**
+     * The cover or the video, the titles, the progress, the controls and the options. A wide window (21.1) or a low one,
+     * like a phone on its side (21.2), puts the cover beside the rest, sized by the height, so play shows without
+     * scrolling.
+     */
     private func content(_ state: PlayerState) -> some View {
-        VStack(spacing: Spacing.l) {
+        let isShort = WindowLayout.isShort(height: size.height)
+        let twoColumns = isShort || WindowLayout.isExpanded(width: size.width)
+        let spacing = isShort ? Spacing.s : Spacing.l
+        let layout = twoColumns ? AnyLayout(HStackLayout(spacing: Spacing.xl)) : AnyLayout(VStackLayout(spacing: spacing))
+        return layout {
             if let episode = state.currentEpisode {
                 if episode.isVideo {
                     // The video takes the cover's place, as in the Compose player (ADR 0010).
@@ -60,26 +73,32 @@ struct PlayerScreen: View {
                         .background(.black)
                         .clipShape(RoundedRectangle(cornerRadius: Radius.extraLarge))
                 } else {
-                    Artwork(url: episode.imageUrl, size: Self.artworkSize, radius: Radius.extraLarge)
-                        .frame(maxWidth: Self.artworkSize)
+                    Artwork(url: episode.imageUrl, size: twoColumns ? nil : Self.artworkSize, radius: Radius.extraLarge)
+                        .frame(maxWidth: Self.artworkSize, maxHeight: Self.artworkSize)
                 }
-                VStack(spacing: Spacing.xs) {
-                    Text(episode.title).textStyle(Typography.titleLarge).multilineTextAlignment(.center)
-                        .lineLimit(textSize.isAccessibilitySize ? nil : Self.titleLines)
-                    if let podcast = episode.podcastTitle {
-                        Text(podcast).textStyle(Typography.labelLarge).foregroundStyle(Color(.Theme.accentText))
+                VStack(spacing: spacing) {
+                    VStack(spacing: Spacing.xs) {
+                        Text(episode.title).textStyle(Typography.titleLarge).multilineTextAlignment(.center)
+                            .lineLimit(textSize.isAccessibilitySize ? nil : isShort ? 1 : Self.titleLines)
+                        if let podcast = episode.podcastTitle {
+                            Text(podcast).textStyle(Typography.labelLarge).foregroundStyle(Color(.Theme.accentText))
+                        }
+                    }
+                    progress(state)
+                    controls(state)
+                    // A low window keeps the options and the extras on one line.
+                    let optionsLayout = isShort ? AnyLayout(HStackLayout(spacing: Spacing.l)) : AnyLayout(VStackLayout(spacing: spacing))
+                    optionsLayout {
+                        options(state)
+                        extras(state)
                     }
                 }
-                progress(state)
-                controls(state)
-                options(state)
-                extras(state)
             } else {
                 ContentUnavailableView(Res.string.shared.no_episode_selected.localized(), systemImage: "play.circle")
             }
         }
-        .padding(Spacing.l)
-        .frame(maxWidth: Sizes.readableWidth)
+        .padding(isShort ? Spacing.s : Spacing.l)
+        .frame(maxWidth: twoColumns ? Self.twoColumnsWidth : Sizes.readableWidth)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 

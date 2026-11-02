@@ -41,6 +41,7 @@ private struct Shell: View {
             }
         }
         .miniPlayer(model: model)
+        .background { KeyboardShortcuts(model: model) }
         .preferredColorScheme(theme.value.colorScheme)
         .fullScreenCover(isPresented: model.isOpen(\.isPlayerOpen)) {
             PlayerScreen(model: model)
@@ -56,21 +57,50 @@ private struct Shell: View {
     }
 }
 
-/// One tab's pages: the podcast and the episode pages the root has open on it.
+/**
+ * One tab's pages: the podcast and the episode pages the root has open on it. A wide window (21.1, 25.9) keeps the tab's
+ * list beside them, as the Compose ListDetailPaneScaffold; a narrower one stacks them over the list.
+ */
 private struct TabStack<Root: View>: View {
     let model: ShellModel
     let tab: Shared.Tab
     @ViewBuilder let root: () -> Root
+    @State private var width: CGFloat = 0
 
     var body: some View {
-        NavigationStack(path: model.path(tab)) {
-            root()
-                .navigationDestination(for: Page.self) { page in
-                    switch page {
-                    case let .podcast(id): PodcastScreen(model: model, podcastId: id)
-                    case let .episode(id): EpisodeScreen(model: model, episodeId: id)
+        Group {
+            if WindowLayout.isExpanded(width: width) {
+                NavigationSplitView(columnVisibility: .constant(.all)) {
+                    root()
+                        .navigationSplitViewColumnWidth(WindowLayout.listWidth)
+                        .toolbar(removing: .sidebarToggle)
+                } detail: {
+                    NavigationStack(path: model.detailPath(tab)) {
+                        Group {
+                            if let first = model.pages(tab).first {
+                                page(first)
+                            } else {
+                                Text(Res.string.shared.select_podcast.localized()).textStyle(Typography.bodyLarge)
+                            }
+                        }
+                        .navigationDestination(for: Page.self, destination: page)
                     }
                 }
+                .navigationSplitViewStyle(.balanced)
+            } else {
+                NavigationStack(path: model.path(tab)) {
+                    root().navigationDestination(for: Page.self, destination: page)
+                }
+            }
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+    }
+
+    @ViewBuilder
+    private func page(_ page: Page) -> some View {
+        switch page {
+        case let .podcast(id): PodcastScreen(model: model, podcastId: id)
+        case let .episode(id): EpisodeScreen(model: model, episodeId: id)
         }
     }
 }
