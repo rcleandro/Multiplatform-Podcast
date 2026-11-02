@@ -39,14 +39,19 @@ kotlin {
             // own name. Without it, a type only seen as a generic argument (a view model's UI state) is left out.
             swiftModules.forEach { export(project(it)) }
         }
+        // The Firebase Kotlin SDK (dev.gitlive) brings its own bindings of these three pods; generating them again
+        // binds each Objective-C class twice, which only the release link rejects ("FIROptions is already bound").
         pod("FirebaseAnalytics") {
             version = "~> 11.0"
+            linkOnly = true
         }
         pod("FirebaseCrashlytics") {
             version = "~> 11.0"
+            linkOnly = true
         }
         pod("FirebaseCore") {
             version = "~> 11.0"
+            linkOnly = true
         }
         pod("FirebaseInstallations") {
             version = "~> 11.0"
