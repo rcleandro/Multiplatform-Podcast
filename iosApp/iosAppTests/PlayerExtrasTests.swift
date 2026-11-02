@@ -1,3 +1,4 @@
+import CarPlay
 import Shared
 import XCTest
 @testable import Podcast
@@ -27,6 +28,22 @@ final class PlayerExtrasTests: XCTestCase {
         let item = WidgetSnapshot.Item(id: "e", title: "Ep", podcastTitle: "Show", cover: nil)
         let saved = WidgetSnapshot(episode: item, isPlaying: true, continueListening: [item], texts: texts)
         XCTAssertEqual(saved, try JSONDecoder().decode(WidgetSnapshot.self, from: JSONEncoder().encode(saved)))
+    }
+
+    /// CarPlay's rows (25.13): the episode's and podcast's names, and a tap hands the episode back.
+    func testCarPlayRowsNameTheEpisodeAndPlayItWhenTapped() {
+        var tapped: String?
+        let items = CarLists.episodeItems([episode()]) { episode, done in
+            tapped = episode.id
+            done()
+        }
+        XCTAssertEqual(["Ep"], items.map(\.text))
+        XCTAssertEqual(["Show"], items.map(\.detailText))
+
+        let finished = expectation(description: "tap handled")
+        items[0].handler?(items[0]) { finished.fulfill() }
+        wait(for: [finished], timeout: 1)
+        XCTAssertEqual("e", tapped)
     }
 
     private func episode() -> Episode {
