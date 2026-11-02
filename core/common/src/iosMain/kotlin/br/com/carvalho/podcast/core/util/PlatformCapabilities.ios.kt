@@ -10,7 +10,7 @@ actual val canLimitDownloadsToWifi: Boolean = true
 
 actual val canEnhanceSpeech: Boolean = false
 
-actual val canRefreshInBackground: Boolean = false
+actual val canRefreshInBackground: Boolean = true
 
 actual val openSystemLanguageSettings: (() -> Unit)? = {
     NSURL.URLWithString(UIApplicationOpenSettingsURLString)?.let {

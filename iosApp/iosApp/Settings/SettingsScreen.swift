@@ -30,6 +30,7 @@ struct SettingsScreen: View {
                 }
                 appearance(state)
                 files(state)
+                updates(state)
                 playback(state)
                 if let used = state.usedBytes { downloads(state, used: used.int64Value) }
                 content(state)
@@ -138,6 +139,27 @@ struct SettingsScreen: View {
                    locked ? Res.string.shared.settings_locked_for_minors : Res.string.shared.settings_continuous_playback_description,
                    isOn: state.continuousPlayback && !locked, disabled: locked) {
                 send(SettingsIntentSetContinuousPlayback(enabled: $0))
+            }
+        }
+    }
+
+    /// How often to look for new episodes while closed (25.11) and whether to tell about them.
+    private func updates(_ state: SettingsUiState) -> some View {
+        // A minor in Brazil, unless the guardians allow them (26.5, 26.6).
+        let locked = state.isMinor && !state.guardian.controls.allowNewEpisodeNotifications
+        return Section(titled: Res.string.shared.settings_updates.localized()) {
+            Picker(Res.string.shared.settings_refresh.localized(), selection: Binding(
+                get: { Int(state.refreshIntervalHours) }, set: { send(SettingsIntentSetRefreshInterval(hours: Int32($0))) }
+            )) {
+                ForEach(RefreshInterval.shared.CHOICES.map(\.intValue), id: \.self) { hours in
+                    Text(SettingsTexts.refresh(hours)).tag(hours)
+                }
+            }
+            // Nothing is looked for while closed, so nothing would notify.
+            if state.refreshIntervalHours > 0 {
+                toggle(Res.string.shared.settings_notify_new,
+                       locked ? Res.string.shared.settings_locked_for_minors : Res.string.shared.settings_notify_new_description,
+                       isOn: state.notifyNewEpisodes && !locked, disabled: locked) { send(SettingsIntentSetNotifyNewEpisodes(enabled: $0)) }
             }
         }
     }
@@ -291,6 +313,12 @@ enum SettingsTexts {
         default:
             return idle.localized(bundle: bundle)
         }
+    }
+
+    /// "Every 6 hours", or never.
+    static func refresh(_ hours: Int, bundle: Bundle = .main) -> String {
+        hours == 0 ? Res.string.shared.settings_refresh_never.localized(bundle: bundle)
+            : Res.plurals.shared.settings_refresh_every.localized(count: hours, bundle: bundle)
     }
 
     /// "30 days", or kept.

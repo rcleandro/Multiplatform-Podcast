@@ -23,9 +23,34 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual("Sem limite", SettingsTexts.limit(nil, bundle: pt))
     }
 
+    func testRefreshChoicesReadAsTheComposeOnes() {
+        XCTAssertEqual("Nunca, só ao abrir o app", SettingsTexts.refresh(0, bundle: pt))
+        XCTAssertEqual("A cada hora", SettingsTexts.refresh(1, bundle: pt))
+        XCTAssertEqual("A cada 6 horas", SettingsTexts.refresh(6, bundle: pt))
+    }
+
+    /// The new-episodes notification (25.11) says what the Android one says (18.18).
+    func testTheNewEpisodesNotificationNamesTheEpisodeOrCountsThem() {
+        let one = BackgroundRefresh.message([episode("a", podcast: "Show")], bundle: pt)
+        XCTAssertEqual("Show", one.title)
+        XCTAssertEqual("a", one.body)
+        let many = BackgroundRefresh.message([episode("a", podcast: "Show"), episode("b", podcast: "Other"),
+                                              episode("c", podcast: "Show")], bundle: pt)
+        XCTAssertEqual("3 episódios novos", many.title)
+        XCTAssertEqual("Show, Other", many.body)
+    }
+
     func testStatsWriteTimeAsEpisodeLengthsAndWeeksByTheirMonday() {
         XCTAssertEqual("1h 5min", StatsTexts.heard(65 * 60 * 1000))
         // 2026-10-19, a Monday, is day 20 745 since 1970-01-01.
         XCTAssertEqual("19 de out.", StatsTexts.weekLabel(20_745, locale: Locale(identifier: "pt_BR")))
+    }
+
+    private func episode(_ id: String, podcast: String) -> Episode {
+        Episode(id: id, podcastId: podcast, podcastTitle: podcast, title: id, description: nil, audioUrl: "https://ex.com/\(id).mp3",
+                imageUrl: nil, duration: 60, publishDate: 0, isPlayed: false, playbackPosition: 0, isDownloaded: false,
+                fileSize: nil, localPath: nil, link: nil, explicit: false, isNew: true, season: nil, type: .full, isSaved: false,
+                lastPlayedAt: nil, downloadedAt: nil, chaptersUrl: nil, transcriptUrl: nil, transcriptType: nil, updatedAt: 0,
+                mediaType: nil)
     }
 }
