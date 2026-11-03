@@ -205,8 +205,14 @@ final class ScreensUITests: XCTestCase {
             .waitForExistence(timeout: 5)
     }
 
+    /// The handle on the row's line: iOS 26 calls every handle "Reorder Remove", leaving the title out.
     private func reorderHandle(of title: String) -> XCUIElement {
-        app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Reorder' AND label CONTAINS %@", title)).firstMatch
+        let reorder = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Reorder'"))
+        XCTAssertTrue(reorder.firstMatch.waitForExistence(timeout: 5))
+        let rows = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", title)).allElementsBoundByIndex
+        return reorder.allElementsBoundByIndex.first { handle in
+            rows.contains { $0.frame.minY...$0.frame.maxY ~= handle.frame.midY }
+        } ?? reorder.matching(NSPredicate(format: "label CONTAINS %@", title)).firstMatch
     }
 
     /// An episode opens over its podcast's page, so back is pressed until the tab shows.

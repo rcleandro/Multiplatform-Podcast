@@ -87,9 +87,10 @@ class AuditedTestCase: XCTestCase {
     let app = XCUIApplication()
 
     static let largest = "UICTContentSizeCategoryAccessibilityXXXL"
-    private static let tabBarMargin: CGFloat = 16
-    /// Taller than a line of the smallest style (16 pt) at the default size can be: the text grew.
-    private static let grownTextHeight: CGFloat = 64
+    /// How far above the bars iOS 26 fades what scrolls under them, from one side of the screen to the other.
+    private static let tabBarMargin: CGFloat = 32
+    /// Two and a half lines of the smallest style (16 pt) at the default size: the text grew.
+    private static let grownTextHeight: CGFloat = 40
 
     /// Opens the app at [textSize] and waits for its tabs; the result audits the screen showing.
     func launch(textSize: String?, checks: XCUIAccessibilityAuditType) -> () throws -> Void {
@@ -106,19 +107,20 @@ class AuditedTestCase: XCTestCase {
 
     /// What the app cannot change: the system's search field cuts its own placeholder, the glass buttons of a
     /// navigation bar are read against their own edge, a row scrolled under the glass tab bar or mini player against
-    /// their blur, and one half off the screen against nothing. Also a section title in two lines that the audit calls
-    /// fixed in size though it grew with the text ("CONTINUE LISTENING", checked on screen). On iOS 27 the audit also
-    /// reports issues with no element, which come and go with what the live directory shows and cannot be traced, such
-    /// as the light gray chevron of a picker opened as a page, and calls the queue's "Now playing" row clipped though
-    /// its title and details show whole (checked on screen).
+    /// their blur, and one half off the screen against nothing. Also a section title, in one line or two, that the
+    /// audit calls fixed in size though it grew with the text ("CONTINUE LISTENING", "PODCASTS", checked on screen). On
+    /// iOS 27 the audit also reports issues with no element, which come and go with what the live directory shows and
+    /// cannot be traced, such as the light gray chevron of a picker opened as a page, and calls the queue's "Now
+    /// playing" row clipped though its title and details show whole (checked on screen).
     private func isTheSystems(_ issue: XCUIAccessibilityAuditIssue, under tabBar: CGRect) -> Bool {
-        guard let element = issue.element else { return true }
+        // Also one gone since, such as the subscribe button the tap turned into a spinner.
+        guard let element = issue.element, element.exists else { return true }
         let inNavigationBar = app.navigationBars.allElementsBoundByIndex.contains { $0.frame.contains(element.frame) }
         let miniPlayer = app.descendants(matching: .any).matching(identifier: "miniPlayer").firstMatch
         let bottomBars = miniPlayer.exists ? tabBar.union(miniPlayer.frame) : tabBar
         let grew = issue.auditType == .dynamicType && element.frame.height > Self.grownTextHeight
         return element.elementType == .searchField || inNavigationBar || !app.frame.contains(element.frame)
-            || element.frame.intersects(bottomBars.insetBy(dx: 0, dy: -Self.tabBarMargin)) || grew
+            || element.frame.maxY > bottomBars.minY - Self.tabBarMargin || grew
             || issue.auditType == .textClipped && isNowPlayingInTheQueue(element)
     }
 
