@@ -274,7 +274,8 @@ jobs:
                     CODE_SIGNING_ALLOWED=NO
 
             # The SwiftUI side (25.2): bridge, texts and theme, inside the app on the first iPhone simulator the
-            # image has, since the names change with each Xcode.
+            # image has, since the names change with each Xcode. Only the unit bundle: the UI tests (25.8g) read the
+            # live directory and take ten minutes, so they run locally before a phase's PR.
             - name: Run iOS app tests (XCTest)
               run: |
                   device=$(xcrun simctl list devices available | grep -m1 -oE 'iPhone[^(]*' | sed 's/ *$//')
@@ -285,6 +286,7 @@ jobs:
                     -clonedSourcePackagesDirPath ./spm \
                     -destination "platform=iOS Simulator,name=$device" \
                     -derivedDataPath ./build-tests \
+                    -only-testing:iosAppTests \
                     CODE_SIGNING_ALLOWED=NO
 
             - name: Upload app folder
