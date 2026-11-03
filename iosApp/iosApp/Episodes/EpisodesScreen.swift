@@ -184,12 +184,15 @@ struct EpisodesScreen: View {
                 Label(Res.string.shared.smart_playlist_empty_title.localized(), systemImage: "music.note.list")
             } description: {
                 Text(Res.string.shared.smart_playlist_empty_message.localized())
+                    .foregroundStyle(Color(.Theme.onSurfaceVariant))
             } actions: {
                 Button(Res.string.shared.smart_playlist_edit.localized()) { send(SearchIntentEditPlaylist(playlist: playlist)) }
             }
         } else {
             let (title, message, symbol) = EpisodesEmpty.of(filter: state.filter, searching: !state.searchQuery.isEmpty)
-            ContentUnavailableView(title.localized(), systemImage: symbol, description: Text(message.localized()))
+            ContentUnavailableView(title.localized(), systemImage: symbol,
+                                   description: Text(message.localized())
+                                       .foregroundStyle(Color(.Theme.onSurfaceVariant)))
         }
     }
 

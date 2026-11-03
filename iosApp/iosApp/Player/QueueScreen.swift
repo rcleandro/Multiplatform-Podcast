@@ -40,7 +40,8 @@ struct QueueScreen: View {
                 } else {
                     // A row under "Now playing", not over the list: large text would draw it on top of the episode.
                     ContentUnavailableView(Res.string.shared.queue_empty_title.localized(), systemImage: "list.bullet",
-                                           description: Text(Res.string.shared.queue_empty_message.localized()))
+                                           description: Text(Res.string.shared.queue_empty_message.localized())
+                                               .foregroundStyle(Color(.Theme.onSurfaceVariant)))
                         .listRowBackground(Color.clear)
                 }
             }

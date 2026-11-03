@@ -26,6 +26,9 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             AppShell()
+                // iOS 26 leaves the Info.plist accent color out and draws buttons in the system blue, under 4.5:1
+                // with white.
+                .tint(Color(.accent))
                 // Brazil's age signal (26.2): on opening and each time the app comes back to the front.
                 .onChange(of: scenePhase) { _, phase in
                     switch phase {

@@ -24,7 +24,8 @@ struct ListeningStatsScreen: View {
             Group {
                 if stats.totalListenedMs <= 0 {
                     ContentUnavailableView(Res.string.shared.stats_empty_title.localized(), systemImage: "headphones",
-                                           description: Text(Res.string.shared.stats_empty_message.localized()))
+                                           description: Text(Res.string.shared.stats_empty_message.localized())
+                                               .foregroundStyle(Color(.Theme.onSurfaceVariant)))
                 } else {
                     List {
                         Section { totals(stats) }
