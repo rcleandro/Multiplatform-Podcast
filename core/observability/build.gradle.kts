@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.podcast.kmp.library)
+    alias(libs.plugins.podcast.kmp.watch)
 }
 
 kotlin {

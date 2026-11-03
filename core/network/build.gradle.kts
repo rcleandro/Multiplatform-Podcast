@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.podcast.kmp.library)
+    alias(libs.plugins.podcast.kmp.watch)
 }
 
 kotlin {
@@ -25,7 +26,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
-        iosMain.dependencies {
+        appleMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
         val desktopMain = getByName("desktopMain") {

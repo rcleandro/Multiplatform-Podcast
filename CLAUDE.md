@@ -44,6 +44,8 @@ The Razr and the Galaxy Watch are the user's own devices, in daily use, with the
   use `Modifier.readableWidth()`; nothing essential needs scrolling. See the permanent rule in phase 21 of the roadmap.
 - Code, identifiers, comments and log messages in English. User-facing text only in `composeResources`
   (`values`, `values-pt`, `values-es`), never in Kotlin; view models emit `StringResource`s, screens resolve them.
+  The iOS app reads them from `iosApp/iosApp/Localizable.xcstrings`, generated from those files: run
+  `./gradlew generateIosStrings` after changing a text (`checkIosStrings` in the hook and CI fails otherwise).
 - No loose numbers: named `SNAKE_CASE` constants; spacing and shared sizes from design system tokens; a size owned
   by one composable is a named `val` inside it. No `Color(...)`, `.sp` or `.copy(fontSize = …)` in features.
 - Platform files keep the `.android.kt` / `.ios.kt` suffixes; `MatchingDeclarationName` stays disabled in `detekt.yml`.

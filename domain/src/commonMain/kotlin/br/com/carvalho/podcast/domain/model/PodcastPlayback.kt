@@ -11,4 +11,10 @@ data class PodcastPlayback(
     val speed: Float? = null,
     val skipIntroSeconds: Int = 0,
     val skipOutroSeconds: Int = 0,
-)
+) {
+    companion object {
+        /** How long a jingle or the credits can be skipped; 0 skips nothing. */
+        @Suppress("MagicNumber") // the choices themselves
+        val SKIP_CHOICES = listOf(0, 10, 15, 30, 45, 60, 90, 120)
+    }
+}

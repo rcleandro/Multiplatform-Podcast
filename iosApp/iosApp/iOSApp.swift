@@ -17,15 +17,30 @@ struct iOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.scenePhase) private var scenePhase
 
+    init() {
+        SwiftBridgeKt.startShared(firebase: FirebaseTelemetry())
+        WidgetSync.start()
+        LibrarySync.shared.start()
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                // A podcast link (pcast://, podcast://, itpc://, feed://) opens in "Add podcast" (18.4).
-                .onOpenURL { url in MainViewControllerKt.openPodcastLink(url: url.absoluteString) }
+            AppShell()
+                // iOS 26 leaves the Info.plist accent color out and draws buttons in the system blue, under 4.5:1
+                // with white.
+                .tint(Color(.accent))
                 // Brazil's age signal (26.2): on opening and each time the app comes back to the front.
-                .onChange(of: scenePhase) { phase in
-                    if phase == .active { Task { await AgeSignals.read() } }
+                .onChange(of: scenePhase) { _, phase in
+                    switch phase {
+                    case .active:
+                        Task { await AgeSignals.read() }
+                        BackgroundRefresh.askToNotify()
+                    // The next look in the background (25.11), from the interval Settings have now.
+                    case .background: BackgroundRefresh.schedule()
+                    default: break
+                    }
                 }
         }
+        .backgroundTask(.appRefresh(BackgroundRefresh.taskId)) { await BackgroundRefresh.run() }
     }
 }

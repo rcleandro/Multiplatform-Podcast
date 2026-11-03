@@ -2,9 +2,21 @@ plugins {
     alias(libs.plugins.podcast.kmp.library)
     alias(libs.plugins.podcast.kmp.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.cocoapods)
-    alias(libs.plugins.podcast.app.version)
 }
+
+// The modules the SwiftUI screens use directly (ADR 0015): view models, their states and the domain models.
+val swiftModules = listOf(
+    ":core:common",
+    ":domain",
+    ":core:ui",
+    ":feature:library",
+    ":feature:podcast",
+    ":feature:episode",
+    ":feature:search",
+    ":feature:player",
+    ":feature:discover",
+    ":feature:settings",
+)
 
 kotlin {
     android {
@@ -12,43 +24,22 @@ kotlin {
         withHostTest { isIncludeAndroidResources = true }
     }
 
-    cocoapods {
-        version = appVersion.name
-        summary = "Shared module for Podcast app"
-        homepage = "https://github.com/rcleandro/Multiplatform-Podcast"
-        ios.deploymentTarget = "18.2"
-        framework {
+    // The iOS app links Shared through embedAndSignAppleFrameworkForXcode and Firebase through Swift Package Manager
+    // (25.15), as the watch does with WatchShared.
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+        target.binaries.framework {
             baseName = "Shared"
             isStatic = true
-            linkerOpts("-ObjC")
-        }
-        pod("FirebaseAnalytics") {
-            version = "~> 11.0"
-        }
-        pod("FirebaseCrashlytics") {
-            version = "~> 11.0"
-        }
-        pod("FirebaseCore") {
-            version = "~> 11.0"
-        }
-        pod("FirebaseInstallations") {
-            version = "~> 11.0"
-        }
-        pod("GoogleUtilities") {
-            version = "~> 8.0"
-        }
-        pod("nanopb") {
-            version = "~> 3.0"
-        }
-        pod("PromisesObjC") {
-            version = "~> 2.0"
-            moduleName = "FBLPromises"
+            // What the SwiftUI screens read (ADR 0015): every public type of these modules reaches Swift under its
+            // own name. Without it, a type only seen as a generic argument (a view model's UI state) is left out.
+            swiftModules.forEach { export(project(it)) }
         }
     }
 
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core:common"))
+            api(project(":core:di"))
             implementation(project(":domain"))
             implementation(project(":data"))
             implementation(project(":feature:library"))
@@ -66,20 +57,6 @@ kotlin {
             implementation(libs.multiplatform.settings.no.arg)
             implementation(project(":core:observability"))
 
-            // Compose
-            implementation(libs.runtime)
-            implementation(libs.foundation)
-            implementation(libs.material3)
-            implementation(libs.components.resources)
-            implementation(libs.compose.ui)
-            implementation(libs.compose.uiToolingPreview)
-
-            // Adaptive
-            implementation(libs.material3.adaptive)
-            implementation(libs.material3.adaptive.layout)
-            implementation(libs.material3.adaptive.navigation)
-            implementation(libs.material3.adaptive.navigation.suite)
-
             // Room 3
             implementation(libs.room3.runtime)
             api(libs.room3.paging)
@@ -87,7 +64,6 @@ kotlin {
 
             // Paging
             implementation(libs.paging.common)
-            implementation(libs.paging.compose)
 
             // Ktor 3
             implementation(libs.ktor.client.core)
@@ -98,8 +74,6 @@ kotlin {
 
             // Koin 4
             api(libs.koin.core)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
 
             // Kotlinx
             implementation(libs.kotlinx.serialization)
@@ -111,17 +85,33 @@ kotlin {
 
             // Decompose
             implementation(libs.decompose)
-            implementation(libs.decompose.compose)
 
             // Lifecycle
             implementation(libs.androidx.lifecycle.viewmodel)
-
-            // Imagem
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.ktor)
+            implementation(libs.koin.core.viewmodel)
 
             // Logging
             implementation(libs.kermit)
+        }
+
+        // The Compose app; iOS draws its screens in SwiftUI (ADR 0015).
+        getByName("composeMain").dependencies {
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material3)
+            implementation(libs.components.resources)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.material3.adaptive)
+            implementation(libs.material3.adaptive.layout)
+            implementation(libs.material3.adaptive.navigation)
+            implementation(libs.material3.adaptive.navigation.suite)
+            implementation(libs.paging.compose)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.decompose.compose)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
         }
 
         androidMain.dependencies {
@@ -130,23 +120,17 @@ kotlin {
             implementation(libs.play.services.wearable)
             implementation(libs.kotlinx.coroutines.play.services)
             implementation(project.dependencies.platform(libs.firebase.bom))
+            // iOS reaches Firebase from Swift instead (25.15).
+            implementation(libs.firebase.common)
+            implementation(libs.firebase.analytics)
+            implementation(libs.firebase.crashlytics)
             // The player's video (19.10).
             implementation(libs.media3.ui.compose)
             // Brazil's age signal for the ECA Digital (26.2, ADR 0012).
             implementation(libs.play.age.signals)
         }
 
-        // Firebase implementations shared by Android and iOS; Desktop and Web only log.
-        val firebaseMain = create("firebaseMain") {
-            dependsOn(commonMain.get())
-            dependencies {
-                implementation(libs.firebase.common)
-                implementation(libs.firebase.analytics)
-                implementation(libs.firebase.crashlytics)
-            }
-        }
-        androidMain.get().dependsOn(firebaseMain)
-        iosMain.get().dependsOn(firebaseMain)
+        iosMain.dependencies { swiftModules.forEach { api(project(it)) } }
 
         // Library sync through a folder (19.12) where the platform keeps one: Android and Desktop.
         val folderSyncMain = create("folderSyncMain") {
@@ -165,6 +149,8 @@ kotlin {
             }
         }
 
+        // The web entry point starts the Compose app.
+        getByName("webMain").dependsOn(getByName("composeMain"))
         wasmJsMain.dependencies {
             implementation(libs.okio.fakefilesystem)
         }
@@ -175,8 +161,11 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)
             implementation(libs.ktor.client.mock)
-            implementation(libs.ui.test)
             implementation(libs.okio.fakefilesystem)
+        }
+
+        getByName("composeTest").dependencies {
+            implementation(libs.ui.test)
         }
 
         val jvmCommonTest = create("jvmCommonTest") {
@@ -185,6 +174,7 @@ kotlin {
                 implementation(libs.mockk)
                 implementation(libs.androidx.sqlite.bundled.jvm)
                 implementation(libs.koin.test)
+                implementation(libs.multiplatform.settings.test)
             }
         }
 
@@ -203,19 +193,9 @@ kotlin {
     }
 }
 
-// ponytail: the Kotlin CocoaPods plugin only raises pod deployment targets to iOS 12 (KT-57741), but Xcode 26+
-// rejects anything below 15, which breaks the Android Studio sync and the iOS build. Patch the generated Podfile
-// until the plugin raises it or Firebase 12 (minimum iOS 15) replaces the 11.x pods.
-tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.PodGenTask>().configureEach {
-    doLast {
-        val file = podfile.get()
-        file.writeText(
-            file.readText()
-                .replace(
-                    "deployment_target_major < 12 || (deployment_target_major == 12",
-                    "deployment_target_major < 15 || (deployment_target_major == 15"
-                )
-                .replace("\"#{12}.#{0}\"", "\"#{15}.#{0}\"")
-        )
-    }
-}
+// The iOS app's texts, generated from the composeResources (ADR 0015): `generateIosStrings` after changing a text;
+// `checkIosStrings` (run by `check` and the pre-commit hook) fails when the catalog was not generated again.
+iosStrings(
+    resources = listOf("core/ui", "core/designsystem").map { rootProject.file("$it/src/commonMain/composeResources") },
+    catalog = rootProject.file("iosApp/iosApp/Localizable.xcstrings"),
+)

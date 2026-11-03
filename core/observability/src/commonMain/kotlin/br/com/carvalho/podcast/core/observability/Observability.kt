@@ -2,7 +2,7 @@ package br.com.carvalho.podcast.core.observability
 
 import br.com.carvalho.podcast.core.util.AppLogger
 
-/** Product analytics events. The Firebase implementation lives in `firebaseMain` (Android and iOS). */
+/** Product analytics events. Firebase implements it on Android (Kotlin SDK) and on iOS (from Swift, 25.15). */
 interface Analytics {
     fun logEvent(event: AnalyticsEvent)
 }

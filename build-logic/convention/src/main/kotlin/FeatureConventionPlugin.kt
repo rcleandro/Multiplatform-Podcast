@@ -11,7 +11,8 @@ import org.jetbrains.compose.ComposePlugin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 /**
- * A feature module: Compose UI plus what every screen uses. Only the modules ADR 0003 allows are added here;
+ * A feature module: view models in `commonMain`, their Compose screens in `composeMain`, plus what every screen
+ * uses. Only the modules ADR 0003 allows are added here;
  * the module still declares `kotlin { android { namespace = "…" } }`.
  * `checkModuleDependencies` (run by `check`) fails if the module depends on another feature or on a data layer module.
  * Screens get Roborazzi snapshots in `androidHostTest` (Robolectric), recorded on Linux by the "Record snapshots"
@@ -30,17 +31,24 @@ class FeatureConventionPlugin : Plugin<Project> {
                 implementation(project(":domain"))
                 implementation(project(":core:common"))
                 implementation(project(":core:observability"))
-                implementation(project(":core:designsystem"))
                 implementation(project(":core:ui"))
+                listOf("components-resources", "koin-core-viewmodel", "androidx-lifecycle-viewmodel", "paging-common")
+                    .forEach { implementation(lib(it)) }
+            }
+            // The screens; iOS draws its own in SwiftUI over the view models above (ADR 0015).
+            sourceSets.getByName("composeMain").dependencies {
+                implementation(project(":core:designsystem"))
                 listOf(
-                    "material3-adaptive", "material3-adaptive-layout", "compose-uiToolingPreview",
-                    "components-resources", "koin-compose", "koin-compose-viewmodel", "androidx-lifecycle-viewmodel",
-                    "paging-common", "paging-compose"
+                    "material3-adaptive", "material3-adaptive-layout", "compose-uiToolingPreview", "koin-compose",
+                    "koin-compose-viewmodel", "paging-compose"
                 ).forEach { implementation(lib(it)) }
             }
             sourceSets.getByName("commonTest").dependencies {
                 implementation(project(":core:testing"))
-                listOf("kotlin-test", "kotlinx-coroutines-test", "turbine", "ui-test").forEach { implementation(lib(it)) }
+                listOf("kotlin-test", "kotlinx-coroutines-test", "turbine").forEach { implementation(lib(it)) }
+            }
+            sourceSets.getByName("composeTest").dependencies {
+                implementation(lib("ui-test"))
             }
             sourceSets.getByName("desktopTest").dependencies {
                 implementation(ComposePlugin.DesktopDependencies.currentOs)

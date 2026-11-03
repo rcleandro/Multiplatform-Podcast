@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.podcast.kmp.library)
+    alias(libs.plugins.podcast.kmp.watch)
 }
 
 // Fakes and helpers shared by the tests of several modules; only ever a test dependency.
@@ -24,7 +25,7 @@ kotlin {
         }
         androidMain.get().dependsOn(jvmCommonMain)
         val desktopMain = getByName("desktopMain") { dependsOn(jvmCommonMain) }
-        iosMain.dependencies {
+        appleMain.dependencies {
             implementation(libs.sqlite.bundled)
         }
     }

@@ -13,8 +13,8 @@ expect val canLimitDownloadsToWifi: Boolean
 expect val canEnhanceSpeech: Boolean
 
 /**
- * Whether the app looks for new episodes while closed (18.18): WorkManager on Android. iOS gets it with phase 25;
- * Desktop and the Web refresh when they open.
+ * Whether the app looks for new episodes while closed (18.18): WorkManager on Android, a BGAppRefreshTask on iOS
+ * (25.11). Desktop and the Web refresh when they open.
  */
 expect val canRefreshInBackground: Boolean
 

@@ -8,7 +8,7 @@ kotlin {
     }
 
     sourceSets {
-        commonMain.dependencies {
+        getByName("composeMain").dependencies {
             implementation(libs.reorderable)
         }
     }

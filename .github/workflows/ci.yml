@@ -37,8 +37,8 @@ jobs:
             - name: Gradle setup
               uses: ./.github/actions/gradle-setup
 
-            - name: Detekt, module rules and Android lint
-              run: ./gradlew detekt checkModuleDependencies :androidApp:lintDebug :wearApp:lintDebug
+            - name: Detekt, module rules, iOS texts and Android lint
+              run: ./gradlew detekt checkModuleDependencies checkIosStrings :androidApp:lintDebug :wearApp:lintDebug
 
             - name: Upload reports
               if: always()
@@ -254,24 +254,39 @@ jobs:
                   path: ~/.konan
                   key: ${{ runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
 
-            # The app links the shared framework and Firebase through CocoaPods, so the pods must exist
-            # and the build must use the workspace, not the bare project. ARCHS=arm64: Kotlin only builds
-            # iosSimulatorArm64, so the generic simulator destination must not ask for x86_64.
-            - name: Install pods
-              run: |
-                  ./gradlew :shared:generateDummyFramework
-                  cd iosApp && pod install
+            # Firebase comes from Swift Package Manager (25.15); both xcodebuild runs share one checkout of it.
+            - name: Cache Swift packages
+              uses: actions/cache@v6
+              with:
+                  path: spm
+                  key: ${{ runner.os }}-spm-${{ hashFiles('iosApp/**/Package.resolved') }}
 
             - name: Build iOS simulator app
               run: |
                   xcodebuild build \
-                    -workspace iosApp/iosApp.xcworkspace \
+                    -project iosApp/iosApp.xcodeproj \
                     -scheme iosApp \
                     -configuration Debug \
-                    -sdk iphonesimulator \
+                    -clonedSourcePackagesDirPath ./spm \
                     -destination 'generic/platform=iOS Simulator' \
                     -derivedDataPath ./build \
                     ARCHS=arm64 \
+                    CODE_SIGNING_ALLOWED=NO
+
+            # The SwiftUI side (25.2): bridge, texts and theme, inside the app on the first iPhone simulator the
+            # image has, since the names change with each Xcode. Only the unit bundle: the UI tests (25.8g) read the
+            # live directory and take ten minutes, so they run locally before a phase's PR.
+            - name: Run iOS app tests (XCTest)
+              run: |
+                  device=$(xcrun simctl list devices available | grep -m1 -oE 'iPhone[^(]*' | sed 's/ *$//')
+                  echo "Testing on $device"
+                  xcodebuild test \
+                    -project iosApp/iosApp.xcodeproj \
+                    -scheme iosApp \
+                    -clonedSourcePackagesDirPath ./spm \
+                    -destination "platform=iOS Simulator,name=$device" \
+                    -derivedDataPath ./build-tests \
+                    -only-testing:iosAppTests \
                     CODE_SIGNING_ALLOWED=NO
 
             - name: Upload app folder

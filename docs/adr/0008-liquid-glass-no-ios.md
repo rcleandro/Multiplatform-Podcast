@@ -1,7 +1,7 @@
 # ADR 0008 — Liquid Glass no iOS
 
-- **Status:** aceita; a ser substituída pela ADR do item 25.1 (em 07/10/2026 o usuário decidiu fazer a interface do
-  iOS toda em SwiftUI, na fase 25)
+- **Status:** substituída por [ADR 0015](0015-ios-em-swiftui.md) (em 07/10/2026 o usuário decidiu fazer a interface
+  do iOS toda em SwiftUI, na fase 25)
 - **Data:** 2026-10-07
 - **Fase:** 24.3 do [roadmap](../ROADMAP_MELHORIAS.md)
 

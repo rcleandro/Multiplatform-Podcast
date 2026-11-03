@@ -5,5 +5,10 @@
 	<!-- Brazil's age signal for the ECA Digital (26.2, ADR 0012). -->
 	<key>com.apple.developer.declared-age-range</key>
 	<true/>
+	<!-- Where the app leaves what the widget shows (25.12). -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.br.com.carvalho.podcast</string>
+	</array>
 </dict>
 </plist>

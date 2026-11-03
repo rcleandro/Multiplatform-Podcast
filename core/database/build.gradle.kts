@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.podcast.kmp.library)
+    alias(libs.plugins.podcast.kmp.watch)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
 }
@@ -22,7 +23,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.sqlite.bundled)
         }
-        iosMain.dependencies {
+        appleMain.dependencies {
             implementation(libs.sqlite.bundled)
         }
         val desktopMain = getByName("desktopMain") {
@@ -58,6 +59,9 @@ dependencies {
     add("kspAndroid", libs.room3.compiler)
     add("kspIosArm64", libs.room3.compiler)
     add("kspIosSimulatorArm64", libs.room3.compiler)
+    add("kspWatchosArm64", libs.room3.compiler)
+    add("kspWatchosDeviceArm64", libs.room3.compiler)
+    add("kspWatchosSimulatorArm64", libs.room3.compiler)
     add("kspDesktop", libs.room3.compiler)
     add("kspWasmJs", libs.room3.compiler)
 }

@@ -2,7 +2,8 @@ name: Release
 
 # 20.6: pushing a tag vX.Y.Z builds every installer and publishes a GitHub Release with notes from the commits.
 # Bump version.properties first; the tag must name the same version.
-# iOS waits for 20.3 (signing and TestFlight); the macOS app is signed once a Developer ID is in the secrets (20.5).
+# The macOS app is signed once a Developer ID is in the secrets (20.5); iOS goes to TestFlight once the App Store Connect
+# key is (25.15b), and is only archived without signing before that.
 on:
     push:
         tags: [ 'v*.*.*' ]
@@ -145,9 +146,98 @@ jobs:
                   name: release-web
                   path: dist/
 
+    # 25.15b: Xcode signs by itself (-allowProvisioningUpdates) with an App Store Connect API key, which needs only the
+    # key and the team, no certificate or profile in the secrets, and the export sends the build to TestFlight. Without
+    # the key the app is still archived in Release, unsigned, so a release that does not build or link fails here.
+    ios:
+        name: iOS
+        needs: version
+        runs-on: macos-15
+        env:
+            ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+            ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+            ASC_KEY: ${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}
+            TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Select Xcode 26
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: '26'
+
+            - name: Create GoogleService-Info.plist
+              uses: ./.github/actions/secret-file
+              with:
+                  content: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+                  path: iosApp/iosApp/GoogleService-Info.plist
+                  placeholder: .github/ci/GoogleService-Info.plist
+
+            - name: App Store Connect key
+              run: |
+                  if [ -z "$ASC_KEY" ] || [ -z "$ASC_KEY_ID" ] || [ -z "$ASC_ISSUER_ID" ] || [ -z "$TEAM" ]; then
+                      echo "::warning::No App Store Connect key in the secrets; the iOS app is archived unsigned and not sent to TestFlight."
+                      exit 0
+                  fi
+                  if cmp -s iosApp/iosApp/GoogleService-Info.plist .github/ci/GoogleService-Info.plist; then
+                      echo "::error::GOOGLE_SERVICE_INFO_PLIST is missing or invalid; a TestFlight build needs the real file."
+                      exit 1
+                  fi
+                  printf '%s' "$ASC_KEY" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+                  echo "SIGNING=-allowProvisioningUpdates -authenticationKeyPath $RUNNER_TEMP/AuthKey.p8 -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID" >> "$GITHUB_ENV"
+
+            - name: Gradle setup
+              uses: ./.github/actions/gradle-setup
+
+            # TEAM_ID stays empty, so the bundle IDs are the store's (Config.xcconfig appends it only for local builds).
+            - name: Archive
+              run: |
+                  if [ -n "$SIGNING" ]; then
+                      sign=(DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic)
+                  else
+                      sign=(CODE_SIGNING_ALLOWED=NO)
+                  fi
+                  # shellcheck disable=SC2086 # SIGNING holds several flags
+                  xcodebuild archive \
+                    -project iosApp/iosApp.xcodeproj \
+                    -scheme iosApp \
+                    -configuration Release \
+                    -destination 'generic/platform=iOS' \
+                    -archivePath build/Podcast.xcarchive \
+                    -clonedSourcePackagesDirPath ./spm \
+                    $SIGNING "${sign[@]}"
+
+            - name: Send to TestFlight
+              if: env.SIGNING != ''
+              run: |
+                  cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+                  <?xml version="1.0" encoding="UTF-8"?>
+                  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+                  <plist version="1.0"><dict>
+                      <key>method</key><string>app-store-connect</string>
+                      <key>destination</key><string>upload</string>
+                      <key>signingStyle</key><string>automatic</string>
+                      <key>teamID</key><string>$TEAM</string>
+                  </dict></plist>
+                  PLIST
+                  # shellcheck disable=SC2086 # SIGNING holds several flags
+                  xcodebuild -exportArchive \
+                    -archivePath build/Podcast.xcarchive \
+                    -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+                    -exportPath build/export \
+                    $SIGNING
+
+            # Crashlytics needs the symbols to name the frames of an iOS crash.
+            - name: Upload dSYMs to Crashlytics
+              if: env.SIGNING != ''
+              run: |
+                  spm/checkouts/firebase-ios-sdk/Crashlytics/upload-symbols \
+                    -gsp iosApp/iosApp/GoogleService-Info.plist -p ios build/Podcast.xcarchive/dSYMs
+
     publish:
         name: GitHub Release
-        needs: [ android, desktop, web ]
+        needs: [ android, desktop, web, ios ]
         runs-on: ubuntu-latest
         permissions:
             contents: write

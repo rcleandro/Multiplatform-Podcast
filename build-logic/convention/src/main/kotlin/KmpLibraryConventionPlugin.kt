@@ -7,9 +7,11 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 /**
  * Kotlin Multiplatform library for every platform the app ships on: Android, Desktop (JVM), Wasm and iOS.
+ * Compose code goes in `composeMain`, which every platform but iOS shares.
  * The module still declares `kotlin { android { namespace = "…" } }`; SDK levels and resources come from here.
  */
 class KmpLibraryConventionPlugin : Plugin<Project> {
@@ -34,7 +36,15 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
             wasmJs { browser() }
             iosArm64()
             iosSimulatorArm64()
-            applyDefaultHierarchyTemplate()
+            applyDefaultHierarchyTemplate {
+                common {
+                    // composeMain and composeTest: the Compose UI, on every platform but iOS, which draws its screens in
+                    // SwiftUI over the same view models (ADR 0015).
+                    group("compose") {
+                        withCompilations { it.platformType != KotlinPlatformType.native }
+                    }
+                }
+            }
         }
     }
 }

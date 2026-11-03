@@ -19,12 +19,8 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
-# iOS / CocoaPods
-iosApp/Pods/
+# iOS
 iosApp/.bundle/
-!iosApp/Podfile
-*.podspec
-!shared/shared.podspec
 
 # Android
 **/google-services.json

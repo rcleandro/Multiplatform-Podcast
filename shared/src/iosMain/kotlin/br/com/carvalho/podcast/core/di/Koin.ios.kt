@@ -1,6 +1,7 @@
 package br.com.carvalho.podcast.core.di
 
 import br.com.carvalho.podcast.core.observability.CrashReporter
+import br.com.carvalho.podcast.core.observability.FirebaseBridge
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.observability.followTelemetryConsent
 import br.com.carvalho.podcast.core.safety.telemetryAllowedFlow
@@ -8,8 +9,6 @@ import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.domain.usecase.ChildSafety
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.initialize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.context.startKoin
@@ -44,9 +43,11 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
         @Suppress("TooGenericExceptionCaught")
         try {
             AppLogger.i(TAG, "Initializing Firebase in background...")
-            Firebase.initialize()
+            val firebase = koin.get<FirebaseBridge>()
+            firebase.configure()
             AppLogger.i(TAG, "Firebase initialized")
-            followTelemetryConsent(telemetryAllowedFlow(koin.get<PreferencesRepository>(), koin.get<ChildSafety>()))
+            val allowed = telemetryAllowedFlow(koin.get<PreferencesRepository>(), koin.get<ChildSafety>())
+            firebase.followTelemetryConsent(allowed)
         } catch (e: Exception) {
             AppLogger.e(TAG, "Failed to initialize Firebase", e)
         }
