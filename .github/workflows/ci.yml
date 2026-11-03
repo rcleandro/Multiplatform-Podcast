@@ -268,7 +268,6 @@ jobs:
                     -scheme iosApp \
                     -configuration Debug \
                     -clonedSourcePackagesDirPath ./spm \
-                    -sdk iphonesimulator \
                     -destination 'generic/platform=iOS Simulator' \
                     -derivedDataPath ./build \
                     ARCHS=arm64 \
