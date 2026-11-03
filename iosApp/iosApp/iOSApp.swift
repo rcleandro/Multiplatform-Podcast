@@ -18,7 +18,7 @@ struct iOSApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
-        SwiftBridgeKt.startShared()
+        SwiftBridgeKt.startShared(firebase: FirebaseTelemetry())
         WidgetSync.start()
         LibrarySync.shared.start()
     }

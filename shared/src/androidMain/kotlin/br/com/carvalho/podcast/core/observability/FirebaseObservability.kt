@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.core.observability
 
+import com.google.firebase.FirebaseApp
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.analytics.analytics
 import dev.gitlive.firebase.crashlytics.crashlytics
@@ -9,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
  * True once the default Firebase app exists. Firebase starts in the background (`initKoin`), so the first calls
  * may arrive before it; they are dropped instead of crashing or being cached as "unavailable" for good.
  */
-internal expect fun isFirebaseConfigured(): Boolean
+private fun isFirebaseConfigured(): Boolean = runCatching { FirebaseApp.getInstance() }.isSuccess
 
 /**
  * Applies the user's choice to Firebase's own collection, which also covers its automatic events and crashes. Both

@@ -254,20 +254,20 @@ jobs:
                   path: ~/.konan
                   key: ${{ runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
 
-            # The app links the shared framework and Firebase through CocoaPods, so the pods must exist
-            # and the build must use the workspace, not the bare project. ARCHS=arm64: Kotlin only builds
-            # iosSimulatorArm64, so the generic simulator destination must not ask for x86_64.
-            - name: Install pods
-              run: |
-                  ./gradlew :shared:generateDummyFramework
-                  cd iosApp && pod install
+            # Firebase comes from Swift Package Manager (25.15); both xcodebuild runs share one checkout of it.
+            - name: Cache Swift packages
+              uses: actions/cache@v6
+              with:
+                  path: spm
+                  key: ${{ runner.os }}-spm-${{ hashFiles('iosApp/**/Package.resolved') }}
 
             - name: Build iOS simulator app
               run: |
                   xcodebuild build \
-                    -workspace iosApp/iosApp.xcworkspace \
+                    -project iosApp/iosApp.xcodeproj \
                     -scheme iosApp \
                     -configuration Debug \
+                    -clonedSourcePackagesDirPath ./spm \
                     -sdk iphonesimulator \
                     -destination 'generic/platform=iOS Simulator' \
                     -derivedDataPath ./build \
@@ -281,8 +281,9 @@ jobs:
                   device=$(xcrun simctl list devices available | grep -m1 -oE 'iPhone[^(]*' | sed 's/ *$//')
                   echo "Testing on $device"
                   xcodebuild test \
-                    -workspace iosApp/iosApp.xcworkspace \
+                    -project iosApp/iosApp.xcodeproj \
                     -scheme iosApp \
+                    -clonedSourcePackagesDirPath ./spm \
                     -destination "platform=iOS Simulator,name=$device" \
                     -derivedDataPath ./build-tests \
                     CODE_SIGNING_ALLOWED=NO

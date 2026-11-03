@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.carvalho.podcast.core.di.initKoin
+import br.com.carvalho.podcast.core.observability.FirebaseBridge
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
 import br.com.carvalho.podcast.feature.discover.presentation.DiscoverViewModel
@@ -26,13 +27,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.parameter.parametersOf
+import org.koin.dsl.module
 import org.koin.mp.KoinPlatform
 
 // What the SwiftUI screens use of the shared code (ADR 0015, decision 1): hand-written, with no SKIE or
 // KMP-NativeCoroutines, since every view model has the same shape (a state, messages and onIntent).
 
-/** Starts the shared code; iOSApp.swift calls it once, before the first screen. */
-fun startShared() = initKoin()
+/** Starts the shared code; iOSApp.swift calls it once, before the first screen, with its Firebase (25.15). */
+fun startShared(firebase: FirebaseBridge) = initKoin { modules(module { single { firebase } }) }
 
 /** What Swift holds to stop watching a flow; not `Cancellable`, which SwiftUI already has from Combine. */
 fun interface Watching {

@@ -22,8 +22,7 @@ stream or download episodes, and pick up where you left off.
 
 - **JDK 21**
 - **Android Studio** with the Kotlin Multiplatform plugin
-- **Xcode** and **CocoaPods** (`brew install cocoapods`) for iOS; if `pod` fails after a Ruby update, run
-  `brew reinstall cocoapods`
+- **Xcode** for iOS; Firebase comes from Swift Package Manager, which Xcode resolves on the first build
 - Firebase config files, not committed: `androidApp/google-services.json` and
   `iosApp/iosApp/GoogleService-Info.plist`. In CI they come from the `GOOGLE_SERVICES_JSON` and
   `GOOGLE_SERVICE_INFO_PLIST` secrets (plain text or base64).
@@ -40,7 +39,7 @@ git config core.hooksPath config/hooks
 ./gradlew :androidApp:installDebug                 # Android
 ./gradlew :desktopApp:run                          # Desktop
 ./gradlew :webApp:wasmJsBrowserDevelopmentRun      # Web
-cd iosApp && pod install && open iosApp.xcworkspace   # iOS (open the workspace, not the project)
+open iosApp/iosApp.xcodeproj                       # iOS
 ```
 
 ## Checks

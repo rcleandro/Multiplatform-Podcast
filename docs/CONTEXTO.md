@@ -42,7 +42,7 @@ Funcionalidades que existem hoje:
 | Arquivos | Okio (`FakeFileSystem` na Web) | 3.17.0 |
 | Imagens | Coil 3 com fetcher Ktor | 3.4.0 |
 | Logs | Kermit, espelhado no Crashlytics por `AppLogger` | 2.1.0 |
-| Firebase | Analytics e Crashlytics: GitLive SDK (Android/iOS) + CocoaPods no iOS | 2.4.0 |
+| Firebase | Analytics e Crashlytics: GitLive SDK no Android; no iOS o SDK em Swift pelo Swift Package Manager (25.15) | 2.4.0 |
 | Player | Media3 (Android), AVFoundation (iOS), JavaFX Media (Desktop), `<audio>` HTML5 (Web) | 1.10.1 / — / 21.0.5 / — |
 | Testes | kotlin-test, coroutines-test, Turbine, Ktor MockEngine, Compose ui-test, MockK (só JVM) | — |
 | Qualidade | Detekt (com baseline), Kover (só relatório, sem meta) | 1.23.8 / 0.9.8 |
@@ -55,11 +55,11 @@ Os apps são cascas finas.
 
 | Módulo | Conteúdo |
 |---|---|
-| `:shared` | Tudo (detalhes abaixo). Gera o framework `Shared` para o iOS via CocoaPods e o `Res` dos recursos em `br.com.carvalho.podcast.shared`. |
+| `:shared` | Tudo (detalhes abaixo). Gera o framework `Shared` para o iOS via `embedAndSignAppleFrameworkForXcode` e o `Res` dos recursos em `br.com.carvalho.podcast.shared`. |
 | `:androidApp` | `PodcastApplication` (inicia Koin e `AppContext`), `MainActivity` (pede `POST_NOTIFICATIONS` e monta o `RootComponentImpl`), manifest com o `PodcastMediaService` e o descritor do Android Auto. |
 | `:desktopApp` | `Main.kt`: janela, bandeja do sistema (textos em inglês no código) e atalhos. |
 | `:webApp` | `Main.kt` Wasm e a task `copySqliteWorker`, que copia os arquivos do sqlite-web para o bundle. |
-| `iosApp/` | Projeto Xcode + Podfile; `ContentView` embrulha o `MainViewController()` do Kotlin. |
+| `iosApp/` | Projeto Xcode do app em SwiftUI (fase 25), com o relógio e os widgets; Firebase pelo Swift Package Manager. |
 
 Pacotes dentro de `:shared/src/commonMain/kotlin/br/com/carvalho/podcast`:
 
@@ -181,7 +181,7 @@ Fica em `core/designsystem`:
 ./gradlew :androidApp:installDebug
 ./gradlew :desktopApp:run
 ./gradlew :webApp:wasmJsBrowserDevelopmentRun
-# iOS: cd iosApp && pod install, depois abrir iosApp.xcworkspace no Xcode
+# iOS: abrir iosApp/iosApp.xcodeproj no Xcode
 ```
 
 Arquivos locais fora do git: `androidApp/google-services.json`, `iosApp/iosApp/GoogleService-Info.plist` (no CI

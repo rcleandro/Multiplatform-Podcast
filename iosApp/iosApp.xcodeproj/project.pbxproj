@@ -12,7 +12,6 @@
 		2537ECF0512397C3A6301DD1 /* EpisodesScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63EA1DAD386341B52DFE13F /* EpisodesScreenTests.swift */; };
 		2D67E58DA2F597665452B124 /* LibraryOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987145DED21AAE42C50D7789 /* LibraryOrderTests.swift */; };
 		2D70D9C85E6D192687F8EF16 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66D9AF4B550D87EEBBA99DE /* SettingsTests.swift */; };
-		3135A0EC146EA7FE746806CE /* Pods_iosAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B8DB22335F026DBBF9025F22 /* Pods_iosAppTests.framework */; };
 		32A87C21DFBA7B38CD5C3ABD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAEF60D234671F4859EAC064 /* Foundation.framework */; };
 		3CB85624466B6755D91FD7B9 /* PodcastWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E9B6A644FD1FAE1012E45EA /* PodcastWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		503CF40924EDE63F49477F7F /* TranscriptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7DA01CDB509B4A26D81EF1 /* TranscriptTests.swift */; };
@@ -26,17 +25,18 @@
 		7A1E5C2B9D4F4E6A8B3C1D01 /* ScreensUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1E5C2B9D4F4E6A8B3C1D02 /* ScreensUITests.swift */; };
 		8543CE3A2BBCC8AA0A9F7EEF /* PodcastWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A49E69780D5A7C818F00E6EA /* PodcastWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8597F884EE90788DF11FB411 /* BridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14349915568A1B6821B266D /* BridgeTests.swift */; };
-		87D2F96AC2FBCC7516553C1A /* Pods_iosApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 501E77425744A1AB65DACBAC /* Pods_iosApp.framework */; };
 		8AAF7DA183444DB1672D114F /* FormatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AA5042C8DC019FCF785FDB /* FormatsTests.swift */; };
 		8DAF47B342CF04474214E002 /* PodcastScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */; };
+		A57D9CD5B3ACB07315118253 /* PodcastWatchWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AE95FE80AD4A2D1624D19CDD /* PodcastWatchWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AEA7F08EE37B429F650918C9 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 7DC666879834E45FCA750E67 /* FirebaseCrashlytics */; };
 		BF071E5169E44E6A3EF8F73B /* VideoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16281E6300CF8C19A5FE8EA0 /* VideoTests.swift */; };
 		D75F6F17AEB128E8896ECADB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAEF60D234671F4859EAC064 /* Foundation.framework */; };
 		D83FA92E4AB831BFEA1B1B07 /* SmartPlaylistTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0564BD14D8500270D84FEB /* SmartPlaylistTests.swift */; };
+		D88A4C69EC0883A937F8E3E6 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C3A4D155CB43508401D6121A /* FirebaseAnalytics */; };
 		DC42693F9CFDB64CE3911E10 /* ThemeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BC6F6C5E2EE5057B5757DB /* ThemeTests.swift */; };
 		E6312FE835C43D7B32F5CE79 /* PlayerScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD0BE7484182F2CB6F09E90 /* PlayerScreenTests.swift */; };
 		F4DEEFA187133AF1DD3FCD7F /* EpisodeSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31CB08EEDC82AA9865A0D939 /* EpisodeSelectionTests.swift */; };
 		FB0D822CBCEC4E91F18F4D2A /* DiscoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2121324332E263205D5AA86 /* DiscoverTests.swift */; };
-		A57D9CD5B3ACB07315118253 /* PodcastWatchWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AE95FE80AD4A2D1624D19CDD /* PodcastWatchWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +46,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 6D96BD519BD3F7CF3039659A;
 			remoteInfo = iosApp;
+		};
+		339F26A0366F599F9202FE6B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C40C874BC7F3F0D8C3061A3A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0AB878EA9E7EE4F72DD3FAFC;
+			remoteInfo = PodcastWatchWidget;
 		};
 		5B48B9AAE07F6CB85AE09D22 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -68,16 +75,20 @@
 			remoteGlobalIDString = CCA8A6E559D306A7C234C0D0;
 			remoteInfo = PodcastWidget;
 		};
-		339F26A0366F599F9202FE6B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C40C874BC7F3F0D8C3061A3A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 0AB878EA9E7EE4F72DD3FAFC;
-			remoteInfo = PodcastWatchWidget;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		6822899DC707A98F1BBE892C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A57D9CD5B3ACB07315118253 /* PodcastWatchWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BC7691DA45C1139D951ABD9C /* Embed Watch Content */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -100,17 +111,6 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		6822899DC707A98F1BBE892C /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				A57D9CD5B3ACB07315118253 /* PodcastWatchWidget.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -118,14 +118,11 @@
 		11A50F3149486215D2D16EFE /* AccessibilityUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityUITests.swift; sourceTree = "<group>"; };
 		16281E6300CF8C19A5FE8EA0 /* VideoTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VideoTests.swift; sourceTree = "<group>"; };
 		1AB0DCA2D0960A0F3518F1C2 /* ShellUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShellUITests.swift; sourceTree = "<group>"; };
-		1C8D58DE4C1014C7ED7C11E4 /* Pods-iosAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosAppTests.debug.xcconfig"; path = "Target Support Files/Pods-iosAppTests/Pods-iosAppTests.debug.xcconfig"; sourceTree = "<group>"; };
 		2FD0BE7484182F2CB6F09E90 /* PlayerScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerScreenTests.swift; sourceTree = "<group>"; };
 		31CB08EEDC82AA9865A0D939 /* EpisodeSelectionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EpisodeSelectionTests.swift; sourceTree = "<group>"; };
 		4E9B6A644FD1FAE1012E45EA /* PodcastWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PodcastWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		501E77425744A1AB65DACBAC /* Pods_iosApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iosApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		50AA5042C8DC019FCF785FDB /* FormatsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FormatsTests.swift; sourceTree = "<group>"; };
 		5225D5CCB2190D6EC7F45F77 /* ReportTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReportTests.swift; sourceTree = "<group>"; };
-		56A6E21646F3BA7538A7CA37 /* Pods-iosApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.release.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.release.xcconfig"; sourceTree = "<group>"; };
 		584B7316DADE4D37BE76BCCD /* PodcastScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastScreenTests.swift; sourceTree = "<group>"; };
 		5C0564BD14D8500270D84FEB /* SmartPlaylistTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SmartPlaylistTests.swift; sourceTree = "<group>"; };
 		6D63A0AEDEE17B661C63B36F /* LibraryUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryUITests.swift; sourceTree = "<group>"; };
@@ -137,19 +134,16 @@
 		95297C1DF8F98ED4DA55B949 /* GuardianTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GuardianTests.swift; sourceTree = "<group>"; };
 		987145DED21AAE42C50D7789 /* LibraryOrderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryOrderTests.swift; sourceTree = "<group>"; };
 		A2121324332E263205D5AA86 /* DiscoverTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiscoverTests.swift; sourceTree = "<group>"; };
-		A4957A1FB86F7C156DEAEAC2 /* Pods-iosApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.debug.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.debug.xcconfig"; sourceTree = "<group>"; };
 		A49E69780D5A7C818F00E6EA /* PodcastWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PodcastWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAEF60D234671F4859EAC064 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		ABABC073E9BD082963F9F9C7 /* TextsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextsTests.swift; sourceTree = "<group>"; };
+		AE95FE80AD4A2D1624D19CDD /* PodcastWatchWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PodcastWatchWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B66D9AF4B550D87EEBBA99DE /* SettingsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
-		B8DB22335F026DBBF9025F22 /* Pods_iosAppTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iosAppTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D14349915568A1B6821B266D /* BridgeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BridgeTests.swift; sourceTree = "<group>"; };
-		D2DB22A21D9C06D9E39AFF84 /* Pods-iosAppTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosAppTests.release.xcconfig"; path = "Target Support Files/Pods-iosAppTests/Pods-iosAppTests.release.xcconfig"; sourceTree = "<group>"; };
 		D63EA1DAD386341B52DFE13F /* EpisodesScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EpisodesScreenTests.swift; sourceTree = "<group>"; };
 		E925038E1B31F6754017FBA3 /* PodcastSettingsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastSettingsTests.swift; sourceTree = "<group>"; };
 		ED33727B91608EA0B83487FA /* iosAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F08919C83DC14C0C38A6DBCF /* Podcast.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Podcast.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		AE95FE80AD4A2D1624D19CDD /* PodcastWatchWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PodcastWatchWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -182,19 +176,19 @@
 			);
 			target = CCA8A6E559D306A7C234C0D0 /* PodcastWidget */;
 		};
-		E0158AC874B4CCDB95CEF7D6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 6D96BD519BD3F7CF3039659A /* iosApp */;
-		};
 		9A93AEB35512B2EF12DDF8B6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = 0AB878EA9E7EE4F72DD3FAFC /* PodcastWatchWidget */;
+		};
+		E0158AC874B4CCDB95CEF7D6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6D96BD519BD3F7CF3039659A /* iosApp */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -220,6 +214,18 @@
 			explicitFolders = (
 			);
 			path = WatchApp;
+			sourceTree = "<group>";
+		};
+		5785D5CA9170B1CC7B125F76 /* WatchWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9A93AEB35512B2EF12DDF8B6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = WatchWidget;
 			sourceTree = "<group>";
 		};
 		C0A1579B4839B45556642B66 /* iosApp */ = {
@@ -258,18 +264,6 @@
 			path = PodcastWidget;
 			sourceTree = "<group>";
 		};
-		5785D5CA9170B1CC7B125F76 /* WatchWidget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				9A93AEB35512B2EF12DDF8B6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = WatchWidget;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -277,7 +271,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				87D2F96AC2FBCC7516553C1A /* Pods_iosApp.framework in Frameworks */,
+				D88A4C69EC0883A937F8E3E6 /* FirebaseAnalytics in Frameworks */,
+				AEA7F08EE37B429F650918C9 /* FirebaseCrashlytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -296,6 +291,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C20E173D9196A616E50EE08B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D32DD9EC78BC31D630B11CBC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -308,14 +310,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				32A87C21DFBA7B38CD5C3ABD /* Foundation.framework in Frameworks */,
-				3135A0EC146EA7FE746806CE /* Pods_iosAppTests.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C20E173D9196A616E50EE08B /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,9 +336,7 @@
 		18B530859BCFD9DA88F96FDE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				501E77425744A1AB65DACBAC /* Pods_iosApp.framework */,
 				9E4C8BFB787232BBB1188643 /* iOS */,
-				B8DB22335F026DBBF9025F22 /* Pods_iosAppTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -404,10 +396,6 @@
 		7FA401DFA90BB8AB03CDBB58 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				A4957A1FB86F7C156DEAEAC2 /* Pods-iosApp.debug.xcconfig */,
-				56A6E21646F3BA7538A7CA37 /* Pods-iosApp.release.xcconfig */,
-				D2DB22A21D9C06D9E39AFF84 /* Pods-iosAppTests.release.xcconfig */,
-				1C8D58DE4C1014C7ED7C11E4 /* Pods-iosAppTests.debug.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -423,16 +411,35 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0AB878EA9E7EE4F72DD3FAFC /* PodcastWatchWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3EFD02486965988D56CF2399 /* Build configuration list for PBXNativeTarget "PodcastWatchWidget" */;
+			buildPhases = (
+				ACA856D818C2B0ED77502584 /* Sources */,
+				C20E173D9196A616E50EE08B /* Frameworks */,
+				EE8E481C80D8E22728C2DA48 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5785D5CA9170B1CC7B125F76 /* WatchWidget */,
+				2824D2A6AE347BF46AC127D0 /* WidgetShared */,
+			);
+			name = PodcastWatchWidget;
+			productName = PodcastWatchWidget;
+			productReference = AE95FE80AD4A2D1624D19CDD /* PodcastWatchWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		6D96BD519BD3F7CF3039659A /* iosApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D9395095BA36899829D0F13A /* Build configuration list for PBXNativeTarget "iosApp" */;
 			buildPhases = (
-				C21F564F3AE4C62EDE7EC0F8 /* [CP] Check Pods Manifest.lock */,
+				F5733AA06F297ED9A885A4C9 /* Build Shared */,
 				1C80AD2C2B497B68CC89BBE0 /* Sources */,
 				4981CEA7A3F82CD387A36438 /* Frameworks */,
 				D705B3349223D8EE4CDE7361 /* Resources */,
-				9B6CA19B183BCB2886B8832C /* [CP] Embed Pods Frameworks */,
-				793CFB8D41568114E12E8B89 /* [CP] Copy Pods Resources */,
 				BFB194BAF8464A6BC2A7F2E7 /* Embed Foundation Extensions */,
 				BC7691DA45C1139D951ABD9C /* Embed Watch Content */,
 			);
@@ -447,6 +454,10 @@
 				2824D2A6AE347BF46AC127D0 /* WidgetShared */,
 			);
 			name = iosApp;
+			packageProductDependencies = (
+				C3A4D155CB43508401D6121A /* FirebaseAnalytics */,
+				7DC666879834E45FCA750E67 /* FirebaseCrashlytics */,
+			);
 			productName = iosApp;
 			productReference = F08919C83DC14C0C38A6DBCF /* Podcast.app */;
 			productType = "com.apple.product-type.application";
@@ -455,7 +466,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A41250CE93EE95A70ACF38AF /* Build configuration list for PBXNativeTarget "iosAppTests" */;
 			buildPhases = (
-				686CB389F770FE11F6EE9A49 /* [CP] Check Pods Manifest.lock */,
 				F8FBE4F6313C222A7672EB84 /* Sources */,
 				E8FA03FBB29BD3B5CCA87EA5 /* Frameworks */,
 				18C06B1FD3F958FBC60A06DD /* Resources */,
@@ -533,27 +543,6 @@
 			productReference = 4E9B6A644FD1FAE1012E45EA /* PodcastWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		0AB878EA9E7EE4F72DD3FAFC /* PodcastWatchWidget */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 3EFD02486965988D56CF2399 /* Build configuration list for PBXNativeTarget "PodcastWatchWidget" */;
-			buildPhases = (
-				ACA856D818C2B0ED77502584 /* Sources */,
-				C20E173D9196A616E50EE08B /* Frameworks */,
-				EE8E481C80D8E22728C2DA48 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				5785D5CA9170B1CC7B125F76 /* WatchWidget */,
-				2824D2A6AE347BF46AC127D0 /* WidgetShared */,
-			);
-			name = PodcastWatchWidget;
-			productName = PodcastWatchWidget;
-			productReference = AE95FE80AD4A2D1624D19CDD /* PodcastWatchWidget.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -591,6 +580,9 @@
 			);
 			mainGroup = 040C73E4C773F5C59210E7DB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6B1BBC22ADEC7B08DB45E22B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 25496241E11C01B211AB63FF /* Products */;
 			projectDirPath = "";
@@ -672,83 +664,24 @@
 			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :watch:embedAndSignAppleFrameworkForXcode\n";
 			showEnvVarsInLog = 0;
 		};
-		686CB389F770FE11F6EE9A49 /* [CP] Check Pods Manifest.lock */ = {
+		F5733AA06F297ED9A885A4C9 /* Build Shared */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
 			);
 			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
 			);
-			name = "[CP] Check Pods Manifest.lock";
+			name = "Build Shared";
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-iosAppTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		793CFB8D41568114E12E8B89 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		9B6CA19B183BCB2886B8832C /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		C21F564F3AE4C62EDE7EC0F8 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-iosApp-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
+			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -765,6 +698,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1C80AD2C2B497B68CC89BBE0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ACA856D818C2B0ED77502584 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -811,13 +751,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		ACA856D818C2B0ED77502584 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -825,6 +758,11 @@
 			isa = PBXTargetDependency;
 			target = CCA8A6E559D306A7C234C0D0 /* PodcastWidget */;
 			targetProxy = BE06B490D20FE9A52E6FAD46 /* PBXContainerItemProxy */;
+		};
+		6725B9978347620A7983AF47 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0AB878EA9E7EE4F72DD3FAFC /* PodcastWatchWidget */;
+			targetProxy = 339F26A0366F599F9202FE6B /* PBXContainerItemProxy */;
 		};
 		78A78AACDC9049DFCD00E4C7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -843,11 +781,6 @@
 			target = 7E88494B77DDD90CF9AA3209 /* PodcastWatch */;
 			targetProxy = 5B48B9AAE07F6CB85AE09D22 /* PBXContainerItemProxy */;
 		};
-		6725B9978347620A7983AF47 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 0AB878EA9E7EE4F72DD3FAFC /* PodcastWatchWidget */;
-			targetProxy = 339F26A0366F599F9202FE6B /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -856,6 +789,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WatchApp/PodcastWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
@@ -864,7 +798,6 @@
 					"$(SRCROOT)/../watch/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				CODE_SIGN_ENTITLEMENTS = WatchApp/PodcastWatch.entitlements;
 				INFOPLIST_FILE = WatchApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Podcast;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -880,6 +813,32 @@
 					WatchShared,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "br.com.carvalho.podcast$(TEAM_ID).watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		1B3D42AC764C3A12E621C35F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WatchWidget/PodcastWatchWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "${TEAM_ID}";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WatchWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Podcast;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "br.com.carvalho.podcast$(TEAM_ID).watchkitapp.widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -1001,7 +960,6 @@
 		};
 		8344047F51E905B3862E4552 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56A6E21646F3BA7538A7CA37 /* Pods-iosApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1010,6 +968,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
@@ -1020,6 +982,12 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-framework",
+					Shared,
 				);
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1129,10 +1097,13 @@
 		};
 		BFA0C5687DB88AC99FC45C00 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1C8D58DE4C1014C7ED7C11E4 /* Pods-iosAppTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_OBJC_WEAK = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				PRODUCT_BUNDLE_IDENTIFIER = br.com.carvalho.podcast.tests;
@@ -1145,10 +1116,13 @@
 		};
 		D1AD356E3B76D339C69FE55B /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D2DB22A21D9C06D9E39AFF84 /* Pods-iosAppTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_OBJC_WEAK = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				PRODUCT_BUNDLE_IDENTIFIER = br.com.carvalho.podcast.tests;
@@ -1162,7 +1136,6 @@
 		};
 		E9B406BD1FF3825DAED87CB9 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A4957A1FB86F7C156DEAEAC2 /* Pods-iosApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1172,6 +1145,10 @@
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
 				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
@@ -1183,17 +1160,51 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-framework",
+					Shared,
+				);
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
+		FABBCA2045AC335486C0F4B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WatchWidget/PodcastWatchWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "${TEAM_ID}";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WatchWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Podcast;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "br.com.carvalho.podcast$(TEAM_ID).watchkitapp.widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
 		FD535D7F4B85F36B0293945D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WatchApp/PodcastWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
@@ -1202,7 +1213,6 @@
 					"$(SRCROOT)/../watch/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				CODE_SIGN_ENTITLEMENTS = WatchApp/PodcastWatch.entitlements;
 				INFOPLIST_FILE = WatchApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Podcast;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -1229,59 +1239,6 @@
 			};
 			name = Release;
 		};
-		1B3D42AC764C3A12E621C35F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = WatchWidget/PodcastWatchWidget.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "${TEAM_ID}";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = WatchWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Podcast;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "br.com.carvalho.podcast$(TEAM_ID).watchkitapp.widget";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 11.0;
-			};
-			name = Debug;
-		};
-		FABBCA2045AC335486C0F4B9 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = WatchWidget/PodcastWatchWidget.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "${TEAM_ID}";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = WatchWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Podcast;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "br.com.carvalho.podcast$(TEAM_ID).watchkitapp.widget";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 11.0;
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1290,6 +1247,15 @@
 			buildConfigurations = (
 				3CF8B60C671F07790867F5E1 /* Release */,
 				98B4E82C8A1EB6B5D2D2F8E8 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3EFD02486965988D56CF2399 /* Build configuration list for PBXNativeTarget "PodcastWatchWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B3D42AC764C3A12E621C35F /* Debug */,
+				FABBCA2045AC335486C0F4B9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1339,16 +1305,31 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3EFD02486965988D56CF2399 /* Build configuration list for PBXNativeTarget "PodcastWatchWidget" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				1B3D42AC764C3A12E621C35F /* Debug */,
-				FABBCA2045AC335486C0F4B9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6B1BBC22ADEC7B08DB45E22B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.15.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7DC666879834E45FCA750E67 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B1BBC22ADEC7B08DB45E22B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		C3A4D155CB43508401D6121A /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B1BBC22ADEC7B08DB45E22B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C40C874BC7F3F0D8C3061A3A /* Project object */;
 }

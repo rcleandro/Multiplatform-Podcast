@@ -1,9 +1,9 @@
 package br.com.carvalho.podcast.core.di
 
 import br.com.carvalho.podcast.core.observability.Analytics
+import br.com.carvalho.podcast.core.observability.BridgeAnalytics
+import br.com.carvalho.podcast.core.observability.BridgeCrashReporter
 import br.com.carvalho.podcast.core.observability.CrashReporter
-import br.com.carvalho.podcast.core.observability.FirebaseAnalytics
-import br.com.carvalho.podcast.core.observability.FirebaseCrashReporter
 import br.com.carvalho.podcast.core.observability.whenAllowed
 import br.com.carvalho.podcast.core.player.IosPlatformPlayer
 import br.com.carvalho.podcast.core.player.PlatformPlayer
@@ -41,12 +41,12 @@ actual val platformModule = module {
     single<Analytics> {
         val preferences = get<PreferencesRepository>()
         val childSafety = get<ChildSafety>()
-        FirebaseAnalytics().whenAllowed { telemetryAllowed(preferences, childSafety) }
+        BridgeAnalytics(get()).whenAllowed { telemetryAllowed(preferences, childSafety) }
     }
     single<CrashReporter> {
         val preferences = get<PreferencesRepository>()
         val childSafety = get<ChildSafety>()
-        FirebaseCrashReporter().whenAllowed { telemetryAllowed(preferences, childSafety) }
+        BridgeCrashReporter(get()).whenAllowed { telemetryAllowed(preferences, childSafety) }
     }
     single(createdAtStart = true) {
         val preferences = get<PreferencesRepository>()
