@@ -337,6 +337,25 @@ class PodcastMediaService : MediaLibraryService() {
                 }.toMutableList()
             }
         }
+
+        // The car and a voice search say what to play, not from where (the app's own loads do): where it stopped.
+        // ponytail: a voice search with several results resumes its first; the others start over as the list goes on.
+        @OptIn(UnstableApi::class)
+        override fun onSetMediaItems(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            mediaItems: MutableList<MediaItem>,
+            startIndex: Int,
+            startPositionMs: Long
+        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future {
+            val items = onAddMediaItems(mediaSession, controller, mediaItems).await()
+            val first = items.firstOrNull()
+            if (startIndex != C.INDEX_UNSET || first == null) {
+                return@future MediaSession.MediaItemsWithStartPosition(items, startIndex, startPositionMs)
+            }
+            val start = withContext(Dispatchers.IO) { tree.startPositionMs(first.mediaId) }
+            MediaSession.MediaItemsWithStartPosition(items, 0, start)
+        }
     }
 
     override fun onDestroy() {

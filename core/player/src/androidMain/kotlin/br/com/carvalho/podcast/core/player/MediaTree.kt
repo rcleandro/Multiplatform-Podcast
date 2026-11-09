@@ -7,6 +7,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaConstants
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.usecase.ExplicitRule
 import kotlinx.coroutines.flow.first
@@ -63,6 +64,15 @@ internal class MediaTree(
             else -> repository.searchEpisodes(words).first()
         }
         return episodes.filter { rule().allows(it) }.map { episodeItem(it, podcastOf(it)) }
+    }
+
+    /**
+     * Where an episode the car or a voice search asks for starts, as it would from the app. Handed over with the
+     * item: Media3 refuses a seek while a stream is still loading, and the episode would start over.
+     */
+    suspend fun startPositionMs(mediaId: String): Long {
+        val episode = repository.getEpisodeById(mediaId) ?: return 0
+        return episode.startMs(podcastOf(episode)?.playback ?: PodcastPlayback())
     }
 
     private suspend fun podcasts(): List<Podcast> = repository.getPodcasts().first().filter { rule().allows(it) }

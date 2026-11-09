@@ -5,6 +5,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaConstants
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.usecase.ExplicitRule
 import kotlinx.coroutines.test.runTest
@@ -122,6 +123,25 @@ class MediaTreeTest {
         assertEquals("https://cdn.example.com/a2.mp3", streamed.localConfiguration?.uri.toString())
     }
 
+    @Test
+    fun anEpisodeStartsWhereItStoppedOrWhereItsPodcastsJingleEnds() = runTest {
+        repository.podcasts.value = listOf(
+            podcast("a", "Alpha").copy(playback = PodcastPlayback(skipIntroSeconds = INTRO_SECONDS)),
+            podcast("b", "Beta"),
+        )
+        repository.episodes.value = listOf(
+            episode("a1", "a", position = STOPPED_MS),
+            episode("a2", "a", isPlayed = true, position = STOPPED_MS),
+            episode("b1", "b"),
+        )
+
+        assertEquals(STOPPED_MS, tree.startPositionMs("a1"))
+        // A heard one starts over, after the jingle.
+        assertEquals(INTRO_SECONDS * MILLIS_PER_SECOND, tree.startPositionMs("a2"))
+        assertEquals(0L, tree.startPositionMs("b1"))
+        assertEquals(0L, tree.startPositionMs("missing"))
+    }
+
     private fun MediaItem.contentStyle(): Int? =
         mediaMetadata.extras?.getInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE)
 
@@ -144,4 +164,10 @@ class MediaTreeTest {
         isDownloaded = false,
         fileSize = null,
     )
+
+    private companion object {
+        const val STOPPED_MS = 600_000L
+        const val INTRO_SECONDS = 30
+        const val MILLIS_PER_SECOND = 1_000L
+    }
 }

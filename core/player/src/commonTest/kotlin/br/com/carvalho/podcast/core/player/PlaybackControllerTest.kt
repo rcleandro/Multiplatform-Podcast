@@ -81,16 +81,16 @@ class PlaybackControllerTest {
         engine.positionMs = START_MS
         advanceTimeBy(TICK_MS + 1)
 
-        // Android Auto hands its episode straight to the media service: the app never calls play().
+        // Android Auto hands its episode straight to the media service, which starts it where it had stopped: the app
+        // never calls play().
         engine.loadedEpisodeId = "second"
-        engine.positionMs = 0
+        engine.positionMs = RESUME_MS
         engine.raise(PlatformEvent.EpisodeChanged("second"))
         runCurrent()
 
         assertEquals("second", controller.playerState.value.currentEpisode?.id)
         assertEquals(emptyList(), controller.playerState.value.queue)
-        // It resumes where it had stopped, as it would from the app.
-        assertEquals(RESUME_MS, engine.positionMs)
+        assertEquals(RESUME_MS, controller.playerState.value.position)
 
         engine.positionMs = RESUME_MS + MINUTE_MS
         advanceTimeBy(MINUTE_MS)
