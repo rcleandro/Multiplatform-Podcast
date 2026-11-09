@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -49,6 +50,21 @@ class AutoDownloadUseCaseTest {
         autoDownload("p")
 
         assertEquals(emptyList(), downloader.downloaded)
+    }
+
+    @Test
+    fun anEpisodeWhoseDownloadFailedOrWasCancelledIsTriedAgain() = runTest {
+        repository.podcasts.value = listOf(podcast)
+        repository.episodes.value = listOf(episode("failed", 3), episode("cancelled", 2))
+        // The downloader keeps the last status of every episode it touched, not only of those on their way.
+        downloader.activeDownloads.value = mapOf(
+            "failed" to DownloadStatus.Failed(AppError.NoConnection),
+            "cancelled" to DownloadStatus.Idle,
+        )
+
+        autoDownload("p")
+
+        assertEquals(listOf("failed", "cancelled"), downloader.downloaded.map { it.id })
     }
 
     @Test

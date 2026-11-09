@@ -1,6 +1,5 @@
 package br.com.carvalho.podcast.domain.usecase
 
-import br.com.carvalho.podcast.domain.download.DownloadStatus
 import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -32,8 +31,7 @@ class DownloadNextEpisodeUseCase(
     }
 
     private fun Episode.isWanted(): Boolean {
-        val status = downloader.activeDownloads.value[id]
-        val inProgress = status is DownloadStatus.Queued || status is DownloadStatus.Downloading
+        val inProgress = downloader.activeDownloads.value[id]?.isOnItsWay == true
         return !isDownloaded && !isPlayed && !inProgress
     }
 }
