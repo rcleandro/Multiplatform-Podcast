@@ -11,6 +11,13 @@ struct PlayerScreen: View {
     @State private var dragged: Double?
     @State private var bookmarksOpen = false
     @State private var size: CGSize = .zero
+    /// A foldable half open (21.3): its hinge splits the screen in two, as the Compose player's tabletop posture.
+    @State private var halfOpen = false
+    /// The whole window and where the player's content starts in it, to put the split on the hinge.
+    @State private var window: CGSize = .zero
+    @State private var contentOrigin: CGPoint = .zero
+    /// Lets the cover and the details glide to their halves when the hinge moves.
+    @Namespace private var foldTransition
 
     init(model: ShellModel) {
         self.model = model
@@ -24,6 +31,8 @@ struct PlayerScreen: View {
     private static let videoAspectRatio: CGFloat = 16 / 9
     /// Cover beside the rest: as wide as two readable columns.
     private static let twoColumnsWidth = Sizes.readableWidth * 2
+    /// The details beside the cover: a little over the controls' row, so a low window still has room for the cover.
+    private static let detailsWidth: CGFloat = 380
 
     var body: some View {
         let state = player.value
@@ -55,6 +64,8 @@ struct PlayerScreen: View {
         }
         // The screen's size, not the content's, which grows past a low screen when it is in one column.
         .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+        .background { Color.clear.ignoresSafeArea().onGeometryChange(for: CGSize.self) { $0.size } action: { window = $0 } }
+        .modifier(HingeWatcher(halfOpen: $halfOpen))
     }
 
     /**
@@ -62,40 +73,52 @@ struct PlayerScreen: View {
      * like a phone on its side (21.2), puts the cover beside the rest, sized by the height, so play shows without
      * scrolling.
      */
-    private func content(_ state: PlayerState) -> some View {
+    @ViewBuilder private func content(_ state: PlayerState) -> some View {
+        if halfOpen, !textSize.isAccessibilitySize, let episode = state.currentEpisode {
+            folded(state, episode)
+        } else {
+            unfolded(state)
+        }
+    }
+
+    /**
+     * Half open: the hinge crosses the middle of the screen's longer side. Across a screen held upright (tabletop) the
+     * cover goes above it and the rest below, where the hand is; down a screen on its side (book) they go to each half.
+     */
+    private func folded(_ state: PlayerState, _ episode: Episode) -> some View {
+        let isTabletop = window.height > window.width
+        let layout = isTabletop ? AnyLayout(VStackLayout(spacing: 0)) : AnyLayout(HStackLayout(spacing: 0))
+        // ponytail: the hinge is taken as the middle of a full-screen window; UIHinge gives no position.
+        let firstHalf = max(0, isTabletop ? window.height / 2 - contentOrigin.y : window.width / 2 - contentOrigin.x)
+        return layout {
+            cover(episode, fitted: true)
+                .matchedGeometryEffect(id: FoldPart.cover, in: foldTransition)
+                .padding(Spacing.l)
+                .frame(width: isTabletop ? nil : firstHalf, height: isTabletop ? firstHalf : nil)
+                .frame(maxWidth: isTabletop ? .infinity : nil, maxHeight: isTabletop ? nil : .infinity)
+            details(state, episode, isShort: true)
+                .matchedGeometryEffect(id: FoldPart.details, in: foldTransition)
+                .padding(Spacing.l)
+                .frame(maxWidth: Sizes.readableWidth)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .onGeometryChange(for: CGPoint.self) { $0.frame(in: .global).origin } action: { contentOrigin = $0 }
+    }
+
+    private func unfolded(_ state: PlayerState) -> some View {
         let isShort = WindowLayout.isShort(height: size.height)
         let twoColumns = isShort || WindowLayout.isExpanded(width: size.width)
         let spacing = isShort ? Spacing.s : Spacing.l
         let layout = twoColumns ? AnyLayout(HStackLayout(spacing: Spacing.xl)) : AnyLayout(VStackLayout(spacing: spacing))
         return layout {
             if let episode = state.currentEpisode {
-                if episode.isVideo {
-                    // The video takes the cover's place, as in the Compose player (ADR 0010).
-                    VideoView()
-                        .aspectRatio(Self.videoAspectRatio, contentMode: .fit)
-                        .background(.black)
-                        .clipShape(RoundedRectangle(cornerRadius: Radius.extraLarge))
-                } else {
-                    Artwork(url: episode.imageUrl, size: twoColumns ? nil : Self.artworkSize, radius: Radius.extraLarge)
-                        .frame(maxWidth: Self.artworkSize, maxHeight: Self.artworkSize)
-                }
-                VStack(spacing: spacing) {
-                    VStack(spacing: Spacing.xs) {
-                        Text(episode.title).textStyle(Typography.titleLarge).multilineTextAlignment(.center)
-                            .lineLimit(textSize.isAccessibilitySize ? nil : isShort ? 1 : Self.titleLines)
-                        if let podcast = episode.podcastTitle {
-                            Text(podcast).textStyle(Typography.labelLarge).foregroundStyle(Color(.Theme.accentText))
-                        }
-                    }
-                    progress(state)
-                    controls(state)
-                    // A low window keeps the options and the extras on one line.
-                    let optionsLayout = isShort ? AnyLayout(HStackLayout(spacing: Spacing.l)) : AnyLayout(VStackLayout(spacing: spacing))
-                    optionsLayout {
-                        options(state)
-                        extras(state)
-                    }
-                }
+                cover(episode, fitted: twoColumns)
+                    .matchedGeometryEffect(id: FoldPart.cover, in: foldTransition)
+                // Beside the cover the details take their width first, up to a cap, and the cover gets the rest.
+                details(state, episode, isShort: isShort)
+                    .frame(maxWidth: twoColumns ? Self.detailsWidth : nil)
+                    .layoutPriority(1)
+                    .matchedGeometryEffect(id: FoldPart.details, in: foldTransition)
             } else {
                 ContentUnavailableView(Res.string.shared.no_episode_selected.localized(), systemImage: "play.circle")
             }
@@ -103,6 +126,43 @@ struct PlayerScreen: View {
         .padding(isShort ? Spacing.s : Spacing.l)
         .frame(maxWidth: twoColumns ? Self.twoColumnsWidth : Sizes.readableWidth)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// The video takes the cover's place, as in the Compose player (ADR 0010); a fitted cover follows the space it gets.
+    @ViewBuilder private func cover(_ episode: Episode, fitted: Bool) -> some View {
+        if episode.isVideo {
+            VideoView()
+                .aspectRatio(Self.videoAspectRatio, contentMode: .fit)
+                .background(.black)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.extraLarge))
+        } else {
+            // Square, so a fitted cover shrinks with the space the controls leave instead of pushing past the edges.
+            Artwork(url: episode.imageUrl, size: fitted ? nil : Self.artworkSize, radius: Radius.extraLarge)
+                .aspectRatio(1, contentMode: .fit)
+                .frame(maxWidth: Self.artworkSize, maxHeight: Self.artworkSize)
+        }
+    }
+
+    /// The titles, the progress, the controls and the options.
+    private func details(_ state: PlayerState, _ episode: Episode, isShort: Bool) -> some View {
+        let spacing = isShort ? Spacing.s : Spacing.l
+        return VStack(spacing: spacing) {
+            VStack(spacing: Spacing.xs) {
+                Text(episode.title).textStyle(Typography.titleLarge).multilineTextAlignment(.center)
+                    .lineLimit(textSize.isAccessibilitySize ? nil : isShort ? 1 : Self.titleLines)
+                if let podcast = episode.podcastTitle {
+                    Text(podcast).textStyle(Typography.labelLarge).foregroundStyle(Color(.Theme.accentText))
+                }
+            }
+            progress(state)
+            controls(state)
+            // A low window keeps the options and the extras on one line.
+            let optionsLayout = isShort ? AnyLayout(HStackLayout(spacing: Spacing.l)) : AnyLayout(VStackLayout(spacing: spacing))
+            optionsLayout {
+                options(state)
+                extras(state)
+            }
+        }
     }
 
     /// The episode from the moment it is at (18.4); a private feed's audio is never shared (22.6).
@@ -276,3 +336,28 @@ enum SleepTimers {
         return Res.string.shared.sleep_timer_short.localized()
     }
 }
+
+/// Tells whether a foldable is half open (iOS 27.1); always false before it and on devices without a hinge.
+private struct HingeWatcher: ViewModifier {
+    @Binding var halfOpen: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        // ponytail: Swift 6.4 stands for the iOS 27.1 SDK, the first with the hinge; the CI's Xcode 26 skips it.
+        #if compiler(>=6.4)
+            if #available(iOS 27.1, *) {
+                content.onHingeChange { _, new in
+                    let isHalfOpen = new.hinge?.status == .partiallyOpen
+                    guard isHalfOpen != halfOpen else { return }
+                    withAnimation(reduceMotion ? nil : .smooth) { halfOpen = isHalfOpen }
+                }
+            } else {
+                content
+            }
+        #else
+            content
+        #endif
+    }
+}
+
+private enum FoldPart { case cover, details }
