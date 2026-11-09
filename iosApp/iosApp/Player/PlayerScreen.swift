@@ -31,6 +31,8 @@ struct PlayerScreen: View {
     private static let videoAspectRatio: CGFloat = 16 / 9
     /// Cover beside the rest: as wide as two readable columns.
     private static let twoColumnsWidth = Sizes.readableWidth * 2
+    /// The details beside the cover: a little over the controls' row, so a low window still has room for the cover.
+    private static let detailsWidth: CGFloat = 380
 
     var body: some View {
         let state = player.value
@@ -112,7 +114,10 @@ struct PlayerScreen: View {
             if let episode = state.currentEpisode {
                 cover(episode, fitted: twoColumns)
                     .matchedGeometryEffect(id: FoldPart.cover, in: foldTransition)
+                // Beside the cover the details take their width first, up to a cap, and the cover gets the rest.
                 details(state, episode, isShort: isShort)
+                    .frame(maxWidth: twoColumns ? Self.detailsWidth : nil)
+                    .layoutPriority(1)
                     .matchedGeometryEffect(id: FoldPart.details, in: foldTransition)
             } else {
                 ContentUnavailableView(Res.string.shared.no_episode_selected.localized(), systemImage: "play.circle")
@@ -131,7 +136,9 @@ struct PlayerScreen: View {
                 .background(.black)
                 .clipShape(RoundedRectangle(cornerRadius: Radius.extraLarge))
         } else {
+            // Square, so a fitted cover shrinks with the space the controls leave instead of pushing past the edges.
             Artwork(url: episode.imageUrl, size: fitted ? nil : Self.artworkSize, radius: Radius.extraLarge)
+                .aspectRatio(1, contentMode: .fit)
                 .frame(maxWidth: Self.artworkSize, maxHeight: Self.artworkSize)
         }
     }
