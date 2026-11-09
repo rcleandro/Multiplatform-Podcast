@@ -38,7 +38,7 @@ object RssXmlParser {
         AppLogger.d(TAG, "Starting XML parse (length: ${xml.length})")
         // The reader expands entities a DOCTYPE declares, without bound: a few KB of nested ones fill the memory (the
         // billion laughs, T3 of ADR 0014). No real feed declares any, so such a feed is refused before it is read.
-        if (declaresEntities(xml, root = "<channel")) throw AppError.InvalidFeed
+        if (declaresEntities(xml)) throw AppError.InvalidFeed
         val items = mutableListOf<RssEpisode>()
         val channel = readTree(xml) { item -> item.toEpisode()?.let(items::add) }.find("channel") ?: Node("channel")
         // The feed's cover can come after the items, so it fills in the episodes without their own at the end.
@@ -171,11 +171,13 @@ object RssXmlParser {
 }
 
 /**
- * Whether [xml] declares entities before its [root] element, where a DOCTYPE lives. The reader expands declared
- * entities without bound, so a few KB of nested ones fill the memory (the billion laughs, 22.3); feeds and OPML files
- * never declare any.
+ * Whether [xml] declares entities. The reader expands declared entities without bound, so a few KB of nested ones fill
+ * the memory (the billion laughs, 22.3); feeds and OPML files never declare any. Looked for in the whole text: the
+ * lenient reader takes a DOCTYPE wherever it comes, and a comment can hold the root's name before it.
  */
-internal fun declaresEntities(xml: String, root: String): Boolean = "<!ENTITY" in xml.substringBefore(root)
+// ponytail: a feed whose own text holds a literal "<!ENTITY" (inside CDATA) is refused too; none of the fixtures does.
+// Read the DOCTYPE with the reader if one ever shows up.
+internal fun declaresEntities(xml: String): Boolean = xml.contains("<!ENTITY", ignoreCase = true)
 
 /**
  * Only a web address, trimmed: the player, the image loader and iOS's URLSession would also open `file:`, `content:`

@@ -64,6 +64,14 @@ class XmlOpmlFormatTest {
     }
 
     @Test
+    fun entitiesDeclaredAfterACommentNamingTheRootImportNothingEither() {
+        val opml = "<?xml version=\"1.0\"?>\n<!-- <opml -->\n<!DOCTYPE opml [\n<!ENTITY lol \"lol\">\n]>\n" +
+            """<opml version="2.0"><body><outline xmlUrl="https://feed.example/&lol;"/></body></opml>"""
+
+        assertEquals(emptyList(), XmlOpmlFormat.read(opml))
+    }
+
+    @Test
     fun onlyWebAddressesAreImported() {
         val opml = """
             <opml version="2.0"><body>
