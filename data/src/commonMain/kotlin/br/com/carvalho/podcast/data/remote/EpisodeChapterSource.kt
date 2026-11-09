@@ -1,5 +1,6 @@
 package br.com.carvalho.podcast.data.remote
 
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.model.Chapter
@@ -9,7 +10,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Url
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.readByteArray
@@ -36,6 +36,8 @@ class EpisodeChapterSource(
     private val json: Json,
     private val fileSystem: FileSystem,
     private val dispatchers: CoroutineDispatchers,
+    /** The feed chooses the address, so what it answers is capped like the feed itself (22.3). */
+    private val maxJsonBytes: Long = AppConfig.MAX_TEXT_BYTES,
 ) : ChapterSource {
 
     override suspend fun chapters(episode: Episode): List<Chapter> = fromJson(episode).ifEmpty { fromId3(episode) }
@@ -45,7 +47,7 @@ class EpisodeChapterSource(
         return reading("JSON", url) {
             val response = client.get(url)
             if (!response.status.isSuccess()) return@reading emptyList()
-            json.decodeFromString<ChaptersJson>(response.bodyAsText()).chapters
+            json.decodeFromString<ChaptersJson>(response.textWithin(maxJsonBytes)).chapters
                 .filter { it.toc }
                 .map { Chapter((it.startTime * MILLIS_PER_SECOND).toLong(), it.title.orEmpty().trim()) }
                 .sortedBy { it.startMs }

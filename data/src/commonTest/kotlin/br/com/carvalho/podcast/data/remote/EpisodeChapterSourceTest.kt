@@ -36,7 +36,17 @@ class EpisodeChapterSourceTest {
         Json { ignoreUnknownKeys = true },
         fileSystem,
         CoroutineDispatchers(main = Dispatchers.Unconfined, io = Dispatchers.Unconfined),
+        maxJsonBytes = MAX_JSON_BYTES,
     )
+
+    @Test
+    fun chaptersBiggerThanTheLimitAreNotReadWhole() = runTest {
+        // The feed chooses the address: what it answers is capped like the feed itself (22.3).
+        val padding = " ".repeat(MAX_JSON_BYTES.toInt())
+        responses = mapOf(CHAPTERS_URL to """{"chapters":[{"startTime":0,"title":"First"}]$padding}""")
+
+        assertEquals(emptyList(), source.chapters(episode(chaptersUrl = CHAPTERS_URL)))
+    }
 
     @Test
     fun theFeedsJsonChaptersComeInStartOrderWithoutTheHiddenOnes() = runTest {
@@ -110,5 +120,6 @@ class EpisodeChapterSourceTest {
         const val AUDIO_URL = "https://cdn.example.com/episode.mp3"
         const val LOCAL_PATH = "/episode.mp3"
         const val AUDIO_BYTES = 4_096
+        const val MAX_JSON_BYTES = 4_096L
     }
 }

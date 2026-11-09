@@ -64,7 +64,7 @@ class RssFeedDataSourceImpl(
             AppLogger.e(TAG, "Server returned error: ${response.status} for URL: $target")
             throw AppError.Http(response.status.value)
         }
-        val xmlContent = response.feedText()
+        val xmlContent = response.textWithin(maxFeedBytes)
         if (CHANNEL_TAG !in xmlContent) throw AppError.InvalidFeed
 
         val etag = response.headers[HttpHeaders.ETag]
@@ -75,18 +75,19 @@ class RssFeedDataSourceImpl(
         }
     }
 
-    /**
-     * The body as text, at most [maxFeedBytes] of it (22.3, T2 of ADR 0014). The length the server declares can be
-     * missing or false, and a gzip body grows when unpacked, so the cap counts what arrives, already decompressed.
-     */
-    private suspend fun HttpResponse.feedText(): String {
-        val body = bodyAsChannel().readBuffer(maxFeedBytes + 1)
-        if (body.size > maxFeedBytes) throw AppError.FeedTooLarge
-        return (charset() ?: Charsets.UTF_8).newDecoder().decode(body)
-    }
-
     private suspend fun get(url: String, version: FeedVersion?): HttpResponse = client.get(url) {
         version?.etag?.let { header(HttpHeaders.IfNoneMatch, it) }
         version?.lastModified?.let { header(HttpHeaders.IfModifiedSince, it) }
     }
+}
+
+/**
+ * The body as text, at most [maxBytes] of it (22.3, T2 of ADR 0014): a feed, or the chapters and the transcript a feed
+ * points to. The length the server declares can be missing or false, and a gzip body grows when unpacked, so the cap
+ * counts what arrives, already decompressed.
+ */
+internal suspend fun HttpResponse.textWithin(maxBytes: Long): String {
+    val body = bodyAsChannel().readBuffer(maxBytes + 1)
+    if (body.size > maxBytes) throw AppError.FeedTooLarge
+    return (charset() ?: Charsets.UTF_8).newDecoder().decode(body)
 }
