@@ -3,7 +3,7 @@
 componentsResources = "1.12.2"
 foundation = "1.12.2"
 kotlin = "2.4.21"
-agp = "9.5.0"
+agp = "9.5.1"
 ksp = "2.3.12"
 android-compileSdk = "37"
 android-minSdk = "26"
@@ -80,7 +80,7 @@ junit = "4.13.2"
 benchmark-macro = "1.5.0"
 leakcanary = "2.14"
 androidx-test-ext-junit = "1.3.0"
-uiautomator = "2.4.0"
+uiautomator = "2.4.1"
 
 # Media
 media3 = "1.11.1"
