@@ -55,6 +55,22 @@ class RefreshInBackgroundUseCaseTest {
     }
 
     @Test
+    fun whatWasHiddenAfterAReportIsNotToldAbout() = runTest {
+        val hidden = podcast("hidden")
+        repository.podcasts.value = listOf(loud, hidden)
+        feedSource.resultsByUrl[loud.feedUrl] = Result.success(
+            FetchedFeed(loud, listOf(episode("kept", loud.id), episode("reported", loud.id)))
+        )
+        feedSource.resultsByUrl[hidden.feedUrl] = Result.success(FetchedFeed(hidden, listOf(episode("gone", hidden.id))))
+        val rule = ExplicitRule(hiddenPodcasts = setOf(hidden.id), hiddenEpisodes = setOf("reported"))
+        val refresh = RefreshInBackgroundUseCase(
+            RefreshPodcastUseCase(feedSource, repository), repository, preferences, ExplicitContent(MutableStateFlow(rule)),
+        )
+
+        assertEquals(listOf("kept"), refresh().toNotify.map { it.id })
+    }
+
+    @Test
     fun aMinorInBrazilIsToldAboutNothing() = runTest {
         repository.podcasts.value = listOf(loud)
         feedSource.resultsByUrl[loud.feedUrl] = Result.success(FetchedFeed(loud, listOf(episode("arrived", loud.id))))
