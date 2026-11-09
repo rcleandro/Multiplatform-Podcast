@@ -254,11 +254,63 @@ class PlaybackController(
             is PlatformEvent.PlayingChanged -> onPlayingChanged(event.isPlaying)
             is PlatformEvent.BufferingChanged -> _playerState.update { it.copy(isBuffering = event.isBuffering) }
             PlatformEvent.Ended -> onEnded()
+            is PlatformEvent.EpisodeChanged -> onEpisodeChanged(event.episodeId)
             is PlatformEvent.Remote -> onRemote(event.command)
         }
     }
 
+    /**
+     * An episode the app did not load is on the platform's player (Android Auto, a voice search). It becomes the
+     * current one, so progress, "played" and the listening time go to it and not to the episode before; it resumes
+     * where it stopped, at its podcast's speed, and the explicit rule holds for it as for any other.
+     */
+    private suspend fun onEpisodeChanged(episodeId: String) {
+        val left = _playerState.value.currentEpisode
+        // The app's own loads report here too, and so does a load already replaced by the next one.
+        if (left?.id == episodeId || engine.loadedEpisodeId != episodeId) return
+        // Nothing more is saved against the episode that left: from here on the platform's position is the new one's.
+        // ponytail: its last seconds since the periodic save are not kept; read them before the switch if that shows.
+        progressJob?.cancel()
+        lastTick = null
+        _playerState.update { it.copy(currentEpisode = null, chapters = emptyList()) }
+        val episode = withContext(dispatchers.io) {
+            left?.let { saveListening(it) }
+            runCatching { podcastRepository.getEpisodeById(episodeId) }.getOrNull()
+        }
+        // Gone from the library, or already replaced by the next one while it was read.
+        if (episode != null && engine.loadedEpisodeId == episodeId) adopt(episode)
+    }
+
+    private suspend fun adopt(episode: Episode) {
+        val playable = withLocalFile(episode)
+        playback = podcastPlayback(episode)
+        val speed = playback.speed ?: generalSpeed
+        _playerState.update { state ->
+            state.copy(
+                currentEpisode = playable,
+                position = engine.positionMs,
+                duration = null,
+                speed = speed,
+                queue = state.queue.filter { it.id != episode.id },
+            )
+        }
+        lastSavedPosition = null
+        if (!explicitRule.value.allows(episode)) {
+            AppLogger.i(TAG, "Pausing ${episode.id}: explicit, hidden by the age signal")
+            pause()
+            return
+        }
+        runCatching { podcastRepository.markEpisodeStarted(episode.id, getCurrentTimestamp()) }
+        (startPosition(episode).takeIf { it > 0 } ?: introEnd(episode)).takeIf { it > 0 }?.let { seekTo(it) }
+        onMain { engine.setSpeed(speed) }
+        loadChapters(playable)
+        if (_playerState.value.isPlaying) startProgress()
+    }
+
     private suspend fun onPlayingChanged(isPlaying: Boolean) {
+        // The notification and headset buttons start the platform's player without asking here (26.3).
+        val current = _playerState.value.currentEpisode
+        if (isPlaying && current != null && !explicitRule.value.allows(current)) return pause()
         _playerState.update { it.copy(isPlaying = isPlaying, isBuffering = if (isPlaying) false else it.isBuffering) }
         if (isPlaying) {
             playRequest?.let { (requested, source) ->

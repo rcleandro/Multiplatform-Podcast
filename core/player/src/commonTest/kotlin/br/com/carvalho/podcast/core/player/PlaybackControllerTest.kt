@@ -73,6 +73,70 @@ class PlaybackControllerTest {
     ).also { runCurrent() }
 
     @Test
+    fun anEpisodeTheCarPutOnIsAdoptedAndItsProgressNeverGoesToTheOneBefore() = runTest(dispatcher) {
+        podcastRepository.episodes.value = listOf(first, second.copy(playbackPosition = RESUME_MS))
+        val controller = controller()
+        controller.setQueue(listOf(second))
+        controller.play(first)
+        engine.positionMs = START_MS
+        advanceTimeBy(TICK_MS + 1)
+
+        // Android Auto hands its episode straight to the media service: the app never calls play().
+        engine.loadedEpisodeId = "second"
+        engine.positionMs = 0
+        engine.raise(PlatformEvent.EpisodeChanged("second"))
+        runCurrent()
+
+        assertEquals("second", controller.playerState.value.currentEpisode?.id)
+        assertEquals(emptyList(), controller.playerState.value.queue)
+        // It resumes where it had stopped, as it would from the app.
+        assertEquals(RESUME_MS, engine.positionMs)
+
+        engine.positionMs = RESUME_MS + MINUTE_MS
+        advanceTimeBy(MINUTE_MS)
+        val saved = podcastRepository.episodes.value.associate { it.id to it.playbackPosition }
+        assertEquals(START_MS, saved["first"])
+        assertEquals(RESUME_MS + MINUTE_MS, saved["second"])
+        assertEquals("second", playerRepository.getSavedPlaybackState()?.episodeId)
+    }
+
+    @Test
+    fun theAppsOwnLoadsAndStaleOnesAreNotAdopted() = runTest(dispatcher) {
+        podcastRepository.episodes.value = listOf(first, second)
+        val controller = controller()
+        controller.play(first)
+        runCurrent()
+
+        // The platform reports the app's own load, and one for an episode it no longer holds.
+        engine.loadedEpisodeId = "first"
+        engine.raise(PlatformEvent.EpisodeChanged("first"))
+        engine.raise(PlatformEvent.EpisodeChanged("second"))
+        runCurrent()
+
+        assertEquals("first", controller.playerState.value.currentEpisode?.id)
+    }
+
+    @Test
+    fun underTheEcaDigitalAnExplicitEpisodeFromOutsideTheAppIsPausedAndStaysPaused() = runTest(dispatcher) {
+        podcastRepository.episodes.value = listOf(first, second.copy(explicit = true))
+        explicitRule.value = ExplicitRule(hidesExplicit = true)
+        val controller = controller()
+        controller.play(first)
+        runCurrent()
+
+        engine.loadedEpisodeId = "second"
+        engine.raise(PlatformEvent.EpisodeChanged("second"))
+        runCurrent()
+        assertFalse(engine.isPlaying)
+
+        // The notification's play button starts the platform's player without asking the controller.
+        engine.play()
+        runCurrent()
+        assertFalse(engine.isPlaying)
+        assertFalse(controller.playerState.value.isPlaying)
+    }
+
+    @Test
     fun withoutContinuousPlaybackTheQueueWaitsAtTheEndOfAnEpisode() = runTest(dispatcher) {
         continuous.value = false
         val controller = controller()
@@ -532,6 +596,7 @@ class PlaybackControllerTest {
 
     private companion object {
         const val START_MS = 60_000L
+        const val RESUME_MS = 300_000L
         const val TICK_MS = 500L
         const val MINUTE_MS = 60_000L
         const val TICKS_PER_MINUTE = (MINUTE_MS / TICK_MS).toInt()

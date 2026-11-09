@@ -48,6 +48,12 @@ sealed interface PlatformEvent {
     data class BufferingChanged(val isBuffering: Boolean) : PlatformEvent
     data object Ended : PlatformEvent
 
+    /**
+     * Another episode is on the platform's player. The app's own loads report it too; Android Auto and voice searches
+     * hand theirs straight to the media service, and those the controller has to adopt.
+     */
+    data class EpisodeChanged(val episodeId: String) : PlatformEvent
+
     /** A command from outside the app: lock screen, notification, headset or browser media keys. */
     data class Remote(val command: RemoteCommand) : PlatformEvent
 }

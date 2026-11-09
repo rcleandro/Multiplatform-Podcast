@@ -6,6 +6,7 @@ import androidx.media3.session.MediaConstants
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.Podcast
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
+import br.com.carvalho.podcast.domain.usecase.ExplicitRule
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -84,6 +85,41 @@ class MediaTreeTest {
         assertEquals(listOf("b1"), tree.search("pix").map { it.mediaId })
         assertEquals("Beta", tree.search("pix").single().mediaMetadata.artist.toString())
         assertEquals(emptyList<MediaItem>(), tree.search("nothing like it"))
+    }
+
+    @Test
+    fun underTheEcaDigitalNothingExplicitOrHiddenIsListedFoundOrPlayed() = runTest {
+        repository.podcasts.value = listOf(podcast("a", "Alpha"), podcast("b", "Beta").copy(explicit = true))
+        repository.episodes.value = listOf(
+            episode("a1", "a"),
+            episode("a2", "a").copy(explicit = true),
+            episode("a3", "a", title = "Reported"),
+            episode("b1", "b", title = "Pix explained"),
+        )
+        val rule = ExplicitRule(hidesExplicit = true, explicitPodcasts = setOf("b"), hiddenEpisodes = setOf("a3"))
+        val tree = MediaTree(repository, rule = { rule }) { "Library" }
+
+        assertEquals(listOf("podcast_a"), tree.children(LIBRARY_ID).map { it.mediaId })
+        assertEquals(listOf("a1"), tree.children("podcast_a").map { it.mediaId })
+        assertEquals(emptyList<MediaItem>(), tree.children("podcast_b"))
+        assertNull(tree.item("podcast_b"))
+        assertNull(tree.item("a2"))
+        assertNull(tree.item("b1"))
+        assertEquals(emptyList<MediaItem>(), tree.search("pix"))
+        assertEquals(emptyList<MediaItem>(), tree.search("beta"))
+        assertEquals(emptyList<MediaItem>(), tree.search("reported"))
+    }
+
+    @Test
+    fun aDownloadedEpisodePlaysFromItsFileAndKeepsItsAddressForCasting() = runTest {
+        repository.episodes.value = listOf(episode("a1", "a").copy(isDownloaded = true), episode("a2", "a"))
+        val tree = MediaTree(repository, localPath = { "/downloads/$it.mp3" }) { "Library" }
+
+        val (downloaded, streamed) = tree.children("podcast_a")
+
+        assertEquals("file:///downloads/a1.mp3", downloaded.localConfiguration?.uri.toString())
+        assertEquals("https://cdn.example.com/a1.mp3", downloaded.requestMetadata.mediaUri.toString())
+        assertEquals("https://cdn.example.com/a2.mp3", streamed.localConfiguration?.uri.toString())
     }
 
     private fun MediaItem.contentStyle(): Int? =

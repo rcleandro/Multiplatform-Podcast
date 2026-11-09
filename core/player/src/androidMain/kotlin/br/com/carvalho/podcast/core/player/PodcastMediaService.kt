@@ -26,9 +26,11 @@ import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.core.util.AppLogger
+import br.com.carvalho.podcast.domain.download.EpisodeDownloader
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
 import br.com.carvalho.podcast.domain.repository.PreferencesRepository
+import br.com.carvalho.podcast.domain.usecase.ExplicitContent
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -54,7 +56,13 @@ class PodcastMediaService : MediaLibraryService() {
     private var mediaLibrarySession: MediaLibrarySession? = null
     private val podcastRepository: PodcastRepository by inject()
     private val preferences: PreferencesRepository by inject()
-    private val tree by lazy { MediaTree(podcastRepository) { getString(R.string.library_title) } }
+    private val explicitContent: ExplicitContent by inject()
+    private val downloader: EpisodeDownloader by inject()
+    private val tree by lazy {
+        MediaTree(podcastRepository, { explicitContent.rule.value }, downloader::getLocalPath) {
+            getString(R.string.library_title)
+        }
+    }
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     /** Lifts quiet voices (18.16); tied to the player's audio session, made again if that changes. */
