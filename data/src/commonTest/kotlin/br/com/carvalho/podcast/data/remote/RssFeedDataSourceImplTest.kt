@@ -40,6 +40,16 @@ class RssFeedDataSourceImplTest {
     }
 
     @Test
+    fun `a feed is read in the encoding its first line declares when the server names none`() = runTest(testDispatcher) {
+        val xml = """<?xml version="1.0" encoding="ISO-8859-1"?><rss><channel><title>Café Brasil</title></channel></rss>"""
+        // One byte per character, as ISO-8859-1 writes it.
+        val latin1 = ByteArray(xml.length) { xml[it].code.toByte() }
+        val engine = MockEngine { respond(latin1, headers = headersOf(HttpHeaders.ContentType, "application/rss+xml")) }
+
+        assertEquals("Café Brasil", dataSource(engine).fetchFeed(FEED_URL).getOrThrow()?.title)
+    }
+
+    @Test
     fun `a conditional fetch sends the version and reads not modified as no feed`() = runTest(testDispatcher) {
         var headers: Headers? = null
         val engine = MockEngine { request ->
