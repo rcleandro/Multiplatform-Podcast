@@ -250,7 +250,8 @@ class KtorEpisodeDownloader(
     }
 
     internal fun updateStatus(episodeId: String, status: DownloadStatus) {
-        _activeDownloads.value += (episodeId to status)
+        // Set from URLSession's queue, Ktor's callbacks and the app's coroutines at once: a plain += loses some.
+        _activeDownloads.update { it + (episodeId to status) }
     }
 }
 
