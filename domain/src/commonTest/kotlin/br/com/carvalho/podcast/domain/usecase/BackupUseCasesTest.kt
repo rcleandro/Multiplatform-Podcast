@@ -1,8 +1,12 @@
 package br.com.carvalho.podcast.domain.usecase
 
 import br.com.carvalho.podcast.domain.model.Episode
+import br.com.carvalho.podcast.domain.model.LibraryBackup
 import br.com.carvalho.podcast.domain.model.Podcast
+import br.com.carvalho.podcast.domain.model.PodcastBackup
 import br.com.carvalho.podcast.domain.model.PodcastPlayback
+import br.com.carvalho.podcast.domain.model.PreferencesBackup
+import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.SmartPlaylist
 import br.com.carvalho.podcast.domain.model.ThemeMode
@@ -14,6 +18,7 @@ import br.com.carvalho.podcast.domain.repository.FakePreferencesRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -84,6 +89,45 @@ class BackupUseCasesTest {
         assertEquals(ThemeMode.DARK, new.preferences.themeMode.value)
         assertEquals(true, new.preferences.headphonesOnly.value)
         assertEquals(SkipIntervals(5, 30), new.preferences.skipIntervals.value)
+    }
+
+    @Test
+    fun valuesNoScreenOffersAreNotRestored() = runTest {
+        // A backup is a file anyone can edit: what it says goes through the same limits as the screens.
+        val text = Json.encodeToString(
+            LibraryBackup.serializer(),
+            LibraryBackup(
+                podcasts = listOf(
+                    PodcastBackup(
+                        feedUrl = FEED_A,
+                        title = "A",
+                        playback = PodcastPlayback(speed = -1f, skipIntroSeconds = -5, skipOutroSeconds = Int.MAX_VALUE),
+                        autoDownloadCount = Int.MAX_VALUE,
+                    ),
+                ),
+                preferences = PreferencesBackup(
+                    skipIntervals = SkipIntervals(backwardSeconds = -10, forwardSeconds = 0),
+                    downloadLimitBytes = -1,
+                    deleteDownloadsAfterDays = -3,
+                    refreshIntervalHours = -1,
+                ),
+            ),
+        )
+        val here = Device()
+        here.feeds.resultsByUrl[FEED_A] = Result.success(fetched(FEED_A, "a1"))
+
+        here.restore(text)
+
+        val podcast = here.repository.podcasts.value.single()
+        assertEquals(
+            PodcastPlayback(skipOutroSeconds = PodcastPlayback.SKIP_CHOICES.max()),
+            podcast.playback,
+        )
+        assertEquals(AutoDownload.CHOICES.max(), podcast.autoDownloadCount)
+        assertEquals(SkipIntervals(), here.preferences.skipIntervals.value)
+        assertEquals(null, here.preferences.downloadLimitBytes.value)
+        assertEquals(0, here.preferences.deleteDownloadsAfterDays.value)
+        assertEquals(RefreshInterval.DEFAULT_HOURS, here.preferences.refreshIntervalHours.value)
     }
 
     @Test
