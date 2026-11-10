@@ -129,9 +129,10 @@ class PodcastMediaService : MediaLibraryService() {
             override fun onAudioSessionIdChanged(audioSessionId: Int) = boostVoice(player, preferences.boostVoice.value)
         })
         // The notification and Android Auto show the jumps on their buttons: new ones when Settings change.
+        // Button preferences, not a custom layout: Media3 rebuilds the layout from them when Android Auto connects.
         serviceScope.launch {
             preferences.skipIntervals.drop(1).collect { intervals ->
-                mediaLibrarySession?.setCustomLayout(ImmutableList.copyOf(skipButtons(intervals)))
+                mediaLibrarySession?.setMediaButtonPreferences(ImmutableList.copyOf(skipButtons(intervals)))
             }
         }
     }
@@ -202,12 +203,11 @@ class PodcastMediaService : MediaLibraryService() {
             val trusted = browsesLibrary(controller.isTrusted, controller.packageName) {
                 isSignedByAndroidAuto(controller.packageName)
             }
-            val customLayout = skipButtons(preferences.skipIntervals.value)
 
             return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                 .setAvailableSessionCommands(sessionCommandsFor(trusted, skipForwardCommand, skipBackwardCommand))
                 .setAvailablePlayerCommands(playerCommandsFor(trusted))
-                .setCustomLayout(ImmutableList.copyOf(customLayout))
+                .setMediaButtonPreferences(ImmutableList.copyOf(skipButtons(preferences.skipIntervals.value)))
                 .build()
         }
 
