@@ -8,6 +8,9 @@ class FakePlatformPlayer : PlatformPlayer {
     override var positionMs = 0L
     override var durationMs: Long? = null
 
+    /** Set by a test standing in for Android Auto, which loads its episode without [load]. */
+    override var loadedEpisodeId: String? = null
+
     var loaded: Episode? = null
     var loadedAt: Long? = null
     var playWhenReady: Boolean? = null

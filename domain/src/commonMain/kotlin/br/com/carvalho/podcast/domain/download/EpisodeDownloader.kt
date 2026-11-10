@@ -13,6 +13,9 @@ sealed class DownloadStatus {
     data class Downloading(val progress: Float, val bytesDownloaded: Long, val totalBytes: Long?) : DownloadStatus()
     data class Completed(val localPath: String) : DownloadStatus()
     data class Failed(val error: AppError) : DownloadStatus()
+
+    /** Waiting or coming down; every other status is one the downloader only remembers. */
+    val isOnItsWay: Boolean get() = this is Queued || this is Downloading
 }
 
 /**

@@ -6,7 +6,7 @@ plugins {
 kotlin {
     android {
         namespace = "br.com.carvalho.podcast.core.player"
-        withHostTest {}
+        withHostTest { isIncludeAndroidResources = true }
     }
 
     sourceSets {

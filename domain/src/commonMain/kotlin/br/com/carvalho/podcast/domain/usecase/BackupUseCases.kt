@@ -1,12 +1,16 @@
 package br.com.carvalho.podcast.domain.usecase
 
+import br.com.carvalho.podcast.core.AppConfig
 import br.com.carvalho.podcast.domain.model.BookmarkBackup
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.EpisodeBackup
 import br.com.carvalho.podcast.domain.model.EpisodeRef
 import br.com.carvalho.podcast.domain.model.LibraryBackup
 import br.com.carvalho.podcast.domain.model.PodcastBackup
+import br.com.carvalho.podcast.domain.model.PodcastPlayback
 import br.com.carvalho.podcast.domain.model.PreferencesBackup
+import br.com.carvalho.podcast.domain.model.RefreshInterval
+import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.player.AudioPlayer
 import br.com.carvalho.podcast.domain.repository.PlayerRepository
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -94,7 +98,7 @@ class RestoreBackupUseCase(
         // A playlist with the same name is the same one: restoring twice adds nothing.
         val names = repository.getSmartPlaylists().first().map { it.name }.toSet()
         backup.playlists.filter { it.name !in names }.forEach { repository.saveSmartPlaylist(it.copy(id = 0)) }
-        backup.preferences.applyTo(preferences)
+        backup.preferences.offered().applyTo(preferences)
         return OpmlImport.of(results)
     }
 
@@ -111,10 +115,10 @@ class RestoreBackupUseCase(
     private suspend fun restorePodcasts(podcasts: List<PodcastBackup>, podcastIds: Map<String, String>) {
         podcasts.forEach { podcast ->
             val id = podcastIds[podcast.feedUrl] ?: return@forEach
-            repository.setPodcastPlayback(id, podcast.playback)
+            repository.setPodcastPlayback(id, podcast.playback.offered())
             podcast.oldestFirst?.let { repository.setEpisodeOrder(id, it) }
             repository.setPodcastNotifications(id, podcast.notifyNewEpisodes)
-            repository.setPodcastAutoDownload(id, podcast.autoDownloadCount)
+            repository.setPodcastAutoDownload(id, podcast.autoDownloadCount.coerceIn(0, AutoDownload.CHOICES.max()))
         }
         val ordered = podcasts.mapNotNull { podcastIds[it.feedUrl] }.distinct()
         val others = repository.getPodcasts().first().sortedBy { it.position }.map { it.id } - ordered.toSet()
@@ -142,6 +146,28 @@ class RestoreBackupUseCase(
         }
     }
 }
+
+// A backup is a file anyone can edit: a value no screen offers goes back to its default, as when Settings load.
+private fun PreferencesBackup.offered(): PreferencesBackup {
+    val defaults = SkipIntervals()
+    return copy(
+        skipIntervals = SkipIntervals(
+            skipIntervals.backwardSeconds.takeIf { it in SkipIntervals.CHOICES } ?: defaults.backwardSeconds,
+            skipIntervals.forwardSeconds.takeIf { it in SkipIntervals.CHOICES } ?: defaults.forwardSeconds,
+        ),
+        downloadLimitBytes = downloadLimitBytes?.takeIf { it > 0 },
+        deleteDownloadsAfterDays = deleteDownloadsAfterDays.takeIf { it in DeleteOldDownloads.CHOICES } ?: 0,
+        refreshIntervalHours = refreshIntervalHours.takeIf { it in RefreshInterval.CHOICES }
+            ?: RefreshInterval.DEFAULT_HOURS,
+    )
+}
+
+/** Within what the podcast's own settings offer: a speed of zero or less stops the platform's player. */
+private fun PodcastPlayback.offered() = PodcastPlayback(
+    speed = speed?.takeIf { it in AppConfig.PLAYBACK_SPEEDS.min()..AppConfig.PLAYBACK_SPEEDS.max() },
+    skipIntroSeconds = skipIntroSeconds.coerceIn(0, PodcastPlayback.SKIP_CHOICES.max()),
+    skipOutroSeconds = skipOutroSeconds.coerceIn(0, PodcastPlayback.SKIP_CHOICES.max()),
+)
 
 /** The episodes of the restored podcasts, read once per podcast, by id first and by audio address otherwise. */
 internal class EpisodeFinder(private val repository: PodcastRepository, private val podcastIds: Map<String, String>) {

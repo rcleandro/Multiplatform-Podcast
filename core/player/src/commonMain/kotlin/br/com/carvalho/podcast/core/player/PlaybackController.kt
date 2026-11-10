@@ -126,7 +126,7 @@ class PlaybackController(
         playRequest = requested to if (playable.localPath != null) "local" else "stream"
         playback = podcastPlayback(episode)
         // An episode not begun skips its podcast's jingle (18.14); one already started resumes where it stopped.
-        val start = startPosition(episode).takeIf { it > 0 } ?: introEnd(episode)
+        val start = startPosition(episode)
         val speed = playback.speed ?: generalSpeed
         // The queue holds what comes next: the episode played leaves it, wherever it was (18.6).
         _playerState.update { state ->
@@ -254,11 +254,63 @@ class PlaybackController(
             is PlatformEvent.PlayingChanged -> onPlayingChanged(event.isPlaying)
             is PlatformEvent.BufferingChanged -> _playerState.update { it.copy(isBuffering = event.isBuffering) }
             PlatformEvent.Ended -> onEnded()
+            is PlatformEvent.EpisodeChanged -> onEpisodeChanged(event.episodeId)
             is PlatformEvent.Remote -> onRemote(event.command)
         }
     }
 
+    /**
+     * An episode the app did not load is on the platform's player (Android Auto, a voice search). It becomes the
+     * current one, so progress, "played" and the listening time go to it and not to the episode before; it plays at
+     * its podcast's speed, and the explicit rule holds for it as for any other. The platform starts it where it
+     * stopped ([startMs]): a seek from here is refused while a stream is still loading, and would be heard.
+     */
+    private suspend fun onEpisodeChanged(episodeId: String) {
+        val left = _playerState.value.currentEpisode
+        // The app's own loads report here too, and so does a load already replaced by the next one.
+        if (left?.id == episodeId || engine.loadedEpisodeId != episodeId) return
+        // Nothing more is saved against the episode that left: from here on the platform's position is the new one's.
+        // ponytail: its last seconds since the periodic save are not kept; read them before the switch if that shows.
+        progressJob?.cancel()
+        lastTick = null
+        _playerState.update { it.copy(currentEpisode = null, chapters = emptyList()) }
+        val episode = withContext(dispatchers.io) {
+            left?.let { saveListening(it) }
+            runCatching { podcastRepository.getEpisodeById(episodeId) }.getOrNull()
+        }
+        // Gone from the library, or already replaced by the next one while it was read.
+        if (episode != null && engine.loadedEpisodeId == episodeId) adopt(episode)
+    }
+
+    private suspend fun adopt(episode: Episode) {
+        val playable = withLocalFile(episode)
+        playback = podcastPlayback(episode)
+        val speed = playback.speed ?: generalSpeed
+        _playerState.update { state ->
+            state.copy(
+                currentEpisode = playable,
+                position = engine.positionMs,
+                duration = null,
+                speed = speed,
+                queue = state.queue.filter { it.id != episode.id },
+            )
+        }
+        lastSavedPosition = null
+        if (!explicitRule.value.allows(episode)) {
+            AppLogger.i(TAG, "Pausing ${episode.id}: explicit, hidden by the age signal")
+            pause()
+            return
+        }
+        runCatching { podcastRepository.markEpisodeStarted(episode.id, getCurrentTimestamp()) }
+        onMain { engine.setSpeed(speed) }
+        loadChapters(playable)
+        if (_playerState.value.isPlaying) startProgress()
+    }
+
     private suspend fun onPlayingChanged(isPlaying: Boolean) {
+        // The notification and headset buttons start the platform's player without asking here (26.3).
+        val current = _playerState.value.currentEpisode
+        if (isPlaying && current != null && !explicitRule.value.allows(current)) return pause()
         _playerState.update { it.copy(isPlaying = isPlaying, isBuffering = if (isPlaying) false else it.isBuffering) }
         if (isPlaying) {
             playRequest?.let { (requested, source) ->
@@ -436,27 +488,14 @@ class PlaybackController(
         loadChapters(playable)
     }
 
-    /**
-     * Where a started episode stopped; a heard one starts over. Read from the database: the queue and the screens may
-     * hold the episode as it was before it was last heard.
-     */
+    /** Read from the database: the queue and the screens may hold the episode as it was before it was last heard. */
     private suspend fun startPosition(episode: Episode): Long {
         val stored = runCatching { podcastRepository.getEpisodeById(episode.id) }.getOrNull() ?: episode
-        return if (stored.isPlayed) 0 else stored.playbackPosition
+        return stored.startMs(playback)
     }
 
     private suspend fun podcastPlayback(episode: Episode): PodcastPlayback =
         runCatching { podcastRepository.getPodcastById(episode.podcastId)?.playback }.getOrNull() ?: PodcastPlayback()
-
-    /** Where the podcast's jingle ends, unless that is the whole episode. */
-    private fun introEnd(episode: Episode): Long {
-        val intro = playback.skipIntroSeconds.toLong()
-        return if (intro > 0 && (episode.duration <= 0 || intro < episode.duration)) {
-            intro * AppConfig.MILLIS_PER_SECOND
-        } else {
-            0
-        }
-    }
 
     /** Into the podcast's closing credits (18.14), which count as the end of the episode. */
     private fun reachedOutro(): Boolean {
@@ -484,5 +523,19 @@ class PlaybackController(
 
         /** Faster than the fastest speed with silences skipped: a move beyond this is a seek. */
         const val MAX_MOVE_PER_MS = 4
+    }
+}
+
+/**
+ * Where an episode starts: where it stopped, or where its podcast's jingle ends (18.14) when it was not begun, unless
+ * the jingle is the whole episode. A heard one starts over.
+ */
+internal fun Episode.startMs(playback: PodcastPlayback): Long {
+    val stopped = if (isPlayed) 0 else playbackPosition
+    val intro = playback.skipIntroSeconds.toLong()
+    return when {
+        stopped > 0 -> stopped
+        intro > 0 && (duration <= 0 || intro < duration) -> intro * AppConfig.MILLIS_PER_SECOND
+        else -> 0
     }
 }

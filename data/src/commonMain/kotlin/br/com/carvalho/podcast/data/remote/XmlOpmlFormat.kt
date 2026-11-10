@@ -11,7 +11,7 @@ import nl.adaptivity.xmlutil.core.KtXmlReader
  */
 object XmlOpmlFormat : OpmlFormat {
     override fun read(opml: String): List<String> {
-        if (declaresEntities(opml, root = "<opml")) return emptyList()
+        if (declaresEntities(opml)) return emptyList()
         val reader = KtXmlReader(opml, relaxed = true)
         val feeds = mutableListOf<String>()
         // ponytail: a file that is not XML ends the reading where it breaks, keeping what came before.

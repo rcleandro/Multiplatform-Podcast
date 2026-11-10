@@ -46,6 +46,11 @@ class AndroidPlatformPlayer(context: Context) : PlatformPlayer {
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) = listener(PlatformEvent.PlayingChanged(isPlaying))
 
+        // Android Auto and voice searches set their item in the service, not through load() (20.7).
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            mediaItem?.let { listener(PlatformEvent.EpisodeChanged(it.mediaId)) }
+        }
+
         override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
                 Player.STATE_BUFFERING -> listener(PlatformEvent.BufferingChanged(true))
@@ -137,4 +142,4 @@ class AndroidPlatformPlayer(context: Context) : PlatformPlayer {
     }
 }
 
-private fun Episode.playableUri(): Uri = localPath?.let { Uri.fromFile(File(it)) } ?: audioUrl.toUri()
+internal fun Episode.playableUri(): Uri = localPath?.let { Uri.fromFile(File(it)) } ?: audioUrl.toUri()

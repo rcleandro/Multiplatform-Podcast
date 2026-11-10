@@ -21,7 +21,8 @@ class AutoDownloadUseCase(
     suspend operator fun invoke(podcastId: String) {
         val count = repository.getPodcastById(podcastId)?.autoDownloadCount ?: return
         if (count <= 0) return
-        val downloading = downloader.activeDownloads.value.keys
+        // Only those on their way: the downloader also remembers the ones that failed, and those are tried again.
+        val downloading = downloader.activeDownloads.value.filterValues { it.isOnItsWay }.keys
         repository.getEpisodes(podcastId).first()
             .filterNot { it.isPlayed }
             .sortedByDescending { it.publishDate }

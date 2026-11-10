@@ -29,10 +29,10 @@ class RefreshInBackgroundUseCase(
         val toNotify = if (preferences.notifyNewEpisodes.value && mayNotify) {
             val podcasts = repository.getPodcasts().first()
             val quiet = podcasts.filterNot { it.notifyNewEpisodes }.map { it.id }.toSet()
-            // From the podcasts read here: in a worker's fresh process the rule may not have them yet.
-            val rule = ExplicitRule(
-                explicitContent.rule.value.hidesExplicit,
-                podcasts.filter { it.explicit }.map { it.id }.toSet(),
+            // The explicit podcasts from those read here: in a worker's fresh process the rule may not have them yet.
+            // What was hidden after a report (26.7) stays as the rule has it.
+            val rule = explicitContent.rule.value.copy(
+                explicitPodcasts = podcasts.filter { it.explicit }.map { it.id }.toSet(),
             )
             repository.getNewEpisodes().filter { it.id !in before && it.podcastId !in quiet && rule.allows(it) }
         } else {

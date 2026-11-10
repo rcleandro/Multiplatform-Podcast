@@ -22,13 +22,23 @@ class EpisodeTranscriptSourceTest {
                 when (request.url.encodedPath) {
                     "/1.vtt" -> respond("WEBVTT\n\n00:00.000 --> 00:01.000\nHi")
                     "/1.json" -> respond("""{"segments":[{"startTime":0,"endTime":1,"body":"Hi."}]}""")
+                    "/huge.vtt" -> respond("WEBVTT\n\n00:00.000 --> 00:01.000\nHi" + " ".repeat(MAX_BYTES.toInt()))
                     else -> respondError(HttpStatusCode.NotFound)
                 }
             }
         ),
         Json { ignoreUnknownKeys = true },
         CoroutineDispatchers(main = Dispatchers.Unconfined, io = Dispatchers.Unconfined, default = Dispatchers.Unconfined),
+        maxBytes = MAX_BYTES,
     )
+
+    @Test
+    fun aTranscriptBiggerThanTheLimitIsNotReadWhole() = runTest {
+        // The feed chooses the address: what it answers is capped like the feed itself (22.3).
+        val result = source.transcript(episode("https://example.com/huge.vtt", "text/vtt"))
+
+        assertEquals(AppError.FeedTooLarge, result.exceptionOrNull())
+    }
 
     @Test
     fun theTypeTheFeedGaveDecidesHowItIsRead() = runTest {
@@ -52,4 +62,8 @@ class EpisodeTranscriptSourceTest {
         imageUrl = null, duration = 0, publishDate = 0, isPlayed = false, playbackPosition = 0, isDownloaded = false,
         fileSize = null, transcriptUrl = url, transcriptType = type,
     )
+
+    private companion object {
+        const val MAX_BYTES = 4_096L
+    }
 }

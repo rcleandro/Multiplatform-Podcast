@@ -92,6 +92,17 @@ class HostileFeedTest {
     }
 
     @Test
+    fun `entities declared after a comment naming the channel are refused too`() {
+        // The check used to stop at the first "<channel", which a comment before the DOCTYPE can hold.
+        val xml = "<?xml version=\"1.0\"?>\n<!-- <channel -->\n<!DOCTYPE rss [\n<!ENTITY lol \"lol\">\n]>\n" +
+            feed(item(audio = "https://cdn.example.com/a.mp3", title = "&lol;"))
+
+        val error = runCatching { RssXmlParser.parse(xml) }.exceptionOrNull()
+
+        assertEquals(AppError.InvalidFeed, error)
+    }
+
+    @Test
     fun `an external entity is never fetched`() {
         val xml = "<?xml version=\"1.0\"?>\n<!DOCTYPE rss [\n<!ENTITY xxe SYSTEM \"file:///etc/passwd\">\n]>\n" +
             feed(item(audio = "https://cdn.example.com/a.mp3", title = "&xxe;"))

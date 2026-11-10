@@ -17,10 +17,14 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.charset
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
+import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.charsets.decode
+import io.ktor.utils.io.charsets.forName
 import io.ktor.utils.io.readBuffer
 import kotlinx.coroutines.withContext
+import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
 
 private const val TAG = "RssFeedDataSource"
 private const val CHANNEL_TAG = "<channel"
@@ -64,7 +68,7 @@ class RssFeedDataSourceImpl(
             AppLogger.e(TAG, "Server returned error: ${response.status} for URL: $target")
             throw AppError.Http(response.status.value)
         }
-        val xmlContent = response.feedText()
+        val xmlContent = response.textWithin(maxFeedBytes)
         if (CHANNEL_TAG !in xmlContent) throw AppError.InvalidFeed
 
         val etag = response.headers[HttpHeaders.ETag]
@@ -75,18 +79,33 @@ class RssFeedDataSourceImpl(
         }
     }
 
-    /**
-     * The body as text, at most [maxFeedBytes] of it (22.3, T2 of ADR 0014). The length the server declares can be
-     * missing or false, and a gzip body grows when unpacked, so the cap counts what arrives, already decompressed.
-     */
-    private suspend fun HttpResponse.feedText(): String {
-        val body = bodyAsChannel().readBuffer(maxFeedBytes + 1)
-        if (body.size > maxFeedBytes) throw AppError.FeedTooLarge
-        return (charset() ?: Charsets.UTF_8).newDecoder().decode(body)
-    }
-
     private suspend fun get(url: String, version: FeedVersion?): HttpResponse = client.get(url) {
         version?.etag?.let { header(HttpHeaders.IfNoneMatch, it) }
         version?.lastModified?.let { header(HttpHeaders.IfModifiedSince, it) }
     }
+}
+
+/**
+ * The body as text, at most [maxBytes] of it (22.3, T2 of ADR 0014): a feed, or the chapters and the transcript a feed
+ * points to. The length the server declares can be missing or false, and a gzip body grows when unpacked, so the cap
+ * counts what arrives, already decompressed. Read in the encoding the server names, else the one an XML document
+ * declares in its first line (older feeds are ISO-8859-1 and say so only there), else UTF-8.
+ */
+internal suspend fun HttpResponse.textWithin(maxBytes: Long): String {
+    val body = bodyAsChannel().readBuffer(maxBytes + 1)
+    if (body.size > maxBytes) throw AppError.FeedTooLarge
+    return (charset() ?: declaredCharset(body) ?: Charsets.UTF_8).newDecoder().decode(body)
+}
+
+private val XML_ENCODING = Regex("""<\?xml[^>]*\sencoding\s*=\s*["']([A-Za-z0-9._-]+)["']""")
+
+/** The XML declaration is the document's first line; this much holds it with room to spare. */
+private const val XML_DECLARATION_BYTES = 200L
+
+/** The declaration is ASCII in every encoding feeds come in, so it reads before the encoding is known. */
+private fun declaredCharset(body: Buffer): Charset? {
+    val head = body.peek().readByteArray(minOf(body.size, XML_DECLARATION_BYTES).toInt()).decodeToString()
+    val name = XML_ENCODING.find(head)?.groupValues?.get(1) ?: return null
+    // A name this platform does not know is read as UTF-8, as before.
+    return runCatching { Charsets.forName(name) }.getOrNull()
 }

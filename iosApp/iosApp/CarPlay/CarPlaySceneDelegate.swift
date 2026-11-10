@@ -2,7 +2,8 @@ import CarPlay
 import Shared
 
 /**
- * CarPlay (25.13), as Android Auto (13.5): a tab with the library (a podcast, then its episodes) and one with the queue.
+ * CarPlay (25.13), as Android Auto (13.5): a tab with the library (what was left halfway, then a podcast and its
+ * episodes) and one with the queue.
  * Picking an episode plays it and opens the system's Now Playing, which follows the player's MPNowPlayingInfoCenter and
  * remote commands, like the lock screen; its "Up Next" button opens the queue.
  */
@@ -48,10 +49,17 @@ final class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegat
     @MainActor
     private func showLibrary() async {
         guard let podcasts = try? await catalog.podcasts() else { return }
+        let started = (try? await catalog.inProgress()) ?? []
         let items = CarLists.podcastItems(podcasts) { [weak self] podcast in
             Task { await self?.open(podcast) }
         }
-        library.updateSections([CPListSection(items: items)])
+        // As the phone's library opens: "Continue listening" first, and the podcasts under their own title then.
+        guard !started.isEmpty else { return library.updateSections([CPListSection(items: items)]) }
+        library.updateSections([
+            CPListSection(items: episodeItems(started), header: Res.string.shared.continue_listening.localized(),
+                          sectionIndexTitle: nil),
+            CPListSection(items: items, header: Res.string.shared.library_podcasts.localized(), sectionIndexTitle: nil),
+        ])
     }
 
     @MainActor

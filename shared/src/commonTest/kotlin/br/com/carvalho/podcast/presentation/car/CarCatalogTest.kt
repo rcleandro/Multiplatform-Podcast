@@ -28,6 +28,20 @@ class CarCatalogTest {
     }
 
     @Test
+    fun theCarOffersToContinueWhatWasLeftHalfwayButNothingExplicitUnderTheEcaDigital() = runTest {
+        repository.episodes.value = listOf(
+            episode("new", "show"),
+            episode("started", "show").copy(playbackPosition = 1),
+            episode("heard", "show").copy(playbackPosition = 1, isPlayed = true),
+            episode("swearing", "show").copy(playbackPosition = 1, explicit = true),
+        )
+
+        assertEquals(listOf("started", "swearing"), CarCatalog(repository, player).inProgress().map { it.id })
+        val minor = ExplicitContent(MutableStateFlow(ExplicitRule(hidesExplicit = true)))
+        assertEquals(listOf("started"), CarCatalog(repository, player, minor).inProgress().map { it.id })
+    }
+
+    @Test
     fun underTheEcaDigitalTheCarShowsNothingExplicit() = runTest {
         repository.podcasts.value = listOf(podcast("show"), podcast("adult").copy(explicit = true))
         repository.episodes.value = listOf(episode("clean", "show"), episode("swearing", "show").copy(explicit = true))

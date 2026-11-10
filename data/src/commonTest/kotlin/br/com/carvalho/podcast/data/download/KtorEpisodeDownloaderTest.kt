@@ -57,6 +57,20 @@ class KtorEpisodeDownloaderTest {
     )
 
     @Test
+    fun `statuses set from several threads at once are all kept`() = runTest {
+        val downloader = createDownloader(MockEngine { respondOk() })
+
+        // Real threads: iOS reports progress on URLSession's queue while the app's own coroutines set theirs.
+        withContext(Dispatchers.Default) {
+            repeat(WRITERS) { writer ->
+                launch { repeat(STATUSES_EACH) { downloader.updateStatus("$writer-$it", DownloadStatus.Idle) } }
+            }
+        }
+
+        assertEquals(WRITERS * STATUSES_EACH, downloader.activeDownloads.value.size)
+    }
+
+    @Test
     fun `download flow updates status correctly to completed`() = runTest(testDispatcher) {
         val mockEngine = MockEngine {
             respond(
@@ -296,5 +310,7 @@ class KtorEpisodeDownloaderTest {
         const val CHUNK = 64 * 1024
         const val STREAM_TIMEOUT_MS = 5_000L
         const val POLL_MS = 10L
+        const val WRITERS = 8
+        const val STATUSES_EACH = 500
     }
 }

@@ -9,8 +9,9 @@ import br.com.carvalho.podcast.domain.usecase.PlayEpisodeUseCase
 import kotlinx.coroutines.flow.first
 
 /**
- * What CarPlay lists (25.13), as Android Auto's MediaTree does (13.5): the library's podcasts, a podcast's episodes
- * and the queue. Nothing explicit or hidden after a report under Brazil's ECA Digital (26.3, 26.7).
+ * What CarPlay lists (25.13), as Android Auto's MediaTree does (13.5): what was left halfway, the library's podcasts,
+ * a podcast's episodes and the queue. Nothing explicit or hidden after a report under Brazil's ECA Digital (26.3,
+ * 26.7).
  */
 class CarCatalog(
     private val repository: PodcastRepository,
@@ -21,6 +22,10 @@ class CarCatalog(
         val rule = explicitContent.rule.value
         return repository.getPodcasts().first().filter(rule::allows)
     }
+
+    /** "Continue listening", as the phone's library opens: the one heard last first. */
+    suspend fun inProgress(): List<Episode> =
+        repository.getInProgressEpisodes().first().filter(explicitContent.rule.value::allows)
 
     suspend fun episodes(podcastId: String): List<Episode> {
         val rule = explicitContent.rule.value
