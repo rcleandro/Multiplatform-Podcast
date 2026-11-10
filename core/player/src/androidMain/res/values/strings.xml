@@ -4,4 +4,6 @@
     <string name="skip_forward">Skip forward %1$d s</string>
     <string name="skip_backward">Skip back %1$d s</string>
     <string name="library_title">Library</string>
+    <string name="continue_listening">Continue listening</string>
+    <string name="library_podcasts">Podcasts</string>
 </resources>

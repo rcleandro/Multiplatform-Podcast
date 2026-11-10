@@ -59,9 +59,7 @@ class PodcastMediaService : MediaLibraryService() {
     private val explicitContent: ExplicitContent by inject()
     private val downloader: EpisodeDownloader by inject()
     private val tree by lazy {
-        MediaTree(podcastRepository, { explicitContent.rule.value }, downloader::getLocalPath) {
-            getString(R.string.library_title)
-        }
+        MediaTree(podcastRepository, { explicitContent.rule.value }, downloader::getLocalPath) { getString(it) }
     }
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 

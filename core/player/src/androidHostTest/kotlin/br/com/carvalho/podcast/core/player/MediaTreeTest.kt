@@ -44,6 +44,27 @@ class MediaTreeTest {
         assertEquals(listOf("Alpha", "Beta"), podcasts.map { it.mediaMetadata.title.toString() })
         assertTrue(podcasts.all { it.mediaMetadata.isBrowsable == true && it.mediaMetadata.isPlayable == false })
         assertEquals(MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM, podcasts.first().contentStyle())
+        // Alone on the screen, they need no title of their own.
+        assertNull(podcasts.first().group())
+    }
+
+    @Test
+    fun theLibraryOpensWithWhatWasLeftHalfwayAsTheAppsDoes() = runTest {
+        repository.episodes.value = listOf(
+            episode("a1", "a"),
+            episode("a2", "a", position = STOPPED_MS),
+            episode("a3", "a", isPlayed = true, position = STOPPED_MS),
+            episode("b1", "b", position = STOPPED_MS).copy(explicit = true),
+        )
+        val texts = mapOf(R.string.continue_listening to "Continue listening", R.string.library_podcasts to "Podcasts")
+        val rule = ExplicitRule(hidesExplicit = true)
+        val tree = MediaTree(repository, rule = { rule }) { texts[it] ?: "Library" }
+
+        val library = tree.children(LIBRARY_ID)
+
+        assertEquals(listOf("a2", "podcast_a", "podcast_b"), library.map { it.mediaId })
+        assertEquals(true, library.first().mediaMetadata.isPlayable)
+        assertEquals(listOf("Continue listening", "Podcasts", "Podcasts"), library.map { it.group() })
     }
 
     @Test
@@ -144,6 +165,9 @@ class MediaTreeTest {
 
     private fun MediaItem.contentStyle(): Int? =
         mediaMetadata.extras?.getInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE)
+
+    private fun MediaItem.group(): String? =
+        mediaMetadata.extras?.getString(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE)
 
     private fun podcast(id: String, title: String) = Podcast(
         id = id, title = title, description = "", imageUrl = null, author = null, language = null,

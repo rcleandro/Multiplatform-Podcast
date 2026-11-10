@@ -17,7 +17,8 @@ internal const val LIBRARY_ID = "library_node"
 internal const val PODCAST_PREFIX = "podcast_"
 
 /**
- * The tree Android Auto and other media browsers walk: root → library → one folder per podcast → its episodes.
+ * The tree Android Auto and other media browsers walk: root → library → one folder per podcast → its episodes. The
+ * library opens as the app's does: "Continue listening" with what was left halfway, then the podcasts.
  * Episodes are addressed by their own id; the root item itself comes from [PodcastMediaService].
  */
 internal class MediaTree(
@@ -26,12 +27,17 @@ internal class MediaTree(
     private val rule: () -> ExplicitRule = { ExplicitRule() },
     /** An episode's downloaded file, when it is still there. */
     private val localPath: suspend (episodeId: String) -> String? = { null },
-    private val libraryTitle: () -> String,
+    /** A text from this module's Android resources (`R.string`), in the phone's language. */
+    private val text: (resId: Int) -> String,
 ) {
     suspend fun children(parentId: String): List<MediaItem> = when {
         parentId == ROOT_ID -> listOf(libraryNode(MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM))
-        parentId == LIBRARY_ID -> podcasts().map {
-            podcastItem(it, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM)
+        parentId == LIBRARY_ID -> {
+            val started = repository.getInProgressEpisodes().first().filter { rule().allows(it) }
+            // The podcasts get their title only under the other group: alone, the screen's own title says it.
+            val podcastsTitle = if (started.isEmpty()) null else text(R.string.library_podcasts)
+            started.map { episodeItem(it, podcastOf(it), group = text(R.string.continue_listening)) } +
+                podcasts().map { podcastItem(it, MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM, podcastsTitle) }
         }
         parentId.startsWith(PODCAST_PREFIX) -> {
             val podcastId = parentId.removePrefix(PODCAST_PREFIX)
@@ -79,7 +85,7 @@ internal class MediaTree(
 
     private suspend fun podcastOf(episode: Episode): Podcast? = repository.getPodcastById(episode.podcastId)
 
-    private suspend fun episodeItem(episode: Episode, podcast: Podcast?): MediaItem {
+    private suspend fun episodeItem(episode: Episode, podcast: Podcast?, group: String? = null): MediaItem {
         // A downloaded episode plays from its file, as in the app; a Chromecast needs the address it came from.
         val file = if (episode.isDownloaded) localPath(episode.id) else null
         return MediaItem.Builder()
@@ -94,6 +100,7 @@ internal class MediaTree(
                     .setIsBrowsable(false)
                     .setIsPlayable(true)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
+                    .withCarExtras(group = group)
                     .build()
             )
             .build()
@@ -103,17 +110,17 @@ internal class MediaTree(
         .setMediaId(LIBRARY_ID)
         .setMediaMetadata(
             MediaMetadata.Builder()
-                .setTitle(libraryTitle())
+                .setTitle(text(R.string.library_title))
                 .setIsBrowsable(true)
                 .setIsPlayable(false)
                 .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS)
-                .withContentStyle(contentStyle)
+                .withCarExtras(contentStyle)
                 .build()
         )
         .build()
 }
 
-private fun podcastItem(podcast: Podcast, contentStyle: Int?): MediaItem = MediaItem.Builder()
+private fun podcastItem(podcast: Podcast, contentStyle: Int?, group: String? = null): MediaItem = MediaItem.Builder()
     .setMediaId("$PODCAST_PREFIX${podcast.id}")
     .setMediaMetadata(
         MediaMetadata.Builder()
@@ -123,15 +130,21 @@ private fun podcastItem(podcast: Podcast, contentStyle: Int?): MediaItem = Media
             .setIsBrowsable(true)
             .setIsPlayable(false)
             .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS)
-            .withContentStyle(contentStyle)
+            .withCarExtras(contentStyle, group)
             .build()
     )
     .build()
 
-/** How Android Auto lays out a folder's children (grid or list); null keeps its default. */
-private fun MediaMetadata.Builder.withContentStyle(contentStyle: Int?): MediaMetadata.Builder =
-    if (contentStyle == null) {
-        this
-    } else {
-        setExtras(Bundle().apply { putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, contentStyle) })
-    }
+/** How Android Auto lays out a folder's children (grid or list), and the titled group an item is listed under. */
+private fun MediaMetadata.Builder.withCarExtras(
+    contentStyle: Int? = null,
+    group: String? = null,
+): MediaMetadata.Builder {
+    if (contentStyle == null && group == null) return this
+    return setExtras(
+        Bundle().apply {
+            contentStyle?.let { putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, it) }
+            group?.let { putString(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE, it) }
+        }
+    )
+}
