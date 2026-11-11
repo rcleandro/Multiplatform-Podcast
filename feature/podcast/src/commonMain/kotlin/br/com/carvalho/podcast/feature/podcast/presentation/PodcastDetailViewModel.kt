@@ -183,14 +183,14 @@ class PodcastDetailViewModel(
 
     private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.PlayEpisode(episode.id, AnalyticsEvent.PlaySource.PODCAST))
+            analytics.logEvent(AnalyticsEvent.PlayEpisode(AnalyticsEvent.PlaySource.PODCAST))
             playEpisode(episode)
         }
     }
 
     private fun downloadEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.DownloadEpisode(episode.id))
+            analytics.logEvent(AnalyticsEvent.DownloadEpisode)
             episodeDownloader.download(episode)
         }
     }
@@ -202,7 +202,7 @@ class PodcastDetailViewModel(
     }
 
     private fun deleteDownload(episodeId: String) {
-        analytics.logEvent(AnalyticsEvent.DeleteDownload(episodeId))
+        analytics.logEvent(AnalyticsEvent.DeleteDownload)
         _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
@@ -210,14 +210,14 @@ class PodcastDetailViewModel(
     }
 
     private fun markAsPlayed(episodeId: String) {
-        analytics.logEvent(AnalyticsEvent.MarkPlayed(episodeId, played = true))
+        analytics.logEvent(AnalyticsEvent.MarkPlayed(played = true))
         viewModelScope.launch(dispatchers.io) {
             repository.markEpisodeAsPlayed(episodeId)
         }
     }
 
     private fun markAsUnplayed(episodeId: String) {
-        analytics.logEvent(AnalyticsEvent.MarkPlayed(episodeId, played = false))
+        analytics.logEvent(AnalyticsEvent.MarkPlayed(played = false))
         viewModelScope.launch(dispatchers.io) {
             repository.markEpisodeAsUnplayed(episodeId)
         }
@@ -225,7 +225,7 @@ class PodcastDetailViewModel(
 
     private fun markOlder(mark: OlderMark) {
         val publishDate = mark.episode.publishDate
-        analytics.logEvent(AnalyticsEvent.MarkOlderPlayed(urlHost(podcastId), publishDate, mark.played))
+        analytics.logEvent(AnalyticsEvent.MarkOlderPlayed(urlHost(podcastId), mark.played))
         _uiState.update { it.copy(olderMark = null) }
         viewModelScope.launch(dispatchers.io) {
             if (mark.played) {

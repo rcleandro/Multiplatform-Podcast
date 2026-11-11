@@ -114,7 +114,7 @@ class LibraryViewModel(
             is LibraryIntent.ChangeSort -> preferences.setLibrarySort(intent.sort)
             is LibraryIntent.SelectCategory -> chosenCategory.value = intent.category
             is LibraryIntent.Play -> viewModelScope.launch(dispatchers.io) {
-                analytics.logEvent(AnalyticsEvent.PlayEpisode(intent.episode.id, AnalyticsEvent.PlaySource.LIBRARY))
+                analytics.logEvent(AnalyticsEvent.PlayEpisode(AnalyticsEvent.PlaySource.LIBRARY))
                 playEpisode(intent.episode)
             }
         }

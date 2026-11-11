@@ -232,7 +232,7 @@ class SearchViewModel(
 
     private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.PlayEpisode(episode.id, AnalyticsEvent.PlaySource.SEARCH))
+            analytics.logEvent(AnalyticsEvent.PlayEpisode(AnalyticsEvent.PlaySource.SEARCH))
             playEpisode(episode)
         }
     }

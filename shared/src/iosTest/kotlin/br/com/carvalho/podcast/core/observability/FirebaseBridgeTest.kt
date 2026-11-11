@@ -37,13 +37,13 @@ class FirebaseBridgeTest {
         val firebase = FakeFirebase()
         val analytics = BridgeAnalytics(firebase)
 
-        analytics.logEvent(AnalyticsEvent.LoadEpisodeDetailError("ep", object : Throwable() {}))
+        analytics.logEvent(AnalyticsEvent.LoadEpisodeDetailError(object : Throwable() {}))
         analytics.logEvent(AnalyticsEvent.ClearHistory)
         analytics.logEvent(AnalyticsEvent.ActOnEpisodes("queue", 2))
 
         assertEquals(
             listOf(
-                "event load_episode_detail_error {episode_id=ep}",
+                "event load_episode_detail_error null",
                 "event clear_history null",
                 "event act_on_episodes {action=queue, count=2}",
             ),

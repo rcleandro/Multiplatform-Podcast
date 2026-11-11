@@ -1,8 +1,10 @@
 package br.com.carvalho.podcast.core.observability
 
 /**
- * Every analytics event the app sends. Parameters carry ids, hosts and enum names only: never a feed URL (private
- * feeds carry tokens) nor a title. `AnalyticsEventTest` checks names and keys against Firebase's limits.
+ * Every analytics event the app sends. Parameters carry hosts, counts and enum names only: never a feed URL
+ * (private feeds carry tokens), a title, nor anything that tells which episode was played (listening history can
+ * reveal religion, politics or health; LGPD Art. 11, 27.2). `AnalyticsEventTest` checks names and keys against
+ * Firebase's limits.
  */
 sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = emptyMap()) {
     enum class PlaySource(val key: String) {
@@ -12,13 +14,12 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
         EPISODE("episode_detail"),
     }
 
-    class PlayEpisode(episodeId: String, source: PlaySource) :
-        AnalyticsEvent("play_episode_from_${source.key}", mapOf(EPISODE_ID to episodeId))
+    class PlayEpisode(source: PlaySource) : AnalyticsEvent("play_episode_from_${source.key}")
 
-    class LoadEpisodeDetail(episodeId: String) : AnalyticsEvent("load_episode_detail", mapOf(EPISODE_ID to episodeId))
+    data object LoadEpisodeDetail : AnalyticsEvent("load_episode_detail")
 
-    class LoadEpisodeDetailError(episodeId: String, error: Throwable) :
-        AnalyticsEvent("load_episode_detail_error", mapOf(EPISODE_ID to episodeId, ERROR to error::class.simpleName))
+    class LoadEpisodeDetailError(error: Throwable) :
+        AnalyticsEvent("load_episode_detail_error", mapOf(ERROR to error::class.simpleName))
 
     /** A directory search (18.1). The term stays out: what someone looks for can say a lot about them. */
     class SearchDirectory(resultCount: Int) : AnalyticsEvent("search_directory", mapOf("results" to resultCount))
@@ -64,22 +65,20 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     /** An episode, or all of them, taken out of "New" without hearing it (18.7). */
     class DismissNew(all: Boolean) : AnalyticsEvent(if (all) "dismiss_all_new_episodes" else "dismiss_new_episode")
 
-    class DownloadEpisode(episodeId: String) :
-        AnalyticsEvent("download_episode_from_detail", mapOf(EPISODE_ID to episodeId))
+    data object DownloadEpisode : AnalyticsEvent("download_episode_from_detail")
 
-    class DeleteDownload(episodeId: String) :
-        AnalyticsEvent("delete_download_from_detail", mapOf(EPISODE_ID to episodeId))
+    data object DeleteDownload : AnalyticsEvent("delete_download_from_detail")
 
-    class MarkPlayed(episodeId: String, played: Boolean) :
-        AnalyticsEvent(if (played) "mark_as_played" else "mark_as_unplayed", mapOf(EPISODE_ID to episodeId))
+    class MarkPlayed(played: Boolean) : AnalyticsEvent(if (played) "mark_as_played" else "mark_as_unplayed")
 
-    class MarkOlderPlayed(host: String, publishDate: Long, played: Boolean) : AnalyticsEvent(
+    // No publish date: with the host it points at one episode.
+    class MarkOlderPlayed(host: String, played: Boolean) : AnalyticsEvent(
         if (played) "mark_older_as_played" else "mark_older_as_unplayed",
-        mapOf(HOST to host, "publish_date" to publishDate),
+        mapOf(HOST to host),
     )
 
     /** An episode picked from the player's queue. */
-    class PlayInPlayer(episodeId: String) : AnalyticsEvent("play_episode", mapOf(EPISODE_ID to episodeId))
+    data object PlayInPlayer : AnalyticsEvent("play_episode")
 
     data object Pause : AnalyticsEvent("pause_episode")
 
@@ -129,7 +128,6 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     data object PlayBookmark : AnalyticsEvent("play_bookmark")
 
     private companion object {
-        const val EPISODE_ID = "episode_id"
         const val HOST = "host"
         const val ERROR = "error"
     }

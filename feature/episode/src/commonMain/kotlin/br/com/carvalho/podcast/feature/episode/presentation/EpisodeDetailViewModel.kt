@@ -109,14 +109,14 @@ class EpisodeDetailViewModel(
     private fun loadEpisode() {
         _uiState.update { it.copy(isLoading = true, loadFailed = false) }
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.LoadEpisodeDetail(episodeId))
+            analytics.logEvent(AnalyticsEvent.LoadEpisodeDetail)
             AppLogger.d(TAG, "Loading episode detail for id: $episodeId")
             try {
                 val episode = repository.getEpisodeById(episodeId)
                 _uiState.update { it.copy(episode = episode, isLoading = false) }
             } catch (e: Exception) {
                 AppLogger.e(TAG, "Error loading episode detail", e)
-                analytics.logEvent(AnalyticsEvent.LoadEpisodeDetailError(episodeId, e))
+                analytics.logEvent(AnalyticsEvent.LoadEpisodeDetailError(e))
                 _uiState.update { it.copy(isLoading = false, loadFailed = true) }
             }
         }
@@ -133,7 +133,7 @@ class EpisodeDetailViewModel(
             state.isPlaying -> audioPlayer.pause()
             audioPlayer.playerState.value.currentEpisode?.id == episodeId -> audioPlayer.resume()
             else -> withEpisode {
-                analytics.logEvent(AnalyticsEvent.PlayEpisode(it.id, AnalyticsEvent.PlaySource.EPISODE))
+                analytics.logEvent(AnalyticsEvent.PlayEpisode(AnalyticsEvent.PlaySource.EPISODE))
                 playEpisode(it)
             }
         }
