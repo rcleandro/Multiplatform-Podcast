@@ -119,7 +119,7 @@ class DiscoverViewModel(
             }
             is DiscoverIntent.SelectCategory -> {
                 _uiState.update { it.copy(category = intent.category) }
-                intent.category?.let { analytics.logEvent(AnalyticsEvent.BrowseCategory(it.name.lowercase())) }
+                if (intent.category != null) analytics.logEvent(AnalyticsEvent.BrowseCategory)
                 searchRequests.value = SearchRequest(_uiState.value.query, intent.category)
             }
             DiscoverIntent.Retry -> searchRequests.value = SearchRequest(_uiState.value.query, _uiState.value.category)
@@ -200,7 +200,7 @@ class DiscoverViewModel(
         viewModelScope.launch(dispatchers.io) {
             openLink(link)
                 .onSuccess { found ->
-                    analytics.logEvent(AnalyticsEvent.OpenPodcastLink(urlHost(found.podcast.feedUrl)))
+                    analytics.logEvent(AnalyticsEvent.OpenPodcastLink)
                     _uiState.update { it.copy(isOpeningLink = false) }
                     val libraryId = found.libraryId
                     if (libraryId != null) {
@@ -233,16 +233,16 @@ class DiscoverViewModel(
     private suspend fun add(input: String): Boolean {
         // Only the host: the typed text may lack the scheme, which the logger needs to spot (and cut) a URL.
         val host = urlHost(validFeedUrl(input) ?: input)
-        analytics.logEvent(AnalyticsEvent.AddPodcastAttempt(host))
+        analytics.logEvent(AnalyticsEvent.AddPodcastAttempt)
         AppLogger.i(TAG, "Adding podcast from host: $host")
         return addPodcast(input).fold(
             onSuccess = {
-                analytics.logEvent(AnalyticsEvent.AddPodcastSuccess(host))
+                analytics.logEvent(AnalyticsEvent.AddPodcastSuccess)
                 true
             },
             onFailure = { e ->
                 AppLogger.e(TAG, "Failed to add podcast from host: $host", e)
-                analytics.logEvent(AnalyticsEvent.AddPodcastFailure(host, e))
+                analytics.logEvent(AnalyticsEvent.AddPodcastFailure(e))
                 _messages.send(UiMessage(e.toMessage(fallback = Res.string.error_add_podcast)))
                 e == AppError.AlreadyExists
             },

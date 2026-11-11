@@ -7,7 +7,6 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
-import br.com.carvalho.podcast.core.observability.urlHost
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_episodes
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -142,7 +141,7 @@ class PodcastDetailViewModel(
     private fun refresh() {
         _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.RefreshPodcast(urlHost(podcastId)))
+            analytics.logEvent(AnalyticsEvent.RefreshPodcast)
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
             refreshPodcastUseCase(podcastId).onFailure { e ->
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
@@ -225,7 +224,7 @@ class PodcastDetailViewModel(
 
     private fun markOlder(mark: OlderMark) {
         val publishDate = mark.episode.publishDate
-        analytics.logEvent(AnalyticsEvent.MarkOlderPlayed(urlHost(podcastId), mark.played))
+        analytics.logEvent(AnalyticsEvent.MarkOlderPlayed(mark.played))
         _uiState.update { it.copy(olderMark = null) }
         viewModelScope.launch(dispatchers.io) {
             if (mark.played) {

@@ -1,9 +1,10 @@
 package br.com.carvalho.podcast.core.observability
 
 /**
- * Every analytics event the app sends. Parameters carry hosts, counts and enum names only: never a feed URL
- * (private feeds carry tokens), a title, nor anything that tells which episode was played (listening history can
- * reveal religion, politics or health; LGPD Art. 11, 27.2). `AnalyticsEventTest` checks names and keys against
+ * Every analytics event the app sends. Parameters carry counts and enum names only: never a feed URL (private feeds
+ * carry tokens), a title, nor anything that tells which podcast or episode it was about, not even the feed's host or
+ * a directory category (listening history can reveal religion, politics or health; LGPD Art. 6º, III, and Art. 11;
+ * 27.2, 27.5). `AnalyticsEventTest` checks names and keys against
  * Firebase's limits.
  */
 sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = emptyMap()) {
@@ -25,23 +26,23 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     class SearchDirectory(resultCount: Int) : AnalyticsEvent("search_directory", mapOf("results" to resultCount))
 
     /** A category's chart opened in "Add podcast" (18.2). */
-    class BrowseCategory(category: String) : AnalyticsEvent("browse_category", mapOf("category" to category))
+    data object BrowseCategory : AnalyticsEvent("browse_category")
 
-    /** A podcast link opened in the app (18.4): only the feed's host, never its address. */
-    class OpenPodcastLink(host: String) : AnalyticsEvent("open_podcast_link", mapOf(HOST to host))
+    /** A podcast link opened in the app (18.4). */
+    data object OpenPodcastLink : AnalyticsEvent("open_podcast_link")
 
-    class AddPodcastAttempt(host: String) : AnalyticsEvent("add_podcast_attempt", mapOf(HOST to host))
+    data object AddPodcastAttempt : AnalyticsEvent("add_podcast_attempt")
 
-    class AddPodcastSuccess(host: String) : AnalyticsEvent("add_podcast_success", mapOf(HOST to host))
+    data object AddPodcastSuccess : AnalyticsEvent("add_podcast_success")
 
-    class AddPodcastFailure(host: String, error: Throwable) :
-        AnalyticsEvent("add_podcast_failure", mapOf(HOST to host, ERROR to error::class.simpleName))
+    class AddPodcastFailure(error: Throwable) :
+        AnalyticsEvent("add_podcast_failure", mapOf(ERROR to error::class.simpleName))
 
-    class DeletePodcast(host: String) : AnalyticsEvent("delete_podcast", mapOf(HOST to host))
+    data object DeletePodcast : AnalyticsEvent("delete_podcast")
 
     data object RefreshAllPodcasts : AnalyticsEvent("refresh_all_podcasts")
 
-    class RefreshPodcast(host: String) : AnalyticsEvent("refresh_podcast_detail", mapOf(HOST to host))
+    data object RefreshPodcast : AnalyticsEvent("refresh_podcast_detail")
 
     class SetEpisodeFilter(filter: String) : AnalyticsEvent("set_episode_filter", mapOf("filter" to filter))
 
@@ -71,11 +72,8 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
 
     class MarkPlayed(played: Boolean) : AnalyticsEvent(if (played) "mark_as_played" else "mark_as_unplayed")
 
-    // No publish date: with the host it points at one episode.
-    class MarkOlderPlayed(host: String, played: Boolean) : AnalyticsEvent(
-        if (played) "mark_older_as_played" else "mark_older_as_unplayed",
-        mapOf(HOST to host),
-    )
+    class MarkOlderPlayed(played: Boolean) :
+        AnalyticsEvent(if (played) "mark_older_as_played" else "mark_older_as_unplayed")
 
     /** An episode picked from the player's queue. */
     data object PlayInPlayer : AnalyticsEvent("play_episode")
@@ -128,7 +126,6 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     data object PlayBookmark : AnalyticsEvent("play_bookmark")
 
     private companion object {
-        const val HOST = "host"
         const val ERROR = "error"
     }
 }
