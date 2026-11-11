@@ -1,18 +1,13 @@
 package br.com.carvalho.podcast.core.observability
 
-import kotlinx.coroutines.flow.Flow
-
 /**
  * Firebase on iOS, implemented in Swift over the Firebase Swift package (25.15). The Kotlin SDK would need the
  * Firebase frameworks at every Kotlin link, tests included, and only Xcode gets them from the package. Every call
  * before [configure] has finished is dropped by the Swift side.
  */
-interface FirebaseBridge {
+interface FirebaseBridge : TelemetryCollection {
     /** Starts the default Firebase app; called once, off the main thread. */
     fun configure()
-
-    /** The user's choice for Firebase's own collection; off also deletes the reports not sent yet. */
-    fun setCollectionEnabled(enabled: Boolean)
 
     fun logEvent(name: String, params: Map<String, Any>?)
 
@@ -38,7 +33,3 @@ internal class BridgeCrashReporter(private val firebase: FirebaseBridge) : Crash
         stack = throwable.stackTraceToString(),
     )
 }
-
-/** Applies the user's choice to Firebase's collection, which also covers its automatic events and crashes (16.4). */
-internal suspend fun FirebaseBridge.followTelemetryConsent(enabled: Flow<Boolean>) =
-    enabled.collect(::setCollectionEnabled)

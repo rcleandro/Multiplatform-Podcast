@@ -18,6 +18,10 @@ class FirebaseBridgeTest {
             calls += "collection $enabled"
         }
 
+        override fun forgetCollected() {
+            calls += "forget"
+        }
+
         override fun logEvent(name: String, params: Map<String, Any>?) {
             calls += "event $name $params"
         }
@@ -69,6 +73,6 @@ class FirebaseBridgeTest {
 
         firebase.followTelemetryConsent(flowOf(true, false))
 
-        assertTrue(firebase.calls == listOf("collection true", "collection false"))
+        assertTrue(firebase.calls == listOf("collection true", "collection false", "forget"))
     }
 }

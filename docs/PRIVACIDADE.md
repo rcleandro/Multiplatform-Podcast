@@ -28,8 +28,10 @@ de uso nem relatórios de erro; desses endereços, só o nome do servidor (por e
   iTunes. A Apple recebe o termo buscado ou a categoria e o país, sem nenhuma identificação sua.
 - **Ao Google Firebase (análise de uso e relatórios de erro), só no Android e no iOS e só se ligado:** ações do app,
   como tocar um episódio, buscar ou mudar a velocidade, com o nome do servidor do feed (nunca qual episódio
-  você ouviu nem o título), e os relatórios de quando o app trava. Você desliga em Configurações › Privacidade. No Brasil, essa opção começa desligada
-  até alguém escolher, e para menores fica sempre desligada.
+  você ouviu nem o título), e os relatórios de quando o app trava. Você desliga em Configurações › Privacidade; ao
+  desligar, o app apaga os relatórios ainda não enviados e troca o identificador da análise de uso, para que nada do
+  que vier depois se ligue ao que já foi enviado. No Brasil, essa opção começa desligada até alguém escolher, e para
+  menores fica sempre desligada.
 - **Ao serviço de sincronização que você escolher:** se você ligar "Sincronizar por pasta", o app grava a biblioteca,
   o progresso e a fila, com os endereços dos feeds, numa pasta que você escolhe (iCloud Drive, Dropbox, Syncthing ou
   outra). Quem guarda essa pasta é o serviço que você usa.

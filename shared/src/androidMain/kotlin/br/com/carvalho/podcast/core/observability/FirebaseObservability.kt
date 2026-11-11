@@ -4,7 +4,6 @@ import com.google.firebase.FirebaseApp
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.analytics.analytics
 import dev.gitlive.firebase.crashlytics.crashlytics
-import kotlinx.coroutines.flow.Flow
 
 /**
  * True once the default Firebase app exists. Firebase starts in the background (`initKoin`), so the first calls
@@ -13,14 +12,18 @@ import kotlinx.coroutines.flow.Flow
 private fun isFirebaseConfigured(): Boolean = runCatching { FirebaseApp.getInstance() }.isSuccess
 
 /**
- * Applies the user's choice to Firebase's own collection, which also covers its automatic events and crashes. Both
- * start off (manifest and Info.plist) until this runs, so a user who turned telemetry off sends nothing on launch.
+ * Firebase's collection on Android. Both start off in the manifest until the user's choice arrives
+ * ([followTelemetryConsent]), so a user who turned telemetry off sends nothing on launch.
  */
-suspend fun followTelemetryConsent(enabled: Flow<Boolean>) {
-    enabled.collect { on ->
-        Firebase.analytics.setAnalyticsCollectionEnabled(on)
-        Firebase.crashlytics.setCrashlyticsCollectionEnabled(on)
-        if (!on) Firebase.crashlytics.deleteUnsentReports()
+object FirebaseCollection : TelemetryCollection {
+    override fun setCollectionEnabled(enabled: Boolean) {
+        Firebase.analytics.setAnalyticsCollectionEnabled(enabled)
+        Firebase.crashlytics.setCrashlyticsCollectionEnabled(enabled)
+    }
+
+    override fun forgetCollected() {
+        Firebase.crashlytics.deleteUnsentReports()
+        Firebase.analytics.resetAnalyticsData()
     }
 }
 
