@@ -36,6 +36,7 @@
 | 17 | Layout de celular esticado em tablet, Desktop e dobráveis; nada reage à dobra | Produto | 21 |
 | 18 | O mesmo feed entra duas vezes se a URL vier escrita de outro jeito (`http`/`https`, `/` no fim, caractere sobrando) | Integridade | 15 |
 | 19 | Barra de navegação com abas que repetem outros caminhos (Downloads, Player), nome "Buscar" para uma lista de episódios e layout sem modernização desde a 9 | Produto | 24 |
+| 20 | Política sem controlador, base legal, retenção, transferência ao Google e direitos do titular; títulos e histórico de escuta indo ao Firebase; contato de privacidade público | Privacidade (LGPD) | 27 |
 
 ## Sequência
 
@@ -63,6 +64,7 @@ graph LR
     F21 --> F17
     F24 --> F17
     F21 --> F18
+    F26[26 ECA Digital] --> F27[27 LGPD]
 ```
 
 - **A fase 9 vem primeiro** a pedido: é ela que define a cara do app e cria o primeiro módulo separado
@@ -96,6 +98,8 @@ graph LR
    ViewModels e o domínio que as outras fases deixaram prontos, então chega quando eles param de mudar.
 9. **26 — Adequação ao ECA Digital (Brasil)**, como última etapa (pedido do usuário em 09/10/2026): parte do
    conteúdo explícito da 18.5, da telemetria da 16.4 e da fila da 18.6, e vale só para quem está no Brasil.
+10. **27 — Adequação à LGPD**, depois da 26 (análise de 10/11/2026): fecha as lacunas de transparência e de
+    minimização que sobraram da 16 e da 26.8.
 
 **Regra de toda fase:** uma branch por fase a partir da `main` (`feature/phase-09-design-system`), um commit por
 subitem com o teste correspondente e a nota "Implementado" na seção do roadmap, e uma merge request no fim. Cada
@@ -1310,6 +1314,36 @@ ao app:
 desligada, não há reprodução automática nem notificação que prolongue o uso, e existe um canal para notificar
 violações; fora do Brasil e com sinal de adulto, o app é o mesmo de antes; a ADR registra o enquadramento e o parecer
 jurídico.
+
+---
+
+## Fase 27 — Adequação à LGPD
+
+**Objetivo:** fechar as lacunas da análise de LGPD (Lei 13.709/2018) feita em 10/11/2026 sobre o código em `main`
+(`9ec6c41e`). O desenho já é privacy by design: tudo fica no aparelho, sem conta nem servidor; a coleta do Firebase
+começa desligada (manifest e `Info.plist`) e segue a escolha do usuário (`followTelemetryConsent`), opt-in no Brasil
+e sempre desligada para menores (26.4); revogar apaga os relatórios não enviados; URLs de feed são mascaradas
+(`redactUrls`, 16.1). O que falta é transparência (Art. 9), minimização (Art. 6º, III) e o canal do titular.
+
+**Enquadramento:** o controlador é pessoa natural que distribui o app nas lojas, então a LGPD vale (a exceção do
+Art. 4º, I, é só para uso particular). Enquadra-se como agente de tratamento de pequeno porte (Res. CD/ANPD 2/2022):
+dispensado de indicar encarregado, mas obrigado a manter um canal de comunicação com o titular (Art. 11). Esta
+análise é técnica; a política final pede revisão de advogado(a) de proteção de dados.
+
+| Item | Status | Ação | Esforço |
+|---|---|---|---|
+| 27.1 Títulos fora do Crashlytics | ✅ | `AppLogger.i/e` espelha a mensagem nos breadcrumbs do Crashlytics, e quatro logs levam o título do podcast ou do episódio (`RefreshPodcastUseCase.kt:33,49`, `PodcastDetailViewModel.kt:194`, `SearchViewModel.kt:242`): o que a pessoa ouve vai junto com cada relatório de erro, e a política não diz isso. Trocar o título pelo id ou pelo host, e um teste que falhe se um título chegar ao `CrashReporter` | P |
+| 27.2 Histórico de escuta fora do Analytics | ✅ | `play_episode*`, `load_episode_detail*`, `download_episode_from_detail`, `delete_download_from_detail` e `mark_as_played/unplayed` enviam o `episode_id` (o `guid`), ligado ao app-instance ID do Firebase: é o histórico de escuta, que pode revelar dado sensível (religião, política, saúde; Art. 5º, II, e Art. 11). Pelo princípio da necessidade (Art. 6º, III), tirar o `episode_id` dos eventos (`AnalyticsEvent.kt`) e manter só o nome e os parâmetros de contagem; `AnalyticsEventTest` confere que nenhum evento leva id de episódio | P |
+| 27.3 Apagar o que já foi enviado | ✅ | Desligar a telemetria para a coleta e apaga os relatórios não enviados, mas o Google continua com o que recebeu (Art. 18, VI). Ao desligar, chamar `resetAnalyticsData()` (Android e iOS), que troca o app-instance ID e desliga o histórico do aparelho; explicar na política que o histórico antigo expira pela retenção do console (27.6) | P |
+| 27.4 Canal do titular | ✅ | O contato da política são as issues públicas do GitHub: quem pede algo sobre os próprios dados se expõe. Criar um e-mail de privacidade (o mesmo pode substituir o `REPORT_EMAIL` provisório da 26.7), pô-lo na política e em Configurações › Privacidade. Fora do código: definir o prazo de resposta (15 dias, Art. 19, II) | P |
+| 27.5 Política completa (Art. 9) | ✅ | Acrescentar a `docs/PRIVACIDADE.md`: identidade e contato do controlador (Art. 9º, III, V); a base legal de cada tratamento (consentimento para Analytics e Crashlytics, Art. 7º, I; execução do serviço para feeds e diretório, Art. 7º, V); a retenção no Firebase (27.6); a transferência internacional ao Google nos EUA e o mecanismo (cláusulas contratuais do Google, Arts. 33 e 9º; Res. CD/ANPD 19/2024); que o Firebase também recebe o identificador da instalação, modelo do aparelho, versão do sistema e o IP; os direitos do Art. 18 e como exercê-los pelo canal da 27.4. Revisão jurídica antes de publicar. `SettingsContentTest` continua linkando a política | P |
+| 27.6 Retenção no Firebase | 🔎 | Fora do código: conferir no console a retenção do Analytics (2 ou 14 meses) e escolher a menor que sirva; registrar na política a do Analytics e a do Crashlytics (90 dias). Conferir também que os Termos de Processamento de Dados do Firebase foram aceitos no console | P |
+| 27.7 Backup do Android | ✅ | `allowBackup="true"` leva o banco, com URLs de feeds privados (que carregam token), ao Google Drive da conta do usuário. O risco é baixo (a conta é dele e o backup é cifrado com o bloqueio de tela), mas a política não fala nisso. Decidir: excluir o banco do backup na nuvem (`data_extraction_rules.xml` e `backup_rules.xml`; a biblioteca volta pelo "Exportar backup" e pela sincronização por pasta) ou declarar na política | P |
+| 27.8 Feeds privados só por HTTPS | ✅ | O iOS aceita HTTP sem criptografia (`NSAllowsArbitraryLoads`), necessário para feeds públicos antigos, mas um feed com credenciais na URL (usuário/senha ou token na consulta) trafegaria em claro (Art. 46). Recusar ao adicionar, com mensagem, uma URL `http://` que traga credenciais, em todas as plataformas | P |
+
+**Critério de conclusão:** nenhum título de podcast ou episódio nem id de episódio chega ao Firebase; desligar a
+telemetria também reinicia o identificador do Analytics; a política cobre os itens do Art. 9º com controlador, base
+legal, retenção, transferência internacional, direitos e um canal privado; feeds com credenciais só por HTTPS.
 
 ---
 
