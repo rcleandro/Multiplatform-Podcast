@@ -76,15 +76,16 @@ que nada do que vier depois se ligue ao que já foi enviado. O que já tinha sid
 ## Por quanto tempo
 
 - **No seu aparelho:** até você apagar, remover o app ou limpar os dados dele.
-- **Análise de uso:** no máximo 14 meses no Firebase, depois apagada pelo Google.
+- **Análise de uso:** 2 meses no Google Analytics, contados do envio, depois apagada pelo Google.
 - **Relatórios de erro:** 90 dias no Firebase Crashlytics.
 - **E-mails de denúncia e de pedidos sobre dados:** o tempo necessário para responder e para cumprir a lei.
 
 ## Transferência para fora do Brasil
 
 O Google (Firebase) e a Apple (busca do diretório) guardam os dados em servidores fora do Brasil, principalmente nos
-Estados Unidos. No caso do Firebase, a transferência segue as cláusulas contratuais de proteção de dados que o Google
-oferece aos seus clientes (LGPD, art. 33, II). A busca do diretório é feita direto do seu aparelho para a Apple, que
+Estados Unidos. No caso do Firebase, a transferência segue os Termos de Tratamento de Dados do Google Analytics e os
+Termos de Processamento e Segurança de Dados do Firebase, aceitos pelo responsável (LGPD, art. 33, II). Os dados não
+são compartilhados com outros produtos do Google nem usados para publicidade. A busca do diretório é feita direto do seu aparelho para a Apple, que
 trata esses dados sob a política de privacidade dela.
 
 ## Os seus direitos
