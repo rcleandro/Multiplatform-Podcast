@@ -410,4 +410,7 @@
     <string name="report_email_body">原因：%1$s\n播客：%2$s\n单集：%3$s\n订阅源主机：%4$s</string>
     <string name="settings_privacy_policy">隐私政策和条款</string>
     <string name="settings_privacy_policy_description">应用保存和发送的内容，以及对巴西未成年人的变化。</string>
+    <string name="settings_privacy_contact">关于你的数据</string>
+    <string name="settings_privacy_contact_description">通过电子邮件申请访问、更正或删除你的个人数据。</string>
+    <string name="privacy_contact_subject">个人数据请求</string>
 </resources>

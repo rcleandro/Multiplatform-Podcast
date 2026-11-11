@@ -410,4 +410,7 @@
     <string name="report_email_body">Причина: %1$s\nПодкаст: %2$s\nВыпуск: %3$s\nХост ленты: %4$s</string>
     <string name="settings_privacy_policy">Политика конфиденциальности и условия</string>
     <string name="settings_privacy_policy_description">Что приложение хранит и отправляет и что меняется для несовершеннолетних в Бразилии.</string>
+    <string name="settings_privacy_contact">Запрос о ваших данных</string>
+    <string name="settings_privacy_contact_description">Доступ, исправление или удаление ваших персональных данных по электронной почте.</string>
+    <string name="privacy_contact_subject">Запрос о персональных данных</string>
 </resources>

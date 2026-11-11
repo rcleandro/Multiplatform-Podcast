@@ -410,4 +410,7 @@
     <string name="report_email_body">السبب: %1$s\nالبودكاست: %2$s\nالحلقة: %3$s\nمضيف الخلاصة: %4$s</string>
     <string name="settings_privacy_policy">سياسة الخصوصية والشروط</string>
     <string name="settings_privacy_policy_description">ما يحفظه التطبيق ويرسله، وما يتغير للقاصرين في البرازيل.</string>
+    <string name="settings_privacy_contact">استفسار عن بياناتك</string>
+    <string name="settings_privacy_contact_description">اطلب الوصول إلى بياناتك الشخصية أو تصحيحها أو حذفها عبر البريد الإلكتروني.</string>
+    <string name="privacy_contact_subject">طلب بشأن البيانات الشخصية</string>
 </resources>

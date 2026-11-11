@@ -410,4 +410,7 @@
     <string name="report_email_body">사유: %1$s\n팟캐스트: %2$s\n에피소드: %3$s\n피드 호스트: %4$s</string>
     <string name="settings_privacy_policy">개인정보 처리방침 및 약관</string>
     <string name="settings_privacy_policy_description">앱이 보관하고 보내는 정보와 브라질 미성년자에게 달라지는 점.</string>
+    <string name="settings_privacy_contact">내 데이터 문의</string>
+    <string name="settings_privacy_contact_description">이메일로 개인정보 열람, 정정 또는 삭제를 요청하세요.</string>
+    <string name="privacy_contact_subject">개인정보 관련 요청</string>
 </resources>

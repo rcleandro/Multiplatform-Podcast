@@ -1,13 +1,17 @@
 package br.com.carvalho.podcast.presentation.component
 
-// ponytail: a stand-in address, never shown on screen; replace it with the app's real contact before publishing.
-private const val REPORT_EMAIL = "denuncias@example.com"
+/**
+ * The app's only contact: reports (26.7) and data subject requests (LGPD Art. 18, 27.4). Private, unlike the GitHub
+ * issues, so whoever asks about their data is not exposed.
+ */
+// ponytail: a stand-in address; replace it with the real dedicated mailbox before publishing (27.4).
+const val CONTACT_EMAIL = "privacidade@example.com"
 
 /** What is reported (26.7): a podcast, or one of its episodes when [episodeTitle] is set. */
 data class ReportTarget(val podcastTitle: String, val feedUrl: String, val episodeTitle: String? = null)
 
-fun reportMailto(subject: String, body: String) =
-    "mailto:$REPORT_EMAIL?subject=${subject.percentEncoded()}&body=${body.percentEncoded()}"
+fun contactMailto(subject: String, body: String = "") =
+    "mailto:$CONTACT_EMAIL?subject=${subject.percentEncoded()}&body=${body.percentEncoded()}"
 
 /** Only the host: no scheme, credentials, path or query, where a private feed keeps its token. */
 fun feedHost(feedUrl: String): String =

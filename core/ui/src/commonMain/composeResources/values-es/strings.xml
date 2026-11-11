@@ -429,4 +429,7 @@
     <string name="report_email_body">Motivo: %1$s\nPódcast: %2$s\nEpisodio: %3$s\nHost del feed: %4$s</string>
     <string name="settings_privacy_policy">Política de privacidad y términos</string>
     <string name="settings_privacy_policy_description">Lo que la app guarda y envía, y lo que cambia para menores en Brasil.</string>
+    <string name="settings_privacy_contact">Consultar sobre tus datos</string>
+    <string name="settings_privacy_contact_description">Acceso, corrección o eliminación de tus datos personales, por correo.</string>
+    <string name="privacy_contact_subject">Solicitud sobre datos personales</string>
 </resources>

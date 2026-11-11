@@ -429,4 +429,7 @@
     <string name="report_email_body">Motivo: %1$s\nPodcast: %2$s\nEpisódio: %3$s\nHost do feed: %4$s</string>
     <string name="settings_privacy_policy">Política de privacidade e termos</string>
     <string name="settings_privacy_policy_description">O que o app guarda e envia, e o que muda para menores no Brasil.</string>
+    <string name="settings_privacy_contact">Pedir algo sobre os seus dados</string>
+    <string name="settings_privacy_contact_description">Acesso, correção ou exclusão dos seus dados pessoais, por e-mail.</string>
+    <string name="privacy_contact_subject">Pedido sobre dados pessoais</string>
 </resources>

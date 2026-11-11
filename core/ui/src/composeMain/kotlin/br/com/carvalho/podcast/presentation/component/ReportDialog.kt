@@ -147,7 +147,7 @@ fun rememberReportSender(): (ReportTarget, ReportReason) -> Unit {
             .replace("%3\$s", target.episodeTitle.orEmpty())
             .replace("%4\$s", feedHost(target.feedUrl))
         // No email app to take it: nothing to do but leave the dialog closed.
-        runCatching { uriHandler.openUri(reportMailto(subject, body)) }
+        runCatching { uriHandler.openUri(contactMailto(subject, body)) }
     }
 }
 

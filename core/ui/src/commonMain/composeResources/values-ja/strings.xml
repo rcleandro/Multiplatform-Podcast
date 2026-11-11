@@ -410,4 +410,7 @@
     <string name="report_email_body">理由: %1$s\nポッドキャスト: %2$s\nエピソード: %3$s\nフィードのホスト: %4$s</string>
     <string name="settings_privacy_policy">プライバシーポリシーと利用規約</string>
     <string name="settings_privacy_policy_description">アプリが保存・送信する内容と、ブラジルの未成年者向けの変更点。</string>
+    <string name="settings_privacy_contact">データに関するお問い合わせ</string>
+    <string name="settings_privacy_contact_description">個人データの開示・訂正・削除をメールで依頼できます。</string>
+    <string name="privacy_contact_subject">個人データに関するお問い合わせ</string>
 </resources>

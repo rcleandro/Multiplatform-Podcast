@@ -53,6 +53,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.language_portuguese
 import br.com.carvalho.podcast.core.ui.generated.resources.language_russian
 import br.com.carvalho.podcast.core.ui.generated.resources.language_spanish
 import br.com.carvalho.podcast.core.ui.generated.resources.language_turkish
+import br.com.carvalho.podcast.core.ui.generated.resources.privacy_contact_subject
 import br.com.carvalho.podcast.core.ui.generated.resources.settings
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_appearance
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_boost_voice
@@ -72,6 +73,8 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_language
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_language_ios
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_playback
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_contact
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_contact_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_policy
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_policy_description
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_refresh
@@ -101,6 +104,7 @@ import br.com.carvalho.podcast.domain.model.GuardianControls
 import br.com.carvalho.podcast.domain.model.RefreshInterval
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.DeleteOldDownloads
+import br.com.carvalho.podcast.presentation.component.contactMailto
 import br.com.carvalho.podcast.presentation.file.rememberSyncFolderPicker
 import br.com.carvalho.podcast.presentation.format.storageSize
 import br.com.carvalho.podcast.presentation.format.text
@@ -312,6 +316,7 @@ private fun LazyListScope.contentAndPrivacySettings(state: SettingsUiState, onIn
     }
     item { Section(stringResource(Res.string.settings_privacy)) }
     item { PrivacyPolicyRow() }
+    item { PrivacyContactRow() }
     // A minor in Brazil has telemetry off for good (26.4): nothing to choose, so no row.
     if (state.isMinor) return
     item {
@@ -452,5 +457,18 @@ private fun PrivacyPolicyRow() {
         value = stringResource(Res.string.settings_privacy_policy_description),
         // No browser to open it: nothing else to do.
         onClick = { runCatching { uriHandler.openUri(PRIVACY_POLICY_URL) } },
+    )
+}
+
+/** Where to ask for access, correction or deletion of personal data (LGPD Art. 18), privately (27.4). */
+@Composable
+private fun PrivacyContactRow() {
+    val uriHandler = LocalUriHandler.current
+    val subject = stringResource(Res.string.privacy_contact_subject)
+    PickerRow(
+        title = stringResource(Res.string.settings_privacy_contact),
+        value = stringResource(Res.string.settings_privacy_contact_description),
+        // No email app: nothing else to do.
+        onClick = { runCatching { uriHandler.openUri(contactMailto(subject)) } },
     )
 }

@@ -410,4 +410,7 @@
     <string name="report_email_body">कारण: %1$s\nपॉडकास्ट: %2$s\nएपिसोड: %3$s\nफ़ीड होस्ट: %4$s</string>
     <string name="settings_privacy_policy">गोपनीयता नीति और शर्तें</string>
     <string name="settings_privacy_policy_description">ऐप क्या रखता और भेजता है, और ब्राज़ील में नाबालिगों के लिए क्या बदलता है।</string>
+    <string name="settings_privacy_contact">अपने डेटा के बारे में पूछें</string>
+    <string name="settings_privacy_contact_description">ईमेल से अपने निजी डेटा तक पहुँच, सुधार या उसे हटाने का अनुरोध करें।</string>
+    <string name="privacy_contact_subject">निजी डेटा से जुड़ा अनुरोध</string>
 </resources>
