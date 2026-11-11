@@ -52,7 +52,7 @@ class RefreshPodcastUseCaseTest {
     }
 
     @Test
-    fun `the crash reporter gets the feed host, never the podcast title`() = runTest {
+    fun `the crash reporter gets the feed host and never the podcast title`() = runTest {
         val logs = mutableListOf<String>()
         AppLogger.crashReporter = object : CrashReporter {
             override fun log(message: String) { logs += message }
