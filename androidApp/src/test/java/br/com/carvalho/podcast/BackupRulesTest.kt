@@ -2,6 +2,7 @@ package br.com.carvalho.podcast
 
 import android.app.Application
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,16 +28,35 @@ class BackupRulesTest {
         assertEquals(downloads, excludedPaths("fullBackupContent"))
     }
 
-    private fun excludedPaths(attribute: String): List<String> {
+    // The library keeps private feed URLs with their tokens: a cloud backup only when Google cannot read it (27.7).
+    @Test
+    fun theCloudBackupOnlyRunsEndToEndEncrypted() {
+        val cloud = tags("dataExtractionRules").single { it.name == "cloud-backup" }
+        assertEquals("true", cloud.attributes["disableIfNoEncryptionCapabilities"])
+
+        val includes = tags("fullBackupContent").filter { it.name == "include" }
+        assertEquals(setOf("file", "database", "sharedpref"), includes.map { it.attributes["domain"] }.toSet())
+        assertTrue(includes.toString(), includes.all { it.attributes["requireFlags"] == "clientSideEncryption" })
+    }
+
+    private fun excludedPaths(attribute: String): List<String> =
+        tags(attribute).filter { it.name == "exclude" }.map { "${it.attributes["domain"]}:${it.attributes["path"]}" }
+
+    private data class Tag(val name: String, val attributes: Map<String, String>)
+
+    private fun tags(attribute: String): List<Tag> {
         val name = Regex("""android:$attribute="@xml/(\w+)"""").find(manifest)?.groupValues?.get(1) ?: return emptyList()
         val parser = context.resources.getXml(context.resources.getIdentifier(name, "xml", context.packageName))
-        val paths = mutableListOf<String>()
+        val tags = mutableListOf<Tag>()
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
-            if (parser.eventType == XmlPullParser.START_TAG && parser.name == "exclude") {
-                paths += parser.getAttributeValue(null, "domain") + ":" + parser.getAttributeValue(null, "path")
+            if (parser.eventType == XmlPullParser.START_TAG) {
+                val attributes = (0 until parser.attributeCount).associate {
+                    parser.getAttributeName(it).substringAfter(':') to parser.getAttributeValue(it)
+                }
+                tags += Tag(parser.name, attributes)
             }
         }
-        return paths
+        return tags
     }
 
     private companion object {

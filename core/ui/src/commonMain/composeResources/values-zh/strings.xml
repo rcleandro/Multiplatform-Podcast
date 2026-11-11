@@ -224,6 +224,7 @@
     <string name="error_invalid_feed">这个地址不是播客订阅源。请使用 RSS 链接。</string>
     <string name="error_feed_too_large">此订阅源太大，无法读取。请确认这是播客的 RSS 链接。</string>
     <string name="error_invalid_url">这不是有效的地址。请检查后重新粘贴订阅源链接。</string>
+    <string name="error_credentials_in_clear">此地址会以未加密的方式 (http) 发送密码或访问密钥。请使用 https 链接。</string>
     <string name="error_browser_blocked">浏览器无法读取此订阅源：许多播客网站只允许应用读取。请在手机或电脑上使用本应用，或检查网络连接。</string>
     <string name="error_storage_full">存储空间不足。请释放空间后重试。</string>
     <string name="download_deleted">已删除下载</string>
@@ -410,4 +411,7 @@
     <string name="report_email_body">原因：%1$s\n播客：%2$s\n单集：%3$s\n订阅源主机：%4$s</string>
     <string name="settings_privacy_policy">隐私政策和条款</string>
     <string name="settings_privacy_policy_description">应用保存和发送的内容，以及对巴西未成年人的变化。</string>
+    <string name="settings_privacy_contact">关于你的数据</string>
+    <string name="settings_privacy_contact_description">通过电子邮件申请访问、更正或删除你的个人数据。</string>
+    <string name="privacy_contact_subject">个人数据请求</string>
 </resources>

@@ -208,9 +208,8 @@ class LibraryViewModelTest {
         viewModel.onIntent(LibraryIntent.ConfirmDelete)
 
         assertEquals(listOf("delete_podcast"), analytics.events)
-        analytics.params.forEach { params ->
-            assertEquals(mapOf<String, Any?>("host" to "feeds.example.com"), params)
-        }
+        // Not even the host, which can name the podcast (27.5).
+        assertEquals(listOf(emptyMap<String, Any?>()), analytics.params)
     }
 
     @Test

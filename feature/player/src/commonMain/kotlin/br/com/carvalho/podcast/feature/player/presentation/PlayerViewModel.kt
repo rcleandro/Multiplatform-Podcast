@@ -74,7 +74,7 @@ class PlayerViewModel(
     }
 
     private fun play(episode: Episode) = viewModelScope.launch(dispatchers.io) {
-        analytics.logEvent(AnalyticsEvent.PlayInPlayer(episode.id))
+        analytics.logEvent(AnalyticsEvent.PlayInPlayer)
         // Picked from the queue: keep the queue as it is.
         playEpisode(episode)
     }

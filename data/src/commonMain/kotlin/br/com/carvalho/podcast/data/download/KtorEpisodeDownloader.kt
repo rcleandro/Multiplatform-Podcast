@@ -141,7 +141,7 @@ class KtorEpisodeDownloader(
             updateStatus(episodeId, DownloadStatus.Idle)
             throw e
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Download failed for $episodeId", e)
+            AppLogger.e(TAG, "Download failed", e) // no id: it reaches the crash reporter (27.2)
             // Gone before the failure shows: whoever reacts to it must not find a partial file still on disk.
             fileSystem.delete(partPath, mustExist = false)
             updateStatus(episodeId, DownloadStatus.Failed(e.toAppError()))
@@ -192,7 +192,7 @@ class KtorEpisodeDownloader(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Failed to delete episode: $episodeId", e)
+                AppLogger.e(TAG, "Failed to delete a downloaded episode", e)
             }
         }
     }

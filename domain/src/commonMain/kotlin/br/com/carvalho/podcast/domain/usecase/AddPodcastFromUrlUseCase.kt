@@ -16,6 +16,7 @@ class AddPodcastFromUrlUseCase(
         val saved = podcastRepository.getPodcasts().first().map { feedUrlKey(it.feedUrl) }.toSet()
         return when {
             url == null -> Result.failure(AppError.InvalidUrl)
+            sendsCredentialsInClear(url) -> Result.failure(AppError.CredentialsInClear)
             feedUrlKey(url) in saved -> Result.failure(AppError.AlreadyExists)
             else -> feedSource.fetch(url).mapCatching { feed ->
                 // An old or mirror address of a saved feed: the feed itself says where it lives.

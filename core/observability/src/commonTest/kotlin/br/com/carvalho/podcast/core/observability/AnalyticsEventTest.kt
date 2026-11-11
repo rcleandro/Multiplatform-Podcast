@@ -19,21 +19,31 @@ class AnalyticsEventTest {
         assertTrue(leaking.isEmpty(), "Events with a URL: ${leaking.map { it.name }}")
     }
 
+    // Listening history is personal data that can reveal religion, politics or health (LGPD Art. 11): no event may
+    // say which podcast or episode it was about, by id or by a value that pins it down, such as a publish date or the
+    // feed's host, nor which directory category interested the person (27.2, 27.5).
+    @Test
+    fun parametersNeverIdentifyWhatWasListenedTo() {
+        val identifying = everyEvent().filter { event -> event.params.keys.any { it in IDENTIFYING_KEYS } }
+
+        assertTrue(identifying.isEmpty(), "Events that identify what was listened to: ${identifying.map { it.name }}")
+    }
+
     /** One of each event; the `when` stops compiling when an event is added, so it gets a sample here too. */
     private fun everyEvent(): List<AnalyticsEvent> {
         val error = IllegalStateException("https://feeds.example.com/private?token=secret")
-        val samples = PlaySource.entries.map { AnalyticsEvent.PlayEpisode(EPISODE, it) } + listOf(
-            AnalyticsEvent.LoadEpisodeDetail(EPISODE),
-            AnalyticsEvent.LoadEpisodeDetailError(EPISODE, error),
+        val samples = PlaySource.entries.map { AnalyticsEvent.PlayEpisode(it) } + listOf(
+            AnalyticsEvent.LoadEpisodeDetail,
+            AnalyticsEvent.LoadEpisodeDetailError(error),
             AnalyticsEvent.SearchDirectory(resultCount = 3),
-            AnalyticsEvent.BrowseCategory("technology"),
-            AnalyticsEvent.OpenPodcastLink(HOST),
-            AnalyticsEvent.AddPodcastAttempt(HOST),
-            AnalyticsEvent.AddPodcastSuccess(HOST),
-            AnalyticsEvent.AddPodcastFailure(HOST, error),
-            AnalyticsEvent.DeletePodcast(HOST),
+            AnalyticsEvent.BrowseCategory,
+            AnalyticsEvent.OpenPodcastLink,
+            AnalyticsEvent.AddPodcastAttempt,
+            AnalyticsEvent.AddPodcastSuccess,
+            AnalyticsEvent.AddPodcastFailure(error),
+            AnalyticsEvent.DeletePodcast,
             AnalyticsEvent.RefreshAllPodcasts,
-            AnalyticsEvent.RefreshPodcast(HOST),
+            AnalyticsEvent.RefreshPodcast,
             AnalyticsEvent.SetEpisodeFilter("UNPLAYED"),
             AnalyticsEvent.SetEpisodeOrder(oldestFirst = true),
             AnalyticsEvent.ActOnEpisodes("MARK_PLAYED", count = 3),
@@ -43,13 +53,13 @@ class AnalyticsEventTest {
             AnalyticsEvent.SetPodcastPlayback,
             AnalyticsEvent.DismissNew(all = false),
             AnalyticsEvent.DismissNew(all = true),
-            AnalyticsEvent.DownloadEpisode(EPISODE),
-            AnalyticsEvent.DeleteDownload(EPISODE),
-            AnalyticsEvent.MarkPlayed(EPISODE, played = true),
-            AnalyticsEvent.MarkPlayed(EPISODE, played = false),
-            AnalyticsEvent.MarkOlderPlayed(HOST, publishDate = 0, played = true),
-            AnalyticsEvent.MarkOlderPlayed(HOST, publishDate = 0, played = false),
-            AnalyticsEvent.PlayInPlayer(EPISODE),
+            AnalyticsEvent.DownloadEpisode,
+            AnalyticsEvent.DeleteDownload,
+            AnalyticsEvent.MarkPlayed(played = true),
+            AnalyticsEvent.MarkPlayed(played = false),
+            AnalyticsEvent.MarkOlderPlayed(played = true),
+            AnalyticsEvent.MarkOlderPlayed(played = false),
+            AnalyticsEvent.PlayInPlayer,
             AnalyticsEvent.Pause,
             AnalyticsEvent.Resume,
             AnalyticsEvent.Seek(0),
@@ -77,14 +87,14 @@ class AnalyticsEventTest {
 
     @Suppress("CyclomaticComplexMethod")
     private fun covered(event: AnalyticsEvent) = when (event) {
-        is AnalyticsEvent.PlayEpisode, is AnalyticsEvent.LoadEpisodeDetail, is AnalyticsEvent.LoadEpisodeDetailError,
-        is AnalyticsEvent.SearchDirectory, is AnalyticsEvent.BrowseCategory, is AnalyticsEvent.OpenPodcastLink,
-        is AnalyticsEvent.AddPodcastAttempt, is AnalyticsEvent.AddPodcastSuccess, is AnalyticsEvent.AddPodcastFailure,
-        is AnalyticsEvent.DeletePodcast, AnalyticsEvent.RefreshAllPodcasts, is AnalyticsEvent.RefreshPodcast,
+        is AnalyticsEvent.PlayEpisode, AnalyticsEvent.LoadEpisodeDetail, is AnalyticsEvent.LoadEpisodeDetailError,
+        is AnalyticsEvent.SearchDirectory, AnalyticsEvent.BrowseCategory, AnalyticsEvent.OpenPodcastLink,
+        AnalyticsEvent.AddPodcastAttempt, AnalyticsEvent.AddPodcastSuccess, is AnalyticsEvent.AddPodcastFailure,
+        AnalyticsEvent.DeletePodcast, AnalyticsEvent.RefreshAllPodcasts, AnalyticsEvent.RefreshPodcast,
         is AnalyticsEvent.SetEpisodeFilter, is AnalyticsEvent.SetEpisodeOrder,
         is AnalyticsEvent.ActOnEpisodes, is AnalyticsEvent.SaveEpisode,
-        AnalyticsEvent.ClearHistory, AnalyticsEvent.SetPodcastPlayback, is AnalyticsEvent.DismissNew, is AnalyticsEvent.DownloadEpisode, is AnalyticsEvent.DeleteDownload,
-        is AnalyticsEvent.MarkPlayed, is AnalyticsEvent.MarkOlderPlayed, is AnalyticsEvent.PlayInPlayer,
+        AnalyticsEvent.ClearHistory, AnalyticsEvent.SetPodcastPlayback, is AnalyticsEvent.DismissNew, AnalyticsEvent.DownloadEpisode, AnalyticsEvent.DeleteDownload,
+        is AnalyticsEvent.MarkPlayed, is AnalyticsEvent.MarkOlderPlayed, AnalyticsEvent.PlayInPlayer,
         AnalyticsEvent.Pause, AnalyticsEvent.Resume, is AnalyticsEvent.Seek, AnalyticsEvent.SkipForward,
         AnalyticsEvent.SkipBackward, is AnalyticsEvent.SetSpeed, AnalyticsEvent.PlayNext, AnalyticsEvent.PlayPrevious,
         is AnalyticsEvent.SetSleepTimer, AnalyticsEvent.CancelSleepTimer, is AnalyticsEvent.ExtendSleepTimer,
@@ -98,11 +108,10 @@ class AnalyticsEventTest {
         name.length <= MAX_NAME_LENGTH && FIREBASE_NAME.matches(name) && RESERVED_PREFIXES.none(name::startsWith)
 
     private companion object {
-        const val EPISODE = "a1b2c3"
-        const val HOST = "feeds.example.com"
         const val MINUTES = 30
         const val MAX_NAME_LENGTH = 40
         val FIREBASE_NAME = Regex("[a-z][a-z0-9_]*")
         val RESERVED_PREFIXES = listOf("firebase_", "google_", "ga_")
+        val IDENTIFYING_KEYS = setOf("episode_id", "publish_date", "host", "category")
     }
 }

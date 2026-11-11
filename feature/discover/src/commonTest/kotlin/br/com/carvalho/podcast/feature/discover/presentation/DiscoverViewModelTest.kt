@@ -141,7 +141,8 @@ class DiscoverViewModelTest {
         assertEquals(listOf(null, PodcastCategory.TECHNOLOGY), directory.chartsAsked)
         assertEquals(2, viewModel.uiState.value.results.size)
         assertEquals(listOf("browse_category"), analytics.events)
-        assertEquals(mapOf<String, Any?>("category" to "technology"), analytics.params.single())
+        // Which category stays out: an interest can be sensitive (27.5).
+        assertEquals(emptyMap(), analytics.params.single())
 
         viewModel.onIntent(DiscoverIntent.SelectCategory(null))
 
@@ -277,7 +278,8 @@ class DiscoverViewModelTest {
         addByUrl(viewModel, "feeds.example.com/private/rss?token=s3cr3t")
 
         assertEquals(listOf("add_podcast_attempt", "add_podcast_failure"), analytics.events)
-        assertTrue(analytics.params.all { it["host"] == "feeds.example.com" }, analytics.params.toString())
+        // Not even the host, which can name the podcast (27.5).
+        assertTrue(analytics.params.none { "host" in it }, analytics.params.toString())
         assertTrue(logs.isNotEmpty())
         assertTrue(logs.none { "s3cr3t" in it }, logs.joinToString("\n"))
     }
@@ -300,7 +302,7 @@ class DiscoverViewModelTest {
         assertFalse(viewModel.uiState.value.isOpeningLink)
         assertNull(feedSource.fetchCalledWith)
         assertEquals(listOf("open_podcast_link"), analytics.events)
-        assertEquals("hipsters.tech", analytics.params.single()["host"])
+        assertEquals(emptyMap(), analytics.params.single())
 
         viewModel.onIntent(DiscoverIntent.Subscribe(viewModel.uiState.value.linked!!))
 

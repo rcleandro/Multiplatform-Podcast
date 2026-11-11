@@ -1,8 +1,11 @@
 package br.com.carvalho.podcast.core.observability
 
 /**
- * Every analytics event the app sends. Parameters carry ids, hosts and enum names only: never a feed URL (private
- * feeds carry tokens) nor a title. `AnalyticsEventTest` checks names and keys against Firebase's limits.
+ * Every analytics event the app sends. Parameters carry counts and enum names only: never a feed URL (private feeds
+ * carry tokens), a title, nor anything that tells which podcast or episode it was about, not even the feed's host or
+ * a directory category (listening history can reveal religion, politics or health; LGPD Art. 6º, III, and Art. 11;
+ * 27.2, 27.5). `AnalyticsEventTest` checks names and keys against
+ * Firebase's limits.
  */
 sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = emptyMap()) {
     enum class PlaySource(val key: String) {
@@ -12,35 +15,34 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
         EPISODE("episode_detail"),
     }
 
-    class PlayEpisode(episodeId: String, source: PlaySource) :
-        AnalyticsEvent("play_episode_from_${source.key}", mapOf(EPISODE_ID to episodeId))
+    class PlayEpisode(source: PlaySource) : AnalyticsEvent("play_episode_from_${source.key}")
 
-    class LoadEpisodeDetail(episodeId: String) : AnalyticsEvent("load_episode_detail", mapOf(EPISODE_ID to episodeId))
+    data object LoadEpisodeDetail : AnalyticsEvent("load_episode_detail")
 
-    class LoadEpisodeDetailError(episodeId: String, error: Throwable) :
-        AnalyticsEvent("load_episode_detail_error", mapOf(EPISODE_ID to episodeId, ERROR to error::class.simpleName))
+    class LoadEpisodeDetailError(error: Throwable) :
+        AnalyticsEvent("load_episode_detail_error", mapOf(ERROR to error::class.simpleName))
 
     /** A directory search (18.1). The term stays out: what someone looks for can say a lot about them. */
     class SearchDirectory(resultCount: Int) : AnalyticsEvent("search_directory", mapOf("results" to resultCount))
 
     /** A category's chart opened in "Add podcast" (18.2). */
-    class BrowseCategory(category: String) : AnalyticsEvent("browse_category", mapOf("category" to category))
+    data object BrowseCategory : AnalyticsEvent("browse_category")
 
-    /** A podcast link opened in the app (18.4): only the feed's host, never its address. */
-    class OpenPodcastLink(host: String) : AnalyticsEvent("open_podcast_link", mapOf(HOST to host))
+    /** A podcast link opened in the app (18.4). */
+    data object OpenPodcastLink : AnalyticsEvent("open_podcast_link")
 
-    class AddPodcastAttempt(host: String) : AnalyticsEvent("add_podcast_attempt", mapOf(HOST to host))
+    data object AddPodcastAttempt : AnalyticsEvent("add_podcast_attempt")
 
-    class AddPodcastSuccess(host: String) : AnalyticsEvent("add_podcast_success", mapOf(HOST to host))
+    data object AddPodcastSuccess : AnalyticsEvent("add_podcast_success")
 
-    class AddPodcastFailure(host: String, error: Throwable) :
-        AnalyticsEvent("add_podcast_failure", mapOf(HOST to host, ERROR to error::class.simpleName))
+    class AddPodcastFailure(error: Throwable) :
+        AnalyticsEvent("add_podcast_failure", mapOf(ERROR to error::class.simpleName))
 
-    class DeletePodcast(host: String) : AnalyticsEvent("delete_podcast", mapOf(HOST to host))
+    data object DeletePodcast : AnalyticsEvent("delete_podcast")
 
     data object RefreshAllPodcasts : AnalyticsEvent("refresh_all_podcasts")
 
-    class RefreshPodcast(host: String) : AnalyticsEvent("refresh_podcast_detail", mapOf(HOST to host))
+    data object RefreshPodcast : AnalyticsEvent("refresh_podcast_detail")
 
     class SetEpisodeFilter(filter: String) : AnalyticsEvent("set_episode_filter", mapOf("filter" to filter))
 
@@ -64,22 +66,17 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     /** An episode, or all of them, taken out of "New" without hearing it (18.7). */
     class DismissNew(all: Boolean) : AnalyticsEvent(if (all) "dismiss_all_new_episodes" else "dismiss_new_episode")
 
-    class DownloadEpisode(episodeId: String) :
-        AnalyticsEvent("download_episode_from_detail", mapOf(EPISODE_ID to episodeId))
+    data object DownloadEpisode : AnalyticsEvent("download_episode_from_detail")
 
-    class DeleteDownload(episodeId: String) :
-        AnalyticsEvent("delete_download_from_detail", mapOf(EPISODE_ID to episodeId))
+    data object DeleteDownload : AnalyticsEvent("delete_download_from_detail")
 
-    class MarkPlayed(episodeId: String, played: Boolean) :
-        AnalyticsEvent(if (played) "mark_as_played" else "mark_as_unplayed", mapOf(EPISODE_ID to episodeId))
+    class MarkPlayed(played: Boolean) : AnalyticsEvent(if (played) "mark_as_played" else "mark_as_unplayed")
 
-    class MarkOlderPlayed(host: String, publishDate: Long, played: Boolean) : AnalyticsEvent(
-        if (played) "mark_older_as_played" else "mark_older_as_unplayed",
-        mapOf(HOST to host, "publish_date" to publishDate),
-    )
+    class MarkOlderPlayed(played: Boolean) :
+        AnalyticsEvent(if (played) "mark_older_as_played" else "mark_older_as_unplayed")
 
     /** An episode picked from the player's queue. */
-    class PlayInPlayer(episodeId: String) : AnalyticsEvent("play_episode", mapOf(EPISODE_ID to episodeId))
+    data object PlayInPlayer : AnalyticsEvent("play_episode")
 
     data object Pause : AnalyticsEvent("pause_episode")
 
@@ -129,8 +126,6 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any?> = em
     data object PlayBookmark : AnalyticsEvent("play_bookmark")
 
     private companion object {
-        const val EPISODE_ID = "episode_id"
-        const val HOST = "host"
         const val ERROR = "error"
     }
 }

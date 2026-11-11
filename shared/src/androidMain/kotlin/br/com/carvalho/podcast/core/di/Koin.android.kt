@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.core.di
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import br.com.carvalho.podcast.core.observability.CrashReporter
+import br.com.carvalho.podcast.core.observability.FirebaseCollection
 import br.com.carvalho.podcast.core.observability.Metrics
 import br.com.carvalho.podcast.core.observability.followTelemetryConsent
 import br.com.carvalho.podcast.core.safety.telemetryAllowedFlow
@@ -46,7 +47,8 @@ actual fun initKoin(appDeclaration: KoinAppDeclaration) {
             AppLogger.i(TAG, "Initializing Firebase in background...")
             Firebase.initialize(context)
             AppLogger.i(TAG, "Firebase initialized")
-            followTelemetryConsent(telemetryAllowedFlow(koin.get<PreferencesRepository>(), koin.get<ChildSafety>()))
+            val allowed = telemetryAllowedFlow(koin.get<PreferencesRepository>(), koin.get<ChildSafety>())
+            FirebaseCollection.followTelemetryConsent(allowed)
         } catch (e: Exception) {
             // No unit tests, Firebase might not be available
             AppLogger.e(TAG, "Failed to initialize Firebase", e)

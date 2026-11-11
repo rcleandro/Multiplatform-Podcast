@@ -224,6 +224,7 @@
     <string name="error_invalid_feed">このアドレスはポッドキャストのフィードではありません。RSS のリンクを使ってください。</string>
     <string name="error_feed_too_large">このフィードは大きすぎて読み込めません。ポッドキャストの RSS リンクか確認してください。</string>
     <string name="error_invalid_url">有効なアドレスではありません。確認してフィードのリンクを貼り直してください。</string>
+    <string name="error_credentials_in_clear">このアドレスはパスワードやアクセスキーを暗号化せずに (http) 送信します。https のリンクを使ってください。</string>
     <string name="error_browser_blocked">ブラウザーでこのフィードを読み込めませんでした。多くのポッドキャストサイトはアプリからの読み込みのみ許可しています。スマートフォンかパソコンのアプリを使うか、接続を確認してください。</string>
     <string name="error_storage_full">空き容量が足りません。空きを作って再試行してください。</string>
     <string name="download_deleted">ダウンロードを削除しました</string>
@@ -410,4 +411,7 @@
     <string name="report_email_body">理由: %1$s\nポッドキャスト: %2$s\nエピソード: %3$s\nフィードのホスト: %4$s</string>
     <string name="settings_privacy_policy">プライバシーポリシーと利用規約</string>
     <string name="settings_privacy_policy_description">アプリが保存・送信する内容と、ブラジルの未成年者向けの変更点。</string>
+    <string name="settings_privacy_contact">データに関するお問い合わせ</string>
+    <string name="settings_privacy_contact_description">個人データの開示・訂正・削除をメールで依頼できます。</string>
+    <string name="privacy_contact_subject">個人データに関するお問い合わせ</string>
 </resources>

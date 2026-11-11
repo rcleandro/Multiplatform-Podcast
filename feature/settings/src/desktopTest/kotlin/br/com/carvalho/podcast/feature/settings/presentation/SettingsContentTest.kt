@@ -1,8 +1,11 @@
 package br.com.carvalho.podcast.feature.settings.presentation
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -60,6 +63,7 @@ import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_all
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_delete_finished
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_export_backup
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_locked_for_minors
+import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_contact
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_privacy_policy
 import br.com.carvalho.podcast.core.ui.generated.resources.settings_show_explicit_locked
 import br.com.carvalho.podcast.core.ui.generated.resources.stats_title
@@ -88,6 +92,7 @@ import br.com.carvalho.podcast.domain.model.SkipIntervals
 import br.com.carvalho.podcast.domain.model.ThemeMode
 import br.com.carvalho.podcast.domain.usecase.FolderSyncStatus
 import br.com.carvalho.podcast.domain.usecase.OpmlImport
+import br.com.carvalho.podcast.presentation.component.CONTACT_EMAIL
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
@@ -289,6 +294,27 @@ class SettingsContentTest {
         onNodeWithText(text(Res.string.guardian_pin_create)).assertExists()
         onNodeWithText(text(Res.string.cancel)).performClick()
         assertEquals(GuardianIntent.DismissPin, intents.last())
+    }
+
+    // A private channel for data subject requests (LGPD Art. 18; ANPD Res. 2/2022 Art. 11), for minors too (27.4).
+    @Test
+    fun askingAboutYourDataOpensAnEmailToTheAppsContact() = runComposeUiTest {
+        var opened: String? = null
+        val uriHandler = object : UriHandler {
+            override fun openUri(uri: String) {
+                opened = uri
+            }
+        }
+        setContent {
+            CompositionLocalProvider(LocalUriHandler provides uriHandler) {
+                PodcastTheme { SettingsContent(SettingsUiState(isMinor = true), onBack = {}, onIntent = {}) }
+            }
+        }
+
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText(text(Res.string.settings_privacy_contact)))
+        onNodeWithText(text(Res.string.settings_privacy_contact)).performClick()
+
+        assertEquals("mailto:$CONTACT_EMAIL", opened?.substringBefore('?'))
     }
 
     @Test

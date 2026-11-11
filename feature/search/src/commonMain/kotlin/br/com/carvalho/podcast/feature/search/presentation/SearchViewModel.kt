@@ -232,14 +232,13 @@ class SearchViewModel(
 
     private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.PlayEpisode(episode.id, AnalyticsEvent.PlaySource.SEARCH))
+            analytics.logEvent(AnalyticsEvent.PlayEpisode(AnalyticsEvent.PlaySource.SEARCH))
             playEpisode(episode)
         }
     }
 
     private fun downloadEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            AppLogger.i(TAG, "Starting download for episode from search: ${episode.title}")
             episodeDownloader.download(episode)
         }
     }

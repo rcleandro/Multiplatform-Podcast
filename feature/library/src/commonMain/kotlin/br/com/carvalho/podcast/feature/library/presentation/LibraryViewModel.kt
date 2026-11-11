@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
 import br.com.carvalho.podcast.core.observability.Metrics
-import br.com.carvalho.podcast.core.observability.urlHost
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_podcasts
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_some_podcasts
@@ -114,7 +113,7 @@ class LibraryViewModel(
             is LibraryIntent.ChangeSort -> preferences.setLibrarySort(intent.sort)
             is LibraryIntent.SelectCategory -> chosenCategory.value = intent.category
             is LibraryIntent.Play -> viewModelScope.launch(dispatchers.io) {
-                analytics.logEvent(AnalyticsEvent.PlayEpisode(intent.episode.id, AnalyticsEvent.PlaySource.LIBRARY))
+                analytics.logEvent(AnalyticsEvent.PlayEpisode(AnalyticsEvent.PlaySource.LIBRARY))
                 playEpisode(intent.episode)
             }
         }
@@ -129,7 +128,7 @@ class LibraryViewModel(
     private fun confirmDelete() {
         val podcast = _uiState.value.podcastToDelete ?: return
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.DeletePodcast(urlHost(podcast.feedUrl)))
+            analytics.logEvent(AnalyticsEvent.DeletePodcast)
             deletePodcastUseCase(podcast.id)
             _uiState.update { it.copy(podcastToDelete = null) }
         }

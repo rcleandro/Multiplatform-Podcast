@@ -2,11 +2,13 @@ package br.com.carvalho.podcast.feature.podcast.presentation
 
 import app.cash.turbine.test
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.bulk_played
 import br.com.carvalho.podcast.core.ui.generated.resources.error_no_connection
 import br.com.carvalho.podcast.core.ui.generated.resources.queued_next
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.domain.download.FakeEpisodeDownloader
 import br.com.carvalho.podcast.domain.model.Episode
@@ -62,6 +64,7 @@ class PodcastDetailViewModelTest {
 
     @AfterTest
     fun tearDown() {
+        AppLogger.crashReporter = null
         Dispatchers.resetMain()
     }
 
@@ -193,6 +196,21 @@ class PodcastDetailViewModelTest {
 
         viewModel.onIntent(PodcastDetailIntent.SetSaved(sampleEpisode, saved = false))
         assertFalse(repository.episodes.value.single().isSaved)
+    }
+
+    @Test
+    fun `downloading never sends the episode title to the crash reporter`() = runTest(testDispatcher) {
+        val logs = mutableListOf<String>()
+        AppLogger.crashReporter = object : CrashReporter {
+            override fun log(message: String) { logs += message }
+            override fun recordException(throwable: Throwable) { logs += throwable.toString() }
+        }
+        val viewModel = createViewModel()
+        val episode = sampleEpisode.copy(title = "Secret Episode")
+
+        viewModel.onIntent(PodcastDetailIntent.Download(episode))
+
+        assertTrue(logs.none { "Secret Episode" in it }, logs.toString())
     }
 
     @Test

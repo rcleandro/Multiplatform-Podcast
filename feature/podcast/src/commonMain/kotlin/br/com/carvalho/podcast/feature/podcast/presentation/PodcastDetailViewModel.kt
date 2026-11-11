@@ -7,7 +7,6 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import br.com.carvalho.podcast.core.observability.Analytics
 import br.com.carvalho.podcast.core.observability.AnalyticsEvent
-import br.com.carvalho.podcast.core.observability.urlHost
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.error_refresh_episodes
 import br.com.carvalho.podcast.core.util.AppLogger
@@ -142,7 +141,7 @@ class PodcastDetailViewModel(
     private fun refresh() {
         _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.RefreshPodcast(urlHost(podcastId)))
+            analytics.logEvent(AnalyticsEvent.RefreshPodcast)
             AppLogger.i(TAG, "Refreshing podcast details for id: $podcastId")
             refreshPodcastUseCase(podcastId).onFailure { e ->
                 AppLogger.e(TAG, "Error refreshing podcast $podcastId", e)
@@ -183,15 +182,14 @@ class PodcastDetailViewModel(
 
     private fun play(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.PlayEpisode(episode.id, AnalyticsEvent.PlaySource.PODCAST))
+            analytics.logEvent(AnalyticsEvent.PlayEpisode(AnalyticsEvent.PlaySource.PODCAST))
             playEpisode(episode)
         }
     }
 
     private fun downloadEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            analytics.logEvent(AnalyticsEvent.DownloadEpisode(episode.id))
-            AppLogger.i(TAG, "Starting download for episode: ${episode.title}")
+            analytics.logEvent(AnalyticsEvent.DownloadEpisode)
             episodeDownloader.download(episode)
         }
     }
@@ -203,7 +201,7 @@ class PodcastDetailViewModel(
     }
 
     private fun deleteDownload(episodeId: String) {
-        analytics.logEvent(AnalyticsEvent.DeleteDownload(episodeId))
+        analytics.logEvent(AnalyticsEvent.DeleteDownload)
         _uiState.update { it.copy(deleteEpisodeConfirmation = null) }
         viewModelScope.launch(dispatchers.io) {
             episodeDownloader.delete(episodeId)
@@ -211,14 +209,14 @@ class PodcastDetailViewModel(
     }
 
     private fun markAsPlayed(episodeId: String) {
-        analytics.logEvent(AnalyticsEvent.MarkPlayed(episodeId, played = true))
+        analytics.logEvent(AnalyticsEvent.MarkPlayed(played = true))
         viewModelScope.launch(dispatchers.io) {
             repository.markEpisodeAsPlayed(episodeId)
         }
     }
 
     private fun markAsUnplayed(episodeId: String) {
-        analytics.logEvent(AnalyticsEvent.MarkPlayed(episodeId, played = false))
+        analytics.logEvent(AnalyticsEvent.MarkPlayed(played = false))
         viewModelScope.launch(dispatchers.io) {
             repository.markEpisodeAsUnplayed(episodeId)
         }
@@ -226,7 +224,7 @@ class PodcastDetailViewModel(
 
     private fun markOlder(mark: OlderMark) {
         val publishDate = mark.episode.publishDate
-        analytics.logEvent(AnalyticsEvent.MarkOlderPlayed(urlHost(podcastId), publishDate, mark.played))
+        analytics.logEvent(AnalyticsEvent.MarkOlderPlayed(mark.played))
         _uiState.update { it.copy(olderMark = null) }
         viewModelScope.launch(dispatchers.io) {
             if (mark.played) {

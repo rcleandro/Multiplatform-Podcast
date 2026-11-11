@@ -2,12 +2,14 @@ package br.com.carvalho.podcast.feature.search.presentation
 
 import app.cash.turbine.test
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.observability.FakeAnalytics
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.bulk_queued
 import br.com.carvalho.podcast.core.ui.generated.resources.download_deleted
 import br.com.carvalho.podcast.core.ui.generated.resources.error_storage_full
 import br.com.carvalho.podcast.core.ui.generated.resources.queued_last
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.core.util.CoroutineDispatchers
 import br.com.carvalho.podcast.core.util.FakeNetworkMonitor
 import br.com.carvalho.podcast.domain.download.DownloadStatus
@@ -52,6 +54,7 @@ class SearchViewModelTest {
 
     @AfterTest
     fun tearDown() {
+        AppLogger.crashReporter = null
         Dispatchers.resetMain()
     }
 
@@ -307,6 +310,21 @@ class SearchViewModelTest {
         viewModel.onIntent(SearchIntent.Play(episode))
 
         assertEquals("1", audioPlayer.playCalledWith?.id)
+    }
+
+    @Test
+    fun `downloading never sends the episode title to the crash reporter`() = runTest(testDispatcher) {
+        val logs = mutableListOf<String>()
+        AppLogger.crashReporter = object : CrashReporter {
+            override fun log(message: String) { logs += message }
+            override fun recordException(throwable: Throwable) { logs += throwable.toString() }
+        }
+        val viewModel = createViewModel()
+        val episode = createEpisode("1", "Secret Episode")
+
+        viewModel.onIntent(SearchIntent.Download(episode))
+
+        assertTrue(logs.none { "Secret Episode" in it }, logs.toString())
     }
 
     @Test

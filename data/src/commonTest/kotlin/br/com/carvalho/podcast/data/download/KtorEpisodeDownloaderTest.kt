@@ -1,7 +1,9 @@
 package br.com.carvalho.podcast.data.download
 
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.observability.CrashReporter
 import br.com.carvalho.podcast.core.util.AppDirectories
+import br.com.carvalho.podcast.core.util.AppLogger
 import app.cash.turbine.test
 import br.com.carvalho.podcast.data.local.dao.FakeEpisodeDao
 import br.com.carvalho.podcast.data.mapper.toEntity
@@ -24,6 +26,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -55,6 +58,34 @@ class KtorEpisodeDownloaderTest {
         isDownloaded = false,
         fileSize = null
     )
+
+    @AfterTest
+    fun tearDown() {
+        AppLogger.crashReporter = null
+    }
+
+    @Test
+    fun `a failed download reaches the crash reporter without the episode id`() = runTest(testDispatcher) {
+        val logs = mutableListOf<String>()
+        AppLogger.crashReporter = object : CrashReporter {
+            override fun log(message: String) { logs += message }
+            override fun recordException(throwable: Throwable) { logs += throwable.toString() }
+        }
+        // A login page instead of audio: a failure that goes through the logged path.
+        val downloader = createDownloader(
+            MockEngine { respond("<html/>", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "text/html")) }
+        )
+
+        downloader.activeDownloads.test {
+            downloader.download(sampleEpisode.copy(id = "secret-guid"))
+            // The failure is logged before the status says so.
+            do testDispatcher.scheduler.advanceUntilIdle() while (awaitItem()["secret-guid"] !is DownloadStatus.Failed)
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertTrue(logs.isNotEmpty())
+        assertTrue(logs.none { "secret-guid" in it }, logs.toString())
+    }
 
     @Test
     fun `statuses set from several threads at once are all kept`() = runTest {

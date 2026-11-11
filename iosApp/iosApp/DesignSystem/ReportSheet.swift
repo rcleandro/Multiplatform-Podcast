@@ -77,6 +77,6 @@ enum ReportTexts {
              ReportMailKt.feedHost(feedUrl: target.feedUrl)],
             bundle: bundle
         )
-        return URL(string: ReportMailKt.reportMailto(subject: subject, body: body))
+        return URL(string: ReportMailKt.contactMailto(subject: subject, body: body))
     }
 }

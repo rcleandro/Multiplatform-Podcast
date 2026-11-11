@@ -14,7 +14,7 @@ class ReportMailTest {
 
     @Test
     fun theSubjectAndBodyAreEncodedForTheEmailApp() {
-        val mailto = reportMailto("Denúncia: A&B", "Motivo: x\nPodcast: y")
+        val mailto = contactMailto("Denúncia: A&B", "Motivo: x\nPodcast: y")
 
         assertTrue(mailto.startsWith("mailto:"))
         assertTrue("subject=Den%C3%BAncia%3A%20A%26B" in mailto)

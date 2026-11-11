@@ -224,6 +224,7 @@
     <string name="error_invalid_feed">Этот адрес не является лентой подкаста. Используйте ссылку RSS.</string>
     <string name="error_feed_too_large">Эта лента слишком большая для чтения. Проверьте, что это RSS-ссылка подкаста.</string>
     <string name="error_invalid_url">Неверный адрес. Проверьте его и вставьте ссылку на ленту ещё раз.</string>
+    <string name="error_credentials_in_clear">Этот адрес передаст пароль или ключ доступа без шифрования (http). Используйте ссылку с https.</string>
     <string name="error_browser_blocked">Браузер не смог прочитать эту ленту: многие сайты подкастов разрешают это только приложениям. Используйте приложение на телефоне или компьютере или проверьте подключение.</string>
     <string name="error_storage_full">Недостаточно места. Освободите место и повторите попытку.</string>
     <string name="download_deleted">Загрузка удалена</string>
@@ -410,4 +411,7 @@
     <string name="report_email_body">Причина: %1$s\nПодкаст: %2$s\nВыпуск: %3$s\nХост ленты: %4$s</string>
     <string name="settings_privacy_policy">Политика конфиденциальности и условия</string>
     <string name="settings_privacy_policy_description">Что приложение хранит и отправляет и что меняется для несовершеннолетних в Бразилии.</string>
+    <string name="settings_privacy_contact">Запрос о ваших данных</string>
+    <string name="settings_privacy_contact_description">Доступ, исправление или удаление ваших персональных данных по электронной почте.</string>
+    <string name="privacy_contact_subject">Запрос о персональных данных</string>
 </resources>

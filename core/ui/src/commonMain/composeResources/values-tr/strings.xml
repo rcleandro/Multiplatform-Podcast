@@ -224,6 +224,7 @@
     <string name="error_invalid_feed">Bu adres bir podcast akışı değil. RSS bağlantısını kullanın.</string>
     <string name="error_feed_too_large">Bu akış okunamayacak kadar büyük. Podcast'in RSS bağlantısı olduğundan emin olun.</string>
     <string name="error_invalid_url">Bu geçerli bir adres değil. Kontrol edip akış bağlantısını tekrar yapıştırın.</string>
+    <string name="error_credentials_in_clear">Bu adres bir parolayı veya erişim anahtarını şifrelemeden (http) gönderir. https bağlantısını kullanın.</string>
     <string name="error_browser_blocked">Tarayıcı bu akışı okuyamadı: birçok podcast sitesi yalnızca uygulamaların okumasına izin veriyor. Uygulamayı telefonunuzda veya bilgisayarınızda kullanın ya da bağlantınızı kontrol edin.</string>
     <string name="error_storage_full">Yeterli alan yok. Yer açıp tekrar deneyin.</string>
     <string name="download_deleted">İndirme kaldırıldı</string>
@@ -410,4 +411,7 @@
     <string name="report_email_body">Neden: %1$s\nPodcast: %2$s\nBölüm: %3$s\nAkış sunucusu: %4$s</string>
     <string name="settings_privacy_policy">Gizlilik politikası ve koşullar</string>
     <string name="settings_privacy_policy_description">Uygulamanın neyi saklayıp gönderdiği ve Brezilya'da reşit olmayanlar için neyin değiştiği.</string>
+    <string name="settings_privacy_contact">Verileriniz hakkında talep</string>
+    <string name="settings_privacy_contact_description">Kişisel verilerinize erişim, düzeltme veya silme talebini e-postayla iletin.</string>
+    <string name="privacy_contact_subject">Kişisel veri talebi</string>
 </resources>

@@ -88,6 +88,14 @@ class AddPodcastFromUrlUseCaseTest {
     }
 
     @Test
+    fun `an http address with a token is refused without fetching`() = runTest {
+        val result = useCase("http://feeds.example.com/rss?token=s3cr3t")
+
+        assertEquals(AppError.CredentialsInClear, result.exceptionOrNull())
+        assertEquals(null, feedSource.fetchCalledWith)
+    }
+
+    @Test
     fun `fetches feed and saves podcast and episodes on success`() = runTest {
         val url = "https://test.com/rss"
         val podcast = Podcast(

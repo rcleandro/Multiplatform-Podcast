@@ -18,6 +18,10 @@ class FirebaseBridgeTest {
             calls += "collection $enabled"
         }
 
+        override fun forgetCollected() {
+            calls += "forget"
+        }
+
         override fun logEvent(name: String, params: Map<String, Any>?) {
             calls += "event $name $params"
         }
@@ -37,13 +41,13 @@ class FirebaseBridgeTest {
         val firebase = FakeFirebase()
         val analytics = BridgeAnalytics(firebase)
 
-        analytics.logEvent(AnalyticsEvent.LoadEpisodeDetailError("ep", object : Throwable() {}))
+        analytics.logEvent(AnalyticsEvent.LoadEpisodeDetailError(object : Throwable() {}))
         analytics.logEvent(AnalyticsEvent.ClearHistory)
         analytics.logEvent(AnalyticsEvent.ActOnEpisodes("queue", 2))
 
         assertEquals(
             listOf(
-                "event load_episode_detail_error {episode_id=ep}",
+                "event load_episode_detail_error null",
                 "event clear_history null",
                 "event act_on_episodes {action=queue, count=2}",
             ),
@@ -69,6 +73,6 @@ class FirebaseBridgeTest {
 
         firebase.followTelemetryConsent(flowOf(true, false))
 
-        assertTrue(firebase.calls == listOf("collection true", "collection false"))
+        assertTrue(firebase.calls == listOf("collection true", "collection false", "forget"))
     }
 }

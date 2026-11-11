@@ -203,6 +203,12 @@ struct SettingsScreen: View {
                 Link(destination: SettingsTexts.privacyPolicy) {
                     row(Res.string.shared.settings_privacy_policy, Res.string.shared.settings_privacy_policy_description)
                 }
+                // Access, correction or deletion of personal data (LGPD Art. 18), privately (27.4).
+                if let contact = URL(string: ReportMailKt.contactMailto(subject: Res.string.shared.privacy_contact_subject.localized(), body: "")) {
+                    Link(destination: contact) {
+                        row(Res.string.shared.settings_privacy_contact, Res.string.shared.settings_privacy_contact_description)
+                    }
+                }
                 // A minor in Brazil has telemetry off for good (26.4): nothing to choose, so no row.
                 if !state.isMinor {
                     toggle(Res.string.shared.settings_telemetry, Res.string.shared.settings_telemetry_description,

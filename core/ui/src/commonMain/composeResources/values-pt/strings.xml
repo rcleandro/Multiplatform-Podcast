@@ -231,6 +231,7 @@
     <string name="error_invalid_feed">Este endereço não é um feed de podcast. Use o link do RSS.</string>
     <string name="error_feed_too_large">Este feed é grande demais para ler. Confira se é o link RSS do podcast.</string>
     <string name="error_invalid_url">Este endereço não é válido. Confira e cole o link do feed de novo.</string>
+    <string name="error_credentials_in_clear">Este endereço enviaria uma senha ou chave de acesso sem criptografia (http). Use o link com https.</string>
     <string name="error_browser_blocked">O navegador não conseguiu ler este feed: muitos sites de podcast só deixam apps lerem. Use o app no celular ou no computador, ou confira sua conexão.</string>
     <string name="error_storage_full">Sem espaço no armazenamento. Libere espaço e tente de novo.</string>
     <string name="download_deleted">Download excluído</string>
@@ -429,4 +430,7 @@
     <string name="report_email_body">Motivo: %1$s\nPodcast: %2$s\nEpisódio: %3$s\nHost do feed: %4$s</string>
     <string name="settings_privacy_policy">Política de privacidade e termos</string>
     <string name="settings_privacy_policy_description">O que o app guarda e envia, e o que muda para menores no Brasil.</string>
+    <string name="settings_privacy_contact">Pedir algo sobre os seus dados</string>
+    <string name="settings_privacy_contact_description">Acesso, correção ou exclusão dos seus dados pessoais, por e-mail.</string>
+    <string name="privacy_contact_subject">Pedido sobre dados pessoais</string>
 </resources>

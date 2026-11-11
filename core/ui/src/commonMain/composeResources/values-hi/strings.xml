@@ -224,6 +224,7 @@
     <string name="error_invalid_feed">यह पता पॉडकास्ट फ़ीड नहीं है। RSS लिंक इस्तेमाल करें।</string>
     <string name="error_feed_too_large">यह फ़ीड पढ़ने के लिए बहुत बड़ी है। जाँचें कि यह पॉडकास्ट का RSS लिंक है।</string>
     <string name="error_invalid_url">यह सही पता नहीं है। इसे जांचें और फ़ीड का लिंक फिर से चिपकाएं।</string>
+    <string name="error_credentials_in_clear">यह पता पासवर्ड या एक्सेस कुंजी बिना एन्क्रिप्शन (http) के भेजेगा। https वाला लिंक इस्तेमाल करें।</string>
     <string name="error_browser_blocked">ब्राउज़र यह फ़ीड नहीं पढ़ सका: कई पॉडकास्ट साइटें केवल ऐप को पढ़ने देती हैं। फ़ोन या कंप्यूटर पर ऐप इस्तेमाल करें, या अपना कनेक्शन जाँचें।</string>
     <string name="error_storage_full">जगह कम है। जगह खाली करें और फिर कोशिश करें।</string>
     <string name="download_deleted">डाउनलोड हटाया गया</string>
@@ -410,4 +411,7 @@
     <string name="report_email_body">कारण: %1$s\nपॉडकास्ट: %2$s\nएपिसोड: %3$s\nफ़ीड होस्ट: %4$s</string>
     <string name="settings_privacy_policy">गोपनीयता नीति और शर्तें</string>
     <string name="settings_privacy_policy_description">ऐप क्या रखता और भेजता है, और ब्राज़ील में नाबालिगों के लिए क्या बदलता है।</string>
+    <string name="settings_privacy_contact">अपने डेटा के बारे में पूछें</string>
+    <string name="settings_privacy_contact_description">ईमेल से अपने निजी डेटा तक पहुँच, सुधार या उसे हटाने का अनुरोध करें।</string>
+    <string name="privacy_contact_subject">निजी डेटा से जुड़ा अनुरोध</string>
 </resources>

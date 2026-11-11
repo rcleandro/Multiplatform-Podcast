@@ -15,7 +15,13 @@ final class FirebaseTelemetry: FirebaseBridge {
         guard FirebaseApp.app() != nil else { return }
         Analytics.setAnalyticsCollectionEnabled(enabled)
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(enabled)
-        if !enabled { Crashlytics.crashlytics().deleteUnsentReports() }
+    }
+
+    /// After every "off" (`followTelemetryConsent`): unsent reports go, and the analytics id starts over (27.3).
+    func forgetCollected() {
+        guard FirebaseApp.app() != nil else { return }
+        Crashlytics.crashlytics().deleteUnsentReports()
+        Analytics.resetAnalyticsData()
     }
 
     func logEvent(name: String, params: [String: Any]?) {
