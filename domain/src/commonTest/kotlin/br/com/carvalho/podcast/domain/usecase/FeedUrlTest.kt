@@ -66,6 +66,31 @@ class FeedUrlTest {
         assertNull(movedFeedUrl("https://www.old.example.com/rss/", "http://old.example.com/rss"))
     }
 
+    // A password or token over plain http crosses the network in clear text on every refresh (27.8).
+    @Test
+    fun anHttpAddressWithCredentialsIsSpottedButAnOrdinaryOneIsNot() {
+        listOf(
+            "http://member:pass@feeds.example.com/rss",
+            "http://www.patreon.com/rss/creator?auth=Xy12abCD34",
+            "HTTP://feeds.example.com/rss?format=xml&access_token=abc",
+            "http://feeds.example.com/rss?apikey=abc",
+            "http://feeds.example.com/rss?password=abc",
+        ).forEach { assertTrue(sendsCredentialsInClear(it), it) }
+
+        listOf(
+            "https://member:pass@feeds.example.com/rss",
+            "https://www.patreon.com/rss/creator?auth=Xy12abCD34",
+            "http://feeds.feedburner.com/show?format=xml",
+            "http://hipsters.tech/feed",
+            "http://example.com/rss#token=abc",
+        ).forEach { assertFalse(sendsCredentialsInClear(it), it) }
+    }
+
+    @Test
+    fun `a feed never moves to an http address that would send its token in clear text`() {
+        assertNull(movedFeedUrl("https://old.example.com/rss?token=abc", "http://new.example.com/rss?token=abc"))
+    }
+
     @Test
     fun aPrivateFeedsSecretIsSpottedWhereverItSits() {
         // Token in the user info, the query or a long random part of the path (22.6, ADR 0014).

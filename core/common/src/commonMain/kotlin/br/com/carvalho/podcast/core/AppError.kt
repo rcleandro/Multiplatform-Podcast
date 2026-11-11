@@ -11,6 +11,9 @@ sealed class AppError(cause: Throwable? = null) : Exception(cause) {
     /** What the user typed cannot be a feed address. */
     data object InvalidUrl : AppError()
 
+    /** A plain http address with a password or token in it (27.8): it would cross the network in clear text. */
+    data object CredentialsInClear : AppError()
+
     /** The URL answered, but not with an RSS feed (a web page, for instance). */
     data object InvalidFeed : AppError()
 

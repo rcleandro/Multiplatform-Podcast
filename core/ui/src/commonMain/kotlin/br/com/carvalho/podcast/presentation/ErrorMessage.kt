@@ -3,6 +3,7 @@ package br.com.carvalho.podcast.presentation
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.ui.generated.resources.Res
 import br.com.carvalho.podcast.core.ui.generated.resources.error_browser_blocked
+import br.com.carvalho.podcast.core.ui.generated.resources.error_credentials_in_clear
 import br.com.carvalho.podcast.core.ui.generated.resources.error_feed_too_large
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_feed
 import br.com.carvalho.podcast.core.ui.generated.resources.error_invalid_url
@@ -21,6 +22,7 @@ fun Throwable.toMessage(fallback: StringResource): StringResource = when (this) 
     AppError.InvalidFeed -> Res.string.error_invalid_feed
     AppError.FeedTooLarge -> Res.string.error_feed_too_large
     AppError.InvalidUrl -> Res.string.error_invalid_url
+    AppError.CredentialsInClear -> Res.string.error_credentials_in_clear
     AppError.AlreadyExists -> Res.string.error_podcast_exists
     AppError.StorageFull -> Res.string.error_storage_full
     AppError.StorageLimit -> Res.string.error_storage_limit

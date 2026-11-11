@@ -40,8 +40,23 @@ fun feedUrlKey(url: String): String {
  * The address a feed moved to ([declared]: a permanent redirect or `itunes:new-feed-url`), when it is valid and not
  * just [current] written another way.
  */
-fun movedFeedUrl(current: String, declared: String?): String? =
-    declared?.let(::validFeedUrl)?.takeIf { feedUrlKey(it) != feedUrlKey(current) }
+fun movedFeedUrl(current: String, declared: String?): String? = declared?.let(::validFeedUrl)
+    ?.takeIf { feedUrlKey(it) != feedUrlKey(current) && !sendsCredentialsInClear(it) }
+
+// A query key that names a secret: token, key, auth, secret, pass and the like (apikey, access_token, password…).
+private val SECRET_QUERY_KEY = Regex("""(?:^|&)[^=&]*(?:token|key|auth|secret|pass)[^=&]*=""", RegexOption.IGNORE_CASE)
+
+/**
+ * Whether [url] is plain http and carries credentials (27.8): a user and password before the host, or a query key
+ * that names a secret. Such a feed's password would cross the network in clear text, on every refresh. Narrower than
+ * [mayCarrySecret] on purpose: a public http feed with an ordinary query (`?format=rss`) must still be added.
+ */
+fun sendsCredentialsInClear(url: String): Boolean {
+    if (!url.trim().startsWith("http://", ignoreCase = true)) return false
+    val rest = url.trim().substringAfter("://").substringBefore('#')
+    val authority = rest.takeWhile { it !in "/?" }
+    return '@' in authority || SECRET_QUERY_KEY.containsMatchIn(rest.substringAfter('?', missingDelimiterValue = ""))
+}
 
 /**
  * Whether [url] may carry an access secret (22.6, ADR 0014). A private feed keeps its token in the user info, the query
