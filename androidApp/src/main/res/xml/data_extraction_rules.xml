@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 12+: downloaded episodes stay out of the cloud backup and of device transfers; they come back
-     from the feed. -->
+<!-- Android 12+: the library holds private feed URLs with their tokens, so the cloud backup only runs when it is
+     end-to-end encrypted with the screen lock (27.7). Downloaded episodes stay out of it and of device transfers;
+     they come back from the feed. -->
 <data-extraction-rules>
-    <cloud-backup>
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
         <exclude domain="file" path="downloads/" />
     </cloud-backup>
     <device-transfer>

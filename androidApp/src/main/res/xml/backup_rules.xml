@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Before Android 12: the same rule as data_extraction_rules.xml. -->
-<full-backup-content>
+<!-- Before Android 12: the same rules as data_extraction_rules.xml. Each domain is backed up only when the backup is
+     end-to-end encrypted (27.7); Android 8.x ignores requireFlags (it came in Android 9) and backs them up as before.
+     Downloaded episodes stay out. -->
+<full-backup-content xmlns:tools="http://schemas.android.com/tools">
+    <include domain="file" path="." requireFlags="clientSideEncryption" tools:targetApi="28" />
+    <include domain="database" path="." requireFlags="clientSideEncryption" tools:targetApi="28" />
+    <include domain="sharedpref" path="." requireFlags="clientSideEncryption" tools:targetApi="28" />
     <exclude domain="file" path="downloads/" />
 </full-backup-content>

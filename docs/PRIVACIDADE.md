@@ -42,6 +42,10 @@ de uso nem relatórios de erro; nos relatórios de erro, desses endereços apare
 - **Ao seu app de e-mail:** uma denúncia abre o seu app de e-mail com o motivo, os títulos do podcast e do episódio e
   o nome do servidor do feed. Ela só é enviada se você mandar o e-mail.
 - **Backup:** "Exportar backup" cria um arquivo que fica onde você salvar. O app não o envia a lugar nenhum.
+- **Backup do Android:** se o backup estiver ligado no aparelho, o Android copia a biblioteca, o progresso e as
+  configurações (não os episódios baixados) para a sua conta Google, só quando esse backup é criptografado de ponta a
+  ponta com o bloqueio de tela, de modo que nem o Google consegue lê-lo. Sem essa criptografia, o app fica fora do
+  backup. Em Android 8, que não oferece essa opção, o backup segue as regras do sistema.
 
 ## Análise de uso e relatórios de erro (Google Firebase)
 
