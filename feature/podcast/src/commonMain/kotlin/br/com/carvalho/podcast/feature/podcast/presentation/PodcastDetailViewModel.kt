@@ -191,7 +191,6 @@ class PodcastDetailViewModel(
     private fun downloadEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
             analytics.logEvent(AnalyticsEvent.DownloadEpisode(episode.id))
-            AppLogger.i(TAG, "Starting download for episode: ${episode.title}")
             episodeDownloader.download(episode)
         }
     }

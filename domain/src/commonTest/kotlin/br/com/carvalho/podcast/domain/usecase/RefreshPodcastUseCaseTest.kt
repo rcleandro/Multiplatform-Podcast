@@ -1,6 +1,8 @@
 package br.com.carvalho.podcast.domain.usecase
 
 import br.com.carvalho.podcast.core.AppError
+import br.com.carvalho.podcast.core.observability.CrashReporter
+import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.model.Episode
 import br.com.carvalho.podcast.domain.model.FeedVersion
 import br.com.carvalho.podcast.domain.model.Podcast
@@ -8,6 +10,7 @@ import br.com.carvalho.podcast.domain.repository.FakeFeedSource
 import br.com.carvalho.podcast.domain.repository.FakePodcastRepository
 import br.com.carvalho.podcast.domain.repository.FetchedFeed
 import kotlinx.coroutines.test.runTest
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -42,6 +45,30 @@ class RefreshPodcastUseCaseTest {
             )
         )
     )
+
+    @AfterTest
+    fun tearDown() {
+        AppLogger.crashReporter = null
+    }
+
+    @Test
+    fun `the crash reporter gets the feed host, never the podcast title`() = runTest {
+        val logs = mutableListOf<String>()
+        AppLogger.crashReporter = object : CrashReporter {
+            override fun log(message: String) { logs += message }
+            override fun recordException(throwable: Throwable) { logs += throwable.toString() }
+        }
+        podcastRepo.podcasts.value = listOf(
+            samplePodcast.copy(title = "Secret Show", feedUrl = "https://feeds.example.com/rss?token=s3cr3t")
+        )
+        feedSource.result = Result.success(sampleFeed)
+        useCase("url")
+        feedSource.result = Result.failure(AppError.NoConnection)
+        useCase("url")
+
+        assertTrue(logs.any { "Failed to refresh podcast from feeds.example.com" in it }, logs.toString())
+        assertTrue(logs.none { "Secret Show" in it || "s3cr3t" in it }, logs.toString())
+    }
 
     @Test
     fun `invoking refresh updates podcast and episodes`() = runTest {

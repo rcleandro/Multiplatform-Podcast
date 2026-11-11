@@ -2,6 +2,7 @@ package br.com.carvalho.podcast.domain.usecase
 
 import br.com.carvalho.podcast.core.AppError
 import br.com.carvalho.podcast.core.observability.Metrics
+import br.com.carvalho.podcast.core.observability.urlHost
 import br.com.carvalho.podcast.core.util.AppLogger
 import br.com.carvalho.podcast.domain.repository.FeedSource
 import br.com.carvalho.podcast.domain.repository.PodcastRepository
@@ -30,7 +31,8 @@ class RefreshPodcastUseCase(
         val podcast = podcastRepository.getPodcastById(podcastId)
             ?: return Result.failure(AppError.NotFound)
 
-        AppLogger.i(TAG, "Refreshing podcast: ${podcast.title}")
+        // The host only: titles say what the person listens to, and these lines reach the crash reporter (27.1).
+        AppLogger.i(TAG, "Refreshing podcast from ${urlHost(podcast.feedUrl)}")
         val start = TimeSource.Monotonic.markNow()
         var outcome = "unchanged"
         return feedSource.fetchIfChanged(podcast.feedUrl, podcast.feedVersion, podcast.id)
@@ -46,7 +48,7 @@ class RefreshPodcastUseCase(
                 }
             }.onFailure { e ->
                 outcome = "failed"
-                AppLogger.e(TAG, "Failed to refresh podcast: ${podcast.title}", e)
+                AppLogger.e(TAG, "Failed to refresh podcast from ${urlHost(podcast.feedUrl)}", e)
             }.also {
                 Metrics.record(Metrics.FEED_REFRESH, start.elapsedNow(), "outcome" to outcome)
                 if (it.isSuccess) autoDownload?.invoke(podcast.id)

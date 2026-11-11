@@ -239,7 +239,6 @@ class SearchViewModel(
 
     private fun downloadEpisode(episode: Episode) {
         viewModelScope.launch(dispatchers.io) {
-            AppLogger.i(TAG, "Starting download for episode from search: ${episode.title}")
             episodeDownloader.download(episode)
         }
     }
