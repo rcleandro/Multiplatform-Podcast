@@ -4,8 +4,7 @@ package br.com.carvalho.podcast.presentation.component
  * The app's only contact: reports (26.7) and data subject requests (LGPD Art. 18, 27.4). Private, unlike the GitHub
  * issues, so whoever asks about their data is not exposed.
  */
-// ponytail: a stand-in address; replace it with the real dedicated mailbox before publishing (27.4).
-const val CONTACT_EMAIL = "privacidade@example.com"
+const val CONTACT_EMAIL = "sj.leandro@gmail.com"
 
 /** What is reported (26.7): a podcast, or one of its episodes when [episodeTitle] is set. */
 data class ReportTarget(val podcastTitle: String, val feedUrl: String, val episodeTitle: String? = null)

@@ -156,7 +156,7 @@ dos próprios feeds, e um podcast pode estar marcado de forma errada.
 
 ## Contato
 
-Pedidos sobre os seus dados e denúncias: **privacidade@example.com**, também em Configurações › Privacidade › "Pedir
+Pedidos sobre os seus dados e denúncias: **sj.leandro@gmail.com**, também em Configurações › Privacidade › "Pedir
 algo sobre os seus dados". A resposta vem em até 15 dias.
 
 Dúvidas gerais sobre o app, que não envolvam os seus dados, também podem ir à página do projeto:
