@@ -70,10 +70,10 @@ firebase-crashlytics-plugin = "3.0.8"
 
 # Testes
 turbine = "1.2.1"
-mockk = "1.14.11"
+mockk = "1.14.12"
 uiTest = "1.12.2"
 kover = "0.9.11"
-roborazzi = "1.77.0"
+roborazzi = "1.78.0"
 robolectric = "4.17"
 androidx-compose-ui = "1.12.1"
 junit = "4.13.2"
