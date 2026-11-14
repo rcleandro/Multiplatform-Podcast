@@ -64,7 +64,7 @@ detekt = "1.23.8"
 
 # Firebase
 firebase-bom = "35.1.0"
-firebase-gitlive = "2.7.0"
+firebase-gitlive = "2.8.0"
 google-services = "4.5.0"
 firebase-crashlytics-plugin = "3.0.8"
 
