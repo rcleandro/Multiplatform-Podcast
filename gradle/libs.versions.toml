@@ -63,9 +63,9 @@ kermit = "2.2.0"
 detekt = "1.23.8"
 
 # Firebase
-firebase-bom = "35.1.0"
+firebase-bom = "35.2.0"
 firebase-gitlive = "2.8.0"
-google-services = "4.5.0"
+google-services = "4.6.0"
 firebase-crashlytics-plugin = "3.0.8"
 
 # Testes
